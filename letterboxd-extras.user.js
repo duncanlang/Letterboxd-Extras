@@ -392,7 +392,7 @@
 					['data-original-title']: 'Weighted average of ' + this.imdbInfo[1] + ' based on ' + this.imdbInfo[2] + ' ratings'
 				});
 
-				imdbScore.innerHTML = this.imdbInfo[1];
+				imdbScore.innerText = this.imdbInfo[1];
 				imdbScoreSpan.append(imdbScore);
 
 				// Add the bars for the rating
@@ -556,7 +556,7 @@
 					['data-original-title']: hover
 				});
 
-				criticScore.innerHTML = criticPercent;
+				criticScore.innerText = criticPercent;
 				criticSpan.append(criticScore);
 
 				
@@ -592,7 +592,7 @@
 					['data-original-title']: hover
 				});
 
-				audienceScore.innerHTML = audiencePercent;
+				audienceScore.innerText = audiencePercent;
 				audienceSpan.append(audienceScore);
 				
 
@@ -664,7 +664,7 @@
 					//['data-original-title']: 'Average of ' + audienceRating + '/5 based on ' + audienceReviews + ' ratings'
 				});
 
-				scoreText.innerHTML = this.omdbData.Metascore;
+				scoreText.innerText = this.omdbData.Metascore;
 				span.append(scoreText);
 				
 
@@ -768,7 +768,7 @@
 	
 					// Text holder
 					const p = letterboxd.helpers.createElement('p', {});
-					p.innerHTML = budget;
+					p.innerText = budget;
 					sluglist.append(p);	
 				}
 
@@ -780,7 +780,7 @@
 					tabDetails.append(header);
 				
 					const span = letterboxd.helpers.createElement('span', {});
-					span.innerHTML = "Box Office";
+					span.innerText = "Box Office";
 					header.append(span);
 					
 					// Create the list element
@@ -791,7 +791,7 @@
 	
 					// Text holder
 					const p = letterboxd.helpers.createElement('p', {});
-					p.innerHTML = boxOffice;
+					p.innerText = boxOffice;
 					sluglist.append(p);
 				}
 			},
@@ -808,7 +808,7 @@
 				
 				const p = letterboxd.helpers.createElement('p', {
 				});
-				p.innerHTML = this.omdbData.Rated;
+				p.innerText = this.omdbData.Rated;
 				small.append(p);
 
 			},
@@ -848,7 +848,7 @@
 					const title = letterboxd.helpers.createElement('a', {
 						href: 'https://www.cinemascore.com/'
 					});
-					title.innerHTML = "CinemaScore"
+					title.innerText = "CinemaScore"
 					heading.append(title);
 
 					
@@ -862,7 +862,7 @@
 					const scoreText = letterboxd.helpers.createElement('a', {
 						class: 'tooltip display-rating -highlight cinema-grade',
 					});
-					scoreText.innerHTML = grade;
+					scoreText.innerText = grade;
 					span.append(scoreText);
 					
 
@@ -1016,7 +1016,7 @@ function ShowTwipsy(event){
 
 	const inner = document.createElement('div');
 	inner.className = 'twipsy-inner';
-	inner.innerHTML = this.getAttribute("data-original-title");
+	inner.innerText = this.getAttribute("data-original-title");
 	twipsy.append(inner);
 
 	$("body").prepend(twipsy);
