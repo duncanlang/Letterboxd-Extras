@@ -1,0 +1,40 @@
+{
+	"name": "letterboxd-extras",
+	"version": "1.0.0",
+	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
+	"scripts": {
+		"test": "eslint ."
+	},
+	"repository": "https://github.com/duncanlang/Letterboxd-Extras.git",
+	"author": "Duncan Lang (https://github.com/duncanlang)",
+	"license": "MIT",
+	"engines": {
+		"node": ">=8.0.0"
+	},
+	"devDependencies": {
+		"eslint": "^6.5.1",
+		"eslint-config-aqua": "^7.0.1"
+	},
+	"eslintConfig": {
+		"extends": [
+			"aqua"
+		],
+		"env": {
+			"browser": true,
+			"es6": true,
+			"webextensions": true
+		},
+		"rules": {
+			"func-names": 0,
+			"capitalized-comments": 0,
+			"max-len": 0,
+			"id-length": 0,
+			"no-warning-comments": 0,
+			"no-throw-literal": 0,
+			"no-invalid-this": 0,
+			"no-console": 0,
+			"padded-blocks": 0,
+			"quote-props": 0
+		}
+	}
+}

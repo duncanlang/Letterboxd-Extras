@@ -1,0 +1,28 @@
+{
+	"manifest_version": 2,
+	"name": "Letterboxd Extras",
+	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
+	"version": "1.0.0",
+	"minimum_chrome_version": "60.0.3112",
+
+	"icons": {
+		"128": "icon128.png"
+	},
+
+	"permissions": [
+		"https://letterboxd.com/*",
+		"https://www.imdb.com/*",
+		"https://www.omdbapi.com/*",
+		"https://www.rottentomatoes.com/*",
+		"https://www.boxofficemojo.com/*",
+		"https://api.cinemascore.com/*"
+	],
+
+	"content_scripts": [
+		{
+			"matches": [ "https://letterboxd.com/*" ],
+			"js": [ "polyfill.js", "letterboxd-extras.user.js", "jquery-3.6.0.min.js" ],
+			"run_at": "document_start"
+		}
+	]
+}
