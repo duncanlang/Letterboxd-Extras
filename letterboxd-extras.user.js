@@ -740,7 +740,7 @@
 				var budget = "";
 				for (var ii = 0; ii < summaryTable.childNodes.length; ii++){
 					if (summaryTable.childNodes[ii].innerHTML.includes("Budget")){
-						budget = summaryTable.childNodes[ii].childNodes[1].innerHTML;
+						budget = summaryTable.childNodes[ii].childNodes[1].childNodes[0].innerText;
 						break;
 					}
 				}
