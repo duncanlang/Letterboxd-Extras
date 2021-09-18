@@ -320,7 +320,7 @@
 				var k = 0
 				for (var ii = 1; ii < tableRows.length; ii++){
 					var votes = tableRows[ii].cells[2].children[0].children[0].innerText;
-					votes = parseInt(votes.replace(',',''));
+					votes = parseInt(votes.replaceAll(',',''));
 
 					if (votes > 0){
 						var percent = letterboxd.helpers.getTextBetween(tableRows[ii].cells[1].children[1].children[0].innerHTML,'&nbsp;\n','\n');
