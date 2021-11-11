@@ -122,6 +122,9 @@
 
 			cinemascore: null,
 
+			wikiData: null,
+			tomatoURL: "",
+
 			stopRunning() {
 				this.running = false;
 			},
@@ -211,6 +214,41 @@
 					}	
 				}
 
+				// Call WikiData
+				if (this.imdbID != ""){
+					var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}}';
+					if (this.wikiData == null){
+						var temp = await letterboxd.helpers.getWikiData(queryString);
+						if (temp != null && temp.results != null && temp.results.bindings != null && temp.results.bindings.length > 0){
+							this.wikiData = temp.results.bindings[0];
+						}
+					}	
+
+					// Add Rotten Tomatoes
+					if (this.wikiData != null && this.wikiData.Rotten_Tomatoes_ID != null && this.wikiData.Rotten_Tomatoes_ID.value != null){
+						this.tomatoURL = "https://www.rottentomatoes.com/" + this.wikiData.Rotten_Tomatoes_ID.value;
+
+						if (this.tomatoData == null){
+							try{
+								var tomato = await letterboxd.helpers.getOMDbData(this.tomatoURL);
+
+								if (tomato != "")
+									this.tomatoData = letterboxd.helpers.parseHTML(tomato);
+							}catch{
+
+							}
+						}
+
+						// Rotten Tomatoes
+						if (this.tomatoData != null){
+							// Add the everything to the page
+							this.addTomato();
+						}
+					}
+
+				}
+
+				/*
 				// Call OMDb
 				if (this.imdbID != ""){
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
@@ -240,6 +278,7 @@
 						// Get Rotten Tomatoes data
 						if (this.omdbData.tomatoURL != null && this.omdbData.tomatoURL != "" && this.omdbData.tomatoURL != "N/A"){
 							this.omdbData.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.tomatoURL);
+							this.tomatoURL = this.omdbData.tomatoURL;
 
 							if (this.tomatoData == null){
 								try{
@@ -261,6 +300,7 @@
 						}
 					}				
 				}
+				*/
 
 				// Stop
 				return this.stopRunning();
@@ -510,19 +550,10 @@
 
 				const logo = letterboxd.helpers.createElement('a', {
 					class: 'logo-tomatoes',
-					href: this.omdbData.tomatoURL,
+					href: this.tomatoURL,
 					style: 'height: 20px; width: 75px; background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/rtlogo.9b892cff3fd.png");'
 				});
 				heading.append(logo);
-				/*
-				const title = letterboxd.helpers.createElement('a', {
-					class: '',
-					href: this.omdbData.tomatoURL,
-					title: ""
-				});
-				title.innerHTML = "Rotten Tomatoes"
-				heading.append(title);
-				*/
 
 				// CRITIC SCORE /  TOMATOMETER
 				//************************************************************
@@ -554,7 +585,7 @@
 
 				const criticScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
-					href: this.omdbData.tomatoURL,
+					href: this.tomatoURL,
 					style: 'display: inline;',
 					['data-original-title']: hover
 				});
@@ -590,7 +621,7 @@
 
 				const audienceScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
-					href: this.omdbData.tomatoURL,
+					href: this.tomatoURL,
 					style: 'display: inline',
 					['data-original-title']: hover
 				});
@@ -689,11 +720,11 @@
 				if (!document.querySelector('.text-link.text-footer')) return;
 
 				// Add Rotten Tomatos
-				if (this.omdbData.tomatoURL != "N/A"){
-					if (!document.querySelector('.tomato-button') && this.omdbData != null && this.omdbData.tomatoURL != ""){
+				if (this.tomatoURL != "N/A"){
+					if (!document.querySelector('.tomato-button') && this.tomatoURL != ""){
 						var button = letterboxd.helpers.createElement('a', {
 							class: 'micro-button track-event tomato-button',
-							href: this.omdbData.tomatoURL,
+							href: this.tomatoURL,
 							style: "margin-right: 4px;"
 						});
 						button.innerText = "RT";
@@ -879,6 +910,7 @@
 
 		helpers: {
 			async getIMDBData(link) {
+				console.log(link);
 
 				try {
 					const res = await letterboxd.helpers.request({
@@ -902,6 +934,7 @@
 			},
 
 			async getOMDbData(link) {  
+				console.log(link);
 				var ajaxOptions = {
 					url: link,
 					type : 'GET'
@@ -925,6 +958,20 @@
 
 				return output;
 				*/
+			},
+
+			async getWikiData(link) {	
+				var ajaxOptions = {
+					url: link,
+					type : 'GET'
+				}
+
+				var output =  $.when($.ajax(ajaxOptions))
+				.then(function (results) {
+					return results;
+				});
+				
+				return output;
 			},
 
 			createElement(tag, attrs, styles) {
