@@ -16,7 +16,8 @@
 		"https://www.rottentomatoes.com/*",
 		"https://www.boxofficemojo.com/*",
 		"https://api.cinemascore.com/*",
-		"https://query.wikidata.org/*"
+		"https://query.wikidata.org/*",
+		"https://www.metacritic.com/*"
 	],
 
 	"content_scripts": [
