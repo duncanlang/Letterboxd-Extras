@@ -100,10 +100,10 @@
 		.tomato-ratings .section-heading, .meta-ratings .section-heading, .cinemascore .section-heading{
 			margin-bottom: 0px !important; 
 		}
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover{
 			opacity: 50%;
 		}
-		.logo-meta{
+		.logo-meta-link{
 			opacity: 100%;
 		}
 	`);
@@ -132,13 +132,25 @@
 
 			// WikiData
 			wiki: null,
-			wikiData: {tomatoURL: null, metaURL: null, budget: null, mpaa: null, date: null, rating: null},
+			wikiData: {tomatoURL: null, metaURL: "", budget: null, boxOffice: null, mpaa: null, date: null, rating: null},
 
 			// Rotten Tomatoes
 			tomatoData: null,
 
 			// Metacritic
 			metaData: null,
+
+			// MPAA rating
+			mpaaRating: null,
+
+			// Date
+			filmDate: null,
+
+			
+			rtAdded: false,
+			metaAdded: false,
+			dateAdded: false, 
+			ratingAdded: false,
 
 			stopRunning() {
 				this.running = false;
@@ -227,12 +239,16 @@
 					if (this.mojoData == null){
 						this.mojoData = letterboxd.helpers.parseHTML(await letterboxd.helpers.getIMDBData('https://www.boxofficemojo.com/title/' + this.imdbID)); 
 						this.addBoxOffice();
+
+						// If MPAA rating found on Mojo, add it now
+						if (this.mpaaRating != null)
+							this.addRating();
 					}	
 				}
 
 				// Call WikiData
 				if (this.imdbID != ""){
-					var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+?MPAA_film_rating+?MPAA_film_ratingLabel+?Budget+?Box_Office+?Publication_Date+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}+OPTIONAL+{+?item+wdt:P1657+?MPAA_film_rating.+}+OPTIONAL+{+?item+wdt:P2130+?Budget.+}+OPTIONAL+{+?item+wdt:P2142+?Box_Office.+}+OPTIONAL+{+?item+p:P577+?Publication_Date_entry.+?Publication_Date_entry+ps:P577+?Publication_Date.+?Publication_Date_entry+pq:P291+wd:Q30.}}';
+					var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+?MPAA_film_rating+?MPAA_film_ratingLabel+?Budget+?Box_Office+?Publication_Date+?Publication_Date_Backup+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}+OPTIONAL+{+?item+wdt:P1657+?MPAA_film_rating.+}+OPTIONAL+{+?item+wdt:P2130+?Budget.+}+OPTIONAL+{+?item+wdt:P2142+?Box_Office.+}+OPTIONAL+{+?item+p:P577+?Publication_Date_entry.+?Publication_Date_entry+ps:P577+?Publication_Date.+?Publication_Date_entry+pq:P291+wd:Q30.}OPTIONAL{?item+wdt:P577+?Publication_Date_Backup.}}';
 					if (this.wiki == null){
 						var temp = await letterboxd.helpers.getWikiData(queryString);
 						if (temp != null && temp.results != null && temp.results.bindings != null && temp.results.bindings.length > 0){
@@ -240,15 +256,31 @@
 						}
 					}	
 					
+					// Add links
+					this.addLinks();	
+
+					// Box Office and Budget
+					if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
+						this.wikiData.budget = this.wiki.Budget.value;
+					if (this.wiki != null && this.wiki.Box_Office != null && this.wiki.Box_Office.value != null)
+						this.wikiData.boxOffice = this.wiki.Box_Office.value;
+
+					this.addBoxOffice();
+				
 					// Add full release date
 					if (this.wiki != null && this.wiki.Publication_Date != null){
-						this.wikiData.date = new Date(this.wiki.Publication_Date.value.replace("Z",""));
+						var options = { year: 'numeric', month: 'short', day: 'numeric' };
+						this.filmDate = new Date(this.wiki.Publication_Date.value.replace("Z","")).toLocaleDateString("en-UK", options);
+						this.addDate();
+					}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null){
+						var options = { year: 'numeric', month: 'short', day: 'numeric' };
+						this.filmDate = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
 						this.addDate();
 					}
 	
 					// Add Rating
 					if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
-						this.wikiData.rating = letterboxd.helpers.determineMPAARating(this.wiki.MPAA_film_ratingLabel.value);
+						this.mpaaRating = letterboxd.helpers.determineMPAARating(this.wiki.MPAA_film_ratingLabel.value);
 						this.addRating();	
 					}
 
@@ -256,7 +288,7 @@
 					if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null){
 						this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
 
-						if (this.metaData == null){
+						if (this.metaData == null && this.metaAdded == false){
 							try{
 								var meta = await letterboxd.helpers.getOMDbData(this.wikiData.metaURL);
 
@@ -264,6 +296,7 @@
 									this.metaData = letterboxd.helpers.parseHTML(meta);
 							}catch{
 								console.log("Unable to parse Metacritic URL");
+								this.metaAdded = true; // so it doesn't keep calling
 							}
 						}
 
@@ -278,7 +311,7 @@
 					if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null){
 						this.wikiData.tomatoURL = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
 
-						if (this.tomatoData == null){
+						if (this.tomatoData == null && this.rtAdded == false){
 							try{
 								var tomato = await letterboxd.helpers.getOMDbData(this.wikiData.tomatoURL);
 
@@ -286,6 +319,7 @@
 									this.tomatoData = letterboxd.helpers.parseHTML(tomato);
 							}catch{
 								console.log("Unable to parse Rotten Tomatoes URL");
+								this.rtAdded = true; // so it doesn't keep calling
 							}
 						}
 
@@ -298,9 +332,8 @@
 
 				}
 
-				/*
-				// Call OMDb
-				if (this.imdbID != ""){
+				// Call OMDb for backup
+				if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || this.dateAdded == false || this.ratingAdded == false)){
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData == null){
 						this.omdbData = await letterboxd.helpers.getOMDbData(queryString);
@@ -312,21 +345,24 @@
 						this.addLinks();	
 
 						// Add full release date
-						if (this.omdbData.Released != null && this.omdbData.Released != "N/A")
+						if (this.omdbData.Released != null && this.omdbData.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && this.dateAdded == false){
+							this.filmDate = this.omdbData.Released;
 							this.addDate();
+						}
 	
 						// Add Rating
-						if (this.omdbData.Rated != null && this.omdbData.Rated != "N/A")
+						if (this.omdbData.Rated != null && this.omdbData.Rated != "N/A" && (this.wiki == null || this.wiki.MPAA_film_ratingLabel == null) && this.ratingAdded == false){
+							this.mpaaRating = this.omdbData.Rated;
 							this.addRating();	
-
+						}
 
 						// Add Metacritic
-						if (this.omdbData.Metascore != null && this.omdbData.Metascore != "N/A"){
+						if (this.omdbData.Metascore != null && this.omdbData.Metascore != "N/A" && (this.wiki == null || this.wiki.Metacritic_ID == null || this.wiki.Metacritic_ID.value == null) && this.metaAdded == false){
 							this.addMeta();
 						}
 
 						// Get Rotten Tomatoes data
-						if (this.omdbData.tomatoURL != null && this.omdbData.tomatoURL != "" && this.omdbData.tomatoURL != "N/A"){
+						if (this.omdbData.tomatoURL != null && this.omdbData.tomatoURL != "" && this.omdbData.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false){
 							this.omdbData.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.tomatoURL);
 							this.tomatoURL = this.omdbData.tomatoURL;
 
@@ -350,7 +386,6 @@
 						}
 					}				
 				}
-				*/
 
 				// Stop
 				return this.stopRunning();
@@ -456,18 +491,6 @@
 				imdbLogoHolder.innerHTML = '<svg id="home_img" class="ipc-logo" xmlns="http://www.w3.org/2000/svg" width="32" height="16" viewBox="0 0 64 32" version="1.1"><g fill="#F5C518"><rect x="0" y="0" width="100%" height="100%" rx="4"></rect></g><g transform="translate(8.000000, 7.000000)" fill="#000000" fill-rule="nonzero"><polygon points="0 18 5 18 5 0 0 0"></polygon><path d="M15.6725178,0 L14.5534833,8.40846934 L13.8582008,3.83502426 C13.65661,2.37009263 13.4632474,1.09175121 13.278113,0 L7,0 L7,18 L11.2416347,18 L11.2580911,6.11380679 L13.0436094,18 L16.0633571,18 L17.7583653,5.8517865 L17.7707076,18 L22,18 L22,0 L15.6725178,0 Z"></path><path d="M24,18 L24,0 L31.8045586,0 C33.5693522,0 35,1.41994415 35,3.17660424 L35,14.8233958 C35,16.5777858 33.5716617,18 31.8045586,18 L24,18 Z M29.8322479,3.2395236 C29.6339219,3.13233348 29.2545158,3.08072342 28.7026524,3.08072342 L28.7026524,14.8914865 C29.4312846,14.8914865 29.8796736,14.7604764 30.0478195,14.4865461 C30.2159654,14.2165858 30.3021941,13.486105 30.3021941,12.2871637 L30.3021941,5.3078959 C30.3021941,4.49404499 30.272014,3.97397442 30.2159654,3.74371416 C30.1599168,3.5134539 30.0348852,3.34671372 29.8322479,3.2395236 Z"></path><path d="M44.4299079,4.50685823 L44.749518,4.50685823 C46.5447098,4.50685823 48,5.91267586 48,7.64486762 L48,14.8619906 C48,16.5950653 46.5451816,18 44.749518,18 L44.4299079,18 C43.3314617,18 42.3602746,17.4736618 41.7718697,16.6682739 L41.4838962,17.7687785 L37,17.7687785 L37,0 L41.7843263,0 L41.7843263,5.78053556 C42.4024982,5.01015739 43.3551514,4.50685823 44.4299079,4.50685823 Z M43.4055679,13.2842155 L43.4055679,9.01907814 C43.4055679,8.31433946 43.3603268,7.85185468 43.2660746,7.63896485 C43.1718224,7.42607505 42.7955881,7.2893916 42.5316822,7.2893916 C42.267776,7.2893916 41.8607934,7.40047379 41.7816216,7.58767002 L41.7816216,9.01907814 L41.7816216,13.4207851 L41.7816216,14.8074788 C41.8721037,15.0130276 42.2602358,15.1274059 42.5316822,15.1274059 C42.8031285,15.1274059 43.1982131,15.0166981 43.281155,14.8074788 C43.3640968,14.5982595 43.4055679,14.0880581 43.4055679,13.2842155 Z"></path></g></svg>'
 				imdbHeading.append(imdbLogoHolder);
 
-				/*
-				const imdbTitle = letterboxd.helpers.createElement('a', {
-					class: '',
-					href: this.imdbInfo[0],
-					title: "",
-					style: "position: absolute; left: 40px;"
-				});
-				imdbTitle.innerHTML = "Ratings"
-				imdbHeading.append(imdbTitle);
-				*/
-
-
 				// The span that holds the score
 				const imdbScoreSpan = letterboxd.helpers.createElement('span', {
 					['itemprop']: 'aggregateRating',
@@ -484,9 +507,9 @@
 					href: this.imdbInfo[0],
 					['data-original-title']: 'Weighted average of ' + this.imdbInfo[1] + ' based on ' + this.imdbInfo[2] + ' ratings'
 				});
-
 				imdbScore.innerText = this.imdbInfo[1];
 				imdbScoreSpan.append(imdbScore);
+
 
 				// Add the bars for the rating
 				const histogram = letterboxd.helpers.createElement('div', {
@@ -512,7 +535,7 @@
 					il.append(a);
 
 					var max = 44.0;
-					var min = 1; //1.2277427490542245;
+					var min = 1;
 					var percent = this.imdbVotes[ii] / this.imdbHighest;
 					var height = (max * percent);
 
@@ -631,7 +654,7 @@
 				// The element that is the score itself
 				var hover = 'Average of ' + criticRating + '/10 based on ' + criticReviews + ' ratings';
 				if (criticPercent == "--")
-					hover = "0 Critic Reviews";
+					hover = criticReviews + " Critic Reviews";
 
 				const criticScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
@@ -668,7 +691,7 @@
 				// The element that is the score itself
 				var hover = 'Average of ' + audienceRating + '/5 based on ' + audienceReviews + ' ratings';
 				if (audiencePercent == "--")
-					hover = "0 Critic Reviews";
+					hover = audienceReviews + " Audience Reviews";
 
 				const audienceScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
@@ -697,6 +720,9 @@
 				//************************************************************
 				$(".tooltip.display-rating.-highlight.tomato-score").on("mouseover", ShowTwipsy);
 				$(".tooltip.display-rating.-highlight.tomato-score").on("mouseout", HideTwipsy);
+
+
+				this.rtAdded = true;
 			},
 
 			addMeta(){				
@@ -706,23 +732,26 @@
 
 				// First, lets grab all the useful information
 				//***************************************************************
-				var criticScore = this.metaData.querySelector('.metascore_w.larger.movie').innerHTML;
-				var userScore = this.metaData.querySelector('.metascore_w.user.larger.movie').innerHTML;
-
-				var counts = this.metaData.querySelectorAll('.based_on');
-				if (counts.length > 0){
-					var criticCount = counts[0].innerText;
-					criticCount = criticCount.replace("based on ","");
-					criticCount = criticCount.replace(" Critic Reviews","");
+				if (this.metaData != null){
+					var criticScore = this.metaData.querySelector('.metascore_w.larger.movie').innerHTML;
+					var userScore = this.metaData.querySelector('.metascore_w.user.larger.movie').innerHTML;
+	
+					var counts = this.metaData.querySelectorAll('.based_on');
+					if (counts.length > 0){
+						var criticCount = counts[0].innerText;
+						criticCount = criticCount.replace("based","Based");
+					}else{
+						var criticCount = "";
+					}
+					if (counts.length > 1){
+						var userCount = counts[1].innerHTML;
+						userCount = userCount.replace("based","Based");
+						userCount = userCount.replace("Ratings","User Ratings");
+					}else{
+						var userCount = "";
+					}
 				}else{
-					var criticCount = "";
-				}
-				if (counts.length > 1){
-					var userCount = counts[1].innerHTML;
-					userCount = userCount.replace("based on ","");
-					userCount = userCount.replace(" Ratings","");
-				}else{
-					var userCount = "";
+					var criticScore = this.omdbData.Metascore;
 				}
 
 				// Now lets add it to the page
@@ -739,8 +768,15 @@
 				});
 				section.append(heading);
 
+
+				if (this.metaData != null){
+					var elementClass = "logo-meta-link";
+				}else{
+					var elementClass = "logo-meta";
+				}
+
 				const logoHolder = letterboxd.helpers.createElement('a', {
-					class: 'logo-meta',
+					class: elementClass,
 					style: 'width: 100%;',
 					href: this.wikiData.metaURL
 				});
@@ -771,9 +807,12 @@
 				const criticText = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight meta-score',
 					href: this.wikiData.metaURL + "/critic-reviews",
-					style: 'background-color: ' + colour + ';'//,
-					//['data-original-title']: 'Average of ' + audienceRating + '/5 based on ' + audienceReviews + ' ratings'
+					style: 'background-color: ' + colour + ';',
+					['data-original-title']: criticCount
 				});
+				if (criticCount != ""){
+					criticText.setAttribute('data-original-title',criticCount)
+				}
 
 				criticText.innerText = criticScore;
 				spanCritic.append(criticText);
@@ -781,23 +820,27 @@
 				
 				// User score
 				//***************************************************************
-				// The span that holds the score
-				const spanUser = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block;'
-				});
-				section.append(spanUser);
-				
-				var colour = letterboxd.helpers.determineMetaColour(userScore, true);
-				// The element that is the score itself
-				const userText = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight meta-score-user',
-					href: this.wikiData.metaURL + "/user-reviews",
-					style: 'background-color: ' + colour + ';'//,
-					//['data-original-title']: 'Average of ' + audienceRating + '/5 based on ' + audienceReviews + ' ratings'
-				});
+				if (this.metaData != null){
+					// The span that holds the score
+					const spanUser = letterboxd.helpers.createElement('span', {
+						style: 'display: inline-block;'
+					});
+					section.append(spanUser);
+					
+					var colour = letterboxd.helpers.determineMetaColour(userScore, true);
+					// The element that is the score itself
+					const userText = letterboxd.helpers.createElement('a', {
+						class: 'tooltip display-rating -highlight meta-score-user',
+						href: this.wikiData.metaURL + "/user-reviews",
+						style: 'background-color: ' + colour + ';'
+					});
+					if (userCount != ""){
+						userText.setAttribute('data-original-title',userCount)
+					}
 
-				userText.innerText = userScore;
-				spanUser.append(userText);
+					userText.innerText = userScore;
+					spanUser.append(userText);
+				}
 
 				// APPEND
 				//************************************************************
@@ -811,12 +854,25 @@
 					document.querySelector('.sidebar').append(section);
 				}
 
+				// Add Hover events
+				//************************************************************
+				if (criticCount != ""){
+					$(".tooltip.display-rating.-highlight.meta-score").on("mouseover", ShowTwipsy);
+					$(".tooltip.display-rating.-highlight.meta-score").on("mouseout", HideTwipsy);
+				}
+				if (userCount != ""){
+					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseover", ShowTwipsy);
+					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseout", HideTwipsy);
+				}
+
+				this.metaAdded = true;
+
 			},
 			
 			addLinks(){
 				if (!document.querySelector('.text-link.text-footer')) return;
 
-				// Add Rotten Tomatos
+				// Add Rotten Tomatoes
 				if (this.wikiData.tomatoURL != null){
 					if (!document.querySelector('.tomato-button') && this.wikiData.tomatoURL != ""){
 						var button = letterboxd.helpers.createElement('a', {
@@ -825,7 +881,33 @@
 							style: "margin-right: 4px;"
 						});
 						button.innerText = "RT";
-						document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+
+						if (document.querySelector('.meta-button')){
+							document.querySelector('.meta-button').before(button);
+						}else if (document.querySelector('.mojo-button')){
+							document.querySelector('.mojo-button').before(button);
+						}else{
+							document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+						}
+					}
+				}
+				// Add Metacritic
+				if (this.wikiData.metaURL != null){
+					if (!document.querySelector('.meta-button') && this.wikiData.metaURL != ""){
+						var button = letterboxd.helpers.createElement('a', {
+							class: 'micro-button track-event meta-button',
+							href: this.wikiData.metaURL,
+							style: "margin-right: 4px;"
+						});
+						button.innerText = "META";
+
+						if (document.querySelector('.tomato-button')){
+							document.querySelector('.tomato-button').after(button);
+						}else if (document.querySelector('.mojo-button')){
+							document.querySelector('.mojo-button').before(button);
+						}else{
+							document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+						}
 					}
 				}
 				// Add Mojo
@@ -835,24 +917,33 @@
 						href: 'https://www.boxofficemojo.com/title/' + this.imdbID
 					});
 					button.innerText = "Mojo";
-					document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+
+					if (document.querySelector('.mojo-button')){
+						document.querySelector('.mojo-button').after(button);
+					}else if (document.querySelector('.rt-button')){
+						document.querySelector('.rt-button').after(button);
+					}else{
+						document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+					}
 				}
 			},
 
 			addDate(){
 				const year = document.querySelector('.number');
 
-				if (year != null && !year.getAttribute('data-original-title')){
-					var options = { year: 'numeric', month: 'short', day: 'numeric' };
-					year.setAttribute("data-original-title", this.wikiData.date.toLocaleDateString("en-UK", options));
+				if (year != null && !year.getAttribute('data-original-title') && this.dateAdded == false){
+					year.setAttribute("data-original-title", this.filmDate);
+					year.setAttribute("class", year.getAttribute("class") + " number-tooltip")
 					
-					$(".number").on("mouseover", ShowTwipsy);
-					$(".number").on("mouseout", HideTwipsy);
+					$(".number-tooltip").on("mouseover", ShowTwipsy);
+					$(".number-tooltip").on("mouseout", HideTwipsy);
+
+					this.dateAdded = true;
 				}
 			},
 
 			addBoxOffice(){
-				if (document.querySelector('.box-office')) return;
+				if (document.querySelector('.box-office') && document.querySelector('.budget')) return;
 
 				// First Grab the info
 				//*****************************************************
@@ -871,10 +962,32 @@
 
 				var budget = "";
 				for (var ii = 0; ii < summaryTable.childNodes.length; ii++){
-					if (summaryTable.childNodes[ii].innerHTML.includes("Budget")){
-						budget = summaryTable.childNodes[ii].childNodes[1].childNodes[0].innerText;
-						break;
+					var node = summaryTable.childNodes[ii];
+					var header = node.childNodes[0].innerText;
+					var data = node.childNodes[1].innerText;
+					
+					if (header == "Budget"){
+						budget = data;
+					}else if (header == "MPAA"){
+						this.mpaaRating = data;
 					}
+				}
+
+				// Use WikiData if available
+				if (boxOffice == "" && this.wikiData.boxOffice != null)
+					boxOffice = this.wikiData.boxOffice;
+					
+				if (budget == "" && this.wikiData.budget != null)
+					budget = this.wikiData.budget;
+
+				// Fix the values if necessary
+				if (!boxOffice.startsWith("$") && boxOffice != ""){
+					boxOffice = Number(boxOffice).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
+					boxOffice = boxOffice.replace("US","");
+				}
+				if (!budget.startsWith("$") && budget != ""){
+					budget = Number(budget).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
+					budget = budget.replace("US","");
 				}
 
 				//*****************************************************
@@ -883,10 +996,15 @@
 
 				// Add the budget
 				//*****************************************************
-				if (budget != ""){
+				if (budget != "" && !document.querySelector('.budget')){
 					// Create the row header element				
 					const header = letterboxd.helpers.createElement('h3', {});
-					tabDetails.append(header);
+
+					if(tabDetails.querySelector('.box-office-header')){
+						tabDetails.querySelector('.box-office-header').before(header);
+					}else{
+						tabDetails.append(header);
+					}
 				
 					const span = letterboxd.helpers.createElement('span', {});
 					span.innerHTML = "Budget";
@@ -894,9 +1012,9 @@
 					
 					// Create the list element
 					const sluglist = letterboxd.helpers.createElement('div', {
-						class: 'text-indentedlist box-office'
+						class: 'text-indentedlist budget'
 					});
-					tabDetails.append(sluglist);
+					header.after(sluglist);
 	
 					// Text holder
 					const p = letterboxd.helpers.createElement('p', {});
@@ -906,9 +1024,11 @@
 
 				// Add the Box Office
 				//*****************************************************
-				if (boxOffice != ""){
+				if (boxOffice != "" && !document.querySelector('.box-office')){
 					// Create the row header element				
-					const header = letterboxd.helpers.createElement('h3', {});
+					const header = letterboxd.helpers.createElement('h3', {
+						class: 'box-office-header'
+					});
 					tabDetails.append(header);
 				
 					const span = letterboxd.helpers.createElement('span', {});
@@ -940,8 +1060,10 @@
 				
 				const p = letterboxd.helpers.createElement('p', {
 				});
-				p.innerText = this.wikiData.rating;
+				p.innerText = this.mpaaRating;
 				small.append(p);
+
+				this.ratingAdded = true;
 
 			},
 
@@ -1008,8 +1130,6 @@
 
 		helpers: {
 			async getIMDBData(link) {
-				console.log(link);
-
 				try {
 					const res = await letterboxd.helpers.request({
 						url: link,
@@ -1032,7 +1152,6 @@
 			},
 
 			async getOMDbData(link) {  
-				console.log(link);
 				var ajaxOptions = {
 					url: link,
 					type : 'GET'
@@ -1135,7 +1254,7 @@
 			determineMetaColour(metascore, user){
 				var output = "#ccc"; //grey tba
 				if (metascore != "tbd"){
-					var score = parseInt(metascore);
+					var score = parseFloat(metascore);
 					if (user == true) score = score * 10;
 
 					if (score >= 61){
