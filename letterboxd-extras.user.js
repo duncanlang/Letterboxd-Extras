@@ -364,11 +364,11 @@
 						// Get Rotten Tomatoes data
 						if (this.omdbData.tomatoURL != null && this.omdbData.tomatoURL != "" && this.omdbData.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false){
 							this.omdbData.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.tomatoURL);
-							this.tomatoURL = this.omdbData.tomatoURL;
+							this.wikiData.tomatoURL = this.omdbData.tomatoURL;
 
 							if (this.tomatoData == null){
 								try{
-									var tomato = await letterboxd.helpers.getOMDbData(this.omdbData.tomatoURL);
+									var tomato = await letterboxd.helpers.getOMDbData(this.wikiData.tomatoURL);
 	
 									if (tomato != "")
 										this.tomatoData = letterboxd.helpers.parseHTML(tomato);
