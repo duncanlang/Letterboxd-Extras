@@ -658,7 +658,7 @@
 
 				const criticScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
-					href: this.tomatoURL,
+					href: this.wikiData.tomatoURL + "/reviews",
 					style: 'display: inline;',
 					['data-original-title']: hover
 				});
@@ -695,7 +695,7 @@
 
 				const audienceScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
-					href: this.wikiData.tomatoURL,
+					href: this.wikiData.tomatoURL + "/reviews?type=user",
 					style: 'display: inline',
 					['data-original-title']: hover
 				});
