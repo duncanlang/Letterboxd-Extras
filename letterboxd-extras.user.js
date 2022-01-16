@@ -243,6 +243,10 @@
 						// If MPAA rating found on Mojo, add it now
 						if (this.mpaaRating != null)
 							this.addRating();
+
+						// If the domestic date was found on Mojo, add it now
+						if (this.filmDate != null && this.dateAdded == false)
+							this.addDate();
 					}	
 				}
 
@@ -268,12 +272,11 @@
 					this.addBoxOffice();
 				
 					// Add full release date
-					if (this.wiki != null && this.wiki.Publication_Date != null){
-						var options = { year: 'numeric', month: 'short', day: 'numeric' };
+					var options = { year: 'numeric', month: 'short', day: 'numeric' };
+					if (this.wiki != null && this.wiki.Publication_Date != null && this.dateAdded == false){
 						this.filmDate = new Date(this.wiki.Publication_Date.value.replace("Z","")).toLocaleDateString("en-UK", options);
 						this.addDate();
-					}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null){
-						var options = { year: 'numeric', month: 'short', day: 'numeric' };
+					}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null && this.dateAdded == false){
 						this.filmDate = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
 						this.addDate();
 					}
@@ -333,7 +336,7 @@
 				}
 
 				// Call OMDb for backup
-				if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || this.dateAdded == false || this.ratingAdded == false)){
+				if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")) || this.ratingAdded == false)){
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData == null){
 						this.omdbData = await letterboxd.helpers.getOMDbData(queryString);
@@ -345,7 +348,7 @@
 						this.addLinks();	
 
 						// Add full release date
-						if (this.omdbData.Released != null && this.omdbData.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && this.dateAdded == false){
+						if (this.omdbData.Released != null && this.omdbData.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.startsWith("1 Jan"))){
 							this.filmDate = this.omdbData.Released;
 							this.addDate();
 						}
@@ -931,14 +934,16 @@
 			addDate(){
 				const year = document.querySelector('.number');
 
-				if (year != null && !year.getAttribute('data-original-title') && this.dateAdded == false){
+				if (year != null){
 					year.setAttribute("data-original-title", this.filmDate);
-					year.setAttribute("class", year.getAttribute("class") + " number-tooltip")
-					
-					$(".number-tooltip").on("mouseover", ShowTwipsy);
-					$(".number-tooltip").on("mouseout", HideTwipsy);
+					if (this.dateAdded == false){
+						year.setAttribute("class", year.getAttribute("class") + " number-tooltip")
+						
+						$(".number-tooltip").on("mouseover", ShowTwipsy);
+						$(".number-tooltip").on("mouseout", HideTwipsy);
 
-					this.dateAdded = true;
+						this.dateAdded = true;
+					}
 				}
 			},
 
@@ -956,7 +961,8 @@
 				if (money.length > 0)
 					var boxOffice = money[money.length-1].innerHTML;
 
-
+				// This is for formatting the date
+				var options = { year: 'numeric', month: 'short', day: 'numeric' };
 				// Budget
 				const summaryTable = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-summary-values.mojo-hidden-from-mobile');
 
@@ -970,6 +976,40 @@
 						budget = data;
 					}else if (header == "MPAA"){
 						this.mpaaRating = data;
+					}else if (header == "Earliest Release Date" && data.includes("Domestic")){
+						this.filmDate = data.split("\n")[0];
+						this.filmDate = this.filmDate.replace(",","");
+						this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+					}
+				}
+
+				// Quick Check for release dates
+				if (this.filmDate == null || this.filmDate == ""){
+					var a_Section = this.mojoData.querySelector('.a-section.mojo-h-scroll');
+					if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("Domestic")){
+						var a_Section_Rows = a_Section.childNodes[2].rows;
+						for (var ii = 1; ii < a_Section_Rows.length; ii++){
+							var header = a_Section_Rows[ii].childNodes[0].innerText;
+							var date = a_Section_Rows[ii].childNodes[1].innerText;
+							
+							if (header == "Domestic"){
+								this.filmDate = date.replace(",","");
+								this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+							}
+						}
+					}
+					if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("By Release")){
+						var a_Section_Rows = a_Section.childNodes[1].rows;
+						for (var ii = 1; ii < a_Section_Rows.length; ii++){
+							var group = a_Section_Rows[ii].childNodes[0].innerText;
+							var date = a_Section_Rows[ii].childNodes[1].innerText;
+							var markets = a_Section_Rows[ii].childNodes[2].innerText;
+							
+							if (group == "Original Release" && markets.includes("Domestic")){
+								this.filmDate = date.replace(",","");
+								this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+							}
+						}
 					}
 				}
 
