@@ -295,8 +295,10 @@
 							try{
 								var meta = await letterboxd.helpers.getOMDbData(this.wikiData.metaURL);
 
-								if (meta != "")
+								if (meta != ""){
 									this.metaData = letterboxd.helpers.parseHTML(meta);
+									this.wikiData.metaURL = letterboxd.helpers.getOriginalURL(meta);
+								}
 							}catch{
 								console.log("Unable to parse Metacritic URL");
 								this.metaAdded = true; // so it doesn't keep calling
@@ -318,8 +320,10 @@
 							try{
 								var tomato = await letterboxd.helpers.getOMDbData(this.wikiData.tomatoURL);
 
-								if (tomato != "")
+								if (tomato != ""){
 									this.tomatoData = letterboxd.helpers.parseHTML(tomato);
+									this.wikiData.tomatoURL = letterboxd.helpers.getOriginalURL(tomato);
+								}
 							}catch{
 								console.log("Unable to parse Rotten Tomatoes URL");
 								this.rtAdded = true; // so it doesn't keep calling
@@ -1254,6 +1258,13 @@
 			parseHTML(html){
 				var parser = new DOMParser();
 				return parser.parseFromString(html, "text/html");
+			},
+
+			getOriginalURL(html){
+				var output = "";
+				var split = html.split('<meta property="og:url" content="');
+				output = split[1].split('">')[0];
+				return output;
 			},
 
 			fixURL(url){
