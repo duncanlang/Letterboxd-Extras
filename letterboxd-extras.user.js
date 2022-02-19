@@ -137,6 +137,31 @@
 			-webkit-transition: opacity 0.10s linear;
 			transition: opacity 0.10s linear;
 		}
+		.rt-button{
+			display: inline;
+			font-size: 9px;
+			width: 48%;
+			text-align: center;
+			color: #9ab;
+			border-radius: 3px;
+			background-color: #283038;
+			padding: 1px;
+			padding-left: 3px;
+			padding-right: 3px;
+		}
+		.rt-button.selected{
+			color: #def;
+		}
+		.rt-button:not(.selected):not(.disabled):hover{
+			color: #def;
+			cursor: pointer;
+		}
+		.rt-button.disabled{
+			color: #626d77;
+			background-color: transparent;
+			border: 1px solid #283038;
+			padding: 0px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -162,7 +187,7 @@
 			wikiData: {tomatoURL: null, metaURL: "", budget: null, boxOffice: null, mpaa: null, date: null, rating: null},
 
 			// Rotten Tomatoes
-			tomatoData: {data: null, raw: null},
+			tomatoData: {data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
 
 			// Metacritic
 			metaData: null,
@@ -699,66 +724,102 @@
 
 				if (!document.querySelector('.sidebar')) return;
 
+				if (this.tomatoData.raw.includes('404 - Not Found')) return;
 
 				// Lets grab all the potentially useful information first 
 				//***************************************************************
-				var criticPercent = "";
-				var audiencePercent = "";
-				var criticState = "";
-				var audienceState = "";
-				
-				var criticRating = "";
-				var audienceRating = "";
-				var criticReviews = "";
-				var audienceReviews = "";
+				this.tomatoData.criticAll = {percent: "", state: "", rating: "", num_ratings: "", likedCount: "", notLikedCount: ""};
+				this.tomatoData.criticTop = {percent: "", state: "", rating: "", num_ratings: "", likedCount: "", notLikedCount: ""};
+				this.tomatoData.audienceAll = {percent: "", state: "", rating: "", num_ratings: "", likedCount: "", notLikedCount: ""};
+				this.tomatoData.audienceVerified = {percent: "", state: "", rating: "", num_ratings: "", likedCount: "", notLikedCount: ""};
+
+				// Different collected for Movies vs TV
 				if (this.imdbData.isMiniSeries == false){
-					var scoreboard = scoreboard = this.tomatoData.data.querySelector(".scoreboard");
-				
-					// Percentages
-					criticPercent = scoreboard.getAttribute("tomatometerscore");
-					audiencePercent = scoreboard.getAttribute("audiencescore");
-					// States
-					criticState = scoreboard.getAttribute("tomatometerstate");
-					audienceState = scoreboard.getAttribute("audiencestate");
-	
+					// MOVIES
 					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#score-details-json').innerHTML);
-					// Ratings
-					criticRating = scoredetails.modal.tomatometerScoreAll.averageRating;
-					audienceRating = scoredetails.modal.audienceScoreAll.averageRating;
-					// Num of reviews
-					criticReviews = scoredetails.modal.tomatometerScoreAll.reviewCount.toLocaleString();
-					audienceReviews = scoredetails.modal.audienceScoreAll.ratingCount.toLocaleString();
-				}else{
-					var scoreInfo = JSON.parse(letterboxd.helpers.getTextBetween(this.tomatoData.raw, ".scoreInfo = ",";"));
+					// Critic All
+					this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.score.toString();
+					this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.tomatometerState;
+					this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
+					this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
+					this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
+					this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
+					// Critic Top
+					if (scoredetails.modal.tomatometerScoreTop.score != null){
+						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.score.toString();
+						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.tomatometerState;
+						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
+						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
+						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
+						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
 
-					// Percentages
-					criticPercent = scoreInfo.tomatometerAllCritics.score.toString();
-					audiencePercent =  scoreInfo.audienceAll.score.toString();
-					// States
-					criticState = scoreInfo.tomatometerAllCritics.state;
-					audienceState = scoreInfo.audienceAll.state;
-					// Ratings
-					criticRating = scoreInfo.tomatometerAllCritics.averageRating.toString();
-					audienceRating = scoreInfo.audienceAll.averageRating.toString();
-					// Num of reviews
-					criticReviews = scoreInfo.tomatometerAllCritics.ratingCount.toString();
-					audienceReviews = scoreInfo.audienceAll.ratingCount.toString();
-				}
-	
-				// Add percent or --
-				if (criticPercent == null || criticPercent == "")
-					criticPercent = "--";
-				else
-					criticPercent += "%";
+						var score = scoredetails.modal.tomatometerScoreTop.score;
+						var state = scoredetails.modal.tomatometerScoreTop.tomatometerState;
+						if (score < 60 && state.includes("fresh")){
+							this.tomatoData.criticTop.state = "rotten";
+						}else if(score >= 60 && state == "rotten"){
+							this.tomatoData.criticTop.state = "fresh";
+						}
+					}
 					
-				if (audiencePercent == null || audiencePercent == "")
-					audiencePercent = "--";
-				else
-					audiencePercent += "%";
+					// Audience All	
+					this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.score.toString();
+					this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.audienceClass;
+					this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
+					this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
+					this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
+					this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
+					// Audience Verified
+					if (scoredetails.modal.audienceScoreVerified.score != null){
+						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.score.toString();
+						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.audienceClass;
+						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
+						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
+						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
+						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
+					}
 
-				// No scores
-				if (criticPercent == '--' && audiencePercent == '--') return
+				}else{
+					// TV MINI SERIES
+					var scoreInfo = JSON.parse(letterboxd.helpers.getTextBetween(this.tomatoData.raw, ".scoreInfo = ",";"));
+					
+					// Critic All
+					this.tomatoData.criticAll.percent 					= scoreInfo.tomatometerAllCritics.score.toString();
+					this.tomatoData.criticAll.state 					= scoreInfo.tomatometerAllCritics.state;
+					this.tomatoData.criticAll.rating 					= scoreInfo.tomatometerAllCritics.averageRating;
+					this.tomatoData.criticAll.num_ratings 				= scoreInfo.tomatometerAllCritics.ratingCount.toString();
+					this.tomatoData.criticAll.likedCount 				= scoreInfo.tomatometerAllCritics.likedCount.toString();
+					this.tomatoData.criticAll.notLikedCount 			= scoreInfo.tomatometerAllCritics.notLikedCount.toString();
+					// Critic Top
+					if (scoreInfo.tomatometerTopCritics.score != null){
+						this.tomatoData.criticTop.percent 				= scoreInfo.tomatometerTopCritics.score.toString();
+						this.tomatoData.criticTop.state 				= scoreInfo.tomatometerTopCritics.state;
+						this.tomatoData.criticTop.rating 				= scoreInfo.tomatometerTopCritics.averageRating;
+						this.tomatoData.criticTop.num_ratings 			= scoreInfo.tomatometerTopCritics.ratingCount.toString();
+						this.tomatoData.criticTop.likedCount 			= scoreInfo.tomatometerTopCritics.likedCount.toString();
+						this.tomatoData.criticTop.notLikedCount 		= scoreInfo.tomatometerTopCritics.notLikedCount.toString();
+					}
+					
+					// Audience All	
+					this.tomatoData.audienceAll.percent 				= scoreInfo.audienceAll.score.toString();
+					this.tomatoData.audienceAll.state 					= scoreInfo.audienceAll.state;
+					this.tomatoData.audienceAll.rating 					= scoreInfo.audienceAll.averageRating;
+					this.tomatoData.audienceAll.num_ratings 			= scoreInfo.audienceAll.ratingCount.toString();
+					this.tomatoData.audienceAll.likedCount 				= scoreInfo.audienceAll.likedCount.toString();
+					this.tomatoData.audienceAll.notLikedCount 			= scoreInfo.audienceAll.notLikedCount.toString();
+					// Audience Verified - shouldn't ever be a thing for TV, but what the heck
+					if (scoreInfo.audienceVerified != null){
+						this.tomatoData.audienceVerified.percent 		= scoreInfo.audienceVerified.score.toString();
+						this.tomatoData.audienceVerified.state 			= scoreInfo.audienceVerified.state;
+						this.tomatoData.audienceVerified.rating 		= scoreInfo.audienceVerified.averageRating;
+						this.tomatoData.audienceVerified.num_ratings 	= scoreInfo.audienceVerified.ratingCount.toString();
+						this.tomatoData.audienceVerified.likedCount 	= scoreInfo.audienceVerified.likedCount.toString();
+						this.tomatoData.audienceVerified.notLikedCount 	= scoreInfo.audienceVerified.notLikedCount.toString();
+					}
+				}
 
+				// Return if no scores what so ever
+				if (this.tomatoData.audienceAll.percent == "" && this.tomatoData.criticAll.percent == "") return;
 
 				// Now display all this on the page
 				//***************************************************************
@@ -789,73 +850,76 @@
 				});
 				section.append(criticSpan);
 
-				// Load the image from rotten tomatoes
-				var image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
-				if (criticState == "certified-fresh"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/certified_fresh.75211285dbb.svg';
-				}else if (criticState == "fresh"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-fresh.149b5e8adc3.svg';
-				}else if (criticState == "rotten"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-rotten.f1ef4f02ce3.svg';
-				}				
-				const criticImage = letterboxd.helpers.createElement('span', {
-					class: 'icon-tomato',
-					style: 'background-image: url("' + image + '");'
+
+				// Add toggle buttons
+				const buttonDiv = letterboxd.helpers.createElement('div', {
+					style: 'display: block; margin-right: 10px;'
 				});
-				criticSpan.append(criticImage);
-				
-				// The element that is the score itself
-				var hover = 'Average of ' + criticRating + '/10 based on ' + criticReviews + ' ratings';
-				if (criticPercent == "--")
-					hover = criticReviews + " Critic Reviews";
-
-				const criticScore = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight tomato-score',
-					href: this.wikiData.tomatoURL + "/reviews",
-					style: 'display: inline;',
-					['data-original-title']: hover
+				criticSpan.append(buttonDiv);
+				// All button
+				const allButton = letterboxd.helpers.createElement('span', {
+					class: 'rt-button critic-all selected',
+					['target']: 'score-critic-all'
 				});
+				if (this.tomatoData.criticAll.percent == ""){
+					allButton.className += " disabled";
+				}
+				allButton.innerText = "ALL";
+				buttonDiv.append(allButton);
+				// Top button
+				const topButton = letterboxd.helpers.createElement('span', {
+					class: 'rt-button critic-top',
+					['target']: 'score-critic-top'
+				});
+				if (this.tomatoData.criticAll.percent == ""){
+					topButton.className += " disabled";
+				}
+				topButton.innerText = "TOP";
+				buttonDiv.append(topButton);
 
-				criticScore.innerText = criticPercent;
-				criticSpan.append(criticScore);
+				// Add scores
+				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all","Critic",this.wikiData.tomatoURL,this.tomatoData.criticAll,"block"));
+				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top","Top Critic",this.wikiData.tomatoURL,this.tomatoData.criticTop,"none"));
 
-				
 				// AUDIENCE SCORE
 				//************************************************************
 				// The span that holds the score
 				const audienceSpan = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block;'
+					style: 'display: inline-block; padding-right: 10px;'
 				});
 				section.append(audienceSpan);
 
-				// Load the image from rottent tomators
-				image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg';
-				if (audienceState == "upright"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-fresh.6c24d79faaf.svg';
-				}else if (audienceState == "spilled"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-rotten.f419e4046b7.svg';
-				}				
-				const audienceImage = letterboxd.helpers.createElement('span', {
-					class: 'icon-popcorn',
-					style: 'background-image: url("' + image + '");'
-				});
-				audienceSpan.append(audienceImage);
-				
-				// The element that is the score itself
-				var hover = 'Average of ' + audienceRating + '/5 based on ' + audienceReviews + ' ratings';
-				if (audiencePercent == "--")
-					hover = audienceReviews + " Audience Reviews";
 
-				const audienceScore = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight tomato-score',
-					href: this.wikiData.tomatoURL + "/reviews?type=user",
-					style: 'display: inline',
-					['data-original-title']: hover
+				// Add toggle buttons
+				const buttonDiv2 = letterboxd.helpers.createElement('div', {
+					style: 'display: block; margin-right: 10px;'
 				});
+				audienceSpan.append(buttonDiv2);
+				// All button
+				const allButton2 = letterboxd.helpers.createElement('span', {
+					class: 'rt-button audience-all selected',
+					['target']: 'score-audience-all'
+				});
+				if (this.tomatoData.audienceAll.percent == ""){
+					allButton2.className += " disabled";
+				}
+				allButton2.innerText = "ALL";
+				buttonDiv2.append(allButton2);
+				// Verified button
+				const verifiedButton2 = letterboxd.helpers.createElement('span', {
+					class: 'rt-button audience-verified',
+					['target']: 'score-audience-verified'
+				});
+				if (this.tomatoData.audienceVerified.percent == ""){
+					verifiedButton2.className += " disabled";
+				}
+				verifiedButton2.innerText = "VERIFIED";
+				buttonDiv2.append(verifiedButton2);
 
-				audienceScore.innerText = audiencePercent;
-				audienceSpan.append(audienceScore);
-				
+				// Add scores
+				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all","Audience",this.wikiData.tomatoURL,this.tomatoData.audienceAll,"block"));
+				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified","Verified Audience",this.wikiData.tomatoURL,this.tomatoData.audienceVerified,"none"));
+
 
 				// APPEND
 				//************************************************************
@@ -868,6 +932,10 @@
 				}else{
 					document.querySelector('.sidebar').append(section);
 				}
+				
+				// Add click event for score buttons
+				//************************************************************
+				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
 				
 				// Add the Events for the hover
 				//************************************************************
@@ -1554,20 +1622,6 @@
 				.then(function (results) {
 					return results;
 				});
-
-				/*
-				var output = $.ajax({
-						url: link,
-						type: 'GET',
-						success: function(e){
-							return e;
-						}
-					}).then(function( results){
-						return results;
-					});
-
-				return output;
-				*/
 			},
 
 			async getWikiData(link) {	
@@ -1595,6 +1649,69 @@
 					element.style[sKey] = styles[sKey];
 				}
 				return element;
+			},
+
+			createTomatoScore(type, display, url, data, visibility){	
+				const scoreDiv = letterboxd.helpers.createElement('div', {
+					class: 'rt-score-div score-' + type,
+					style: 'display: ' + visibility + ';'
+				});
+				
+				var image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
+				if (data.state == "certified-fresh"){
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/certified_fresh.75211285dbb.svg';
+				}else if (data.state == "fresh"){
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-fresh.149b5e8adc3.svg';
+				}else if (data.state == "rotten"){
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-rotten.f1ef4f02ce3.svg';
+				}else if (data.state == "upright"){
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-fresh.6c24d79faaf.svg';
+				}else if (data.state == "spilled"){
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-rotten.f419e4046b7.svg';
+				}else if(type == "Critic"){
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
+				}else{
+					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg';
+				}
+
+				const imageSpan = letterboxd.helpers.createElement('span', {
+					class: 'icon-popcorn',
+					style: 'background-image: url("' + image + '");'
+				});
+				scoreDiv.append(imageSpan);
+
+				var scoreTotal = "";
+				if (type.includes("critic")){
+					scoreTotal = "10";
+				}else{
+					scoreTotal = "5";
+				}				
+				// The element that is the score itself
+				var hover = 'Average of ' + data.rating + '/' + scoreTotal + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' ratings';
+				if (data.percent == "--")
+					hover = data.num_ratings + "" + display + " Reviews";
+				else
+					data.percent += "%";
+
+				if (type.includes("audience-verified"))
+					url += "/reviews?type=verified_audience"
+				else if (type.includes("audience"))
+					url += "/reviews?type=user"
+				else if (type.includes("critic-top"))
+					url += "/reviews?type=top_critics"
+				else
+					url += "/reviews"
+
+				const score = letterboxd.helpers.createElement('a', {
+					class: 'tooltip display-rating -highlight tomato-score',
+					href: url,
+					style: 'display: inline',
+					['data-original-title']: hover
+				});
+				score.innerText = data.percent;
+				scoreDiv.append(score);
+
+				return scoreDiv;
 			},
 			
 			getTextBetween(text, start, end){
@@ -1777,4 +1894,22 @@ function getOffset( el ) {
         el = el.offsetParent;
     }
     return { top: _y, left: _x };
+}
+
+function changeTomatoScore(event){
+	// Get the target class stored in the 'target' attribute of the clicked button
+	var target = '.' + event.target.getAttribute('target');
+	var parent = event.target.parentNode.parentNode;
+	// Grab the target score div and then the other non-target score div
+	var targetNode = parent.querySelector('.rt-score-div' + target);
+	var otherNode = parent.querySelector('div.rt-score-div:not(' + target + ')');
+
+	// Hide the current visible score, display the current hidden score
+	otherNode.style.display = 'none';
+	targetNode.style.display = 'block';
+
+	// Swap .selected class on the buttons
+	var otherButton = event.target.parentNode.querySelector('.selected');
+	event.target.className += " selected";
+	otherButton.className = otherButton.className.replace(' selected','');
 }
