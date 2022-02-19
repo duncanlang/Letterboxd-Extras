@@ -162,6 +162,28 @@
 			border: 1px solid #283038;
 			padding: 0px;
 		}
+		.rt-bar{
+			display: inline-block;
+			height: 7px;
+			border-radius: 5px;
+		}
+		.rt-bar.outline{
+			width: 70px;
+			margin: 1px;
+			border: 1px solid #283038;
+			vertical-align: middle;
+		}
+		.rt-bar.fill{
+			background-color: #678;
+			vertical-align: top;
+		}
+		.rt-show-details{
+			font-size: 9px !important;
+			top: 10px !important;
+		}
+		.rt-show-details:hover{
+			cursor: pointer;
+		}
 	`);
 	/* eslint-enable */
 
@@ -769,6 +791,9 @@
 					this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
 					this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
 					this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
+					// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+					this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
+
 					// Audience Verified
 					if (scoredetails.modal.audienceScoreVerified.score != null){
 						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.score.toString();
@@ -777,6 +802,9 @@
 						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
 						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
 						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
+						
+						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+					this.tomatoData.audienceVerified.num_ratings = (scoredetails.modal.audienceScoreVerified.likedCount + scoredetails.modal.audienceScoreVerified.notLikedCount).toString();
 					}
 
 				}else{
@@ -807,6 +835,9 @@
 					this.tomatoData.audienceAll.num_ratings 			= scoreInfo.audienceAll.ratingCount.toString();
 					this.tomatoData.audienceAll.likedCount 				= scoreInfo.audienceAll.likedCount.toString();
 					this.tomatoData.audienceAll.notLikedCount 			= scoreInfo.audienceAll.notLikedCount.toString();
+					// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+					this.tomatoData.audienceAll.num_ratings = (scoreInfo.audienceAll.likedCount + scoreInfo.audienceAll.notLikedCount).toString();
+					
 					// Audience Verified - shouldn't ever be a thing for TV, but what the heck
 					if (scoreInfo.audienceVerified != null){
 						this.tomatoData.audienceVerified.percent 		= scoreInfo.audienceVerified.score.toString();
@@ -815,6 +846,9 @@
 						this.tomatoData.audienceVerified.num_ratings 	= scoreInfo.audienceVerified.ratingCount.toString();
 						this.tomatoData.audienceVerified.likedCount 	= scoreInfo.audienceVerified.likedCount.toString();
 						this.tomatoData.audienceVerified.notLikedCount 	= scoreInfo.audienceVerified.notLikedCount.toString();
+						
+						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+						this.tomatoData.audienceVerified.num_ratings = (scoreInfo.audienceVerified.likedCount + scoreInfo.audienceVerified.notLikedCount).toString();
 					}
 				}
 
@@ -840,7 +874,15 @@
 					href: this.wikiData.tomatoURL,
 					style: 'height: 20px; width: 75px; background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/rtlogo.9b892cff3fd.png");'
 				});
-				heading.append(logo);
+				heading.append(logo);	
+
+				// Add the Show Details button			
+				const showDetails = letterboxd.helpers.createElement('a', {
+					class: 'all-link more-link rt-show-details',
+					['target']: 'rt-score-details'
+				});
+				showDetails.innerText = "Show Details";
+				section.append(showDetails);
 
 				// CRITIC SCORE /  TOMATOMETER
 				//************************************************************
@@ -936,6 +978,10 @@
 				// Add click event for score buttons
 				//************************************************************
 				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".rt-show-details").on('click', toggleDetails);
 				
 				// Add the Events for the hover
 				//************************************************************
@@ -1705,13 +1751,64 @@
 				const score = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight tomato-score',
 					href: url,
-					style: 'display: inline',
+					style: 'display: inline-block; width: 50px',
 					['data-original-title']: hover
 				});
 				score.innerText = data.percent;
 				scoreDiv.append(score);
 
+				// Add the liked/notliked bars
+				const chartSpan = letterboxd.helpers.createElement('span', {
+					class: 'rt-score-details',
+					style: 'display: none; width: 140px; margin-left: 5px; margin-bottom: 10px;'
+				});
+				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings)));
+				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings)));
+				
+				scoreDiv.append(chartSpan);
+
 				return scoreDiv;
+			},
+
+			createTomatoBarCount(type, count, total){
+				// Span that holds it all
+				const span = letterboxd.helpers.createElement('span', {
+					style: 'display: block; width: 140px;'
+				});
+				// Text label (ie, 'Fresh")
+				const label = letterboxd.helpers.createElement('span', {
+					style: 'display: inline-block; font-size: 8px; width: 30px;'
+				});
+				label.innerText = type;
+				span.append(label);
+				
+				// Span that holds the bar
+				const barSpan = letterboxd.helpers.createElement('span', {
+					style: 'display: inline-block;'
+				});
+				// Bar outline
+				const backBar = letterboxd.helpers.createElement('span', {
+					class: 'rt-bar outline'
+				});
+				// Bar that displays the percentage
+				var width = (Math.round((count / total) * 100));
+				width = 'width: ' + width.toString() + '%;'
+				const frontBar = letterboxd.helpers.createElement('span', {
+					class: 'rt-bar fill',
+					style: width
+				});
+				backBar.append(frontBar);
+				barSpan.append(backBar);
+				span.append(barSpan);
+
+				// Text that shows the num of ratings
+				const countText = letterboxd.helpers.createElement('span', {
+					style: 'display: inline-block; font-size: 9px; width: 25px; margin-left: 5px;'
+				});
+				countText.innerText = count.toLocaleString();
+				span.append(countText);
+
+				return span;
 			},
 			
 			getTextBetween(text, start, end){
@@ -1912,4 +2009,25 @@ function changeTomatoScore(event){
 	var otherButton = event.target.parentNode.querySelector('.selected');
 	event.target.className += " selected";
 	otherButton.className = otherButton.className.replace(' selected','');
+}
+
+
+function toggleDetails(event){
+	// Get the target class stored in the 'target' attribute of the clicked button
+	var target = '.' + event.target.getAttribute('target');
+	var elements = document.querySelectorAll(target);
+
+	elements.forEach(element => {
+		if (element.style.display == "none"){
+			element.style.display = "inline-block";
+		}else{
+			element.style.display = "none";
+		}		
+	});
+
+	if (event.target.innerText.includes("SHOW")){
+		event.target.innerText = "HIDE DETAILS";
+	}else{
+		event.target.innerText = "SHOW DETAILS";
+	}
 }
