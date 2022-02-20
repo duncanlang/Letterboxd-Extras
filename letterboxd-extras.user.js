@@ -120,10 +120,11 @@
 		.rating-star-extra{
 			background: transparent !important;
 			overflow: visible !important;
-			text-indent: 0 !important;
-			line-height: 0.5 !important;
+			text-indent: -0.5px !important;
+			line-height: 0.6 !important;
 			font-size: 12.5px !important;
 			color: gold;
+			letter-spacing: -0.5px;
 		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
@@ -494,8 +495,7 @@
 				if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")) || this.ratingAdded == false)){
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData == null){
-						//this.omdbData = await letterboxd.helpers.getOMDbData(queryString);
-						this.omdbData = (await letterboxd.helpers.getData(queryString)).response;
+						this.omdbData = await letterboxd.helpers.getOMDbData(queryString);
 					}				
 	
 					// Check if OMDb response is valid
@@ -1077,9 +1077,11 @@
 
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: elementClass,
-					style: 'width: 100%;',
-					href: this.wikiData.metaURL
+					style: 'width: 100%;'
 				});
+				if (this.wikiData.metaURL != null && this.wikiData.metaURL != ""){
+					logoHolder.setAttribute('href', this.wikiData.metaURL);
+				}
 				heading.append(logoHolder);
 
 				const metaLogo  = letterboxd.helpers.createElement('span', {
@@ -1094,17 +1096,22 @@
 				});
 				logoHolder.append(metaText);
 
-				// Add the Show Details button			
-				const showDetails = letterboxd.helpers.createElement('a', {
-					class: 'all-link more-link show-details meta-show-details',
-					['target']: 'meta-score-details'
-				});
-				showDetails.innerText = "Show Details";
-				section.append(showDetails);
+				// Add the Show Details button
+				if (this.metaData.data != null){	
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details meta-show-details',
+						['target']: 'meta-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
 				
 				// Critic score
 				//***************************************************************
-				section.append(letterboxd.helpers.createMetaScore("critic","Critic",this.wikiData.metaURL + "/critic-reviews",this.metaData.critic));				
+				var url = "";
+				if (this.wikiData.metaURL != null && this.wikiData.metaURL != "")
+					url = this.wikiData.metaURL + "/critic-reviews";
+				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic));				
 				
 				// User score
 				//***************************************************************
@@ -1839,7 +1846,6 @@
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight ' + className,
-					href: url,
 					style: 'background-color: ' + colour + '; display: inline-block;'
 				});
 				if (data.num_ratings > 0){
@@ -1847,7 +1853,8 @@
 					if (type == "user")
 						totalScore = "/10";
 					text.setAttribute('data-original-title',"Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' reviews');
-				}else{
+					text.setAttribute('href',url);
+				}else if (url != ""){
 					text.setAttribute('data-original-title','No score yet');
 				}
 
