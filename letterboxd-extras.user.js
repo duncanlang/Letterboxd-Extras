@@ -1008,10 +1008,21 @@
 				// Add click event for score buttons
 				//************************************************************
 				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+				if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
+					$(".rt-button.critic-top").click();
+				}
+				if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
+					$(".rt-button.audience-verified").click();
+				}
 				
 				//Add click for Show details button
 				//************************************************************
-				$(".rt-show-details").on('click', toggleDetails);
+				$(".rt-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
+				if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show')){
+					$(".rt-show-details").click();
+				}
 				
 				// Add the Events for the hover
 				//************************************************************
@@ -1133,7 +1144,12 @@
 				
 				//Add click for Show details button
 				//************************************************************
-				$(".meta-show-details").on('click', toggleDetails);
+				$(".meta-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
+				if (letterboxd.storage.get('meta-default-view') === 'show' || (letterboxd.storage.get('meta-default-view') === 'remember' && letterboxd.storage.get('meta-score-details') === 'show')){
+					$(".meta-show-details").click();
+				}
 
 				// Add Hover events
 				//************************************************************
@@ -1628,7 +1644,9 @@
 
 		helpers: {
 			async getIMDBData(link) {
-				console.log("calling " + link);
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("calling " + link);
+					
 				try {
 					const res = await letterboxd.helpers.request({
 						url: link,
@@ -1642,7 +1660,9 @@
 			},
 
 			async getData(link) {
-				console.log("calling " + link);
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("calling " + link);
+
 				try {
 					const res = await letterboxd.helpers.request({
 						url: link,
@@ -1665,7 +1685,9 @@
 			},
 
 			async getOMDbData(link) {  
-				console.log("calling " + link);
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("calling " + link);
+
 				var ajaxOptions = {
 					url: link,
 					type : 'GET'
@@ -1678,6 +1700,9 @@
 			},
 
 			async getWikiData(link) {	
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("calling " + link);
+
 				var ajaxOptions = {
 					url: link,
 					type : 'GET'
@@ -2036,8 +2061,26 @@
 
 				return value;
 			}
+		},
+
+		storage: {
+			data: {},
+			async init() {
+				this.data = await browser.storage.local.get().then(function (storedSettings) {
+					return storedSettings;
+				});
+			},
+			get(key) {
+				return this.data[key];
+			},
+			set(key, value) {
+				this.data[key] = value;
+				browser.storage.local.set(this.data);
+			}
 		}
 	};
+
+	letterboxd.storage.init();
 
 	const observer = new MutationObserver(() => {
 
@@ -2124,7 +2167,7 @@ function changeTomatoScore(event){
 }
 
 
-function toggleDetails(event){
+function toggleDetails(event, letterboxd){
 	// Get the target class stored in the 'target' attribute of the clicked button
 	var target = '.' + event.target.getAttribute('target');
 	var elements = document.querySelectorAll(target);
@@ -2139,7 +2182,9 @@ function toggleDetails(event){
 
 	if (event.target.innerText.includes("SHOW")){
 		event.target.innerText = "HIDE DETAILS";
+		letterboxd.storage.set(target.replace('.',''), "show");
 	}else{
 		event.target.innerText = "SHOW DETAILS";
+		letterboxd.storage.set(target.replace('.',''), "hide");
 	}
 }

@@ -9,6 +9,11 @@
 		"128": "icon128.png"
 	},
 
+	"options_ui": {
+		"page": "options.html",
+		"browser_style": true
+	},	  
+
 	"permissions": [
 		"https://letterboxd.com/*",
 		"https://www.imdb.com/*",
@@ -17,7 +22,8 @@
 		"https://www.boxofficemojo.com/*",
 		"https://api.cinemascore.com/*",
 		"https://query.wikidata.org/*",
-		"https://www.metacritic.com/*"
+		"https://www.metacritic.com/*",
+		"storage"
 	],
 
 	"content_scripts": [

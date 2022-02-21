@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <style>
+        h3,label{
+            margin-left: 15px;
+        }
+        label{
+            display: inline-block;
+            width: 125px;
+            margin-bottom: 10px;
+        }
+    </style>
+  </head>
+
+  <body>
+    <div>
+        <h3>Rotten Tomatoes</h3>
+        <div>
+            <label>Default detail view:</label>
+            <select id="rt-default-view">
+                <option value="hide">Hide</option>
+                <option value="show">Show</option>
+                <option value="remember">Remember Last</option>
+            </select>
+        </div>
+        <div>
+            <label>Default critic score:</label>
+            <select id="critic-default">
+                <option value="all">All Critics</option>
+                <option value="top">Top Critics</option>
+            </select>
+        </div>
+        <div>
+            <label>Default audience score:</label>
+            <select id="audience-default">
+                <option value="all">All Audience</option>
+                <option value="verified">Verified Audience</option>
+            </select>
+        </div>
+    </div>
+    <div>
+        <h3>Metacritic</h3>
+        <div>
+            <label>Default detail view:</label>
+            <select id="meta-default-view">
+                <option value="hide">Hide</option>
+                <option value="show">Show</option>
+                <option value="remember">Remember Last</option>
+            </select>
+        </div>
+    </div>
+    <div>
+        <h3>Debug</h3>
+        <div>
+            <label>Log calls in console:</label>
+            <input type="checkbox" id="console-log" />
+        </div>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>
