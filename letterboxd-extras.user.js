@@ -219,7 +219,7 @@
 			running: false,
 
 			imdbID: "",
-			imdbData: {url: "", data: null, raw: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false},
+			imdbData: {url: "", data: null, raw: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false},
 
 			omdbData: null,
 
@@ -235,7 +235,7 @@
 			tomatoData: {data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
 
 			// Metacritic
-			metaData: {data: null, raw: null, critic: {rating: "", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
+			metaData: {data: null, raw: null, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
 
 			// MPAA rating
 			mpaaRating: null,
@@ -373,8 +373,10 @@
 					}
 					
 					if (this.imdbData.data != null){
-						if (this.imdbData.raw.includes("TV Mini Series"))
+						if (this.imdbData.raw.includes('(TV Mini Series)'))
 							this.imdbData.isMiniSeries = true;
+						if (this.imdbData.raw.includes('(TV Episode)'))
+							this.imdbData.isTVEpisode = true;
 
 						this.addIMDBScore();
 					}
@@ -461,7 +463,7 @@
 					// Get and add Rotten Tomatoes
 					if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null){
 						var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
-						if (this.imdbData.isMiniSeries == true)
+						if (url.includes('/tv/'))
 							url += "/s01"
 
 						this.wikiData.tomatoURL = url;
@@ -778,7 +780,7 @@
 				this.tomatoData.audienceVerified = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
 
 				// Different collected for Movies vs TV
-				if (this.imdbData.isMiniSeries == false){
+				if (!this.wikiData.tomatoURL.includes('/tv/')){
 					// MOVIES
 					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#score-details-json').innerHTML);
 					// Critic All
@@ -786,6 +788,8 @@
 						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.score.toString();
 						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.tomatometerState;
 						this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
+					}
+					if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
 						this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
 						this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
 						this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
@@ -795,9 +799,6 @@
 						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.score.toString();
 						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.tomatometerState;
 						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
-						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
-						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
-						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
 
 						var score = scoredetails.modal.tomatometerScoreTop.score;
 						var state = scoredetails.modal.tomatometerScoreTop.tomatometerState;
@@ -807,12 +808,19 @@
 							this.tomatoData.criticTop.state = "fresh";
 						}
 					}
+					if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
+						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
+						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
+						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
+					}
 					
 					// Audience All	
 					if (scoredetails.modal.audienceScoreAll.score != null){
 						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.score.toString();
 						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.audienceClass;
 						this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
+					}
+					if (scoredetails.modal.audienceScoreAll.ratingCount != null){
 						this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
 						this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
 						this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
@@ -825,6 +833,8 @@
 						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.score.toString();
 						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.audienceClass;
 						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
+					}
+					if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
 						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
 						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
 						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
@@ -842,26 +852,36 @@
 						this.tomatoData.criticAll.percent 					= scoreInfo.tomatometerAllCritics.score.toString();
 						this.tomatoData.criticAll.state 					= scoreInfo.tomatometerAllCritics.state;
 						this.tomatoData.criticAll.rating 					= scoreInfo.tomatometerAllCritics.averageRating;
-						this.tomatoData.criticAll.num_ratings 				= scoreInfo.tomatometerAllCritics.ratingCount.toString();
 						this.tomatoData.criticAll.likedCount 				= scoreInfo.tomatometerAllCritics.likedCount.toString();
 						this.tomatoData.criticAll.notLikedCount 			= scoreInfo.tomatometerAllCritics.notLikedCount.toString();
+
+						if (scoreInfo.tomatometerAllCritics.ratingCount != null){
+							this.tomatoData.criticAll.num_ratings 			= scoreInfo.tomatometerAllCritics.ratingCount.toString();
+						}else if (scoreInfo.tomatometerAllCritics.reviewCount != null){
+							this.tomatoData.criticAll.num_ratings 			= scoreInfo.tomatometerAllCritics.reviewCount.toString();
+						}
 					}
 					// Critic Top
 					if (scoreInfo.tomatometerTopCritics.score != null){
 						this.tomatoData.criticTop.percent 				= scoreInfo.tomatometerTopCritics.score.toString();
 						this.tomatoData.criticTop.state 				= scoreInfo.tomatometerTopCritics.state;
 						this.tomatoData.criticTop.rating 				= scoreInfo.tomatometerTopCritics.averageRating;
-						this.tomatoData.criticTop.num_ratings 			= scoreInfo.tomatometerTopCritics.ratingCount.toString();
 						this.tomatoData.criticTop.likedCount 			= scoreInfo.tomatometerTopCritics.likedCount.toString();
 						this.tomatoData.criticTop.notLikedCount 		= scoreInfo.tomatometerTopCritics.notLikedCount.toString();
+						
+						if (scoreInfo.tomatometerTopCritics.ratingCount != null){
+							this.tomatoData.criticTop.num_ratings 			= scoreInfo.tomatometerTopCritics.ratingCount.toString();
+						}else if (scoreInfo.tomatometerTopCritics.reviewCount != null){
+							this.tomatoData.criticTop.num_ratings 			= scoreInfo.tomatometerTopCritics.reviewCount.toString();
+						}
 					}
 					
 					// Audience All	
-					if (scoreInfo.audienceAll.score != null){
+					if (scoreInfo.audienceAll != null && scoreInfo.audienceAll.score != null){
 						this.tomatoData.audienceAll.percent 				= scoreInfo.audienceAll.score.toString();
 						this.tomatoData.audienceAll.state 					= scoreInfo.audienceAll.state;
 						this.tomatoData.audienceAll.rating 					= scoreInfo.audienceAll.averageRating;
-						this.tomatoData.audienceAll.num_ratings 			= scoreInfo.audienceAll.ratingCount.toString();
+						//this.tomatoData.audienceAll.num_ratings 			= scoreInfo.audienceAll.ratingCount.toString();
 						this.tomatoData.audienceAll.likedCount 				= scoreInfo.audienceAll.likedCount.toString();
 						this.tomatoData.audienceAll.notLikedCount 			= scoreInfo.audienceAll.notLikedCount.toString();
 						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
@@ -869,11 +889,11 @@
 					}
 					
 					// Audience Verified - shouldn't ever be a thing for TV, but what the heck
-					if (scoreInfo.audienceVerified != null){
+					if (scoreInfo.audienceAll != null && scoreInfo.audienceVerified != null){
 						this.tomatoData.audienceVerified.percent 		= scoreInfo.audienceVerified.score.toString();
 						this.tomatoData.audienceVerified.state 			= scoreInfo.audienceVerified.state;
 						this.tomatoData.audienceVerified.rating 		= scoreInfo.audienceVerified.averageRating;
-						this.tomatoData.audienceVerified.num_ratings 	= scoreInfo.audienceVerified.ratingCount.toString();
+						//this.tomatoData.audienceVerified.num_ratings 	= scoreInfo.audienceVerified.ratingCount.toString();
 						this.tomatoData.audienceVerified.likedCount 	= scoreInfo.audienceVerified.likedCount.toString();
 						this.tomatoData.audienceVerified.notLikedCount 	= scoreInfo.audienceVerified.notLikedCount.toString();
 						
@@ -1042,28 +1062,50 @@
 				//***************************************************************
 				if (this.metaData.data != null){
 					// Scores
-					this.metaData.critic.rating = this.metaData.data.querySelector('.metascore_w.larger').innerText;
-					this.metaData.user.rating = this.metaData.data.querySelector('.metascore_w.user.larger').innerText;
+					var criticScore = this.metaData.data.querySelector('.ms_wrapper .metascore_w');
+					if (criticScore != null){
+						this.metaData.critic.rating = criticScore.innerText;
+					}else{
+						this.metaData.critic.rating = "N/A";
+					}
+					var userScore = this.metaData.data.querySelector('.us_wrapper .metascore_w');
+					if (userScore != null){
+						this.metaData.user.rating = userScore.innerText;
+					}else{
+						this.metaData.critic.rating = "N/A";
+					}
 
-					// Num ratings
-					var positives = this.metaData.data.querySelectorAll('.chart.positive .count.fr');
-					var mixeds = this.metaData.data.querySelectorAll('.chart.mixed .count.fr');
-					var negatives = this.metaData.data.querySelectorAll('.chart.negative .count.fr');
+					// Grab the rating counts
+					var ratings = this.metaData.data.querySelectorAll('.reviews .fxdcol');
+					for(var i = 0; i < ratings.length; i++){
+						var positive = ratings[i].querySelector('.chart.positive .count.fr');
+						var mixed = ratings[i].querySelector('.chart.mixed .count.fr');
+						var negative = ratings[i].querySelector('.chart.negative .count.fr');
+						
+						positive = parseInt(letterboxd.helpers.cleanNumber(positive.innerText));
+						mixed = parseInt(letterboxd.helpers.cleanNumber(mixed.innerText));
+						negative = parseInt(letterboxd.helpers.cleanNumber(negative.innerText));
+						var count = positive + mixed + negative;
 
-					this.metaData.critic.positive = parseInt(letterboxd.helpers.cleanNumber(positives[0].innerText));
-					this.metaData.critic.mixed = parseInt(letterboxd.helpers.cleanNumber(mixeds[0].innerText));
-					this.metaData.critic.negative = parseInt(letterboxd.helpers.cleanNumber(negatives[0].innerText));
-					this.metaData.critic.num_ratings = this.metaData.critic.positive + this.metaData.critic.mixed + this.metaData.critic.negative;
-					this.metaData.critic.highest = letterboxd.helpers.getMetaHighest(this.metaData.critic);
-					
-					this.metaData.user.positive = parseInt(letterboxd.helpers.cleanNumber(positives[1].innerText));
-					this.metaData.user.mixed = parseInt(letterboxd.helpers.cleanNumber(mixeds[1].innerText));
-					this.metaData.user.negative = parseInt(letterboxd.helpers.cleanNumber(negatives[1].innerText));
-					this.metaData.user.num_ratings = this.metaData.user.positive + this.metaData.user.mixed + this.metaData.user.negative;
-					this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
+						var data;
+						if (ratings[i].querySelector('.section_title a').innerText.includes("Metascore")){
+							data = this.metaData.critic;
+						}else{
+							data = this.metaData.user;
+						}
+
+						data.positive = positive;
+						data.mixed = mixed;
+						data.negative = negative;
+						data.num_ratings = count;
+						data.highest = letterboxd.helpers.getMetaHighest(data);
+					}
 				}else{
 					this.metaData.critic.rating = this.omdbData.Metascore;
 				}
+
+				// Return if no scores what so ever
+				if (this.metaData.critic.rating == "tbd" && this.metaData.user.rating == "tbd") return;
 
 				// Now lets add it to the page
 				//***************************************************************
@@ -1153,11 +1195,11 @@
 
 				// Add Hover events
 				//************************************************************
-				if (this.metaData.critic.num_ratings != 0){
+				if (this.metaData.critic.num_ratings != 0 || this.metaData.critic.rating == "tbd" || this.metaData.critic.rating == "N/A"){
 					$(".tooltip.display-rating.-highlight.meta-score").on("mouseover", ShowTwipsy);
 					$(".tooltip.display-rating.-highlight.meta-score").on("mouseout", HideTwipsy);
 				}
-				if (this.metaData.user.num_ratings != 0 || this.metaData.user.rating == "tbd"){
+				if (this.metaData.user.num_ratings != 0 || this.metaData.user.rating == "tbd" || this.metaData.critic.rating == "N/A"){
 					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseover", ShowTwipsy);
 					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseout", HideTwipsy);
 				}
@@ -1880,7 +1922,11 @@
 					text.setAttribute('data-original-title',"Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' reviews');
 					text.setAttribute('href',url);
 				}else if (url != ""){
-					text.setAttribute('data-original-title','No score yet');
+					if (data.rating == "N/A"){
+						text.setAttribute('data-original-title','No score available');
+					}else{
+						text.setAttribute('data-original-title','No score yet');
+					}
 				}
 
 				text.innerText = data.rating;
@@ -1996,7 +2042,7 @@
 
 			determineMetaColour(metascore, user){
 				var output = "#ccc"; //grey tba
-				if (metascore != "tbd"){
+				if (metascore != "tbd" && metascore != "N/A" ){
 					var score = parseFloat(metascore);
 					if (user == true) score = score * 10;
 
