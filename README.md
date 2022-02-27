@@ -1,10 +1,10 @@
 # letterboxd-extras
- 
-An add-on for FireFox that adds some additional features.
 
-# Features
-- Pulls movie scores from IMDb, Rotten Tomatoes, Metacritic, and CinemaScore (if available)
-- Adds links to Rotten Tomatoes and BoxOfficeMojo
-- Adds film rating, next to the year
-- Adds the full US release on hover of the release year
-- Adds budget and box office numbers to the details tab (if available)
+A browser add-on that adds additional features to Letterboxd including displaying ratings from IMDb, Rotten Tomatoes, Metacritic, and Cinemascore.
+
+## Features
+-Displays ratings from IMDb, Rotten Tomatoes, Metacritic, and CinemaScore (when available)
+-Adds links to Rotten Tomatoes, Metacritic, and BoxOfficeMojo
+-Adds MPAA rating
+-Adds the full US release date on hover of the release year
+-Adds the budget and box office numbers in the details tab (when available)
