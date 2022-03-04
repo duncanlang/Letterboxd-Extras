@@ -2112,16 +2112,27 @@
 		storage: {
 			data: {},
 			async init() {
-				this.data = await browser.storage.local.get().then(function (storedSettings) {
+				/*this.data = await chrome.storage.local.get().then(function (storedSettings) {
 					return storedSettings;
+				});*/
+				
+				this.data = await chrome.storage.sync.get('options', function (storage) {
+					// Get and save options
+					let defaultOptions = null;
+					options = storage.options || Object.assign({}, defaultOptions);
+
+					return optionsl
 				});
 			},
 			get(key) {
-				return this.data[key];
+				if (this.data != null)
+					return this.data[key];
+				else
+					return "";
 			},
 			set(key, value) {
 				this.data[key] = value;
-				browser.storage.local.set(this.data);
+				chrome.storage.local.set(this.data);
 			}
 		}
 	};
