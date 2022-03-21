@@ -219,23 +219,23 @@
 			running: false,
 
 			imdbID: "",
-			imdbData: {url: "", data: null, raw: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false},
+			imdbData: {state: 0, url: "", data: null, raw: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false},
 
-			omdbData: null,
+			omdbData: {state: 0, data: null},
 
 			mojoData: null,
 
-			cinemascore: null,
+			cinemascore: {state: 0, data: null},
 
 			// WikiData
 			wiki: null,
-			wikiData: {tomatoURL: null, metaURL: "", budget: null, boxOffice: null, mpaa: null, date: null, rating: null},
+			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: null, boxOffice: null, mpaa: null, date: null, rating: null},
 
 			// Rotten Tomatoes
-			tomatoData: {data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
+			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
 
 			// Metacritic
-			metaData: {data: null, raw: null, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
+			metaData: {state: 0, data: null, raw: null, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
 
 			// MPAA rating
 			mpaaRating: null,
@@ -265,7 +265,7 @@
 				this.running = true;
 
 				// Add Cinema Score
-				if (this.cinemascore == null && document.querySelector(".headline-1.js-widont.prettify")){
+				if (this.cinemascore.data == null && document.querySelector(".headline-1.js-widont.prettify") && this.cinemascore.state < 1){
 					// Get the Movie Title and clean it up a bit
 					var title = document.querySelector(".headline-1.js-widont.prettify").innerHTML;
 					if (title.startsWith('The ')){
@@ -286,104 +286,99 @@
 	
 					// Create the URL and send the request
 					var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-					this.cinemascore = await letterboxd.helpers.getOMDbData(url);
-	
-					// Second Attempt - after hyphen
-					//****************************************************************
-					if (this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE == "" && title.includes(" - ")){
-						var temp = title.split(" - ");
-						var encoded = btoa(temp[1]);
-						url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-						this.cinemascore = await letterboxd.helpers.getOMDbData(url);
-					}
-						
-					// Third Attempt - after colon
-					//****************************************************************
-					if (this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE == "" && title.includes(": ")){
-						var temp = title.split(": ");
-						var encoded = btoa(temp[1]);
-						url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-						this.cinemascore = await letterboxd.helpers.getOMDbData(url);
-					}
+					this.cinemascore.state = 1;
 
-					// Fourth Attempt - roman numerals
-					//****************************************************************
-					const res = /( [0-9]+)/g;
-					if (this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE == "" && res.test(title)){
-						var num = title.substring(title.search(res),title.length).trim();
-						var roman = letterboxd.helpers.romanize(parseInt(num));
-						title = title.replace(res, " " + roman);
-						var encoded = btoa(title);
-						url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-						this.cinemascore = await letterboxd.helpers.getOMDbData(url);
-					}
-				}
-				if (!document.querySelector('.cinemascore')){
-					if (this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE != ""){
-						this.addCinema();
-					}
-				}
+					letterboxd.helpers.getOMDbData(url).then((value) => {
+						// Check if found
+						this.cinemascore.data = value;
+						if (this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+							this.addCinema();
+							this.cinemascore.state = 2;
 
-				// Add RateYourMusic
-				// So it turns out they don't like site scraping and will ban IPs
-				/*
-				if (this.rymData.url == null && document.querySelector(".headline-1")){
-					var title = document.querySelector(".headline-1").innerText;
-					var rymUrl = title.toLowerCase();
-					rymUrl = rymUrl.replaceAll(new RegExp(String.fromCharCode(160), "g"), '_');
-					rymUrl = rymUrl.replaceAll(' ', '_');
-					rymUrl = rymUrl.replaceAll(':', '_');
-					rymUrl = rymUrl.replaceAll("'", '');
-					// TODO: try to use original name if available
-
-					rymUrl = "https://rateyourmusic.com/film/" + rymUrl;
-					// one attempt for now
-					var found = false;
-					let ii = 0;
-					do {
-						await this.getRYM(rymUrl);
-
-						if (this.rymData.raw.includes("ERROR 404") || this.rymData.raw.includes("IP blocked") ){
-							found = true;
-							this.rymData.error = true;
-						}else if(this.verifyRYM()){
-							found = true;
 						}else{
-							ii++;
-							rymUrl += "_f" + ii;
-						}
-					} while (found == false);
+							// Second Attempt - after hyphen
+							//****************************************************************
+							if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE == "" && title.includes(" - ")){
+								var temp = title.split(" - ");
+								encoded = btoa(temp[1]);
 
-					// Now lets add
-					if (this.rymData.data != null && this.rymData.error == false){
-						this.addRYM();
-					}
+								url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+								letterboxd.helpers.getOMDbData(url).then((value) => {
+									this.cinemascore.data = value;
+
+									if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+										this.cinemascore.state = 2;
+										this.addCinema();
+									}
+								});
+
+							}
+							
+							// Third Attempt - after colon
+							//****************************************************************
+							if (this.cinemascore.state < 2 && this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE == "" && title.includes(": ")){
+								var temp = title.split(": ");
+								encoded = btoa(temp[1]);
+
+								url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+								letterboxd.helpers.getOMDbData(url).then((value) => {
+									this.cinemascore.data = value;
+
+									if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+										this.cinemascore.state = 2;
+										this.addCinema();
+									}
+								});
+
+							}
+							
+							// Fourth Attempt - roman numerals
+							//****************************************************************
+							const res = /( [0-9]+)/g;
+							if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE == "" && res.test(title)){
+								var num = title.substring(title.search(res),title.length).trim();
+								var roman = letterboxd.helpers.romanize(parseInt(num));
+								var temp = title.replace(res, " " + roman);
+								encoded = btoa(temp);
+
+								url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+								letterboxd.helpers.getOMDbData(url).then((value) => {
+									this.cinemascore.data = value;
+
+									if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+										this.cinemascore.state = 2;
+										this.addCinema();
+									}
+								});
+							}
+						}
+					});
 				}
-				*/
 
 				// First Get the IMDb link
-				this.getIMDbLink();
+				if (this.imdbID == "")
+					this.getIMDbLink();
 
-				// ADD IMDb Score
-				if (this.imdbData.url != ""){
-					if (this.imdbData.data == null)
-					{
-						this.imdbData.raw = await letterboxd.helpers.getIMDBData(this.imdbData.url);
+				if (this.imdbID != "" && this.imdbData.state < 1){
+					// Call IMDb and Add to page when done
+					this.imdbData.state = 1;
+					letterboxd.helpers.getIMDBData(this.imdbData.url).then((value) => {
+						this.imdbData.raw = value;
 						this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
-					}
-					
-					if (this.imdbData.data != null){
-						if (this.imdbData.raw.includes('(TV Mini Series)'))
-							this.imdbData.isMiniSeries = true;
-						if (this.imdbData.raw.includes('(TV Episode)'))
-							this.imdbData.isTVEpisode = true;
+				
+						if (this.imdbData.data != null){
+							if (this.imdbData.raw.includes('(TV Mini Series)'))
+								this.imdbData.isMiniSeries = true;
+							if (this.imdbData.raw.includes('(TV Episode)'))
+								this.imdbData.isTVEpisode = true;
+	
+							this.addIMDBScore();
+							this.imdbData.state = 2;
+						}
+					});
 
-						this.addIMDBScore();
-					}
-
-					// Get BoxOfficeMojo data
-					if (this.mojoData == null){
-						this.mojoData = letterboxd.helpers.parseHTML(await letterboxd.helpers.getIMDBData('https://www.boxofficemojo.com/title/' + this.imdbID)); 
+					// Call BoxOfficeMojo
+					letterboxd.helpers.getIMDBData('https://www.boxofficemojo.com/title/' + this.imdbID).then((value) => {
 						this.addBoxOffice();
 
 						// If MPAA rating found on Mojo, add it now
@@ -393,168 +388,173 @@
 						// If the domestic date was found on Mojo, add it now
 						if (this.filmDate != null && this.dateAdded == false)
 							this.addDate();
-					}	
-				}
+					});
 
-				// Call WikiData
-				if (this.imdbID != ""){
-					var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+?MPAA_film_rating+?MPAA_film_ratingLabel+?Budget+?Box_Office+?Publication_Date+?Publication_Date_Backup+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}+OPTIONAL+{+?item+wdt:P1657+?MPAA_film_rating.+}+OPTIONAL+{+?item+wdt:P2130+?Budget.+}+OPTIONAL+{+?item+wdt:P2142+?Box_Office.+}+OPTIONAL+{+?item+p:P577+?Publication_Date_entry.+?Publication_Date_entry+ps:P577+?Publication_Date.+?Publication_Date_entry+pq:P291+wd:Q30.}OPTIONAL{?item+wdt:P577+?Publication_Date_Backup.}}';
-					if (this.wiki == null){
-						var temp = await letterboxd.helpers.getWikiData(queryString);
-						if (temp != null && temp.results != null && temp.results.bindings != null && temp.results.bindings.length > 0){
-							this.wiki = temp.results.bindings[0];
-						}
-					}	
-					
-					// Add links
-					this.addLinks();	
+					// Call WikiData
+					if (this.wikiData.state < 1){
+						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+?MPAA_film_rating+?MPAA_film_ratingLabel+?Budget+?Box_Office+?Publication_Date+?Publication_Date_Backup+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}+OPTIONAL+{+?item+wdt:P1657+?MPAA_film_rating.+}+OPTIONAL+{+?item+wdt:P2130+?Budget.+}+OPTIONAL+{+?item+wdt:P2142+?Box_Office.+}+OPTIONAL+{+?item+p:P577+?Publication_Date_entry.+?Publication_Date_entry+ps:P577+?Publication_Date.+?Publication_Date_entry+pq:P291+wd:Q30.}OPTIONAL{?item+wdt:P577+?Publication_Date_Backup.}}';
+						this.wikiData.state = 1;
+						letterboxd.helpers.getWikiData(queryString).then((value) =>{
+							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+								this.wiki = value.results.bindings[0];
 
-					// Box Office and Budget
-					if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
-						this.wikiData.budget = this.wiki.Budget.value;
-					if (this.wiki != null && this.wiki.Box_Office != null && this.wiki.Box_Office.value != null)
-						this.wikiData.boxOffice = this.wiki.Box_Office.value;
+								// Add links
+								this.addLinks();	
+								
+								// Box Office and Budget
+								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
+									this.wikiData.budget = this.wiki.Budget.value;
+								if (this.wiki != null && this.wiki.Box_Office != null && this.wiki.Box_Office.value != null)
+									this.wikiData.boxOffice = this.wiki.Box_Office.value;
 
-					this.addBoxOffice();
+								this.addBoxOffice();
+								
+								// Add full release date
+								var options = { year: 'numeric', month: 'short', day: 'numeric' };
+								if (this.wiki != null && this.wiki.Publication_Date != null && this.dateAdded == false){
+									this.filmDate = new Date(this.wiki.Publication_Date.value.replace("Z","")).toLocaleDateString("en-UK", options);
+									this.addDate();
+								}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null && this.dateAdded == false){
+									this.filmDate = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
+									this.addDate();
+								}
 				
-					// Add full release date
-					var options = { year: 'numeric', month: 'short', day: 'numeric' };
-					if (this.wiki != null && this.wiki.Publication_Date != null && this.dateAdded == false){
-						this.filmDate = new Date(this.wiki.Publication_Date.value.replace("Z","")).toLocaleDateString("en-UK", options);
-						this.addDate();
-					}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null && this.dateAdded == false){
-						this.filmDate = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
-						this.addDate();
-					}
-	
-					// Add Rating
-					if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
-						this.mpaaRating = letterboxd.helpers.determineMPAARating(this.wiki.MPAA_film_ratingLabel.value);
-						this.addRating();	
-					}
-
-					// Get and add Metacritic
-					if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null){
-						this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
-
-						if (this.metaData.data == null && this.metaAdded == false){
-							try{
-								var response = await letterboxd.helpers.getData(this.wikiData.metaURL);
-								var meta = response.response;
-
-								if (meta != ""){
-									this.metaData.raw = meta;
-									this.metaData.data = letterboxd.helpers.parseHTML(meta);
-									this.wikiData.metaURL = response.url;
+								// Add Rating
+								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
+									this.mpaaRating = letterboxd.helpers.determineMPAARating(this.wiki.MPAA_film_ratingLabel.value);
+									this.addRating();	
 								}
-							}catch{
-								console.log("Unable to parse Metacritic URL");
-								this.metaAdded = true; // so it doesn't keep calling
-							}
-						}
 
-						// Metacritic
-						if (this.metaData.data != null){
-							// Add the everything to the page
-							this.addMeta();
-						}
-					}
+								// Get and add Metacritic
+								if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null){
+									this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
 
-					// Get and add Rotten Tomatoes
-					if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null){
-						var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
-						if (url.includes('/tv/'))
-							url += "/s01"
+									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
+										try{
+											this.metaData.state = 1;
+											letterboxd.helpers.getData(this.wikiData.metaURL).then((value) =>{
+												var meta = value.response;
+												if (meta != ""){
+													this.metaData.raw = meta;
+													this.metaData.data = letterboxd.helpers.parseHTML(meta);
+													this.wikiData.metaURL = value.url;
 
-						this.wikiData.tomatoURL = url;
-
-						if (this.tomatoData.data == null && this.rtAdded == false){
-							try{
-								var response = await letterboxd.helpers.getData(this.wikiData.tomatoURL);
-								var tomato = response.response;
-
-								if (tomato != ""){
-									this.tomatoData.raw = tomato;
-									this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
-									this.wikiData.tomatoURL = response.url;
+													this.addMeta();
+													this.metaData.state = 2;
+												}
+											});
+										}catch{
+											console.log("Unable to parse Metacritic URL");
+											this.metaAdded = true; // so it doesn't keep calling
+											this.metaData.state = 3;
+										}
+									}
+								}else if (this.metaData.state < 1){
+									this.metaData.state = 3;
 								}
-							}catch{
-								console.log("Unable to parse Rotten Tomatoes URL");
-								this.rtAdded = true; // so it doesn't keep calling
+
+								// Get and add Rotten Tomatoes
+								if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null){
+									var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
+									if (url.includes('/tv/'))
+										url += "/s01"
+
+									this.wikiData.tomatoURL = url;
+
+									if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
+										try{
+											this.tomatoData.state = 1;
+											letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
+												var tomato = value.response;
+												if (tomato != ""){
+													this.tomatoData.raw = tomato;
+													this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
+													this.wikiData.tomatoURL = value.url;
+													
+													this.addTomato();
+													this.tomatoData.state = 2;
+												}
+											});
+										}catch{
+											console.log("Unable to parse Rotten Tomatoes URL");
+											this.rtAdded = true; // so it doesn't keep calling
+											this.tomatoData.state = 3;
+										}
+									}else if (this.tomatoData.state < 1){
+										this.tomatoData.state = 3;
+									}
+								}
+								this.wikiData.state = 2;
 							}
-						}
-
-						// Rotten Tomatoes
-						if (this.tomatoData.data != null){
-							// Add the everything to the page
-							this.addTomato();
-						}
+						});
 					}
-
 				}
 
 				// Call OMDb for backup
-				if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")) || this.ratingAdded == false)){
+				//if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")) || this.ratingAdded == false)){
+				if (this.wikiData.state == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")))){
+
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
-					if (this.omdbData == null){
-						this.omdbData = await letterboxd.helpers.getOMDbData(queryString);
-					}				
+					if (this.omdbData.state < 1){
+						console.log('calling OMDb');
+						this.omdbData.state = 1;
+
+						letterboxd.helpers.getOMDbData(queryString).then((value) => {
+							this.omdbData.data = value;
+							this.omdbData.state = 2;
 	
-					// Check if OMDb response is valid
-					if (this.omdbData != null && this.omdbData.Response == "True"){
-						// Add links
-						this.addLinks();	
+							// Check if OMDb response is valid
+							if (this.omdbData.data != null && this.omdbData.data.Response == "True"){
+								// Add links
+								this.addLinks();	
+		
+								// Add full release date
+								if (this.omdbData.data.Released != null && this.omdbData.data.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.startsWith("1 Jan"))){
+									this.filmDate = this.omdbData.data.Released;
+									this.addDate();
+								}
+			
+								// Add Rating
+								if (this.omdbData.data.Rated != null && this.omdbData.data.Rated != "N/A" && (this.wiki == null || this.wiki.MPAA_film_ratingLabel == null) && this.ratingAdded == false){
+									this.mpaaRating = this.omdbData.data.Rated;
+									this.addRating();	
+								}
+		
+								// Add Metacritic
+								if (this.omdbData.data.Metascore != null && this.omdbData.data.Metascore != "N/A" && (this.wiki == null || this.wiki.Metacritic_ID == null || this.wiki.Metacritic_ID.value == null) && this.metaAdded == false){
+									this.addMeta();
+								}
+		
+								// Get Rotten Tomatoes data
+								if (this.omdbData.data.tomatoURL != null && this.omdbData.data.tomatoURL != "" && this.omdbData.data.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false){
+									this.omdbData.data.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.data.tomatoURL);
+									this.wikiData.tomatoURL = this.omdbData.data.tomatoURL;
 
-						// Add full release date
-						if (this.omdbData.Released != null && this.omdbData.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.startsWith("1 Jan"))){
-							this.filmDate = this.omdbData.Released;
-							this.addDate();
-						}
-	
-						// Add Rating
-						if (this.omdbData.Rated != null && this.omdbData.Rated != "N/A" && (this.wiki == null || this.wiki.MPAA_film_ratingLabel == null) && this.ratingAdded == false){
-							this.mpaaRating = this.omdbData.Rated;
-							this.addRating();	
-						}
-
-						// Add Metacritic
-						if (this.omdbData.Metascore != null && this.omdbData.Metascore != "N/A" && (this.wiki == null || this.wiki.Metacritic_ID == null || this.wiki.Metacritic_ID.value == null) && this.metaAdded == false){
-							this.addMeta();
-						}
-
-						// Get Rotten Tomatoes data
-						if (this.omdbData.tomatoURL != null && this.omdbData.tomatoURL != "" && this.omdbData.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false){
-							this.omdbData.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.tomatoURL);
-							this.wikiData.tomatoURL = this.omdbData.tomatoURL;
-
-							if (this.tomatoData.data == null){
-								try{
-									/*
-									var tomato = await letterboxd.helpers.getOMDbData(this.wikiData.tomatoURL);
-	
-									if (tomato != "")
-										this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
-										*/
-									var response = await letterboxd.helpers.getData(this.wikiData.tomatoURL);
-									var tomato = response.response;
-
-									if (tomato != ""){
-										this.tomatoData.raw = tomato;
-										this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
-										this.wikiData.tomatoURL = response.url;
+									if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
+										try{
+											this.tomatoData.state = 1;
+											letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
+												var tomato = value.response;
+												if (tomato != ""){
+													this.tomatoData.raw = tomato;
+													this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
+													this.wikiData.tomatoURL = value.url;
+													
+													this.addTomato();
+													this.tomatoData.state = 2;
+												}
+											});
+										}catch{
+											console.log("Unable to parse Rotten Tomatoes URL");
+											this.rtAdded = true; // so it doesn't keep calling
+											this.tomatoData.state = 3;
+										}
+									}else if (this.tomatoData.state < 1){
+										this.tomatoData.state = 3;
 									}
-								}catch{
-
 								}
 							}
-	
-							// Rotten Tomatoes
-							if (this.tomatoData.data != null){
-								// Add the everything to the page
-								this.addTomato();
-							}
-							
-						}
+						});
 					}				
 				}
 
@@ -562,7 +562,7 @@
 				return this.stopRunning();
 			},
 
-			getIMDbLink(){
+			async getIMDbLink(){
 				// Get the two links (imdb and tmdb)
 				const links = document.querySelectorAll('.micro-button.track-event');
 
@@ -750,8 +750,10 @@
 
 				// Append to the sidebar
 				//*****************************************************************
-				if (document.querySelector('.rateyourmusic')){
-					document.querySelector('.rateyourmusic').before(imdbScoreSection);
+				if (document.querySelector('.tomato-ratings')){
+					document.querySelector('.tomato-ratings').before(imdbScoreSection);
+				}else if (document.querySelector('.meta-ratings')){
+					document.querySelector('.meta-ratings').before(imdbScoreSection);
 				}else if (document.querySelector('.cinemascore')){
 					document.querySelector('.cinemascore').before(imdbScoreSection);
 				}else{
@@ -1101,7 +1103,7 @@
 						data.highest = letterboxd.helpers.getMetaHighest(data);
 					}
 				}else{
-					this.metaData.critic.rating = this.omdbData.Metascore;
+					this.metaData.critic.rating = this.omdbData.data.Metascore;
 				}
 
 				// Return if no scores what so ever
@@ -1288,65 +1290,67 @@
 
 				// First Grab the info
 				//*****************************************************
-				const summary = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-performance-summary-table');
-				const money = summary.querySelectorAll('.money');
-
-
-				// Box office
 				var boxOffice = "";
-				if (money.length > 0)
-					var boxOffice = money[money.length-1].innerHTML;
-
-				// This is for formatting the date
-				var options = { year: 'numeric', month: 'short', day: 'numeric' };
-				// Budget
-				const summaryTable = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-summary-values.mojo-hidden-from-mobile');
-
 				var budget = "";
-				for (var ii = 0; ii < summaryTable.childNodes.length; ii++){
-					var node = summaryTable.childNodes[ii];
-					var header = node.childNodes[0].innerText;
-					var data = node.childNodes[1].innerText;
-					
-					if (header == "Budget"){
-						budget = data;
-					}else if (header == "MPAA"){
-						this.mpaaRating = data;
-					}else if (header == "Earliest Release Date" && data.includes("Domestic")){
-						this.filmDate = data.split("\n")[0];
-						this.filmDate = this.filmDate.replace(",","");
-						this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
-					}
-				}
+				if (this.mojoData != null){
+					const summary = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-performance-summary-table');
+					const money = summary.querySelectorAll('.money');
 
-				// Quick Check for release dates
-				if (this.filmDate == null || this.filmDate == ""){
-					var a_Section = this.mojoData.querySelector('.a-section.mojo-h-scroll');
-					if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("Domestic")){
-						var a_Section_Rows = a_Section.childNodes[2].rows;
-						for (var ii = 1; ii < a_Section_Rows.length; ii++){
-							var header = a_Section_Rows[ii].childNodes[0].innerText;
-							var date = a_Section_Rows[ii].childNodes[1].innerText;
-							
-							if (header == "Domestic"){
-								this.filmDate = date.replace(",","");
-								this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
-							}
+
+					// Box office
+					if (money.length > 0)
+						boxOffice = money[money.length-1].innerHTML;
+
+					// This is for formatting the date
+					var options = { year: 'numeric', month: 'short', day: 'numeric' };
+					// Budget
+					const summaryTable = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-summary-values.mojo-hidden-from-mobile');
+
+					for (var ii = 0; ii < summaryTable.childNodes.length; ii++){
+						var node = summaryTable.childNodes[ii];
+						var header = node.childNodes[0].innerText;
+						var data = node.childNodes[1].innerText;
+						
+						if (header == "Budget"){
+							budget = data;
+						}else if (header == "MPAA"){
+							this.mpaaRating = data;
+						}else if (header == "Earliest Release Date" && data.includes("Domestic")){
+							this.filmDate = data.split("\n")[0];
+							this.filmDate = this.filmDate.replace(",","");
+							this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
 						}
 					}
-					if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("By Release")){
-						var a_Section_Rows = a_Section.childNodes[1].rows;
-						for (var ii = 1; ii < a_Section_Rows.length; ii++){
-							var group = a_Section_Rows[ii].childNodes[0].innerText;
-							var date = a_Section_Rows[ii].childNodes[1].innerText;
-							var markets = a_Section_Rows[ii].childNodes[2].innerText;
-							
-							if (group == "Original Release" && markets.includes("Domestic")){
-								this.filmDate = date.replace(",","");
-								this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+
+					// Quick Check for release dates
+					if (this.filmDate == null || this.filmDate == ""){
+						var a_Section = this.mojoData.querySelector('.a-section.mojo-h-scroll');
+						if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("Domestic")){
+							var a_Section_Rows = a_Section.childNodes[2].rows;
+							for (var ii = 1; ii < a_Section_Rows.length; ii++){
+								var header = a_Section_Rows[ii].childNodes[0].innerText;
+								var date = a_Section_Rows[ii].childNodes[1].innerText;
+								
+								if (header == "Domestic"){
+									this.filmDate = date.replace(",","");
+									this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+								}
 							}
 						}
-					}
+						if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("By Release")){
+							var a_Section_Rows = a_Section.childNodes[1].rows;
+							for (var ii = 1; ii < a_Section_Rows.length; ii++){
+								var group = a_Section_Rows[ii].childNodes[0].innerText;
+								var date = a_Section_Rows[ii].childNodes[1].innerText;
+								var markets = a_Section_Rows[ii].childNodes[2].innerText;
+								
+								if (group == "Original Release" && markets.includes("Domestic")){
+									this.filmDate = date.replace(",","");
+									this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+								}
+							}
+						}
+					}	
 				}
 
 				// Use WikiData if available
@@ -1364,6 +1368,11 @@
 				if (!budget.startsWith("$") && budget != ""){
 					budget = Number(budget).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
 					budget = budget.replace("US","");
+				}
+
+				// Return if we have nothing
+				if (budget == "" && boxOffice == ""){
+					return;
 				}
 
 				//*****************************************************
@@ -1450,8 +1459,8 @@
 
 				var years = [year,"",""];
 
-				if (this.omdbData != null){
-					years[1] = (new Date(this.omdbData.Released)).getFullYear().toString();
+				if (this.omdbData.data != null){
+					years[1] = (new Date(this.omdbData.data.Released)).getFullYear().toString();
 				}
 				if (this.filmDate != null){
 					years[2] = (new Date(this.filmDate)).getFullYear().toString();
@@ -1459,9 +1468,9 @@
 
 				var grade = "";
 				// Get the correct score
-				for (var ii = 0; ii < this.cinemascore.length; ii++){
-					if (this.cinemascore[ii].YEAR != null && years.includes(this.cinemascore[ii].YEAR)){
-						grade = this.cinemascore[ii].GRADE;
+				for (var ii = 0; ii < this.cinemascore.data.length; ii++){
+					if (this.cinemascore.data[ii].YEAR != null && years.includes(this.cinemascore.data[ii].YEAR)){
+						grade = this.cinemascore.data[ii].GRADE;
 						break;
 					}
 				}
