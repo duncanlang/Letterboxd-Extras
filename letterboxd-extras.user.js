@@ -245,6 +245,8 @@
 
 			// RateYourMusic
 			rymData: {url: null, data: null, highest: 0, error: false},
+
+			linksAdded: [],
 			
 			rtAdded: false,
 			metaAdded: false,
@@ -378,7 +380,9 @@
 					});
 
 					// Call BoxOfficeMojo
-					letterboxd.helpers.getIMDBData('https://www.boxofficemojo.com/title/' + this.imdbID).then((value) => {
+					var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
+					this.addLink(mojoURL);
+					letterboxd.helpers.getIMDBData(mojoURL).then((value) => {
 						this.addBoxOffice();
 
 						// If MPAA rating found on Mojo, add it now
@@ -399,7 +403,7 @@
 								this.wiki = value.results.bindings[0];
 
 								// Add links
-								this.addLinks();	
+								//this.addLinks();	
 								
 								// Box Office and Budget
 								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
@@ -428,6 +432,7 @@
 								// Get and add Metacritic
 								if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null){
 									this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
+									this.addLink(this.wikiData.metaURL);
 
 									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
 										try{
@@ -460,6 +465,7 @@
 										url += "/s01"
 
 									this.wikiData.tomatoURL = url;
+									this.addLink(this.wikiData.tomatoURL);
 
 									if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
 										try{
@@ -491,12 +497,10 @@
 				}
 
 				// Call OMDb for backup
-				//if (this.imdbID != "" && (this.rtAdded == false || this.metaAdded == false || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")) || this.ratingAdded == false)){
 				if (this.wikiData.state == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")))){
 
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData.state < 1){
-						console.log('calling OMDb');
 						this.omdbData.state = 1;
 
 						letterboxd.helpers.getOMDbData(queryString).then((value) => {
@@ -529,6 +533,7 @@
 								if (this.omdbData.data.tomatoURL != null && this.omdbData.data.tomatoURL != "" && this.omdbData.data.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false){
 									this.omdbData.data.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.data.tomatoURL);
 									this.wikiData.tomatoURL = this.omdbData.data.tomatoURL;
+									this.addLink(this.wikiData.tomatoURL);
 
 									if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
 										try{
@@ -1208,6 +1213,59 @@
 
 				this.metaAdded = true;
 
+			},
+
+			addLink(url){
+				// Check if already added
+				if (!this.linksAdded.includes(url)){
+					this.linksAdded.push(url);
+
+					var text = "";
+					var className = "";
+					if (url.includes("rottentomatoes")){
+						text = "RT";
+						className = "tomato-button";
+					}else if (url.includes("metacritic")){
+						text = "META";
+						className = "meta-button";
+					}else if (url.includes("boxofficemojo")){
+						text = "MOJO";
+						className = "mojo-button";
+					}
+
+					// Create Button Element
+					var button = letterboxd.helpers.createElement('a', {
+						class: 'micro-button track-event ' + className,
+						href: url
+					});
+					button.innerText = text;
+
+					// Determine Placement
+					if (text == "RT" && document.querySelector('.meta-button')){
+						document.querySelector('.meta-button').before(button);
+						button.after('\n')
+					}else if (text == "RT" && document.querySelector('.mojo-button')){
+						document.querySelector('.mojo-button').before(button);
+						button.after('\n')
+					}else if (text == "META" && document.querySelector('.tomato-button')){
+						document.querySelector('.tomato-button').after(button);
+						button.before('\n')
+					}else if (text == "META" && document.querySelector('.mojo-button')){
+						document.querySelector('.mojo-button').before(button);
+						button.after('\n')
+					}else if (text == "MOJO" && document.querySelector('.meta-button')){
+						document.querySelector('.meta-button').after(button);
+						button.before('\n')
+					}else if (text == "MOJO" && document.querySelector('.tomato-button')){
+						document.querySelector('.tomato-button').after(button);
+						button.before('\n')
+					}else{
+						var buttons = document.querySelectorAll('.micro-button');
+						var lastButton = buttons[buttons.length-1];
+						lastButton.after(button);
+						lastButton.after("\n");
+					}
+				}
 			},
 			
 			addLinks(){
@@ -1924,7 +1982,12 @@
 					class: 'tooltip display-rating -highlight ' + className,
 					style: 'background-color: ' + colour + '; display: inline-block;'
 				});
-				if (data.num_ratings > 0){
+
+				// Add the hoverover text and href
+				if (data.num_ratings > 0 && data.rating == "tbd"){
+					text.setAttribute('data-original-title','No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' reviews)');
+					text.setAttribute('href',url);
+				}else if (data.num_ratings > 0){
 					var totalScore = "/100";
 					if (type == "user")
 						totalScore = "/10";
