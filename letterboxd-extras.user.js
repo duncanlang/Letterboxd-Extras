@@ -1070,15 +1070,28 @@
 				if (this.metaData.data != null){
 					// Scores
 					var criticScore = this.metaData.data.querySelector('.ms_wrapper .metascore_w');
+					var criticScore2 = this.metaData.data.querySelector('.c-siteReviewScore:not(.c-siteReviewScore_user) span');
 					if (criticScore != null){
+						// Standard page with score
 						this.metaData.critic.rating = criticScore.innerText;
+					}else if(criticScore2 != null){
+						// Non-standard page (parasite)
+						this.metaData.critic.rating = criticScore2.innerText;
 					}else{
+						// TV episodes with no Metascore
 						this.metaData.critic.rating = "N/A";
 					}
+
 					var userScore = this.metaData.data.querySelector('.us_wrapper .metascore_w');
+					var userScore2 = this.metaData.data.querySelector('.c-siteReviewScore_user span');
 					if (userScore != null){
+						// Standard page with score
 						this.metaData.user.rating = userScore.innerText;
+					}else if(userScore2 != null){
+						// Non-standard page (parasite)
+						this.metaData.user.rating = userScore2.innerText;
 					}else{
+						// TV episodes with no Metascore
 						this.metaData.critic.rating = "N/A";
 					}
 
@@ -1106,6 +1119,64 @@
 						data.negative = negative;
 						data.num_ratings = count;
 						data.highest = letterboxd.helpers.getMetaHighest(data);
+					}
+					// Grab rating counts for non-standard pages (parasite)
+					if (ratings.length == 0 && criticScore2 != null){
+						var positive = criticScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
+						var mixed = criticScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
+						var negative = criticScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
+						// Positive
+						if (positive != null)
+							positive = parseInt(letterboxd.helpers.cleanNumber(positive.childNodes[0].innerText)); 
+						else
+							positive = 0;
+						// Mixed
+						if (mixed != null)
+							mixed = parseInt(letterboxd.helpers.cleanNumber(mixed.childNodes[0].innerText));
+						else
+							mixed = 0;
+						// Negative
+						if (negative != null)
+							negative = parseInt(letterboxd.helpers.cleanNumber(negative.childNodes[0].innerText));
+						else
+							negative = 0;
+							
+						var count = positive + mixed + negative;
+
+						this.metaData.critic.positive = positive;
+						this.metaData.critic.mixed = mixed;
+						this.metaData.critic.negative = negative;
+						this.metaData.critic.num_ratings = count;
+						this.metaData.critic.highest = letterboxd.helpers.getMetaHighest(this.metaData.critic);
+
+					}
+					if (ratings.length == 0 && userScore2 != null){
+						var positive = userScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
+						var mixed = userScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
+						var negative = userScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
+						// Positive
+						if (positive != null)
+							positive = parseInt(letterboxd.helpers.cleanNumber(positive.childNodes[0].innerText)); 
+						else
+							positive = 0;
+						// Mixed
+						if (mixed != null)
+							mixed = parseInt(letterboxd.helpers.cleanNumber(mixed.childNodes[0].innerText));
+						else
+							mixed = 0;
+						// Negative
+						if (negative != null)
+							negative = parseInt(letterboxd.helpers.cleanNumber(negative.childNodes[0].innerText));
+						else
+							negative = 0;
+							
+						var count = positive + mixed + negative;
+
+						this.metaData.user.positive = positive;
+						this.metaData.user.mixed = mixed;
+						this.metaData.user.negative = negative;
+						this.metaData.user.num_ratings = count;
+						this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
 					}
 				}else{
 					this.metaData.critic.rating = this.omdbData.data.Metascore;
