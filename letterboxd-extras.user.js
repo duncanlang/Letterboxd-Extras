@@ -401,9 +401,6 @@
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								this.wiki = value.results.bindings[0];
-
-								// Add links
-								//this.addLinks();	
 								
 								// Box Office and Budget
 								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
@@ -465,30 +462,7 @@
 										url += "/s01"
 
 									this.wikiData.tomatoURL = url;
-									this.addLink(this.wikiData.tomatoURL);
-
-									if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
-										try{
-											this.tomatoData.state = 1;
-											letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
-												var tomato = value.response;
-												if (tomato != ""){
-													this.tomatoData.raw = tomato;
-													this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
-													this.wikiData.tomatoURL = value.url;
-													
-													this.addTomato();
-													this.tomatoData.state = 2;
-												}
-											});
-										}catch{
-											console.log("Unable to parse Rotten Tomatoes URL");
-											this.rtAdded = true; // so it doesn't keep calling
-											this.tomatoData.state = 3;
-										}
-									}else if (this.tomatoData.state < 1){
-										this.tomatoData.state = 3;
-									}
+									this.initTomato();
 								}
 								this.wikiData.state = 2;
 							}
@@ -508,10 +482,7 @@
 							this.omdbData.state = 2;
 	
 							// Check if OMDb response is valid
-							if (this.omdbData.data != null && this.omdbData.data.Response == "True"){
-								// Add links
-								this.addLinks();	
-		
+							if (this.omdbData.data != null && this.omdbData.data.Response == "True"){			
 								// Add full release date
 								if (this.omdbData.data.Released != null && this.omdbData.data.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.startsWith("1 Jan"))){
 									this.filmDate = this.omdbData.data.Released;
@@ -533,30 +504,7 @@
 								if (this.omdbData.data.tomatoURL != null && this.omdbData.data.tomatoURL != "" && this.omdbData.data.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false){
 									this.omdbData.data.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.data.tomatoURL);
 									this.wikiData.tomatoURL = this.omdbData.data.tomatoURL;
-									this.addLink(this.wikiData.tomatoURL);
-
-									if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
-										try{
-											this.tomatoData.state = 1;
-											letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
-												var tomato = value.response;
-												if (tomato != ""){
-													this.tomatoData.raw = tomato;
-													this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
-													this.wikiData.tomatoURL = value.url;
-													
-													this.addTomato();
-													this.tomatoData.state = 2;
-												}
-											});
-										}catch{
-											console.log("Unable to parse Rotten Tomatoes URL");
-											this.rtAdded = true; // so it doesn't keep calling
-											this.tomatoData.state = 3;
-										}
-									}else if (this.tomatoData.state < 1){
-										this.tomatoData.state = 3;
-									}
+									this.initTomato();
 								}
 							}
 						});
@@ -770,6 +718,35 @@
 				//*****************************************************************
 				$(".tooltip-extra").on("mouseover", ShowTwipsy);
 				$(".tooltip-extra").on("mouseout", HideTwipsy);
+			},
+
+			initTomato(){
+				if (this.wikiData.tomatoURL != null && this.wikiData.tomatoURL != ""){
+					this.addLink(this.wikiData.tomatoURL);
+	
+					if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
+						try{
+							this.tomatoData.state = 1;
+							letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
+								var tomato = value.response;
+								if (tomato != ""){
+									this.tomatoData.raw = tomato;
+									this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
+									this.wikiData.tomatoURL = value.url;
+									
+									this.addTomato();
+									this.tomatoData.state = 2;
+								}
+							});
+						}catch{
+							console.log("Unable to parse Rotten Tomatoes URL");
+							this.rtAdded = true; // so it doesn't keep calling
+							this.tomatoData.state = 3;
+						}
+					}else if (this.tomatoData.state < 1){
+						this.tomatoData.state = 3;
+					}
+				}
 			},
 
 			addTomato(){				
