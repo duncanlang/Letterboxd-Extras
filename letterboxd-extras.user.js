@@ -229,7 +229,7 @@
 
 			// WikiData
 			wiki: null,
-			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: null, boxOffice: null, boxOfficeUS: null, mpaa: null, date: null, rating: null, US_Title: null},
+			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: null, boxOffice: null, boxOfficeWW: null, mpaa: null, date: null, rating: null, US_Title: null},
 
 			// Rotten Tomatoes
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
@@ -298,6 +298,7 @@
 					var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
 					this.addLink(mojoURL);
 					letterboxd.helpers.getIMDBData(mojoURL).then((value) => {
+						this.mojoData = letterboxd.helpers.parseHTML(value);
 						this.addBoxOffice();
 
 						// If MPAA rating found on Mojo, add it now
@@ -319,12 +320,18 @@
 								this.wiki = value.results.bindings[0];
 								
 								// Box Office and Budget
-								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
+								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null){
 									this.wikiData.budget = this.wiki.Budget.value;
-								if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null)
-									this.wikiData.boxOffice = this.wiki.Box_Office.value;
-
-								this.addBoxOffice();
+									letterboxd.helpers.createDetailsRow("Budget",this.wikiData.budget);
+								}
+								if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null){
+									this.wikiData.boxOffice = this.wiki.Box_OfficeUS.value;
+									letterboxd.helpers.createDetailsRow("Box Office (US)",this.wikiData.boxOffice);
+								}
+								if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null){
+									this.wikiData.boxOfficeWW = this.wiki.Box_OfficeWW.value;
+									letterboxd.helpers.createDetailsRow("Box Office (WW)",this.wikiData.boxOfficeWW);
+								}
 								
 								// Add full release date
 								var options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -1321,23 +1328,27 @@
 				// First Grab the info
 				//*****************************************************
 				var boxOffice = "";
+				var boxOfficeUS = "";
 				var budget = "";
 				if (this.mojoData != null){
-					const summary = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-performance-summary-table');
-					const money = summary.querySelectorAll('.money');
-
-
-					// Box office
-					if (money.length > 0)
-						boxOffice = money[money.length-1].innerHTML;
+					const summaryTable = this.mojoData.querySelectorAll('.mojo-performance-summary-table div');
+					for (var ii = 0; ii < summaryTable.length; ii++){
+						var header = summaryTable[ii].querySelector('.a-size-small');
+						var value = summaryTable[ii].querySelector('.money');
+						if (header.innerHTML.includes("Domestic") && value != null){
+							boxOfficeUS = value.innerText;;
+						}else if (header.innerHTML.includes("Worldwide") && value != null){
+							boxOffice = value.innerText;
+						}
+					}
 
 					// This is for formatting the date
 					var options = { year: 'numeric', month: 'short', day: 'numeric' };
 					// Budget
-					const summaryTable = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-summary-values.mojo-hidden-from-mobile');
+					const summaryValues = this.mojoData.querySelector('.a-section.a-spacing-none.mojo-summary-values.mojo-hidden-from-mobile');
 
-					for (var ii = 0; ii < summaryTable.childNodes.length; ii++){
-						var node = summaryTable.childNodes[ii];
+					for (var ii = 0; ii < summaryValues.childNodes.length; ii++){
+						var node = summaryValues.childNodes[ii];
 						var header = node.childNodes[0].innerText;
 						var data = node.childNodes[1].innerText;
 						
@@ -1383,83 +1394,26 @@
 					}	
 				}
 
-				// Use WikiData if available
-				if (boxOffice == "" && this.wikiData.boxOffice != null)
-					boxOffice = this.wikiData.boxOffice;
-					
-				if (budget == "" && this.wikiData.budget != null)
-					budget = this.wikiData.budget;
-
-				// Fix the values if necessary
-				if (!boxOffice.startsWith("$") && boxOffice != ""){
-					boxOffice = Number(boxOffice).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
-					boxOffice = boxOffice.replace("US","");
-				}
-				if (!budget.startsWith("$") && budget != ""){
-					budget = Number(budget).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
-					budget = budget.replace("US","");
-				}
-
 				// Return if we have nothing
-				if (budget == "" && boxOffice == ""){
+				if (budget == "" && boxOffice == "" && boxOfficeUS == ""){
 					return;
 				}
-
-				//*****************************************************
-				// Get the details tab
-				const tabDetails = document.querySelector('#tab-details');
 
 				// Add the budget
 				//*****************************************************
 				if (budget != "" && !document.querySelector('.budget')){
-					// Create the row header element				
-					const header = letterboxd.helpers.createElement('h3', {});
-
-					if(tabDetails.querySelector('.box-office-header')){
-						tabDetails.querySelector('.box-office-header').before(header);
-					}else{
-						tabDetails.append(header);
-					}
-				
-					const span = letterboxd.helpers.createElement('span', {});
-					span.innerHTML = "Budget";
-					header.append(span);
-					
-					// Create the list element
-					const sluglist = letterboxd.helpers.createElement('div', {
-						class: 'text-indentedlist budget'
-					});
-					header.after(sluglist);
-	
-					// Text holder
-					const p = letterboxd.helpers.createElement('p', {});
-					p.innerText = budget;
-					sluglist.append(p);	
+					letterboxd.helpers.createDetailsRow("Budget", budget);
+				}
+				// Add the Box Office US
+				//*****************************************************
+				if (boxOfficeUS != "" && !document.querySelector('.box-office-us')){
+					letterboxd.helpers.createDetailsRow("Box Office (US)", boxOfficeUS);
 				}
 
-				// Add the Box Office
+				// Add the Box Office WW
 				//*****************************************************
-				if (boxOffice != "" && !document.querySelector('.box-office')){
-					// Create the row header element				
-					const header = letterboxd.helpers.createElement('h3', {
-						class: 'box-office-header'
-					});
-					tabDetails.append(header);
-				
-					const span = letterboxd.helpers.createElement('span', {});
-					span.innerText = "Box Office";
-					header.append(span);
-					
-					// Create the list element
-					const sluglist = letterboxd.helpers.createElement('div', {
-						class: 'text-indentedlist box-office'
-					});
-					tabDetails.append(sluglist);
-	
-					// Text holder
-					const p = letterboxd.helpers.createElement('p', {});
-					p.innerText = boxOffice;
-					sluglist.append(p);
+				if (boxOffice != "" && !document.querySelector('.box-office-ww')){
+					letterboxd.helpers.createDetailsRow("Box Office (WW)", boxOffice);
 				}
 			},
 
@@ -2136,7 +2090,83 @@
 
 				return span;
 			},
+
+			createDetailsRow(headerText, value){
+				// Determine className
+				var className = "";
+				switch(headerText){
+					case "Budget":
+						className = "budget";
+						break;
+					case "Box Office (US)":
+						className = "box-office-us";
+						break;
+					case "Box Office (WW)":
+						className = "box-office-ww";
+						break;
+				}
+				
+				// Return if already added
+				if (document.querySelector('.' + className + '')) return;
+				
+				// Set value to localeString
+				if (!value.startsWith("$") && value != ""){
+					value = Number(value).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
+					value = value.replace("US","");
+				}
+
+				// Create the Elements
+				//********************************************
+				// Create the row header element				
+				const header = letterboxd.helpers.createElement('h3', {
+					class: className + ' header'
+				});
 			
+				// Span
+				const span = letterboxd.helpers.createElement('span', {});
+				span.innerText = headerText;
+				header.append(span);
+				
+				// Create the list element
+				const sluglist = letterboxd.helpers.createElement('div', {
+					class: 'text-indentedlist ' + className + ' detail'
+				});
+
+				// Text holder
+				const p = letterboxd.helpers.createElement('p', {});
+				p.innerText = value;
+				sluglist.append(p);
+
+				// Append to the Tab Details
+				//********************************************
+				// Get the details tab
+				const tabDetails = document.querySelector('#tab-details');
+
+				// Append the Header
+				// If budget
+				if (className == "budget" && tabDetails.querySelector('.box-office-us.header')){
+					tabDetails.querySelector('.box-office-us.header').before(header);
+				}else if (className == "budget" && tabDetails.querySelector('.box-office-ww.header')){
+					tabDetails.querySelector('.box-office-ww.header').before(header);
+				// If box office US
+				}else if (className == "box-office-us" && tabDetails.querySelector('.budget.detail')){
+					tabDetails.querySelector('.budget.detail').after(header);
+				}else if (className == "box-office-us" && tabDetails.querySelector('.box-office-ww.header')){
+					tabDetails.querySelector('.box-office-ww.header').before(header);
+				// If box office WW
+				}else if (className == "box-office-ww" && tabDetails.querySelector('.box-office-us.detail')){
+					tabDetails.querySelector('.box-office-us.detail').after(header);
+				}else if (className == "box-office-ww" && tabDetails.querySelector('.budget.detail')){
+					tabDetails.querySelector('.budget.detail').after(header);
+				// else
+				}else{
+					tabDetails.append(header);
+				}
+
+				// Append the sluglist
+				header.after(sluglist);
+			},
+
 			getTextBetween(text, start, end){
 				var tempArray = text.split(start);
 				tempArray = tempArray[1].split(end);
