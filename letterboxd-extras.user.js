@@ -229,7 +229,7 @@
 
 			// WikiData
 			wiki: null,
-			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: null, boxOffice: null, mpaa: null, date: null, rating: null},
+			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: null, boxOffice: null, boxOfficeUS: null, mpaa: null, date: null, rating: null, US_Title: null},
 
 			// Rotten Tomatoes
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
@@ -268,93 +268,8 @@
 
 				// Add Cinema Score
 				if (this.cinemascore.data == null && document.querySelector(".headline-1.js-widont.prettify") && this.cinemascore.state < 1){
-					// Get the Movie Title and clean it up a bit
 					var title = document.querySelector(".headline-1.js-widont.prettify").innerHTML;
-					if (title.startsWith('The ')){
-						title = title.replace("The ","");
-						title = title + ", The";
-					}else if (title.startsWith('A ')){
-						title = title.replace("A ","");
-						title = title + ", A";
-					}
-					// Normalize (ie, remove accents/diacritics)
-					title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-	
-	
-					// First Attempt - 'The' at end, no accents
-					//****************************************************************
-					// Encode title
-					var encoded = letterboxd.helpers.encodeASCII(title);
-	
-					// Create the URL and send the request
-					var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-					this.cinemascore.state = 1;
-
-					letterboxd.helpers.getOMDbData(url).then((value) => {
-						// Check if found
-						this.cinemascore.data = value;
-						if (this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
-							this.addCinema();
-							this.cinemascore.state = 2;
-
-						}else{
-							// Second Attempt - after hyphen
-							//****************************************************************
-							if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE == "" && title.includes(" - ")){
-								var temp = title.split(" - ");
-								encoded = btoa(temp[1]);
-
-								url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-								letterboxd.helpers.getOMDbData(url).then((value) => {
-									this.cinemascore.data = value;
-
-									if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
-										this.cinemascore.state = 2;
-										this.addCinema();
-									}
-								});
-
-							}
-							
-							// Third Attempt - after colon
-							//****************************************************************
-							if (this.cinemascore.state < 2 && this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE == "" && title.includes(": ")){
-								var temp = title.split(": ");
-								encoded = btoa(temp[1]);
-
-								url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-								letterboxd.helpers.getOMDbData(url).then((value) => {
-									this.cinemascore.data = value;
-
-									if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
-										this.cinemascore.state = 2;
-										this.addCinema();
-									}
-								});
-
-							}
-							
-							// Fourth Attempt - roman numerals
-							//****************************************************************
-							const res = /( [0-9]+)/g;
-							if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE == "" && res.test(title)){
-								var num = title.substring(title.search(res),title.length).trim();
-								var roman = letterboxd.helpers.romanize(parseInt(num));
-								var temp = title.replace(res, " " + roman);
-								encoded = btoa(temp);
-
-								url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-								letterboxd.helpers.getOMDbData(url).then((value) => {
-									this.cinemascore.data = value;
-
-									if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
-										this.cinemascore.state = 2;
-										this.addCinema();
-									}
-								});
-							}
-						}
-					});
+					this.initCinema(title);
 				}
 
 				// First Get the IMDb link
@@ -396,7 +311,8 @@
 
 					// Call WikiData
 					if (this.wikiData.state < 1){
-						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+?MPAA_film_rating+?MPAA_film_ratingLabel+?Budget+?Box_Office+?Publication_Date+?Publication_Date_Backup+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}+OPTIONAL+{+?item+wdt:P1657+?MPAA_film_rating.+}+OPTIONAL+{+?item+wdt:P2130+?Budget.+}+OPTIONAL+{+?item+wdt:P2142+?Box_Office.+}+OPTIONAL+{+?item+p:P577+?Publication_Date_entry.+?Publication_Date_entry+ps:P577+?Publication_Date.+?Publication_Date_entry+pq:P291+wd:Q30.}OPTIONAL{?item+wdt:P577+?Publication_Date_Backup.}}';
+						//var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+?item+?itemLabel+?Rotten_Tomatoes_ID+?Metacritic_ID+?MPAA_film_rating+?MPAA_film_ratingLabel+?Budget+?Box_Office+?Publication_Date+?Publication_Date_Backup+WHERE+{+SERVICE+wikibase:label+{+bd:serviceParam+wikibase:language+"[AUTO_LANGUAGE]".+}+{+SELECT+DISTINCT+?item+WHERE+{+?item+p:P345+?statement0.+?statement0+ps:P345+"' + this.imdbID + '".+}+LIMIT+100+}+OPTIONAL+{+?item+wdt:P1258+?Rotten_Tomatoes_ID.+}+OPTIONAL+{+?item+wdt:P1712+?Metacritic_ID.+}+OPTIONAL+{+?item+wdt:P1657+?MPAA_film_rating.+}+OPTIONAL+{+?item+wdt:P2130+?Budget.+}+OPTIONAL+{+?item+wdt:P2142+?Box_Office.+}+OPTIONAL+{+?item+p:P577+?Publication_Date_entry.+?Publication_Date_entry+ps:P577+?Publication_Date.+?Publication_Date_entry+pq:P291+wd:Q30.}OPTIONAL{?item+wdt:P577+?Publication_Date_Backup.}}';
+						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=SELECT+DISTINCT+%3Fitem+%3FitemLabel+%3FRotten_Tomatoes_ID+%3FMetacritic_ID+%3FMPAA_film_rating+%3FMPAA_film_ratingLabel+%3FBudget+%3FBox_OfficeUS+%3FBox_OfficeWW+%3FPublication_Date+%3FPublication_Date_Backup+%3FUS_Title+WHERE+{%0A%20+SERVICE+wikibase%3Alabel+{+bd%3AserviceParam+wikibase%3Alanguage+"[AUTO_LANGUAGE]".+}%0A%20+{%0A%20%20%20+SELECT+DISTINCT+%3Fitem+WHERE+{+%0A%20%20%20%20%20+%3Fitem+p%3AP345+%3Fstatement0.+%0A%20%20%20%20%20+%3Fstatement0+ps%3AP345+"' + this.imdbID + '".%0A%20%20%20+}%0A%20%20%20+LIMIT+100+%0A%20+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1258+%3FRotten_Tomatoes_ID.+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1712+%3FMetacritic_ID.+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1657+%3FMPAA_film_rating.+}%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP2130+%3FBudget.+}+%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP2142+%3FBox_Office_Entry.%0A%20%20%20+%3FBox_Office_Entry+ps%3AP2142+%3FBox_OfficeUS.%0A%20%20%20+%3FBox_Office_Entry+pq%3AP3005+wd%3AQ30%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP2142+%3FBox_Office_EntryWW.%0A%20%20%20+%3FBox_Office_EntryWW+ps%3AP2142+%3FBox_OfficeWW.%0A%20%20%20+%3FBox_Office_EntryWW+pq%3AP3005+wd%3AQ13780930%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP577+%3FPublication_Date_entry.%0A%20%20%20+%3FPublication_Date_entry+ps%3AP577+%3FPublication_Date.%0A%20%20%20+%3FPublication_Date_entry+pq%3AP291+wd%3AQ30.+%0A%20+}%0A%20+OPTIONAL{+%3Fitem+wdt%3AP577+%3FPublication_Date_Backup.}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP1476+%3FTitle_Entry.%0A%20%20%20+%3FTitle_Entry+ps%3AP1476+%3FUS_Title.%0A%20%20%20+%3FTitle_Entry+pq%3AP3005+wd%3AQ30%0A%20+}%0A}';
 						this.wikiData.state = 1;
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
@@ -405,7 +321,7 @@
 								// Box Office and Budget
 								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null)
 									this.wikiData.budget = this.wiki.Budget.value;
-								if (this.wiki != null && this.wiki.Box_Office != null && this.wiki.Box_Office.value != null)
+								if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null)
 									this.wikiData.boxOffice = this.wiki.Box_Office.value;
 
 								this.addBoxOffice();
@@ -424,6 +340,14 @@
 								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
 									this.mpaaRating = letterboxd.helpers.determineMPAARating(this.wiki.MPAA_film_ratingLabel.value);
 									this.addRating();	
+								}
+
+								// Get US Title and attempt Cinemascore
+								if (this.wiki.US_Title != null && this.wiki.US_Title != "")
+									this.wikiData.US_Title = this.wiki.US_Title;
+
+								if(this.wikiData.US_Title != null && this.cinemascore.state < 2){
+									this.initCinema(this.wikiData.US_Title.value);
 								}
 
 								// Get and add Metacritic
@@ -1556,6 +1480,113 @@
 
 				this.ratingAdded = true;
 
+			},
+
+			initCinema(title){
+				// Get the Movie Title and clean it up a bit
+				if (title.startsWith('The ')){
+					title = title.replace("The ","");
+					title = title + ", The";
+				}else if (title.startsWith('A ')){
+					title = title.replace("A ","");
+					title = title + ", A";
+				}
+				// Normalize (ie, remove accents/diacritics)
+				title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
+				// First Attempt - 'The' at end, no accents
+				//****************************************************************
+				// Encode title
+				var encoded = letterboxd.helpers.encodeASCII(title);
+
+				// Create the URL and send the request
+				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+				this.cinemascore.state = 1;
+
+				letterboxd.helpers.getOMDbData(url).then((value) => {
+					// Check if found
+					this.cinemascore.data = value;
+					if (this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+						this.addCinema();
+						this.cinemascore.state = 2;
+
+					}else{
+						// Second Attempt - after hyphen
+						//****************************************************************
+						if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE == "" && title.includes(" - ")){
+							var temp = title.split(" - ");
+							encoded = btoa(temp[1]);
+
+							this.getCinema(encoded);
+							/*
+							url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+							letterboxd.helpers.getOMDbData(url).then((value) => {
+								this.cinemascore.data = value;
+
+								if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+									this.cinemascore.state = 2;
+									this.addCinema();
+								}
+							});
+							*/
+						}
+						
+						// Third Attempt - after colon
+						//****************************************************************
+						if (this.cinemascore.state < 2 && this.cinemascore != null && this.cinemascore.length > 0 && this.cinemascore[0].GRADE == "" && title.includes(": ")){
+							var temp = title.split(": ");
+							encoded = btoa(temp[1]);
+
+							this.getCinema(encoded);
+							/*
+							url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+							letterboxd.helpers.getOMDbData(url).then((value) => {
+								this.cinemascore.data = value;
+
+								if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+									this.cinemascore.state = 2;
+									this.addCinema();
+								}
+							});
+							*/
+						}
+						
+						// Fourth Attempt - roman numerals
+						//****************************************************************
+						const res = /( [0-9]+)/g;
+						if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE == "" && res.test(title)){
+							var num = title.substring(title.search(res),title.length).trim();
+							var roman = letterboxd.helpers.romanize(parseInt(num));
+							var temp = title.replace(res, " " + roman);
+							encoded = btoa(temp);
+
+							this.getCinema(encoded);
+							/*
+							url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+							letterboxd.helpers.getOMDbData(url).then((value) => {
+								this.cinemascore.data = value;
+
+								if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+									this.cinemascore.state = 2;
+									this.addCinema();
+								}
+							});
+							*/
+						}
+					}
+				});
+			},
+
+			getCinema(encoded){
+				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+				letterboxd.helpers.getOMDbData(url).then((value) => {
+					this.cinemascore.data = value;
+
+					if (this.cinemascore.state < 2 && this.cinemascore.data != null && this.cinemascore.data.length > 0 && this.cinemascore.data[0].GRADE != ""){
+						this.cinemascore.state = 2;
+						this.addCinema();
+					}
+				});
 			},
 
 			addCinema(){
