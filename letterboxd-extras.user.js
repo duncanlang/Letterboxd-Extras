@@ -162,7 +162,8 @@
 			color: #626d77;
 			background-color: transparent;
 			border: 1px solid #283038;
-			padding: 0px;
+			padding-top: 0px;
+			padding-bottom: 0px;
 		}
 		.rt-bar{
 			display: inline-block;
