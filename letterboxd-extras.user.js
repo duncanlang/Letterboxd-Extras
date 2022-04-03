@@ -1548,15 +1548,25 @@
 					for (var ii = 0; ii < data.length; ii++){
 						// Check to see if the year cinemascore uses is one of the years we have
 						if (data[ii].YEAR != null && years.includes(data[ii].YEAR)){
-
+							var found = false;
+							
 							if (titleType == "all"){
-								var reg = new RegExp('^(' + title + '){1}$','i');
+								var withYear = title.toUpperCase() + ' (' + data[ii].YEAR + ')';
+								// If Exact
+								if (data[ii].TITLE == title || data[ii].TITLE == withYear){
+									found = true;
+								}else{
+									// If not, make sure it starts with the exact title
+									var reg = new RegExp('^(' + title + '){1}( |,|\\.|:|-|$)','i')
+									found = data[ii].TITLE.match(reg);
+								}
+
 							}else if (titleType == "end"){
+								// Make sure it ends with the searched title
 								var reg = new RegExp('(' + title + '){1}$','i')
-							}else if (titleType == "begin"){
-								var reg = new RegExp('^(' + title + '){1}','i')
+								found = data[ii].TITLE.match(reg);
 							}
-							if (data[ii].TITLE.match(reg)){
+							if (found){
 								result = data[ii];
 								break;
 							}
