@@ -2227,7 +2227,7 @@
 			},
 
 			encodeASCII(text){
-				return btoa(text);
+				return btoa(unescape(encodeURIComponent(text)));
 			},
 
 			romanize(num){
