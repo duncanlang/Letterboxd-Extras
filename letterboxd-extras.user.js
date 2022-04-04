@@ -1497,14 +1497,22 @@
 						//****************************************************************
 						if (this.cinemascore.state < 2 && title.includes(" - ")){
 							var temp = title.split(" - ");
-							this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
+							if (temp[1].toUpperCase().includes("THE MOVIE")){
+								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[0]), 'begin');
+							}else{
+								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
+							}
 						}
 						
 						// Search After Colon (:)
 						//****************************************************************
 						if (this.cinemascore.state < 2 && title.includes(": ")){
 							var temp = title.split(": ");
-							this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
+							if (temp[1].toUpperCase().includes("THE MOVIE")){
+								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[0]), 'begin');
+							}else{
+								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
+							}
 						}
 						
 						// Replace Numbers with Roman Numerals
@@ -1570,7 +1578,12 @@
 								// Make sure it ends with the searched title
 								var reg = new RegExp('(' + title + '){1}$','i')
 								found = data[ii].TITLE.match(reg);
+							}else if (titleType == "begin"){
+								// Make sure it begins with the searched title
+								var reg = new RegExp('^(' + title + '){1}( |,|\\.|:|-|$)','i')
+								found = data[ii].TITLE.match(reg);
 							}
+
 							if (found){
 								result = data[ii];
 								break;
