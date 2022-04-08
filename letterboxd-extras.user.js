@@ -1566,7 +1566,7 @@
 							if (titleType == "all"){
 								var withYear = title.toUpperCase() + ' (' + data[ii].YEAR + ')';
 								// If Exact
-								if (data[ii].TITLE == title || data[ii].TITLE == withYear){
+								if (data[ii].TITLE == title.toUpperCase() || data[ii].TITLE == withYear){
 									found = true;
 								}else{
 									// If not, make sure it starts with the exact title
