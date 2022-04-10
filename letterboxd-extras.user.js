@@ -319,8 +319,8 @@
 					// Call WikiData
 					if (this.wikiData.state < 1){
 						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=';
-						queryString += 'SELECT+DISTINCT+%3Fitem+%3FitemLabel+%3FRotten_Tomatoes_ID+%3FMetacritic_ID+%3FMPAA_film_rating+%3FMPAA_film_ratingLabel+%3FBudget+%3FBox_OfficeUS+%3FBox_OfficeWW+%3FPublication_Date+%3FPublication_Date_Backup+%3FPublication_Date_Origin+%3FUS_Title+%3FAlt_Title+WHERE+{%0A%20+SERVICE+wikibase%3Alabel+{+bd%3AserviceParam+wikibase%3Alanguage+"[AUTO_LANGUAGE]".+}%0A%20+{%0A%20%20%20+SELECT+DISTINCT+%3Fitem+WHERE+{+%0A%20%20%20%20%20+%3Fitem+p%3AP345+%3Fstatement0.+%0A%20%20%20%20%20+%3Fstatement0+ps%3AP345+"' + this.imdbID;
-						queryString += '".%0A%20%20%20+}%0A%20%20%20+LIMIT+10+%0A%20+}+%0A%20+VALUES+%3Franks+{+wikibase%3APreferredRank+wikibase%3ANormalRank+}%0A%20+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1258+%3FRotten_Tomatoes_ID.+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1712+%3FMetacritic_ID.+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1657+%3FMPAA_film_rating.+}%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP2130+%3FBudget.+}+%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP2142+%3FBox_Office_Entry.%0A%20%20%20+%3FBox_Office_Entry+ps%3AP2142+%3FBox_OfficeUS.%0A%20%20%20+%3FBox_Office_Entry+pq%3AP3005+wd%3AQ30%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP2142+%3FBox_Office_EntryWW.%0A%20%20%20+%3FBox_Office_EntryWW+ps%3AP2142+%3FBox_OfficeWW.%0A%20%20%20+%3FBox_Office_EntryWW+pq%3AP3005+wd%3AQ13780930%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP577+%3FPublication_Date_entry.%0A%20%20%20+%3FPublication_Date_entry+ps%3AP577+%3FPublication_Date.%0A%20%20%20+%3FPublication_Date_entry+pq%3AP291+wd%3AQ30.%20+%0A%20%20%20+MINUS+{+%3FPublication_Date_entry+wikibase%3Arank+wikibase%3ADeprecatedRank+}%0A%20+}%0A%20+OPTIONAL+{%0A%20%20%20+%3Fitem+p%3AP577+%3FPublication_Date_Backup_entry.%0A%20%20%20+%3FPublication_Date_Backup_entry+ps%3AP577+%3FPublication_Date_Backup.%0A%20%20%20+FILTER+NOT+EXISTS+{+%3FPublication_Date_Backup_entry+pq%3AP291+[]+}%0A%20%20%20+MINUS+{+%3FPublication_Date_Backup_entry+wikibase%3Arank+wikibase%3ADeprecatedRank+}%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+wdt%3AP495+%3FCountry_Of_Origin.+%0A%20%20%20+OPTIONAL+{%0A%20%20%20%20%20+%3Fitem+p%3AP577+%3FDate_Origin_entry.%0A%20%20%20%20%20+%3FDate_Origin_entry+ps%3AP577+%3FPublication_Date_Origin.%0A%20%20%20%20%20+%3FDate_Origin_entry+pq%3AP291+%3FCountry_Of_Origin.%20%20%20+%0A%20%20%20%20%20+MINUS+{+%3FDate_Origin_entry+wikibase%3Arank+wikibase%3ADeprecatedRank+}%0A%20%20%20+}%0A%20+}+%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP1476+%3FTitle_Entry.%0A%20%20%20+%3FTitle_Entry+ps%3AP1476+%3FUS_Title.%0A%20%20%20+%3FTitle_Entry+pq%3AP3005+wd%3AQ30%0A%20+}%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1476+%3FAlt_Title.+}+%0A}';
+						queryString += 'SELECT+DISTINCT+%3Fitem+%3FitemLabel+%3FRotten_Tomatoes_ID+%3FMetacritic_ID+%3FMPAA_film_rating+%3FMPAA_film_ratingLabel+%3FBudget+%3FBox_OfficeUS+%3FBox_OfficeWW+%3FPublication_Date+%3FPublication_Date_Backup+%3FPublication_Date_Origin+%3FUS_Title+WHERE+{%0A%20+SERVICE+wikibase%3Alabel+{+bd%3AserviceParam+wikibase%3Alanguage+"[AUTO_LANGUAGE],en".+}%0A%20+{%0A%20%20%20+SELECT+DISTINCT+%3Fitem+WHERE+{+%0A%20%20%20%20%20+%3Fitem+p%3AP345+%3Fstatement0.+%0A%20%20%20%20%20+%3Fstatement0+ps%3AP345+"' + this.imdbID;
+						queryString += '".%0A%20%20%20+}%0A%20%20%20+LIMIT+10+%0A%20+}+%0A%20+VALUES+%3Franks+{+wikibase%3APreferredRank+wikibase%3ANormalRank+}%0A%20+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1258+%3FRotten_Tomatoes_ID.+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1712+%3FMetacritic_ID.+}+%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP1657+%3FMPAA_film_rating.+}%0A%20+OPTIONAL+{+%3Fitem+wdt%3AP2130+%3FBudget.+}+%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP2142+%3FBox_Office_Entry.%0A%20%20%20+%3FBox_Office_Entry+ps%3AP2142+%3FBox_OfficeUS.%0A%20%20%20+%3FBox_Office_Entry+pq%3AP3005+wd%3AQ30%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP2142+%3FBox_Office_EntryWW.%0A%20%20%20+%3FBox_Office_EntryWW+ps%3AP2142+%3FBox_OfficeWW.%0A%20%20%20+%3FBox_Office_EntryWW+pq%3AP3005+wd%3AQ13780930%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP577+%3FPublication_Date_entry.%0A%20%20%20+%3FPublication_Date_entry+ps%3AP577+%3FPublication_Date.%0A%20%20%20+%3FPublication_Date_entry+pq%3AP291+wd%3AQ30.%20+%0A%20%20%20+MINUS+{+%3FPublication_Date_entry+wikibase%3Arank+wikibase%3ADeprecatedRank+}%0A%20+}%0A%20+OPTIONAL+{%0A%20%20%20+%3Fitem+p%3AP577+%3FPublication_Date_Backup_entry.%0A%20%20%20+%3FPublication_Date_Backup_entry+ps%3AP577+%3FPublication_Date_Backup.%0A%20%20%20+FILTER+NOT+EXISTS+{+%3FPublication_Date_Backup_entry+pq%3AP291+[]+}%0A%20%20%20+MINUS+{+%3FPublication_Date_Backup_entry+wikibase%3Arank+wikibase%3ADeprecatedRank+}%0A%20+}%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+wdt%3AP495+%3FCountry_Of_Origin.+%0A%20%20%20+OPTIONAL+{%0A%20%20%20%20%20+%3Fitem+p%3AP577+%3FDate_Origin_entry.%0A%20%20%20%20%20+%3FDate_Origin_entry+ps%3AP577+%3FPublication_Date_Origin.%0A%20%20%20%20%20+%3FDate_Origin_entry+pq%3AP291+%3FCountry_Of_Origin.%20%20%20+%0A%20%20%20%20%20+MINUS+{+%3FDate_Origin_entry+wikibase%3Arank+wikibase%3ADeprecatedRank+}%0A%20%20%20+}%0A%20+}+%0A%20+OPTIONAL+{+%0A%20%20%20+%3Fitem+p%3AP1476+%3FTitle_Entry.%0A%20%20%20+%3FTitle_Entry+ps%3AP1476+%3FUS_Title.%0A%20%20%20+%3FTitle_Entry+pq%3AP3005+wd%3AQ30%0A%20+}%0A%20+%0A}';
 						this.wikiData.state = 1;
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
@@ -351,14 +351,17 @@
 
 								// Add the date to letterboxd
 								if (this.dateAdded == false){
-									if (this.wikiData.date != null){
-										this.filmDate = this.wikiData.date;
-										this.addDate();
-	
-									}else if (this.wikiData.date_origin != null){
+									// Prefer Country of Origin Date
+									if (this.wikiData.date_origin != null){
 										this.filmDate = this.wikiData.date_origin;
 										this.addDate();
-	
+
+									// Then US Date
+									}else if (this.wikiData.date != null){
+										this.filmDate = this.wikiData.date;
+										this.addDate();
+
+									// Then Backup date (first date without country qualifier)
 									}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null){
 										var date = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
 										this.wikiData.date = date;
@@ -376,15 +379,15 @@
 
 								// Get US Title and attempt Cinemascore
 								if (this.wiki.US_Title != null && this.wiki.US_Title != "")
-									this.wikiData.US_Title = this.wiki.US_Title;
+									this.wikiData.US_Title = this.wiki.US_Title.value;
 									
-								if (this.wiki.Alt_Title != null && this.wiki.Alt_Title != "")
-									this.wikiData.Alt_Title = this.wiki.Alt_Title;
+								if (this.wiki.itemLabel != null && this.wiki.itemLabel != "")
+									this.wikiData.Alt_Title = this.wiki.itemLabel.value;
 
 								if(this.wikiData.US_Title != null && this.cinemascore.state < 2){
-									this.initCinema(this.wikiData.US_Title.value);
+									this.initCinema(this.wikiData.US_Title);
 								}else if(this.wikiData.Alt_Title != null && this.cinemascore.state < 2){
-									this.initCinema(this.wikiData.Alt_Title.value);
+									this.initCinema(this.wikiData.Alt_Title);
 								}else if (this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear && this.cinemascore.state < 2){
 									this.initCinema(null);
 								}else if (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear && this.cinemascore.state < 2){
