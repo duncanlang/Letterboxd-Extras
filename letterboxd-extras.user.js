@@ -2350,6 +2350,7 @@
 						output = "M/PG"
 						break;
 					default:
+						output = value;
 						break;
 				}
 				return output;
