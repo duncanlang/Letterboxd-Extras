@@ -1484,6 +1484,7 @@
 			initCinema(title){
 				if (title == null || title == ""){
 					title = document.querySelector(".headline-1.js-widont.prettify").innerText;
+					title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
 				}
 				// Get the Movie Title and clean it up a bit
 				if (title.startsWith('The ')){
@@ -2349,6 +2350,24 @@
 						output = "M/PG"
 						break;
 					default:
+						break;
+				}
+				return output;
+			},
+
+			cinemascoreTitle(title, year){
+				var output = "";
+				// I don't like doing it this way, but there is no other way for certain movies where cinemascore has incorrect data
+				switch(title){
+					case "Harry Potter and the Order of the Phoenix":
+						output = "Harry Potter and Order of the Phoenix";
+						break;
+					case "Ocean's Eleven":
+						if (year == "2001")
+							output = "Ocean's 11";
+						break;
+					default:
+						output = title;
 						break;
 				}
 				return output;
