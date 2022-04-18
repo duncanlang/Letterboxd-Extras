@@ -49,16 +49,16 @@
 		}
 		.meta-score, .meta-score:hover, .meta-score-user, .meta-score-user:hover, .cinema-grade, .cinema-grade:hover {
 			color: white;
-			display:block;
+			display: block;
 			font-family: Arial,Helvetica,sans-serif;
-			font-size:16px;
+			font-size: 16px;
 			font-weight: bold !important;
-			width:30px;
-			height:30px;
-			line-height:30px;
-			margin-left:1px;
-			margin-top:5px;
-			text-align:center;
+			width: 30px;
+			height: 30px;
+			line-height: 30px;
+			margin-left: 1px;
+			margin-top: 5px;
+			text-align: center;
 			border-radius: 3px;
 			vertical-align: top;
 		}
@@ -75,7 +75,7 @@
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see {
 			background-position-x: left;
 			background-position-y: top;
 			background-repeat: no-repeat;
@@ -86,7 +86,7 @@
 			width: 16px;
 			height: 16px;
 			display: inline-block;
-			padding-right: 5px;
+			margin-right: 5px;
 			opacity: 100%;
 		}
 		.icon-tomato {
@@ -94,6 +94,12 @@
 		}
 		.icon-popcorn {
 			background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg");
+		}
+		.meta-must-see{
+			width: 30px;
+			height: 30px;
+			padding: 0px;
+			background-image: url("https://www.metacritic.com/images/icons/mc-mustsee.svg");
 		}
 		.imdb-ratings, .tomato-ratings, .meta-ratings, .cinemascore{
 			margin-top: 15px !important;
@@ -238,7 +244,7 @@
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
 
 			// Metacritic
-			metaData: {state: 0, data: null, raw: null, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
+			metaData: {state: 0, data: null, raw: null, mustSee: false, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
 
 			// MPAA rating
 			mpaaRating: null,
@@ -1044,6 +1050,11 @@
 						this.metaData.critic.rating = "N/A";
 					}
 
+					// Grab the 'must see'
+					if (this.metaData.data.querySelector('.must-see.product')){
+						this.metaData.mustSee = true;
+					}
+
 					// Grab the rating counts
 					var ratings = this.metaData.data.querySelectorAll('.reviews .fxdcol');
 					for(var i = 0; i < ratings.length; i++){
@@ -1191,12 +1202,22 @@
 				var url = "";
 				if (this.wikiData.metaURL != null && this.wikiData.metaURL != "")
 					url = this.wikiData.metaURL + "/critic-reviews";
-				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic));				
+				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic,this.metaData.mustSee));				
 				
 				// User score
 				//***************************************************************
 				if (this.metaData.data != null){
-					section.append(letterboxd.helpers.createMetaScore("user","User",this.wikiData.metaURL + "/user-reviews",this.metaData.user));
+					section.append(letterboxd.helpers.createMetaScore("user","User",this.wikiData.metaURL + "/user-reviews",this.metaData.user,this.metaData.mustSee));
+				}
+
+				// Add Must see if applicable
+				if (this.metaData.mustSee == true){
+					const mustSeeSpan = letterboxd.helpers.createElement('span', {
+						class: 'meta-must-see tooltip display-rating -highlight',
+						style: 'margin-top: 5px;',
+						['data-original-title']: 'Metacritic Must-See'
+					});
+					section.append(mustSeeSpan);
 				}
 
 				// APPEND
@@ -1229,6 +1250,10 @@
 				if (this.metaData.user.num_ratings != 0 || this.metaData.user.rating == "tbd" || this.metaData.critic.rating == "N/A"){
 					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseover", ShowTwipsy);
 					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseout", HideTwipsy);
+				}
+				if (this.metaData.mustSee){
+					$(".tooltip.display-rating.-highlight.meta-must-see").on("mouseover", ShowTwipsy);
+					$(".tooltip.display-rating.-highlight.meta-must-see").on("mouseout", HideTwipsy);
 				}
 
 				this.metaAdded = true;
@@ -2063,13 +2088,13 @@
 				return highest;
 			},
 
-			createMetaScore(type, display, url, data){
+			createMetaScore(type, display, url, data, mustSee){
 				// The span that holds the score
 				var style = "";
-				if (type == "critic")
+				if (type == "critic" || mustSee)
 					style = " margin-right: 10px;"
 				const span = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block;' + style
+					style: style
 				});
 				
 				var colour = letterboxd.helpers.determineMetaColour(data.rating, (type == "user"));
