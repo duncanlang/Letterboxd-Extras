@@ -328,7 +328,33 @@
 						this.wikiData.state = 1;
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
-								this.wiki = value.results.bindings[0];
+								// Loop and find the best result
+								if (value.results.bindings.length > 1){
+									var results = [];
+									for (var i = 0; i < value.results.bindings.length; i++){
+										var result = value.results.bindings[i];
+										var entry = {id: i, score: 0};
+
+										if (result.Publication_Date != null && !result.Publication_Date.value.includes("-01-01T")){
+											entry.score++;
+										}
+										if (result.Publication_Date_Origin != null && !result.Publication_Date_Origin.value.includes("-01-01T")){
+											entry.score++;
+										}
+										if (result.Publication_Date_Backup != null && !result.Publication_Date_Backup.value.includes("-01-01T")){
+											entry.score++;
+										}
+										results.push(entry);
+									}
+									results.sort((a, b) => {
+										return b.score - a.score;
+									});
+									this.wiki = value.results.bindings[results[0].id];
+								}
+								
+								if (this.wiki == null){
+									this.wiki = value.results.bindings[0];
+								}
 								
 								// Box Office and Budget
 								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null){
