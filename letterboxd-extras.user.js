@@ -324,7 +324,7 @@
 
 					// Call WikiData
 					if (this.wikiData.state < 1){
-						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery();
+						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.imdbID);
 						this.wikiData.state = 1;
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
@@ -2408,16 +2408,14 @@
 				return value;
 			},
 
-			getWikiDataQuery(){
+			getWikiDataQuery(imdbID){
 				var output = `
 				SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_rating ?MPAA_film_ratingLabel ?Budget ?Box_OfficeUS ?Box_OfficeWW ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {
 					SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
 					{
 					  SELECT DISTINCT ?item WHERE { 
-						?item p:P345 ?statement0. 
-						?item p:P31 ?statement1. 
-						?statement0 ps:P345 'tt5242898'.
-						?statement1 ps:P31 wd:Q11424.
+						?item p:P345 ?statement0.
+						?statement0 ps:P345 '` + imdbID + `'.
 					  }
 					  LIMIT 10 
 					} 
