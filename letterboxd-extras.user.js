@@ -2022,11 +2022,14 @@
 					scoreTotal = "5";
 				}				
 				// The element that is the score itself
-				var hover = 'Average of ' + data.rating + '/' + scoreTotal + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' ratings';
+				var hover = 'Average of ' + data.rating + '/' + scoreTotal + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' rating';
 				if (data.percent == "--")
-					hover = data.num_ratings + " " + display + " Ratings";
+					hover = data.num_ratings + " " + display + " rating";
 				else
 					data.percent += "%";
+
+				if (data.num_ratings != 1)
+					hover += "s";
 
 				if (type.includes("audience-verified"))
 					url += "/reviews?type=verified_audience"
@@ -2133,13 +2136,23 @@
 
 				// Add the hoverover text and href
 				if (data.num_ratings > 0 && data.rating == "tbd"){
-					text.setAttribute('data-original-title','No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' reviews)');
+					var hover = 'No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' review';
+					if (data.num_ratings == 1)
+						hover += ")";
+					else
+						hover += "s)";
+
+					text.setAttribute('data-original-title',hover);
 					text.setAttribute('href',url);
 				}else if (data.num_ratings > 0){
 					var totalScore = "/100";
 					if (type == "user")
 						totalScore = "/10";
-					text.setAttribute('data-original-title',"Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' reviews');
+					var hover = "Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' review';
+					if (data.num_ratings != 1)
+						hover += "s"
+					
+					text.setAttribute('data-original-title',hover);
 					text.setAttribute('href',url);
 				}else if (url != ""){
 					if (data.rating == "N/A"){
