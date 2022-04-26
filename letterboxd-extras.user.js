@@ -887,7 +887,8 @@
 				}
 
 				// Return if no scores what so ever
-				if (this.tomatoData.audienceAll.percent == "--" && this.tomatoData.criticAll.percent == "--") return;
+				//if (this.tomatoData.audienceAll.percent == "--" && this.tomatoData.criticAll.percent == "--") return;
+				if (this.tomatoData.audienceAll.num_ratings == 0 && this.tomatoData.criticAll.num_ratings == 0) return;
 
 				// Now display all this on the page
 				//***************************************************************
@@ -1165,7 +1166,8 @@
 				}
 
 				// Return if no scores what so ever
-				if (this.metaData.critic.rating == "tbd" && this.metaData.user.rating == "tbd") return;
+				//if (this.metaData.critic.rating == "tbd" && this.metaData.user.rating == "tbd") return;
+				if (this.metaData.critic.num_ratings == 0 && this.metaData.user.num_ratings == 0) return;
 
 				// Now lets add it to the page
 				//***************************************************************
