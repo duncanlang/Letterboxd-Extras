@@ -238,7 +238,7 @@
 
 			// WikiData
 			wiki: null,
-			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: null, boxOffice: null, boxOfficeWW: null, mpaa: null, date: null, date_origin: null, rating: null, US_Title: null, Alt_Title: null},
+			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: {value: null, currency: null}, boxOffice: {value: null, currency: null}, boxOfficeWW: {value: null, currency: null}, mpaa: null, date: null, date_origin: null, rating: null, US_Title: null, Alt_Title: null},
 
 			// Rotten Tomatoes
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
@@ -358,16 +358,25 @@
 								
 								// Box Office and Budget
 								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null){
-									this.wikiData.budget = this.wiki.Budget.value;
-									letterboxd.helpers.createDetailsRow("Budget",this.wikiData.budget);
+									this.wikiData.budget.value = this.wiki.Budget.value;
+									if (this.wiki.Budget_UnitLabel != null)
+										this.wikiData.budget.currency = this.wiki.Budget_UnitLabel.value;
+
+									letterboxd.helpers.createDetailsRow("Budget",this.wikiData.budget.value, this.wikiData.budget.currency);
 								}
 								if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null){
-									this.wikiData.boxOffice = this.wiki.Box_OfficeUS.value;
-									letterboxd.helpers.createDetailsRow("Box Office (US)",this.wikiData.boxOffice);
+									this.wikiData.boxOffice.value = this.wiki.Box_OfficeUS.value;
+									if (this.wiki.Budget_UnitLabel != null)
+										this.wikiData.boxOffice.currency = this.wiki.Box_Office_UnitLabel.value;
+
+									letterboxd.helpers.createDetailsRow("Box Office (US)",this.wikiData.boxOffice.value, this.wikiData.boxOffice.currency);
 								}
 								if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null){
-									this.wikiData.boxOfficeWW = this.wiki.Box_OfficeWW.value;
-									letterboxd.helpers.createDetailsRow("Box Office (WW)",this.wikiData.boxOfficeWW);
+									this.wikiData.boxOfficeWW.value = this.wiki.Box_OfficeWW.value;
+									if (this.wiki.Box_OfficeWW_UnitLabel != null)
+										this.wikiData.boxOfficeWW.currency = this.wiki.Box_OfficeWW_UnitLabel.value;
+
+									letterboxd.helpers.createDetailsRow("Box Office (WW)",this.wikiData.boxOfficeWW.value, this.wikiData.boxOfficeWW.currency);
 								}
 								
 								// Get Date
@@ -2230,7 +2239,7 @@
 				return span;
 			},
 
-			createDetailsRow(headerText, value){
+			createDetailsRow(headerText, value, currency){
 				// Determine className
 				var className = "";
 				switch(headerText){
@@ -2244,14 +2253,25 @@
 						className = "box-office-ww";
 						break;
 				}
+
+				// Determine Currency
+				var currencyCode = currency;
+				if (currency == null || currency == "" || currency == "DER")
+					currencyCode = "USD";
 				
 				// Return if already added
 				if (document.querySelector('.' + className + '')) return;
 				
 				// Set value to localeString
 				if (!value.startsWith("$") && value != ""){
-					value = Number(value).toLocaleString(undefined, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 })
-					value = value.replace("US","");
+					value = Number(value).toLocaleString('en-US', {style: 'currency', currency: currencyCode, minimumFractionDigits: 0, maximumFractionDigits: 2 })
+
+					switch(currency){
+						case "DER": // Manually handle Reichsmark (no ISO 4217 code)
+							value = value.substring(value.indexOf('$') + 1); //just in case it says US$ instead of just $
+							value += " ℛℳ";
+							break;
+					}
 				}
 
 				// Create the Elements
@@ -2462,7 +2482,7 @@
 
 			getWikiDataQuery(imdbID){
 				var output = `
-				SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_rating ?MPAA_film_ratingLabel ?Budget ?Box_OfficeUS ?Box_OfficeWW ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {
+				SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_Office_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {
 					SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
 					{
 					  SELECT DISTINCT ?item WHERE { 
@@ -2471,46 +2491,63 @@
 					  }
 					  LIMIT 10 
 					} 
-					VALUES ?ranks { wikibase:PreferredRank wikibase:NormalRank }
-					OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. } 
-					OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. } 
+					OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }
+					OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }
 					OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }
-					OPTIONAL { ?item wdt:P2130 ?Budget. } 
-					OPTIONAL { 
+					OPTIONAL {
+					  ?item p:P2130 ?Budget_Entry.
+					  ?Budget_Entry ps:P2130 ?Budget.
+					  OPTIONAL {
+						?Budget_Entry psv:P2130 ?valuenode.
+						?valuenode wikibase:quantityUnit ?Budget_Unit.
+						?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].
+					  }
+					}
+					OPTIONAL {
 					  ?item p:P2142 ?Box_Office_Entry.
-					  ?Box_Office_Entry ps:P2142 ?Box_OfficeUS.
-					  ?Box_Office_Entry pq:P3005 wd:Q30
+					  ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;
+						pq:P3005 wd:Q30.
+					  OPTIONAL {
+						?Box_Office_Entry psv:P2142 ?valuenode2.
+						?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.
+						?Box_Office_Unit p:P498 [ps:P498 ?Box_Office_UnitLabel].
+					  }
 					}
-					OPTIONAL { 
+					OPTIONAL {
 					  ?item p:P2142 ?Box_Office_EntryWW.
-					  ?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW.
-					  ?Box_Office_EntryWW pq:P3005 wd:Q13780930
+					  ?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;
+						pq:P3005 wd:Q13780930.
+					  OPTIONAL {
+						?Box_Office_EntryWW psv:P2142 ?valuenode3.
+						?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.
+						?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].
+					  }
 					}
-					OPTIONAL { 
+					OPTIONAL {
 					  ?item p:P577 ?Publication_Date_entry.
-					  ?Publication_Date_entry ps:P577 ?Publication_Date.
-					  ?Publication_Date_entry pq:P291 wd:Q30.  
-					  MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank }
+					  ?Publication_Date_entry ps:P577 ?Publication_Date;
+						pq:P291 wd:Q30.
+					  MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }
 					}
 					OPTIONAL {
 					  ?item p:P577 ?Publication_Date_Backup_entry.
 					  ?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.
 					  FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }
-					  MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank }
+					  MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }
 					}
-					OPTIONAL { 
-					  ?item wdt:P495 ?Country_Of_Origin. 
+					OPTIONAL {
+					  ?item wdt:P495 ?Country_Of_Origin.
 					  OPTIONAL {
 						?item p:P577 ?Date_Origin_entry.
-						?Date_Origin_entry ps:P577 ?Publication_Date_Origin.
-						?Date_Origin_entry pq:P291 ?Country_Of_Origin.    
-						MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank }
+						?Date_Origin_entry ps:P577 ?Publication_Date_Origin;
+						  pq:P291 ?Country_Of_Origin.
+						MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }
 					  }
-					} 
-					OPTIONAL { 
+					}
+					OPTIONAL {
 					  ?item p:P1476 ?Title_Entry.
-					  ?Title_Entry ps:P1476 ?US_Title.
-					  ?Title_Entry pq:P3005 wd:Q30
+					  ?Title_Entry ps:P1476 ?US_Title;
+						pq:P3005 wd:Q30.
 					}
 				  }
 				`
