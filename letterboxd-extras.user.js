@@ -2255,20 +2255,19 @@
 				}
 
 				// Determine Currency
-				var currencyCode = currency;
-				if (currency == null || currency == "" || currency == "DER")
-					currencyCode = "USD";
+				if (currency == null || currency == "")
+				currency = "USD";
 				
 				// Return if already added
 				if (document.querySelector('.' + className + '')) return;
 				
 				// Set value to localeString
 				if (!value.startsWith("$") && value != ""){
-					value = Number(value).toLocaleString('en-US', {style: 'currency', currency: currencyCode, minimumFractionDigits: 0, maximumFractionDigits: 2 })
+					value = Number(value).toLocaleString('en-US', {style: 'currency', currency: currency, minimumFractionDigits: 0, maximumFractionDigits: 2 })
 
 					switch(currency){
-						case "DER": // Manually handle Reichsmark (no ISO 4217 code)
-							value = value.substring(value.indexOf('$') + 1); //just in case it says US$ instead of just $
+						case "DER": // Manually handle Reichsmark (no valid ISO 4217 code)
+							value = value.replace('DER','').trim();
 							value += " ℛℳ";
 							break;
 					}
@@ -2485,71 +2484,74 @@
 				SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_Office_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {
 					SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
 					{
-					  SELECT DISTINCT ?item WHERE { 
-						?item p:P345 ?statement0.
-						?statement0 ps:P345 '` + imdbID + `'.
-					  }
-					  LIMIT 10 
-					} 
-					OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }
-					OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }
-					OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }
-					OPTIONAL {
-					  ?item p:P2130 ?Budget_Entry.
-					  ?Budget_Entry ps:P2130 ?Budget.
-					  OPTIONAL {
-						?Budget_Entry psv:P2130 ?valuenode.
-						?valuenode wikibase:quantityUnit ?Budget_Unit.
-						?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].
-					  }
+					  SELECT DISTINCT ?item WHERE {
+						?item p:` + idType + ` ?statement0.
+						?statement0 ps:` + idType + ` '` + id + `'.
 					}
+					LIMIT 10
+				  }
+				  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }
+				  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }
+				  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }
+				  OPTIONAL {
+					?item p:P2130 ?Budget_Entry.
+					?Budget_Entry ps:P2130 ?Budget.
 					OPTIONAL {
-					  ?item p:P2142 ?Box_Office_Entry.
-					  ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;
-						pq:P3005 wd:Q30.
-					  OPTIONAL {
-						?Box_Office_Entry psv:P2142 ?valuenode2.
-						?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.
-						?Box_Office_Unit p:P498 [ps:P498 ?Box_Office_UnitLabel].
-					  }
+					  ?Budget_Entry psv:P2130 ?valuenode.
+					  ?valuenode wikibase:quantityUnit ?Budget_Unit.
+					  ?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].
 					}
+					MINUS { ?Budget_Entry wikibase:rank wikibase:DeprecatedRank. }
+				  }
+				  OPTIONAL {
+					?item p:P2142 ?Box_Office_Entry.
+					?Box_Office_Entry ps:P2142 ?Box_OfficeUS;
+					  pq:P3005 wd:Q30.
 					OPTIONAL {
-					  ?item p:P2142 ?Box_Office_EntryWW.
-					  ?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;
-						pq:P3005 wd:Q13780930.
-					  OPTIONAL {
-						?Box_Office_EntryWW psv:P2142 ?valuenode3.
-						?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.
-						?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].
-					  }
+					  ?Box_Office_Entry psv:P2142 ?valuenode2.
+					  ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.
+					  ?Box_Office_Unit p:P498 [ps:P498 ?Box_Office_UnitLabel].
 					}
+					MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }
+				  }
+				  OPTIONAL {
+					?item p:P2142 ?Box_Office_EntryWW.
+					?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;
+					  pq:P3005 wd:Q13780930.
 					OPTIONAL {
-					  ?item p:P577 ?Publication_Date_entry.
-					  ?Publication_Date_entry ps:P577 ?Publication_Date;
-						pq:P291 wd:Q30.
-					  MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }
+					  ?Box_Office_EntryWW psv:P2142 ?valuenode3.
+					  ?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.
+					  ?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].
 					}
+					MINUS { ?Box_Office_EntryWW wikibase:rank wikibase:DeprecatedRank. }
+				  }
+				  OPTIONAL {
+					?item p:P577 ?Publication_Date_entry.
+					?Publication_Date_entry ps:P577 ?Publication_Date;
+					  pq:P291 wd:Q30.
+					MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }
+				  }
+				  OPTIONAL {
+					?item p:P577 ?Publication_Date_Backup_entry.
+					?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.
+					FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }
+					MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }
+				  }
+				  OPTIONAL {
+					?item wdt:P495 ?Country_Of_Origin.
 					OPTIONAL {
-					  ?item p:P577 ?Publication_Date_Backup_entry.
-					  ?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.
-					  FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }
-					  MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }
-					}
-					OPTIONAL {
-					  ?item wdt:P495 ?Country_Of_Origin.
-					  OPTIONAL {
-						?item p:P577 ?Date_Origin_entry.
-						?Date_Origin_entry ps:P577 ?Publication_Date_Origin;
-						  pq:P291 ?Country_Of_Origin.
-						MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }
-					  }
-					}
-					OPTIONAL {
-					  ?item p:P1476 ?Title_Entry.
-					  ?Title_Entry ps:P1476 ?US_Title;
-						pq:P3005 wd:Q30.
+					  ?item p:P577 ?Date_Origin_entry.
+					  ?Date_Origin_entry ps:P577 ?Publication_Date_Origin;
+						pq:P291 ?Country_Of_Origin.
+					  MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }
 					}
 				  }
+				  OPTIONAL {
+					?item p:P1476 ?Title_Entry.
+					?Title_Entry ps:P1476 ?US_Title;
+					  pq:P3005 wd:Q30.
+				  }
+				}
 				`
 
 				return output;
