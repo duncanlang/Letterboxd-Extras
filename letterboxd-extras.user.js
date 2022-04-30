@@ -230,6 +230,8 @@
 			imdbID: "",
 			imdbData: {state: 0, url: "", data: null, raw: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false},
 
+			tmdbID: '',
+
 			omdbData: {state: 0, data: null},
 
 			mojoData: null,
@@ -285,8 +287,10 @@
 				}
 
 				// First Get the IMDb link
-				if (this.imdbID == "")
+				if (this.imdbID == "" && document.querySelector('.micro-button') != null){
+					// Gets the IMDb link and ID, and also TMDB id
 					this.getIMDbLink();
+				}
 
 				if (this.imdbID != "" && this.imdbData.state < 1){
 					// Call IMDb and Add to page when done
@@ -321,10 +325,15 @@
 						if (this.filmDate != null && this.dateAdded == false)
 							this.addDate();
 					});
-
+				}
+				if (this.imdbID != '' || this.tmdbID != ''){
 					// Call WikiData
 					if (this.wikiData.state < 1){
-						var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.imdbID);
+						if (this.imdbID != '') // IMDb should be most reliable
+							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.imdbID, 'IMDB');
+						else if (this.tmdbID != '') // Every page should have a TMDB ID
+							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDB');
+
 						this.wikiData.state = 1;
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
@@ -524,11 +533,12 @@
 				return this.stopRunning();
 			},
 
-			async getIMDbLink(){
+			getIMDbLink(){
 				// Get the two links (imdb and tmdb)
 				const links = document.querySelectorAll('.micro-button.track-event');
 
 				var imdbLink = "";
+				var tmdbLink = "";
 
 				// Loop and find IMDB
 				for(var i = 0; i < links.length; i++){
@@ -540,15 +550,22 @@
 						if (imdbLink.includes("maindetails"))
 							imdbLink = imdbLink.replace("maindetails","ratings");
 
-						//this.imdbInfo[0] = imdbLink;
 						this.imdbData.url = imdbLink;
+
+					}else if (links[i].innerHTML === "TMDb"){
+						// Grab the tmdb link
+						tmdbLink = links[i].href;
 					}
 				}
 
 				// Separate out the ID
-				this.imdbID = imdbLink.replace("https://www.imdb.com/title/","");
-				this.imdbID = this.imdbID.replace("/ratings","");
-				this.imdbID = this.imdbID.replace("/","");
+				this.imdbID = imdbLink.match(/(imdb.com\/title\/)(tt[0-9]+)(\/)/)[2];
+				//this.imdbID = imdbLink.replace("https://www.imdb.com/title/","");
+				//this.imdbID = this.imdbID.replace("/ratings","");
+				//this.imdbID = this.imdbID.replace("/","");
+
+				// Separate the TMDB ID
+				this.tmdbID = tmdbLink.match(/(themoviedb.org\/movie\/)([0-9]+)($|\/)/)[2];
 			},
 
 			addIMDBScore(){
@@ -2479,7 +2496,19 @@
 				return value;
 			},
 
-			getWikiDataQuery(imdbID){
+			getWikiDataQuery(id, idType){
+				switch(idType.toUpperCase()){
+					case "IMDB":
+						idType = "P345";
+						break;
+					case "TMDB":
+						idType = "P4947";
+						break;
+					case "LETTERBOXD":
+						idType = "P6127";
+						break;
+				}
+
 				var output = `
 				SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_Office_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {
 					SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
