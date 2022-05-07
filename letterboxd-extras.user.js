@@ -375,8 +375,8 @@
 								}
 								if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null){
 									this.wikiData.boxOffice.value = this.wiki.Box_OfficeUS.value;
-									if (this.wiki.Budget_UnitLabel != null)
-										this.wikiData.boxOffice.currency = this.wiki.Box_Office_UnitLabel.value;
+									if (this.wiki.Box_OfficeUS_UnitLabel != null)
+										this.wikiData.boxOffice.currency = this.wiki.Box_OfficeUS_UnitLabel.value;
 
 									letterboxd.helpers.createDetailsRow("Box Office (US)",this.wikiData.boxOffice.value, this.wikiData.boxOffice.currency);
 								}
@@ -2505,7 +2505,7 @@
 						idType = "P6127";
 						break;
 				}
-				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_Office_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {\n" +
+				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {\n" +
 				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 				"  {\n" +
 				"    SELECT DISTINCT ?item WHERE {\n" +
@@ -2534,7 +2534,18 @@
 				"    OPTIONAL {\n" +
 				"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
 				"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
-				"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_Office_UnitLabel].\n" +
+				"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_OfficeUS_UnitLabel].\n" +
+				"    }\n" +
+				"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P2142 ?Box_Office_Entry.\n" +
+				"    ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;\n" +
+				"      pq:P3005 wd:Q2017699.\n" +
+				"    OPTIONAL {\n" +
+				"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
+				"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
+				"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_OfficeUS_UnitLabel].\n" +
 				"    }\n" +
 				"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 				"  }\n" +
@@ -2576,7 +2587,7 @@
 				"      pq:P3005 wd:Q30.\n" +
 				"  }\n" +
 				"}";
-
+				
 				return sparqlQuery;
 			}
 		},
