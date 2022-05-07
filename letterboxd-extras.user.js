@@ -560,9 +560,6 @@
 
 				// Separate out the ID
 				this.imdbID = imdbLink.match(/(imdb.com\/title\/)(tt[0-9]+)(\/)/)[2];
-				//this.imdbID = imdbLink.replace("https://www.imdb.com/title/","");
-				//this.imdbID = this.imdbID.replace("/ratings","");
-				//this.imdbID = this.imdbID.replace("/","");
 
 				// Separate the TMDB ID
 				this.tmdbID = tmdbLink.match(/(themoviedb.org\/movie\/)([0-9]+)($|\/)/)[2];
@@ -2495,7 +2492,7 @@
 
 				return value;
 			},
-
+			
 			getWikiDataQuery(id, idType){
 				switch(idType.toUpperCase()){
 					case "IMDB":
@@ -2508,82 +2505,79 @@
 						idType = "P6127";
 						break;
 				}
+				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_Office_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {\n" +
+				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+				"  {\n" +
+				"    SELECT DISTINCT ?item WHERE {\n" +
+				"      ?item p:" + idType + " ?statement0.\n" +
+				"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+				"    }\n" +
+				"    LIMIT 10\n" +
+				"  }\n" +
+				"  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }\n" +
+				"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
+				"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P2130 ?Budget_Entry.\n" +
+				"    ?Budget_Entry ps:P2130 ?Budget.\n" +
+				"    OPTIONAL {\n" +
+				"      ?Budget_Entry psv:P2130 ?valuenode.\n" +
+				"      ?valuenode wikibase:quantityUnit ?Budget_Unit.\n" +
+				"      ?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].\n" +
+				"    }\n" +
+				"    MINUS { ?Budget_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P2142 ?Box_Office_Entry.\n" +
+				"    ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;\n" +
+				"      pq:P3005 wd:Q30.\n" +
+				"    OPTIONAL {\n" +
+				"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
+				"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
+				"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_Office_UnitLabel].\n" +
+				"    }\n" +
+				"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P2142 ?Box_Office_EntryWW.\n" +
+				"    ?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;\n" +
+				"      pq:P3005 wd:Q13780930.\n" +
+				"    OPTIONAL {\n" +
+				"      ?Box_Office_EntryWW psv:P2142 ?valuenode3.\n" +
+				"      ?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.\n" +
+				"      ?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].\n" +
+				"    }\n" +
+				"    MINUS { ?Box_Office_EntryWW wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P577 ?Publication_Date_entry.\n" +
+				"    ?Publication_Date_entry ps:P577 ?Publication_Date;\n" +
+				"      pq:P291 wd:Q30.\n" +
+				"    MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P577 ?Publication_Date_Backup_entry.\n" +
+				"    ?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.\n" +
+				"    FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }\n" +
+				"    MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item wdt:P495 ?Country_Of_Origin.\n" +
+				"    OPTIONAL {\n" +
+				"      ?item p:P577 ?Date_Origin_entry.\n" +
+				"      ?Date_Origin_entry ps:P577 ?Publication_Date_Origin;\n" +
+				"        pq:P291 ?Country_Of_Origin.\n" +
+				"      MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"    }\n" +
+				"  }\n" +
+				"  OPTIONAL {\n" +
+				"    ?item p:P1476 ?Title_Entry.\n" +
+				"    ?Title_Entry ps:P1476 ?US_Title;\n" +
+				"      pq:P3005 wd:Q30.\n" +
+				"  }\n" +
+				"}";
 
-				var output = `
-				SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_Office_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title WHERE {
-					SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE]". }
-					{
-					  SELECT DISTINCT ?item WHERE {
-						?item p:` + idType + ` ?statement0.
-						?statement0 ps:` + idType + ` '` + id + `'.
-					}
-					LIMIT 10
-				  }
-				  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }
-				  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }
-				  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }
-				  OPTIONAL {
-					?item p:P2130 ?Budget_Entry.
-					?Budget_Entry ps:P2130 ?Budget.
-					OPTIONAL {
-					  ?Budget_Entry psv:P2130 ?valuenode.
-					  ?valuenode wikibase:quantityUnit ?Budget_Unit.
-					  ?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].
-					}
-					MINUS { ?Budget_Entry wikibase:rank wikibase:DeprecatedRank. }
-				  }
-				  OPTIONAL {
-					?item p:P2142 ?Box_Office_Entry.
-					?Box_Office_Entry ps:P2142 ?Box_OfficeUS;
-					  pq:P3005 wd:Q30.
-					OPTIONAL {
-					  ?Box_Office_Entry psv:P2142 ?valuenode2.
-					  ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.
-					  ?Box_Office_Unit p:P498 [ps:P498 ?Box_Office_UnitLabel].
-					}
-					MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }
-				  }
-				  OPTIONAL {
-					?item p:P2142 ?Box_Office_EntryWW.
-					?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;
-					  pq:P3005 wd:Q13780930.
-					OPTIONAL {
-					  ?Box_Office_EntryWW psv:P2142 ?valuenode3.
-					  ?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.
-					  ?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].
-					}
-					MINUS { ?Box_Office_EntryWW wikibase:rank wikibase:DeprecatedRank. }
-				  }
-				  OPTIONAL {
-					?item p:P577 ?Publication_Date_entry.
-					?Publication_Date_entry ps:P577 ?Publication_Date;
-					  pq:P291 wd:Q30.
-					MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }
-				  }
-				  OPTIONAL {
-					?item p:P577 ?Publication_Date_Backup_entry.
-					?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.
-					FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }
-					MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }
-				  }
-				  OPTIONAL {
-					?item wdt:P495 ?Country_Of_Origin.
-					OPTIONAL {
-					  ?item p:P577 ?Date_Origin_entry.
-					  ?Date_Origin_entry ps:P577 ?Publication_Date_Origin;
-						pq:P291 ?Country_Of_Origin.
-					  MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }
-					}
-				  }
-				  OPTIONAL {
-					?item p:P1476 ?Title_Entry.
-					?Title_Entry ps:P1476 ?US_Title;
-					  pq:P3005 wd:Q30.
-				  }
-				}
-				`
-
-				return output;
+				return sparqlQuery;
 			}
 		},
 
