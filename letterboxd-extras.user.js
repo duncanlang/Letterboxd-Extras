@@ -227,6 +227,8 @@
 
 			letterboxdYear: null,
 
+			letterboxdTitle: null,
+
 			imdbID: "",
 			imdbData: {state: 0, url: "", data: null, raw: null, state2 : 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null},
 
@@ -258,6 +260,8 @@
 			rymData: {url: null, data: null, highest: 0, error: false},
 
 			linksAdded: [],
+
+			cinemascoreAlt: false,
 			
 			rtAdded: false,
 			metaAdded: false,
@@ -279,6 +283,7 @@
 
 				if (document.querySelector(".number")){
 					this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
+					this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
 				}
 
 				// Add Cinema Score
@@ -452,16 +457,6 @@
 								if (this.wiki.itemLabel != null && this.wiki.itemLabel != "")
 									this.wikiData.Alt_Title = this.wiki.itemLabel.value;
 
-								if(this.wikiData.US_Title != null && this.cinemascore.state < 2){
-									this.initCinema(this.wikiData.US_Title);
-								}else if(this.wikiData.Alt_Title != null && this.cinemascore.state < 2){
-									this.initCinema(this.wikiData.Alt_Title);
-								}else if (this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear && this.cinemascore.state < 2){
-									this.initCinema(null);
-								}else if (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear && this.cinemascore.state < 2){
-									this.initCinema(null);
-								}
-
 								// Get and add Metacritic
 								if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null){
 									this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
@@ -503,6 +498,27 @@
 								this.wikiData.state = 2;
 							}
 						});
+					}
+				}
+
+				// Cinemascore alt titles and years
+				if (this.cinemascore.data != null && this.wikiData.state == 2 && this.cinemascoreAlt == false && this.cinemascore.state != 2){
+					this.cinemascoreAlt = true;
+					var alt_Title = true;
+					if ((this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear)){
+						if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")){
+							alt_Title = false;
+							this.addCinema();
+						}
+					}
+
+					if (alt_Title){
+						if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle){
+							this.initCinema(this.wikiData.US_Title);
+						}
+						if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle){
+							this.initCinema(this.wikiData.Alt_Title);
+						}
 					}
 				}
 
@@ -1627,6 +1643,8 @@
 					return;
 				}
 
+				title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
+				/*
 				if (title == null || title == ""){
 					title = document.querySelector(".headline-1.js-widont.prettify").innerText;
 					title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
@@ -1641,6 +1659,7 @@
 				}
 				// Normalize (ie, remove accents/diacritics)
 				title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+				*/
 
 				// First Attempt - 'The' at end, no accents
 				//****************************************************************
@@ -1654,7 +1673,12 @@
 
 				letterboxd.helpers.getOMDbData(url).then((value) => {
 					// Check if found
-					this.cinemascore.data = value;
+					if (this.cinemascore.data == null){
+						this.cinemascore.data = value;
+					}else{
+						this.cinemascore.data = [].concat(this.cinemascore.data, value);
+					}
+
 					if (this.verifyCinema(value, title, 'all')){
 						this.addCinema();
 
@@ -1717,7 +1741,11 @@
 				var encoded = letterboxd.helpers.encodeASCII(title);
 				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
 				letterboxd.helpers.getOMDbData(url).then((value) => {
-					this.cinemascore.data = value;
+					if (this.cinemascore.data == null){
+						this.cinemascore.data = value;
+					}else{
+						this.cinemascore.data = [].concat(this.cinemascore.data, value);
+					}
 
 					if (this.verifyCinema(value, title, titleType)){
 						this.addCinema();
@@ -1729,7 +1757,7 @@
 				if (this.cinemascore.state < 2 && data != null && data.length > 0 && data[0].GRADE != ""){
 					const year = document.querySelector('.number').childNodes[0].innerHTML;
 
-					var years = [year,"",""];
+					var years = [year,"","",""];
 
 					if (this.omdbData.data != null && this.omdbData.data.Year != null && this.omdbData.data.Year != "N/A"){
 						years[1] = this.omdbData.data.Year;
@@ -1738,6 +1766,9 @@
 					}
 					if (this.wikiData.date != null){
 						years[2] = (new Date(this.wikiData.date)).getFullYear().toString();
+					}
+					if (this.wikiData.date_origin != null){
+						years[3] = (new Date(this.wikiData.date_origin)).getFullYear().toString();
 					}
 
 					var result = null;
@@ -2542,6 +2573,21 @@
 
 			cinemascoreTitle(title, year){
 				var output = "";
+
+				if (title == null || title == ""){
+					title = document.querySelector(".headline-1.js-widont.prettify").innerText;
+				}
+				// Get the Movie Title and clean it up a bit
+				if (title.startsWith('The ')){
+					title = title.replace("The ","");
+					title = title + ", The";
+				}else if (title.startsWith('A ')){
+					title = title.replace("A ","");
+					title = title + ", A";
+				}
+				// Normalize (ie, remove accents/diacritics)
+				title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
 				// I don't like doing it this way, but there is no other way for certain movies where cinemascore has incorrect data
 				switch(title){
 					case "Harry Potter and the Order of the Phoenix":
