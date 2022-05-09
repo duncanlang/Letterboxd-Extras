@@ -228,7 +228,7 @@
 			letterboxdYear: null,
 
 			imdbID: "",
-			imdbData: {state: 0, url: "", data: null, raw: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false},
+			imdbData: {state: 0, url: "", data: null, raw: null, state2 : 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null},
 
 			tmdbID: '',
 
@@ -308,6 +308,16 @@
 							this.addIMDBScore();
 							this.imdbData.state = 2;
 						}
+					});
+					
+					// Call the IMDb main show page
+					letterboxd.helpers.getIMDBData(this.imdbData.url.replace('/ratings','')).then((value) => {
+						this.imdbData.data2 = letterboxd.helpers.parseHTML(value);
+				
+						if (this.imdbData.data2 != null){	
+							this.getIMDBAdditional();
+						}
+						this.imdbData.state2 = 1;
 					});
 
 					// Call BoxOfficeMojo
@@ -496,8 +506,25 @@
 					}
 				}
 
+				// Add the IMDb backup info here
+				if (this.imdbData.state2 == 1 && this.wikiData.state == 2){
+					this.imdbData.state2 = 2;
+
+					// MPAA / Parental Guidence
+					if (this.mpaaRating == null && this.imdbData.mpaa != null){
+						this.mpaaRating = this.imdbData.mpaa;
+						this.addRating();
+					}
+
+					// Metascore
+					if (this.metaData.state == 3 && this.imdbData.meta != null){
+						this.metaData.state = 2;
+						this.addMeta();
+					}
+				}
+
 				// Call OMDb for backup
-				if (this.wikiData.state == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")))){
+				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")))){
 
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData.state < 1){
@@ -571,10 +598,14 @@
 				}
 
 				// Separate out the ID
-				this.imdbID = imdbLink.match(/(imdb.com\/title\/)(tt[0-9]+)(\/)/)[2];
+				if (imdbLink != ""){
+					this.imdbID = imdbLink.match(/(imdb.com\/title\/)(tt[0-9]+)(\/)/)[2];
+				}
 
 				// Separate the TMDB ID
-				this.tmdbID = tmdbLink.match(/(themoviedb.org\/movie\/)([0-9]+)($|\/)/)[2];
+				if (tmdbLink != ""){
+					this.tmdbID = tmdbLink.match(/(themoviedb.org\/movie\/)([0-9]+)($|\/)/)[2];
+				}
 			},
 
 			addIMDBScore(){
@@ -753,6 +784,30 @@
 				//*****************************************************************
 				$(".tooltip-extra").on("mouseover", ShowTwipsy);
 				$(".tooltip-extra").on("mouseout", HideTwipsy);
+			},
+
+			getIMDBAdditional(){
+				// First see if it has a parental rating
+				var details = this.imdbData.data2.querySelectorAll('.ipc-inline-list.ipc-inline-list--show-dividers.sc-8c396aa2-0.kqWovI.baseAlt li');
+				if (details != null){
+					for (var i = 0; i < details.length; i++){
+						var a = details[i].querySelector('a');
+						if (a != null){
+							if (a.getAttribute('href').includes('parentalguide')){
+								this.imdbData.mpaa = a.innerText.trim();
+								break;
+							}
+						}
+					}
+				}
+
+				// Next grab the metascore if it has it
+				var meta = this.imdbData.data2.querySelector('.score-meta');
+				if (meta != null){
+					this.imdbData.meta = meta.innerText.trim();
+				}
+
+				// We will not add anything yet, we will wait until we are sure WikiData is missing them
 			},
 
 			initTomato(){
@@ -1197,11 +1252,15 @@
 						this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
 					}
 				}else{
-					this.metaData.critic.rating = this.omdbData.data.Metascore;
+					if (this.imdbData.meta != null){
+						this.metaData.critic.rating = this.imdbData.meta;
+					}else if (this.omdbData.data.Metascore != null){
+						this.metaData.critic.rating = this.omdbData.data.Metascore;
+					}
+					this.metaData.critic.num_ratings = -1; // This prevents the 'return' from below, and also from the tooltip from being added
 				}
 
 				// Return if no scores what so ever
-				//if (this.metaData.critic.rating == "tbd" && this.metaData.user.rating == "tbd") return;
 				if (this.metaData.critic.num_ratings == 0 && this.metaData.user.num_ratings == 0) return;
 
 				// Now lets add it to the page
@@ -1302,11 +1361,11 @@
 
 				// Add Hover events
 				//************************************************************
-				if (this.metaData.critic.num_ratings != 0 || this.metaData.critic.rating == "tbd" || this.metaData.critic.rating == "N/A"){
+				if (this.metaData.critic.num_ratings > 0 || this.metaData.critic.rating == "tbd" || this.metaData.critic.rating == "N/A"){
 					$(".tooltip.display-rating.-highlight.meta-score").on("mouseover", ShowTwipsy);
 					$(".tooltip.display-rating.-highlight.meta-score").on("mouseout", HideTwipsy);
 				}
-				if (this.metaData.user.num_ratings != 0 || this.metaData.user.rating == "tbd" || this.metaData.critic.rating == "N/A"){
+				if (this.metaData.user.num_ratings > 0 || this.metaData.user.rating == "tbd" || this.metaData.critic.rating == "N/A"){
 					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseover", ShowTwipsy);
 					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseout", HideTwipsy);
 				}
@@ -1563,6 +1622,11 @@
 			},
 
 			initCinema(title){
+				if (parseInt(this.letterboxdYear) < 1978){
+					// Cinemascore founded in 1978, so don't bother for anything prior
+					return;
+				}
+
 				if (title == null || title == ""){
 					title = document.querySelector(".headline-1.js-widont.prettify").innerText;
 					title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
