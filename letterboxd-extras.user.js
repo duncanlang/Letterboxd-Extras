@@ -300,8 +300,8 @@
 				if (this.imdbID != "" && this.imdbData.state < 1){
 					// Call IMDb and Add to page when done
 					this.imdbData.state = 1;
-					letterboxd.helpers.getIMDBData(this.imdbData.url).then((value) => {
-						this.imdbData.raw = value;
+					letterboxd.helpers.getData(this.imdbData.url).then((value) => {
+						this.imdbData.raw = value.response;
 						this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
 				
 						if (this.imdbData.data != null){
@@ -316,8 +316,8 @@
 					});
 					
 					// Call the IMDb main show page
-					letterboxd.helpers.getIMDBData(this.imdbData.url.replace('/ratings','')).then((value) => {
-						this.imdbData.data2 = letterboxd.helpers.parseHTML(value);
+					letterboxd.helpers.getData(this.imdbData.url.replace('/ratings','')).then((value) => {
+						this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
 				
 						if (this.imdbData.data2 != null){	
 							this.getIMDBAdditional();
@@ -328,8 +328,8 @@
 					// Call BoxOfficeMojo
 					var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
 					this.addLink(mojoURL);
-					letterboxd.helpers.getIMDBData(mojoURL).then((value) => {
-						this.mojoData.data = letterboxd.helpers.parseHTML(value);
+					letterboxd.helpers.getData(mojoURL).then((value) => {
+						this.mojoData.data = letterboxd.helpers.parseHTML(value.response);
 						this.addBoxOffice();
 
 						// If MPAA rating found on Mojo, add it now
@@ -427,21 +427,32 @@
 								// Add the date to letterboxd
 								// Prefer Country of Origin Date
 								if (this.wikiData.date_origin != null){
-									this.filmDate = this.wikiData.date_origin;
-									this.addDate();
+									if (this.filmDate != null && this.wikiData.date_origin.startsWith('1 Jan')){
+										// do nothing
+									}else{
+										this.filmDate = this.wikiData.date_origin;
+										this.addDate();
+									}
 
 								// Then US Date
 								}else if (this.wikiData.date != null){
-									this.filmDate = this.wikiData.date;
-									this.addDate();
+									if (this.filmDate != null && this.wikiData.date.startsWith('1 Jan')){
+										// do nothing
+									}else{
+										this.filmDate = this.wikiData.date;
+										this.addDate();
+									}
 
 								// Then Backup date (first date without country qualifier)
 								}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null){
 									var date = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
 									this.wikiData.date = date;
-									this.filmDate = date;
-									this.addDate();
-
+									if (this.filmDate != null && this.wikiData.date.startsWith('1 Jan')){
+										// do nothing
+									}else{
+										this.filmDate = date;
+										this.addDate();
+									}
 								}
 				
 								// Add Rating
@@ -1856,207 +1867,13 @@
 					//************************************************************
 					document.querySelector('.sidebar').append(section);
 				}
-			},
-
-			async getRYM(url){
-				this.rymData.raw = await letterboxd.helpers.getIMDBData(url);
-				this.rymData.data = letterboxd.helpers.parseHTML(this.rymData.raw);
-				// do a check here to make sure we have the right movie (ie, check director)
-				// for now, just return
-				this.rymData.url = url;
-				// if incorrect, we'll set the url blank
-				//this.rymData.url = "";
-			},
-
-			addRYM(){
-				if (document.querySelector('.rateyourmusic')) return;
-
-				// First, lets grab all the data on the page
-				//***************************************************************
-				this.rymData.rating = letterboxd.helpers.cleanupInnerText(this.rymData.data.querySelector('.avg_rating').innerText);
-				this.rymData.num_rating = letterboxd.helpers.cleanupInnerText(this.rymData.data.querySelector('.num_ratings span').innerText);
-
-				// Get the rating breakdown for the graph
-				var rows = JSON.parse(letterboxd.helpers.getTextBetween(this.rymData.raw,"data.addRows(",");"));
-				this.rymData.graph = Array(rows.length);
-				for(var i = 0; i < rows.length; i++){
-					var value = rows[i][1];
-					this.rymData.graph[i] = value;
-
-					if (this.rymData.highest < parseInt(value)){
-						this.rymData.highest = parseInt(value);
-					}
-				}
-
-				// Now lets add to the page
-				//***************************************************************
-				// Add the section to the page
-				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart rateyourmusic'
-				});				
-
-				// Add the Header // browser.runtime.getURL("beasts/frog.jpg")
-				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 20px;'
-				});
-				section.append(heading);
-				
-				const logoHolder = letterboxd.helpers.createElement('a', {
-					class: 'logo-rym header',
-					style: 'width: 100%;',
-					href: this.rymData.url
-				});
-				heading.append(logoHolder);
-
-				const rymLogo  = letterboxd.helpers.createElement('span', {
-					class: 'logo-rym icon-rym',
-					style: 'height: 20px; width: 20px; background-image: url(" ' + browser.runtime.getURL("images/rym.png") + '");'
-				});
-				logoHolder.append(rymLogo);
-				
-				const rymText  = letterboxd.helpers.createElement('span', {
-					class: 'logo-rym text-rym'
-				});
-				rymText.innerText = "RYM"
-				logoHolder.append(rymText);
-				
-
-				// The span that holds the score
-				const scoreSpan = letterboxd.helpers.createElement('span', {
-					['itemprop']: 'aggregateRating',
-					['itemscope']: '',
-					['itemtype']: 'http://schema.org/AggregateRating',
-					class: 'average-rating',
-					style: 'left: 188px; position:absolute;'
-				});
-				section.append(scoreSpan);
-				
-				// The element that is the score itself
-				const rating = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight rateyourmusic tooltip-extra-unadded',
-					href: this.rymData.url,
-					['data-original-title']: 'Weighted average of ' + this.rymData.rating + ' based on ' + this.rymData.num_rating + ' ratings'
-				});
-				rating.innerText = Math.round(parseFloat(this.rymData.rating) * 10) / 10;
-				scoreSpan.append(rating);
-
-
-				// Add the bars for the rating
-				const histogram = letterboxd.helpers.createElement('div', {
-					class: 'rating-histogram clear rating-histogram-exploded'
-				});
-				section.append(histogram);
-				const ul = letterboxd.helpers.createElement('ul', {
-				});
-				histogram.append(ul);
-
-				var ratingFloat = parseFloat(this.rymData.num_rating.replace(",","").replace(".",""));
-				for (var ii = 0; ii < 10; ii++){	
-					var left = (ii * 16).toString() + "px;";
-					const il = letterboxd.helpers.createElement('li', {
-						class: 'rating-histogram-bar',
-						style: "width: 15px; left: " + left
-					});
-					ul.append(il);
-
-					var value = parseFloat(this.rymData.graph[ii]);
-					const a = letterboxd.helpers.createElement('a', {
-						class: 'ir tooltip tooltip-extra-unadded',
-						['data-original-title']: this.rymData.graph[ii].toLocaleString() + " " + this.starRatings[ii] + ' ratings (' + Math.round(value / ratingFloat * 100) + '%)'
-					});
-					il.append(a);
-
-					var max = 44.0;
-					var min = 1;
-					var percent = this.rymData.graph[ii] / this.rymData.highest;
-					var height = (max * percent);
-
-					if (height < min)
-						height = min;
-
-					height = height.toString() + "px;";
-
-					const i = letterboxd.helpers.createElement('i', {
-						style: 'height: ' + height
-					});
-					a.append(i);
-				}
-
-				// Add the stars for visual
-				const span1Star = letterboxd.helpers.createElement('span', {
-					class: 'rating-green rating-green-tiny rating-1'
-				});
-				const span1StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-2 rating-star-extra rating-star-rym'
-				});
-				span1StarInner.innerText = "★";
-				span1Star.append(span1StarInner);
-
-				const span5Star = letterboxd.helpers.createElement('span', {
-					class: 'rating-green rating-green-tiny rating-5'
-				});
-				const span5StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-10 rating-star-extra rating-star-rym'
-				});
-				span5StarInner.innerText = "★★★★★";
-				span5Star.append(span5StarInner);
-
-				ul.before(span1Star);
-				ul.after(span5Star);
-				
-
-				// Append to the sidebar
-				//*****************************************************************
-				if(document.querySelector('.imdb-score')){
-					document.querySelector('.imdb-score').after(section);
-				}else if (document.querySelector('.cinemascore')){
-					document.querySelector('.cinemascore').before(section);
-				}else{
-					document.querySelector('.sidebar').append(section);
-				}
-			},
-
-			verifyRYM(){
-				if (this.rymData.data != null && !this.rymData.raw.includes("ERROR 404")){
-					var rymDirectors = this.rymData.data.querySelectorAll(".film_info .film_artist");
-					var directors = document.querySelector("#tab-crew div").querySelectorAll(".text-slug");
-					var out = false;
-
-					rymDirectors.forEach(director => {
-						if (director.innerText == directors[0].innerText){
-							this.rymData.error = false;
-							out = true;
-						}
-					});
-					return out;
-				}else{
-					this.rymData.error = true;
-				}
-				return false;
 			}
 		},
 
 		helpers: {
-			async getIMDBData(link) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("calling " + link);
-					
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'GET'
-					});
-					return res.response;
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
 			async getData(link) {
 				if (letterboxd.storage.get('console-log') === true)
-					console.log("calling " + link);
+					console.log("Letterboxd-extras | Calling: " + link);
 
 				try {
 					const res = await letterboxd.helpers.request({
@@ -2081,7 +1898,7 @@
 
 			async getOMDbData(link) {  
 				if (letterboxd.storage.get('console-log') === true)
-					console.log("calling " + link);
+					console.log("Letterboxd-extras | Calling: " + link);
 
 				var ajaxOptions = {
 					url: link,
@@ -2096,7 +1913,7 @@
 
 			async getWikiData(link) {	
 				if (letterboxd.storage.get('console-log') === true)
-					console.log("calling " + link);
+					console.log("Letterboxd-extras | Calling: " + link);
 
 				var ajaxOptions = {
 					url: link,
