@@ -225,20 +225,26 @@
 
 			running: false,
 
+			// Letterboxd
 			letterboxdYear: null,
-
 			letterboxdTitle: null,
 
+			// IMDb
 			imdbID: "",
 			imdbData: {state: 0, url: "", data: null, raw: null, state2 : 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null},
 
+			// TMDB
 			tmdbID: '',
 
-			omdbData: {state: 0, data: null},
-
+			// Mojo
 			mojoData: {url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: ""},
 
+			// Cinemascore
 			cinemascore: {state: 0, data: null, result: null},
+			cinemascoreAlt: false,
+
+			// Omdb
+			omdbData: {state: 0, data: null},
 
 			// WikiData
 			wiki: null,
@@ -260,17 +266,11 @@
 			rymData: {url: null, data: null, highest: 0, error: false},
 
 			linksAdded: [],
-
-			cinemascoreAlt: false,
 			
 			rtAdded: false,
 			metaAdded: false,
 			dateAdded: false, 
 			ratingAdded: false,
-
-			tooltipsAdded: false,
-
-			starRatings: ['half-★','★','★½','★★','★★½','★★★','★★★½','★★★★','★★★★½','★★★★★'],
 
 			stopRunning() {
 				this.running = false;
@@ -1649,28 +1649,12 @@
 			},
 
 			initCinema(title){
-				if (parseInt(this.letterboxdYear) < 1978){
+				if (this.letterboxdYear != null && parseInt(this.letterboxdYear) < 1978){
 					// Cinemascore founded in 1978, so don't bother for anything prior
 					return;
 				}
 
 				title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
-				/*
-				if (title == null || title == ""){
-					title = document.querySelector(".headline-1.js-widont.prettify").innerText;
-					title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
-				}
-				// Get the Movie Title and clean it up a bit
-				if (title.startsWith('The ')){
-					title = title.replace("The ","");
-					title = title + ", The";
-				}else if (title.startsWith('A ')){
-					title = title.replace("A ","");
-					title = title + ", A";
-				}
-				// Normalize (ie, remove accents/diacritics)
-				title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-				*/
 
 				// First Attempt - 'The' at end, no accents
 				//****************************************************************
