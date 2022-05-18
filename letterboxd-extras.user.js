@@ -631,7 +631,7 @@
 
 				// Separate the TMDB ID
 				if (tmdbLink != ""){
-					this.tmdbID = tmdbLink.match(/(themoviedb.org\/movie\/)([0-9]+)($|\/)/)[2];
+					this.tmdbID = tmdbLink.match(/(themoviedb.org\/(?:tv|movie)\/)([0-9]+)($|\/)/)[2];
 				}
 			},
 
