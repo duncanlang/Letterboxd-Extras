@@ -1222,9 +1222,9 @@
 					}
 					// Grab rating counts for non-standard pages (parasite)
 					if (ratings.length == 0 && criticScore2 != null){
-						var positive = criticScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
-						var mixed = criticScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
-						var negative = criticScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
+						var positive = criticScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
+						var mixed = criticScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
+						var negative = criticScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
 						// Positive
 						if (positive != null)
 							positive = parseInt(letterboxd.helpers.cleanNumber(positive.childNodes[0].innerText)); 
@@ -1251,9 +1251,9 @@
 
 					}
 					if (ratings.length == 0 && userScore2 != null){
-						var positive = userScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
-						var mixed = userScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
-						var negative = userScore2.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
+						var positive = userScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
+						var mixed = userScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
+						var negative = userScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
 						// Positive
 						if (positive != null)
 							positive = parseInt(letterboxd.helpers.cleanNumber(positive.childNodes[0].innerText)); 
