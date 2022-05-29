@@ -774,8 +774,10 @@
 					});
 					ul.append(il);
 
+					var url = this.imdbData.url.replace('/ratings','') + '/reviews?ratingFilter=' + (ii + 1).toString();
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip imdb tooltip-extra',
+						href: url,
 						['data-original-title']: this.imdbData.votes[ii].toLocaleString() + " " + (ii + 1).toString() + '/10 ratings (' + this.imdbData.percents[ii].toString() + '%)'
 					});
 					il.append(a);
