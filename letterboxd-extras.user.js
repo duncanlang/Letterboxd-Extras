@@ -235,6 +235,7 @@
 
 			// TMDB
 			tmdbID: '',
+			tmdbTV: false,
 
 			// Mojo
 			mojoData: {url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: ""},
@@ -346,6 +347,8 @@
 					if (this.wikiData.state < 1){
 						if (this.imdbID != '') // IMDb should be most reliable
 							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.imdbID, 'IMDB');
+						else if (this.tmdbID != '' && this.tmdbTV == true)
+							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDBTV');
 						else if (this.tmdbID != '') // Every page should have a TMDB ID
 							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDB');
 
@@ -649,6 +652,9 @@
 
 				// Separate the TMDB ID
 				if (tmdbLink != ""){
+					if (tmdbLink.includes('/tv/')){
+						this.tmdbTV = true;
+					}
 					this.tmdbID = tmdbLink.match(/(themoviedb.org\/(?:tv|movie)\/)([0-9]+)($|\/)/)[2];
 				}
 			},
@@ -2442,6 +2448,9 @@
 				switch(idType.toUpperCase()){
 					case "IMDB":
 						idType = "P345";
+						break;
+					case "TMDBTV":
+						idType = "P4983";
 						break;
 					case "TMDB":
 						idType = "P4947";
