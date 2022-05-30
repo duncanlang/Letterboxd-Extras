@@ -572,7 +572,7 @@
 				}
 
 				// Call OMDb for backup
-				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")))){
+				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || ((this.dateAdded == false || this.filmDate.startsWith("1 Jan")) && this.wikiData.TV_Start == null))){
 
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData.state < 1){
