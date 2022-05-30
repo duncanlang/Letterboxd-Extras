@@ -123,7 +123,7 @@
 			letter-spacing: 0;
 			vertical-align: super;
 		}
-		.rating-star-extra{
+		.rating-star-extra, .rating-star-mal{
 			background: transparent !important;
 			overflow: visible !important;
 			text-indent: -0.5px !important;
@@ -131,6 +131,9 @@
 			font-size: 12.5px !important;
 			color: gold;
 			letter-spacing: -0.5px;
+		} 
+		.rating-star-mal{
+			color: #2e51a2;
 		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
@@ -249,7 +252,11 @@
 
 			// WikiData
 			wiki: null,
-			wikiData: {state: 0, tomatoURL: null, metaURL: "", budget: {value: null, currency: null}, boxOfficeUS: {value: null, currency: null}, boxOfficeWW: {value: null, currency: null}, mpaa: null, date: null, date_origin: null, rating: null, US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null},
+			wikiData: {state: 0, tomatoURL: null, metaURL: "", 
+				budget: {value: null, currency: null}, 
+				boxOfficeUS: {value: null, currency: null}, 
+				boxOfficeWW: {value: null, currency: null},
+				mpaa: null, date: null, date_origin: null, rating: null, US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null, AniDB_ID: null, AniList_ID: null, MAL_ID: null},
 
 			// Rotten Tomatoes
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
@@ -263,8 +270,8 @@
 			// Date
 			filmDate: null,
 
-			// RateYourMusic
-			rymData: {url: null, data: null, highest: 0, error: false},
+			//MAL
+			mal: {state: 0, id: null,  url: null, data: null, statistics: null, highest: 0},
 
 			linksAdded: [],
 			
@@ -527,10 +534,48 @@
 									this.wikiData.tomatoURL = url;
 									this.initTomato();
 								}
+
+								// Get MAL data
+								if (this.wiki != null && this.wiki.MAL_ID != null && this.wiki.MAL_ID.value != null){
+									this.wikiData.MAL_ID = this.wiki.MAL_ID.value;
+									this.mal.id = this.wiki.MAL_ID.value;
+
+									var url = 'https://api.jikan.moe/v4/anime/' + this.mal.id;
+									this.mal.url = url;
+
+									if (this.mal.data == null && this.mal.state < 1){
+										try{
+											this.mal.state = 1;
+											letterboxd.helpers.getData(url).then((value) =>{
+												var mal = value.response;
+												if (mal != ""){
+													this.mal.data = JSON.parse(mal).data;
+												}
+											});
+											
+											letterboxd.helpers.getData(url + "/statistics").then((value) =>{
+												var mal = value.response;
+												if (mal != ""){
+													this.mal.statistics = JSON.parse(mal).data;
+												}
+											});
+										}catch{
+											console.log("Unable to parse MAL URL");
+											this.mal.state = 3;
+										}
+									}
+								}
+
 								this.wikiData.state = 2;
 							}
 						});
 					}
+				}
+
+				// Add MAL
+				if (this.mal.data != null && this.mal.statistics != null && this.mal.state < 2){
+					this.mal.state = 2;
+					this.addMAL();
 				}
 
 				// Cinemascore alt titles and years
@@ -1881,6 +1926,147 @@
 					//************************************************************
 					document.querySelector('.sidebar').append(section);
 				}
+			},
+
+			addMAL(){
+				if (document.querySelector('.mal-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+				
+				// Add the section to the page
+				const scoreSection = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart mal-ratings'
+				});				
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading',
+					style: 'height: 16px;'
+				});
+				scoreSection.append(heading);
+
+				const logoHolder = letterboxd.helpers.createElement('a', {
+					class: "logo-imdb",
+					href: this.mal.data.url,
+					style: "position: absolute;"
+				});
+				logoHolder.innerText = "MyAnimeList"
+				heading.append(logoHolder);
+
+				// The span that holds the score
+				const scoreSpan = letterboxd.helpers.createElement('span', {
+					['itemprop']: 'aggregateRating',
+					['itemscope']: '',
+					['itemtype']: 'http://schema.org/AggregateRating',
+					class: 'average-rating',
+					style: 'left: 188px; position:absolute;'
+				});
+				scoreSection.append(scoreSpan);
+				
+				// The element that is the score itself
+				const score = letterboxd.helpers.createElement('a', {
+					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
+					href: this.mal.data.url,
+					['data-original-title']: 'Weighted average of ' + this.mal.data.score + '/10 based on ' + this.mal.data.scored_by + ' ratings'
+				});
+				score.innerText = this.mal.data.score;
+				scoreSpan.append(score);
+
+
+				// Add the bars for the rating
+				const histogram = letterboxd.helpers.createElement('div', {
+					class: 'rating-histogram clear rating-histogram-exploded'
+				});
+				scoreSection.append(histogram);
+				const ul = letterboxd.helpers.createElement('ul', {
+				});
+				histogram.append(ul);
+
+				// Loop first and determine highest votes
+				for (var ii = 0; ii < 10; ii++){
+					if (this.mal.statistics.scores[ii].votes > this.mal.highest)
+						this.mal.highest = this.mal.statistics.scores[ii].votes;
+				}
+
+				for (var ii = 0; ii < 10; ii++){	
+					var left = (ii * 16).toString() + "px;";
+					const il = letterboxd.helpers.createElement('li', {
+						class: 'rating-histogram-bar',
+						style: "width: 15px; left: " + left
+					});
+					ul.append(il);
+
+					const a = letterboxd.helpers.createElement('a', {
+						class: 'ir tooltip imdb tooltip-extra',
+						['data-original-title']: this.mal.statistics.scores[ii].votes.toLocaleString() + " " + (ii + 1).toString() + '/10 ratings (' + this.mal.statistics.scores[ii].percentage.toString() + '%)'
+					});
+					il.append(a);
+
+					var max = 44.0;
+					var min = 1;
+					var percent = this.mal.statistics.scores[ii].votes / this.mal.highest;
+					var height = (max * percent);
+
+					if (height < min)
+						height = min;
+
+					height = height.toString() + "px;";
+
+					const i = letterboxd.helpers.createElement('i', {
+						style: 'height: ' + height
+					});
+					a.append(i);
+				}
+
+				// Add the stars for visual
+				const span1Star = letterboxd.helpers.createElement('span', {
+					class: 'rating-green rating-green-tiny rating-1'
+				});
+				const span1StarInner = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-2 rating-star-mal'
+				});
+				span1StarInner.innerText = "★";
+				span1Star.append(span1StarInner);
+
+				const span5Star = letterboxd.helpers.createElement('span', {
+					class: 'rating-green rating-green-tiny rating-5'
+				});
+				const span5StarInner = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-10 rating-star-mal'
+				});
+				span5StarInner.innerText = "★★★★★";
+				span5Star.append(span5StarInner);
+
+				ul.before(span1Star);
+				ul.after(span5Star);
+
+				// Append to the sidebar
+				//*****************************************************************
+				if (document.querySelector('.imdb-ratings')){
+					document.querySelector('.imdb-ratings').after(scoreSection);
+				}else if (document.querySelector('.tomato-ratings')){
+					document.querySelector('.tomato-ratings').before(scoreSection);
+				}else if (document.querySelector('.meta-ratings')){
+					document.querySelector('.meta-ratings').before(scoreSection);
+				}else if (document.querySelector('.cinemascore')){
+					document.querySelector('.cinemascore').before(scoreSection);
+				}else{
+					document.querySelector('.sidebar').append(scoreSection);
+				}
+
+				
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+			},
+
+			addAL(){
+
+			},
+
+			addAniDB(){
+
 			}
 		},
 
@@ -2465,7 +2651,7 @@
 						idType = "P6127";
 						break;
 				}
-				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title ?TV_Start ?TV_End WHERE {\n" +
+				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anidb_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title ?TV_Start ?TV_End WHERE {\n" +
 				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 				"  {\n" +
 				"    SELECT DISTINCT ?item WHERE {\n" +
@@ -2476,6 +2662,9 @@
 				"  }\n" +
 				"  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }\n" +
 				"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
+				"  OPTIONAL { ?item wdt:P5646 ?Anidb_ID. }\n" +
+				"  OPTIONAL { ?item wdt:P8729 ?Anilist_ID. }\n" +
+				"  OPTIONAL { ?item wdt:P4086 ?MAL_ID. }\n" +
 				"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 				"  OPTIONAL {\n" +
 				"    ?item p:P2130 ?Budget_Entry.\n" +

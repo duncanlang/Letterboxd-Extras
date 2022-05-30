@@ -23,6 +23,7 @@
 		"https://api.cinemascore.com/*",
 		"https://query.wikidata.org/*",
 		"https://www.metacritic.com/*",
+		"https://api.jikan.moe/*",
 		"storage"
 	],
 
