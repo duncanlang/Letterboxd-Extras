@@ -235,6 +235,7 @@
 
 			// TMDB
 			tmdbID: '',
+			tmdbTV: false,
 
 			// Mojo
 			mojoData: {url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: ""},
@@ -346,6 +347,8 @@
 					if (this.wikiData.state < 1){
 						if (this.imdbID != '') // IMDb should be most reliable
 							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.imdbID, 'IMDB');
+						else if (this.tmdbID != '' && this.tmdbTV == true)
+							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDBTV');
 						else if (this.tmdbID != '') // Every page should have a TMDB ID
 							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDB');
 
@@ -533,20 +536,22 @@
 				// Cinemascore alt titles and years
 				if (this.cinemascore.data != null && this.wikiData.state == 2 && this.cinemascoreAlt == false && this.cinemascore.state != 2){
 					this.cinemascoreAlt = true;
-					var alt_Title = true;
-					if ((this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear)){
-						if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")){
-							alt_Title = false;
-							this.addCinema();
+					if (this.wikiData.TV_Start == null){
+						var alt_Title = true;
+						if ((this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear)){
+							if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")){
+								alt_Title = false;
+								this.addCinema();
+							}
 						}
-					}
-
-					if (alt_Title){
-						if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle){
-							this.initCinema(this.wikiData.US_Title);
-						}
-						if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle){
-							this.initCinema(this.wikiData.Alt_Title);
+	
+						if (alt_Title){
+							if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle){
+								this.initCinema(this.wikiData.US_Title);
+							}
+							if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle){
+								this.initCinema(this.wikiData.Alt_Title);
+							}
 						}
 					}
 				}
@@ -569,7 +574,7 @@
 				}
 
 				// Call OMDb for backup
-				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || (this.dateAdded == false || this.filmDate.startsWith("1 Jan")))){
+				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || ((this.dateAdded == false || this.filmDate.startsWith("1 Jan")) && this.wikiData.TV_Start == null))){
 
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData.state < 1){
@@ -649,6 +654,9 @@
 
 				// Separate the TMDB ID
 				if (tmdbLink != ""){
+					if (tmdbLink.includes('/tv/')){
+						this.tmdbTV = true;
+					}
 					this.tmdbID = tmdbLink.match(/(themoviedb.org\/(?:tv|movie)\/)([0-9]+)($|\/)/)[2];
 				}
 			},
@@ -768,8 +776,10 @@
 					});
 					ul.append(il);
 
+					var url = this.imdbData.url.replace('/ratings','') + '/reviews?ratingFilter=' + (ii + 1).toString();
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip imdb tooltip-extra',
+						href: url,
 						['data-original-title']: this.imdbData.votes[ii].toLocaleString() + " " + (ii + 1).toString() + '/10 ratings (' + this.imdbData.percents[ii].toString() + '%)'
 					});
 					il.append(a);
@@ -1738,13 +1748,15 @@
 						
 						// Search before roman numerals
 						//****************************************************************
-						var romanExp = new RegExp(/(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))/);
+						var romanExp = new RegExp(/\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))\b/);
 						if (this.cinemascore.state < 2 && title.match(romanExp)){
 							var match = title.match(romanExp)[0];
 							var temp = title.split(match);
 							temp = temp[0].trim();
 
-							this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'begin');
+							if (temp != ""){
+								this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'begin');
+							}
 						}
 					}
 				});
@@ -2442,6 +2454,9 @@
 				switch(idType.toUpperCase()){
 					case "IMDB":
 						idType = "P345";
+						break;
+					case "TMDBTV":
+						idType = "P4983";
 						break;
 					case "TMDB":
 						idType = "P4947";
