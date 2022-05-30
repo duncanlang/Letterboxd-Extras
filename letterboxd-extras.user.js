@@ -1746,13 +1746,15 @@
 						
 						// Search before roman numerals
 						//****************************************************************
-						var romanExp = new RegExp(/(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))/);
+						var romanExp = new RegExp(/\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))\b/);
 						if (this.cinemascore.state < 2 && title.match(romanExp)){
 							var match = title.match(romanExp)[0];
 							var temp = title.split(match);
 							temp = temp[0].trim();
 
-							this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'begin');
+							if (temp != ""){
+								this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'begin');
+							}
 						}
 					}
 				});
