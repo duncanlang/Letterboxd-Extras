@@ -536,20 +536,22 @@
 				// Cinemascore alt titles and years
 				if (this.cinemascore.data != null && this.wikiData.state == 2 && this.cinemascoreAlt == false && this.cinemascore.state != 2){
 					this.cinemascoreAlt = true;
-					var alt_Title = true;
-					if ((this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear)){
-						if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")){
-							alt_Title = false;
-							this.addCinema();
+					if (this.wikiData.TV_Start == null){
+						var alt_Title = true;
+						if ((this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear)){
+							if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")){
+								alt_Title = false;
+								this.addCinema();
+							}
 						}
-					}
-
-					if (alt_Title){
-						if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle){
-							this.initCinema(this.wikiData.US_Title);
-						}
-						if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle){
-							this.initCinema(this.wikiData.Alt_Title);
+	
+						if (alt_Title){
+							if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle){
+								this.initCinema(this.wikiData.US_Title);
+							}
+							if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle){
+								this.initCinema(this.wikiData.Alt_Title);
+							}
 						}
 					}
 				}
