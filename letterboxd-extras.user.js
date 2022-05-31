@@ -123,7 +123,7 @@
 			letter-spacing: 0;
 			vertical-align: super;
 		}
-		.rating-star-extra, .rating-star-mal{
+		.rating-star-extra, .rating-star-mal, .rating-star-al{
 			background: transparent !important;
 			overflow: visible !important;
 			text-indent: -0.5px !important;
@@ -131,9 +131,12 @@
 			font-size: 12.5px !important;
 			color: gold;
 			letter-spacing: -0.5px;
-		} 
+		}
 		.rating-star-mal{
 			color: #2e51a2;
+		}
+		.rating-star-al{
+			color: #3db4f2;
 		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
@@ -270,8 +273,11 @@
 			// Date
 			filmDate: null,
 
-			//MAL
+			// MAL
 			mal: {state: 0, id: null,  url: null, data: null, statistics: null, highest: 0},
+
+			// AniList
+			al: {state: 0, id: null,  url: null, data: null, highest: 0, num_ratings: 0},
 
 			linksAdded: [],
 			
@@ -562,6 +568,48 @@
 										}catch{
 											console.log("Unable to parse MAL URL");
 											this.mal.state = 3;
+										}
+									}
+								}
+
+								// Get AniList data
+								if (this.wiki != null && this.wiki.Anilist_ID != null && this.wiki.Anilist_ID.value != null){
+									this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
+									this.al.id = this.wiki.Anilist_ID.value;
+
+									var url = 'https://graphql.anilist.co';
+									var query = `
+									query ($id: Int) {
+										Media(id: $id, type: ANIME) {
+										  averageScore
+										  meanScore
+										  popularity
+										  stats {
+											scoreDistribution {
+											  score
+											  amount
+											}
+										  }
+										  siteUrl
+										}
+									  }
+									`;
+
+									if (this.al.data == null && this.al.state < 1){
+										try{
+											this.al.state = 1;
+											letterboxd.helpers.getALData(url, query, this.al.id).then((value) =>{
+												var al = value.response;
+												if (al != ""){
+													this.al.data = JSON.parse(al).data.Media;
+
+													this.al.state = 2;
+													this.addAL();
+												}
+											});
+										}catch{
+											console.log("Unable to parse AniList URL");
+											this.al.state = 3;
 										}
 									}
 								}
@@ -1967,7 +2015,7 @@
 				const score = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
 					href: this.mal.data.url,
-					['data-original-title']: 'Weighted average of ' + this.mal.data.score + '/10 based on ' + this.mal.data.scored_by + ' ratings'
+					['data-original-title']: 'Weighted average of ' + this.mal.data.score + '/10 based on ' + this.mal.data.scored_by.toLocaleString() + ' ratings'
 				});
 				score.innerText = this.mal.data.score;
 				scoreSpan.append(score);
@@ -2062,7 +2110,142 @@
 			},
 
 			addAL(){
+				if (document.querySelector('.al-ratings')) return;
 
+				if (!document.querySelector('.sidebar')) return;
+				
+				this.al.num_ratings = 0;
+				// Loop first and determine highest votes and total
+				for (var ii = 0; ii < 10; ii++){
+					var amount = this.al.data.stats.scoreDistribution[ii].amount;
+					if (amount > this.al.highest)
+						this.al.highest = amount;
+					
+					this.al.num_ratings += amount;
+				}
+				
+				// Add the section to the page
+				const scoreSection = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart al-ratings'
+				});				
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading',
+					style: 'height: 16px;'
+				});
+				scoreSection.append(heading);
+
+				const logoHolder = letterboxd.helpers.createElement('a', {
+					class: "logo-imdb",
+					href: this.al.data.siteUrl,
+					style: "position: absolute;"
+				});
+				logoHolder.innerText = "AniList"
+				heading.append(logoHolder);
+
+				// The span that holds the score
+				const scoreSpan = letterboxd.helpers.createElement('span', {
+					['itemprop']: 'aggregateRating',
+					['itemscope']: '',
+					['itemtype']: 'http://schema.org/AggregateRating',
+					class: 'average-rating',
+					style: 'left: 188px; position:absolute;'
+				});
+				scoreSection.append(scoreSpan);
+				
+				// The element that is the score itself
+				const score = letterboxd.helpers.createElement('a', {
+					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
+					href: this.al.data.siteUrl,
+					['data-original-title']: 'Weighted average of ' + this.al.data.averageScore + '/100 based on ' + this.al.num_ratings.toLocaleString() + ' ratings'
+				});
+				score.innerText = this.al.data.averageScore + "%";
+				scoreSpan.append(score);
+
+				// Add the bars for the rating
+				const histogram = letterboxd.helpers.createElement('div', {
+					class: 'rating-histogram clear rating-histogram-exploded'
+				});
+				scoreSection.append(histogram);
+				const ul = letterboxd.helpers.createElement('ul', {
+				});
+				histogram.append(ul);
+
+				for (var ii = 0; ii < 10; ii++){	
+					var left = (ii * 16).toString() + "px;";
+					const il = letterboxd.helpers.createElement('li', {
+						class: 'rating-histogram-bar',
+						style: "width: 15px; left: " + left
+					});
+					ul.append(il);
+
+					var amount = this.al.data.stats.scoreDistribution[ii].amount;
+					var percent = (amount / this.al.num_ratings * 100).toFixed(1);
+
+					const a = letterboxd.helpers.createElement('a', {
+						class: 'ir tooltip imdb tooltip-extra',
+						['data-original-title']: amount.toLocaleString() + " " + ((ii + 1) * 10).toString() + '/100 ratings (' + percent.toString() + '%)'
+					});
+					il.append(a);
+
+					var max = 44.0;
+					var min = 1;
+					percent = amount / this.al.highest;
+					var height = (max * percent);
+
+					if (height < min)
+						height = min;
+
+					height = height.toString() + "px;";
+
+					const i = letterboxd.helpers.createElement('i', {
+						style: 'height: ' + height
+					});
+					a.append(i);
+				}
+
+				// Add the stars for visual
+				const span1Star = letterboxd.helpers.createElement('span', {
+					class: 'rating-green rating-green-tiny rating-1'
+				});
+				const span1StarInner = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-2 rating-star-al'
+				});
+				span1StarInner.innerText = "★";
+				span1Star.append(span1StarInner);
+
+				const span5Star = letterboxd.helpers.createElement('span', {
+					class: 'rating-green rating-green-tiny rating-5'
+				});
+				const span5StarInner = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-10 rating-star-al'
+				});
+				span5StarInner.innerText = "★★★★★";
+				span5Star.append(span5StarInner);
+
+				ul.before(span1Star);
+				ul.after(span5Star);
+
+				// Append to the sidebar
+				//*****************************************************************
+				if (document.querySelector('.imdb-ratings')){
+					document.querySelector('.imdb-ratings').after(scoreSection);
+				}else if (document.querySelector('.tomato-ratings')){
+					document.querySelector('.tomato-ratings').before(scoreSection);
+				}else if (document.querySelector('.meta-ratings')){
+					document.querySelector('.meta-ratings').before(scoreSection);
+				}else if (document.querySelector('.cinemascore')){
+					document.querySelector('.cinemascore').before(scoreSection);
+				}else{
+					document.querySelector('.sidebar').append(scoreSection);
+				}
+
+				
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
 			},
 
 			addAniDB(){
@@ -2079,6 +2262,30 @@
 					const res = await letterboxd.helpers.request({
 						url: link,
 						method: 'GET'
+					});
+					return {response: res.response, url: res.responseURL};
+				} catch (err) {
+					console.error(err);
+				}
+				return null;
+			},
+
+			async getALData(link, query, al_id) {
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("Letterboxd-extras | Calling: " + link);
+
+				try {
+					const res = await letterboxd.helpers.request({
+						url: link,
+						method: 'POST',
+						headers: {
+							'content-type': 'application/json',
+							accept: 'application/json'
+						},
+						data: JSON.stringify({
+							query,
+							variables: { id: al_id }
+						})
 					});
 					return {response: res.response, url: res.responseURL};
 				} catch (err) {
