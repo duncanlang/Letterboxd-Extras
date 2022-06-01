@@ -917,15 +917,7 @@
 
 				// Append to the sidebar
 				//*****************************************************************
-				if (document.querySelector('.tomato-ratings')){
-					document.querySelector('.tomato-ratings').before(imdbScoreSection);
-				}else if (document.querySelector('.meta-ratings')){
-					document.querySelector('.meta-ratings').before(imdbScoreSection);
-				}else if (document.querySelector('.cinemascore')){
-					document.querySelector('.cinemascore').before(imdbScoreSection);
-				}else{
-					document.querySelector('.sidebar').append(imdbScoreSection);
-				}
+				this.appendRating(imdbScoreSection, 'imdb-ratings');
 
 				
 				// Add the hover events
@@ -1236,17 +1228,9 @@
 				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified","Verified Audience",this.wikiData.tomatoURL,this.tomatoData.audienceVerified,"none"));
 
 
-				// APPEND
+				// APPEND to the sidebar
 				//************************************************************
-				if (document.querySelector('.meta-ratings')){
-					document.querySelector('.meta-ratings').before(section);
-				}else if (document.querySelector('.cinemascore')){
-					document.querySelector('.cinemascore').before(section);
-				}else if(document.querySelector('.imdb-ratings')){
-					document.querySelector('.imdb-ratings').after(section);
-				}else{
-					document.querySelector('.sidebar').append(section);
-				}
+				this.appendRating(section, 'tomato-ratings');
 				
 				// Add click event for score buttons
 				//************************************************************
@@ -1486,17 +1470,9 @@
 					section.append(mustSeeSpan);
 				}
 
-				// APPEND
+				// APPEND to the sidebar
 				//************************************************************
-				if (document.querySelector('.cinemascore')){
-					document.querySelector('.cinemascore').before(section);
-				}else if (document.querySelector('.tomato-ratings')){
-					document.querySelector('.tomato-ratings').after(section);
-				}else if(document.querySelector('.imdb-ratings')){
-					document.querySelector('.imdb-ratings').after(section);
-				}else{
-					document.querySelector('.sidebar').append(section);
-				}
+				this.appendRating(section, 'meta-ratings');
 				
 				//Add click for Show details button
 				//************************************************************
@@ -1970,9 +1946,9 @@
 					span.append(scoreText);
 					
 
-					// APPEND
+					// APPEND to the sidebar
 					//************************************************************
-					document.querySelector('.sidebar').append(section);
+					this.appendRating(section,'cinemascore');
 				}
 			},
 
@@ -2090,17 +2066,7 @@
 
 				// Append to the sidebar
 				//*****************************************************************
-				if (document.querySelector('.imdb-ratings')){
-					document.querySelector('.imdb-ratings').after(scoreSection);
-				}else if (document.querySelector('.tomato-ratings')){
-					document.querySelector('.tomato-ratings').before(scoreSection);
-				}else if (document.querySelector('.meta-ratings')){
-					document.querySelector('.meta-ratings').before(scoreSection);
-				}else if (document.querySelector('.cinemascore')){
-					document.querySelector('.cinemascore').before(scoreSection);
-				}else{
-					document.querySelector('.sidebar').append(scoreSection);
-				}
+				this.appendRating(scoreSection, 'mal-ratings');
 
 				
 				// Add the hover events
@@ -2229,17 +2195,7 @@
 
 				// Append to the sidebar
 				//*****************************************************************
-				if (document.querySelector('.imdb-ratings')){
-					document.querySelector('.imdb-ratings').after(scoreSection);
-				}else if (document.querySelector('.tomato-ratings')){
-					document.querySelector('.tomato-ratings').before(scoreSection);
-				}else if (document.querySelector('.meta-ratings')){
-					document.querySelector('.meta-ratings').before(scoreSection);
-				}else if (document.querySelector('.cinemascore')){
-					document.querySelector('.cinemascore').before(scoreSection);
-				}else{
-					document.querySelector('.sidebar').append(scoreSection);
-				}
+				this.appendRating(scoreSection, 'al-ratings');
 
 				
 				// Add the hover events
@@ -2250,6 +2206,42 @@
 
 			addAniDB(){
 
+			},
+
+			appendRating(rating, className){
+				var order = [
+					'.imdb-ratings',
+					'.mal-ratings',
+					'.al-ratings',
+					'.tomato-ratings',
+					'.meta-ratings',
+					'.anidb-ratings',
+					'.cinemascore'
+				];
+
+				var index = order.indexOf('.' + className);
+				var sidebar = document.querySelector('.sidebar');
+
+				// First
+				for (var i = index + 1; i < order.length; i++){
+					var temp = sidebar.querySelector(order[i]);
+					if (temp != null){
+						temp.before(rating);
+						return;
+					}
+				}
+
+				// Second
+				for (var i = index - 1; i >= 0; i--){
+					var temp = sidebar.querySelector(order[i]);
+					if (temp != null){
+						temp.after(rating);
+						return;
+					}
+				}
+
+				// Third
+				sidebar.append(rating);
 			}
 		},
 
