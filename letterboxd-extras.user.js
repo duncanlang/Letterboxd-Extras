@@ -75,7 +75,7 @@
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist {
 			background-position-x: left;
 			background-position-y: top;
 			background-repeat: no-repeat;
@@ -101,17 +101,20 @@
 			padding: 0px;
 			background-image: url("https://www.metacritic.com/images/icons/mc-mustsee.svg");
 		}
-		.imdb-ratings, .tomato-ratings, .meta-ratings, .cinemascore{
+		.imdb-ratings, .tomato-ratings, .meta-ratings, .cinemascore, .mal-ratings, .al-ratings{
 			margin-top: 15px !important;
 		}
 		.tomato-ratings .section-heading, .meta-ratings .section-heading, .cinemascore .section-heading{
 			margin-bottom: 0px !important; 
 		}
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
 			opacity: 100%;
+		}
+		.logo-mal{
+			width: 100px;
 		}
 		.text-rym{
 			display: inline-block;
@@ -1994,11 +1997,10 @@
 				scoreSection.append(heading);
 
 				const logoHolder = letterboxd.helpers.createElement('a', {
-					class: "logo-imdb",
+					class: "logo-mal",
 					href: this.mal.data.url,
-					style: "position: absolute;"
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/mal-logo.png") + '");'
 				});
-				logoHolder.innerText = "MyAnimeList"
 				heading.append(logoHolder);
 
 				// The span that holds the score
@@ -2014,10 +2016,10 @@
 				// The element that is the score itself
 				const score = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
-					href: this.mal.data.url,
+					href: this.mal.data.url + '/reviews',
 					['data-original-title']: 'Weighted average of ' + this.mal.data.score + '/10 based on ' + this.mal.data.scored_by.toLocaleString() + ' ratings'
 				});
-				score.innerText = this.mal.data.score;
+				score.innerText = this.mal.data.score.toFixed(2);
 				scoreSpan.append(score);
 
 
@@ -2127,12 +2129,25 @@
 				scoreSection.append(heading);
 
 				const logoHolder = letterboxd.helpers.createElement('a', {
-					class: "logo-imdb",
-					href: this.al.data.siteUrl,
-					style: "position: absolute;"
+					class: 'logo-holder-anilist',
+					style: 'width: 100%;',
+					href: this.al.data.siteUrl
 				});
-				logoHolder.innerText = "AniList"
 				heading.append(logoHolder);
+
+				const logo = letterboxd.helpers.createElement('span', {
+					class: 'logo-anilist',
+					style: 'height: 20px; width: 20px; background-image: url("https://graphql.anilist.co/img/icons/icon.svg");'
+				});
+				logoHolder.append(logo);
+				
+				const logoText  = letterboxd.helpers.createElement('span', {
+					class: 'text-anilist',
+					style: 'vertical-align: super;'
+				});
+				logoText.innerText = "AniList"
+				logoHolder.append(logoText);
+
 
 				// The span that holds the score
 				const scoreSpan = letterboxd.helpers.createElement('span', {
@@ -2147,7 +2162,7 @@
 				// The element that is the score itself
 				const score = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
-					href: this.al.data.siteUrl,
+					href: this.al.data.siteUrl + '/reviews',
 					['data-original-title']: 'Weighted average of ' + this.al.data.averageScore + '/100 based on ' + this.al.num_ratings.toLocaleString() + ' ratings'
 				});
 				score.innerText = this.al.data.averageScore + "%";
