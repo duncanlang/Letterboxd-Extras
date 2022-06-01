@@ -556,6 +556,7 @@
 												var mal = value.response;
 												if (mal != ""){
 													this.mal.data = JSON.parse(mal).data;
+													this.mal.url = this.mal.data.url;
 												}
 											});
 											
@@ -602,6 +603,8 @@
 												var al = value.response;
 												if (al != ""){
 													this.al.data = JSON.parse(al).data.Media;
+													this.al.url = this.al.data.siteUrl;
+													this.addLink(this.al.data.siteUrl);
 
 													this.al.state = 2;
 													this.addAL();
@@ -623,6 +626,7 @@
 				// Add MAL
 				if (this.mal.data != null && this.mal.statistics != null && this.mal.state < 2){
 					this.mal.state = 2;
+					this.addLink(this.mal.url);
 					this.addMAL();
 				}
 
@@ -1518,6 +1522,15 @@
 					}else if (url.includes("boxofficemojo")){
 						text = "MOJO";
 						className = "mojo-button";
+					}else if (url.includes("anilist")){
+						text = "AL";
+						className = "al-button";
+					}else if (url.includes("myanimelist")){
+						text = "MAL";
+						className = "mal-button";
+					}else if (url.includes("anidb")){
+						text = "ANIDB";
+						className = "anidb-button";
 					}
 
 					if (document.querySelector('.' + className)){
@@ -1532,30 +1545,41 @@
 					button.innerText = text;
 
 					// Determine Placement
-					if (text == "RT" && document.querySelector('.meta-button')){
-						document.querySelector('.meta-button').before(button);
-						button.after('\n')
-					}else if (text == "RT" && document.querySelector('.mojo-button')){
-						document.querySelector('.mojo-button').before(button);
-						button.after('\n')
-					}else if (text == "META" && document.querySelector('.tomato-button')){
-						document.querySelector('.tomato-button').after(button);
-						button.before('\n')
-					}else if (text == "META" && document.querySelector('.mojo-button')){
-						document.querySelector('.mojo-button').before(button);
-						button.after('\n')
-					}else if (text == "MOJO" && document.querySelector('.meta-button')){
-						document.querySelector('.meta-button').after(button);
-						button.before('\n')
-					}else if (text == "MOJO" && document.querySelector('.tomato-button')){
-						document.querySelector('.tomato-button').after(button);
-						button.before('\n')
-					}else{
-						var buttons = document.querySelectorAll('.micro-button');
-						var lastButton = buttons[buttons.length-1];
-						lastButton.after(button);
-						lastButton.after("\n");
+					var order = [
+						'.tomato-button',
+						'.meta-button',
+						'.mal-button',
+						'.al-button',
+						'.anidb-button',
+						'.mojo-button'
+					];
+	
+					var index = order.indexOf('.' + className);	
+					// First Attempt
+					for (var i = index + 1; i < order.length; i++){
+						var temp = document.querySelector(order[i]);
+						if (temp != null){
+							temp.before(button);
+							button.after('\n')
+							return;
+						}
 					}
+	
+					// Second Attempt
+					for (var i = index - 1; i >= 0; i--){
+						var temp = document.querySelector(order[i]);
+						if (temp != null){
+							temp.after(button);
+							button.before('\n')
+							return;
+						}
+					}
+	
+					// Third Attempt
+					var buttons = document.querySelectorAll('.micro-button');
+					var lastButton = buttons[buttons.length-1];
+					lastButton.after(button);
+					lastButton.after("\n");
 				}
 			},
 			
