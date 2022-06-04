@@ -2152,12 +2152,14 @@
 
 				this.al.num_ratings = 0;
 				// Loop first and determine highest votes and total
-				for (var ii = 0; ii < 10; ii++){
-					var amount = this.al.data.stats.scoreDistribution[ii].amount;
-					if (amount > this.al.highest)
-						this.al.highest = amount;
-					
-					this.al.num_ratings += amount;
+				if (this.al.data.stats.scoreDistribution.length == 10){
+					for (var ii = 0; ii < 10; ii++){
+						var amount = this.al.data.stats.scoreDistribution[ii].amount;
+						if (amount > this.al.highest)
+							this.al.highest = amount;
+						
+						this.al.num_ratings += amount;
+					}
 				}
 
 				// Return if there are no ratings
@@ -2297,10 +2299,6 @@
 				//*****************************************************************
 				$(".tooltip-extra").on("mouseover", ShowTwipsy);
 				$(".tooltip-extra").on("mouseout", HideTwipsy);
-			},
-
-			addAniDB(){
-
 			},
 
 			appendRating(rating, className){
@@ -2945,7 +2943,7 @@
 						idType = "P6127";
 						break;
 				}
-				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anidb_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title ?TV_Start ?TV_End WHERE {\n" +
+				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title ?TV_Start ?TV_End WHERE {\n" +
 				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 				"  {\n" +
 				"    SELECT DISTINCT ?item WHERE {\n" +
@@ -2956,7 +2954,6 @@
 				"  }\n" +
 				"  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }\n" +
 				"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
-				"  OPTIONAL { ?item wdt:P5646 ?Anidb_ID. }\n" +
 				"  OPTIONAL { ?item wdt:P8729 ?Anilist_ID. }\n" +
 				"  OPTIONAL { ?item wdt:P4086 ?MAL_ID. }\n" +
 				"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
