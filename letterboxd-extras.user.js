@@ -226,6 +226,10 @@
 		.micro-button{
 			margin-right: 3px;
 		}
+		.text-footer-extra{
+			font-size: 12px;
+			color: #89a;
+		}
 	`);
 	/* eslint-enable */
 
@@ -1674,9 +1678,8 @@
 					// Create a new div to hold the buttons
 					const newHolder = letterboxd.helpers.createElement('div', {});
 					// Create the 'More at' text
-					const text = letterboxd.helpers.createElement('span', {},{
-						['font-size']: '12px',
-						['color']: '#89a'
+					const text = letterboxd.helpers.createElement('span', {
+						class: 'text-footer-extra'
 					});
 					text.innerText = "More at ";
 					newHolder.append(text);
@@ -1686,13 +1689,42 @@
 						newHolder.append(button);
 					});
 					
-					// Save the report button then remove the old more at text, then re-add report button that goes missing
+
+					// Get the duration
+					var regex = new RegExp(/([0-9.,]+)(.+)(mins|min)/);
+					var duration = footer.innerText.match(regex);
+
+					// Save the report button then remove the old text, then re-add
 					var report = footer.querySelector('.report-link');
-					footer.innerText = footer.innerText.replace('More at','');
+					footer.innerText = "";
 					footer.append(report);
+
+					// Add the duration
+					var hours = 0;
+					if (duration != null){
+						var totalMinutes = parseFloat(letterboxd.helpers.cleanNumber(duration[1]));
+						const minutes = totalMinutes % 60;
+						hours = Math.floor(totalMinutes / 60);
+						var format = hours + "h " + minutes + "m";
+
+						// Create the new duration text
+						const durationSpan = letterboxd.helpers.createElement('span', {
+							class: 'text-footer-extra duration-extra'
+						});
+						durationSpan.innerText = duration[0];
+						durationSpan.setAttribute('data-original-title',format);
+						footer.prepend(durationSpan);
+					}else{
+						report.style['margin-left'] = '0px';
+					}
 					
 					// Append the new div
 					footer.after(newHolder);
+
+					if (hours > 0){
+						$(".duration-extra").on("mouseover", ShowTwipsy);
+						$(".duration-extra").on("mouseout", HideTwipsy);
+					}
 				}
 			},
 
