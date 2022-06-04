@@ -1668,25 +1668,32 @@
 
 			moveLinks(){
 				const footer = document.querySelector('.text-link.text-footer');
-				const buttons = document.querySelectorAll('.micro-button.track-event');
+				const buttons = footer.querySelectorAll('.micro-button.track-event');
 
-				const newHolder = letterboxd.helpers.createElement('div', {});
-				footer.after(newHolder);
-				const text = letterboxd.helpers.createElement('span', {},{
-					['font-size']: '12px',
-					['color']: '#89a'
-				});
-				text.innerText = "More at ";
-				newHolder.append(text);
-
-				buttons.forEach(button => {
-					newHolder.append(button);
-				});
-				
-				var report = footer.querySelector('.report-link');
-				footer.innerText = footer.innerText.replace('More at','');
-				footer.append(report);
-
+				if (buttons != null && buttons.length > 0){
+					// Create a new div to hold the buttons
+					const newHolder = letterboxd.helpers.createElement('div', {});
+					// Create the 'More at' text
+					const text = letterboxd.helpers.createElement('span', {},{
+						['font-size']: '12px',
+						['color']: '#89a'
+					});
+					text.innerText = "More at ";
+					newHolder.append(text);
+	
+					// Append each button to new div
+					buttons.forEach(button => {
+						newHolder.append(button);
+					});
+					
+					// Save the report button then remove the old more at text, then re-add report button that goes missing
+					var report = footer.querySelector('.report-link');
+					footer.innerText = footer.innerText.replace('More at','');
+					footer.append(report);
+					
+					// Append the new div
+					footer.after(newHolder);
+				}
 			},
 
 			addDate(date){
