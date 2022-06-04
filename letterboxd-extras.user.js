@@ -223,6 +223,9 @@
 			background-color: #678;
 			vertical-align: top;
 		}
+		.micro-button{
+			margin-right: 3px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -312,6 +315,7 @@
 				if (this.imdbID == "" && document.querySelector('.micro-button') != null){
 					// Gets the IMDb link and ID, and also TMDB id
 					this.getIMDbLink();
+					this.moveLinks();
 				}
 
 				if (this.imdbID != "" && this.imdbData.state < 1){
@@ -1580,7 +1584,7 @@
 						var temp = document.querySelector(order[i]);
 						if (temp != null){
 							temp.before(button);
-							button.after('\n')
+							//button.after('\n')
 							return;
 						}
 					}
@@ -1590,7 +1594,7 @@
 						var temp = document.querySelector(order[i]);
 						if (temp != null){
 							temp.after(button);
-							button.before('\n')
+							//button.before('\n')
 							return;
 						}
 					}
@@ -1599,7 +1603,7 @@
 					var buttons = document.querySelectorAll('.micro-button');
 					var lastButton = buttons[buttons.length-1];
 					lastButton.after(button);
-					lastButton.after("\n");
+					//lastButton.after("\n");
 				}
 			},
 			
@@ -1660,6 +1664,29 @@
 						document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
 					}
 				}
+			},
+
+			moveLinks(){
+				const footer = document.querySelector('.text-link.text-footer');
+				const buttons = document.querySelectorAll('.micro-button.track-event');
+
+				const newHolder = letterboxd.helpers.createElement('div', {});
+				footer.after(newHolder);
+				const text = letterboxd.helpers.createElement('span', {},{
+					['font-size']: '12px',
+					['color']: '#89a'
+				});
+				text.innerText = "More at ";
+				newHolder.append(text);
+
+				buttons.forEach(button => {
+					newHolder.append(button);
+				});
+				
+				var report = footer.querySelector('.report-link');
+				footer.innerText = footer.innerText.replace('More at','');
+				footer.append(report);
+
 			},
 
 			addDate(date){
