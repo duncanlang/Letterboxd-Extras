@@ -2056,7 +2056,7 @@
 
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-mal",
-					href: this.mal.data.url,
+					href: this.mal.data.url + '/stats',
 					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/mal-logo.png") + '");'
 				});
 				heading.append(logoHolder);
@@ -2210,7 +2210,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: 'logo-holder-anilist',
 					style: 'width: 100%;',
-					href: this.al.data.siteUrl
+					href: this.al.data.siteUrl + '/stats'
 				});
 				heading.append(logoHolder);
 
