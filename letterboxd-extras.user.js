@@ -752,7 +752,7 @@
 				// The element that is the score itself
 				const imdbScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
-					href: this.imdbData.url,
+					href: this.imdbData.url.replace('ratings','reviews'),
 					['data-original-title']: 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings + ' ratings'
 				});
 				imdbScore.innerText = this.imdbData.rating;
