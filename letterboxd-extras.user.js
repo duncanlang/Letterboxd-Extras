@@ -244,6 +244,7 @@
 			// Letterboxd
 			letterboxdYear: null,
 			letterboxdTitle: null,
+			linksMoved: false,
 
 			// IMDb
 			imdbID: "",
@@ -319,7 +320,8 @@
 				if (this.imdbID == "" && document.querySelector('.micro-button') != null){
 					// Gets the IMDb link and ID, and also TMDB id
 					this.getIMDbLink();
-					this.moveLinks();
+					if (this.linksMoved == false)
+						this.moveLinks();
 				}
 
 				if (this.imdbID != "" && this.imdbData.state < 1){
@@ -1726,6 +1728,7 @@
 						$(".duration-extra").on("mouseover", ShowTwipsy);
 						$(".duration-extra").on("mouseout", HideTwipsy);
 					}
+					this.linksMoved = true;
 				}
 			},
 
