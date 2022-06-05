@@ -1676,7 +1676,9 @@
 
 				if (buttons != null && buttons.length > 0){
 					// Create a new div to hold the buttons
-					const newHolder = letterboxd.helpers.createElement('div', {});
+					const newHolder = letterboxd.helpers.createElement('div', {},{
+						['margin-top']: '8px'
+					});
 					// Create the 'More at' text
 					const text = letterboxd.helpers.createElement('span', {
 						class: 'text-footer-extra'
@@ -1696,9 +1698,10 @@
 
 					// Save the report button then remove the old text, then re-add
 					var report = footer.querySelector('.report-link');
-					footer.innerText = "";
-					footer.append(report);
+					report.style['margin-left'] = '2px';
+					newHolder.append(report);
 
+					footer.innerText = "";
 					// Add the duration
 					var hours = 0;
 					if (duration != null){
@@ -1714,12 +1717,10 @@
 						durationSpan.innerText = duration[0];
 						durationSpan.setAttribute('data-original-title',format);
 						footer.prepend(durationSpan);
-					}else{
-						report.style['margin-left'] = '0px';
 					}
 					
 					// Append the new div
-					footer.after(newHolder);
+					footer.append(newHolder);
 
 					if (hours > 0){
 						$(".duration-extra").on("mouseover", ShowTwipsy);
