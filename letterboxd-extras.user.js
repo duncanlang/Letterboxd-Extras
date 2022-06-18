@@ -3013,7 +3013,7 @@
 						idType = "P6127";
 						break;
 				}
-				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Backup ?Publication_Date_Origin ?US_Title ?TV_Start ?TV_End WHERE {\n" +
+				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?US_Title ?TV_Start ?TV_End WHERE {\n" +
 				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 				"  {\n" +
 				"    SELECT DISTINCT ?item WHERE {\n" +
@@ -3074,11 +3074,13 @@
 				"    ?item p:P577 ?Publication_Date_entry.\n" +
 				"    ?Publication_Date_entry ps:P577 ?Publication_Date;\n" +
 				"      pq:P291 wd:Q30.\n" +
+				"    ?Publication_Date_entry psv:P577 [wikibase:timePrecision ?Publication_Date_Precision].\n" +
 				"    MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 				"  }\n" +
 				"  OPTIONAL {\n" +
 				"    ?item p:P577 ?Publication_Date_Backup_entry.\n" +
 				"    ?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.\n" +
+				"    ?Publication_Date_Backup_entry psv:P577 [wikibase:timePrecision ?Publication_Date_Backup_Precision].\n" +
 				"    FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }\n" +
 				"    MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 				"  }\n" +
@@ -3088,6 +3090,7 @@
 				"      ?item p:P577 ?Date_Origin_entry.\n" +
 				"      ?Date_Origin_entry ps:P577 ?Publication_Date_Origin;\n" +
 				"        pq:P291 ?Country_Of_Origin.\n" +
+				"      ?Date_Origin_entry psv:P577 [wikibase:timePrecision ?Publication_Date_Origin_Precision].\n" +
 				"      MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 				"    }\n" +
 				"  }\n" +
