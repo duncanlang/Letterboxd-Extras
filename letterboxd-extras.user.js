@@ -521,7 +521,7 @@
 								// Get and add Rotten Tomatoes
 								if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null){
 									var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
-									if (url.includes('/tv/'))
+									if (url.includes('/tv/') && !url.match(/s[0-9]{2}/i))
 										url += "/s01"
 
 									this.wikiData.tomatoURL = url;
