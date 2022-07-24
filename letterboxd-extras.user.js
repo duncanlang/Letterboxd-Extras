@@ -2999,6 +2999,20 @@
 			},
 			
 			getWikiDataQuery(id, idType){
+				/* WikiData Date Precision values:
+				0 - billion years
+				1 - hundred million years
+				6 - millennium
+				7 - century
+				8 - decade
+				9 - year
+				10 - month
+				11 - day
+				12 - hour
+				13 - minute
+				14 - second
+				*/
+				
 				switch(idType.toUpperCase()){
 					case "IMDB":
 						idType = "P345";
