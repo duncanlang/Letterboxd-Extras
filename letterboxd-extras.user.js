@@ -391,19 +391,19 @@
 										var result = value.results.bindings[i];
 										var entry = {id: i, score: 0};
 
-										if (result.TV_Start != null && !result.TV_Start.value.includes("-01-01T")){
+										if (result.TV_Start != null && result.TV_Start_Precision.value != "9"){
 											entry.score++;
 										}
-										if (result.TV_End != null && !result.TV_End.value.includes("-01-01T")){
+										if (result.TV_End != null && result.TV_End_Precision.value != "9"){
 											entry.score++;
 										}
-										if (result.Publication_Date != null && !result.Publication_Date.value.includes("-01-01T")){
+										if (result.Publication_Date != null && result.Publication_Date_Precision.value != "9"){
 											entry.score++;
 										}
-										if (result.Publication_Date_Origin != null && !result.Publication_Date_Origin.value.includes("-01-01T")){
+										if (result.Publication_Date_Origin != null && result.Publication_Date_Origin_Precision.value != "9"){
 											entry.score++;
 										}
-										if (result.Publication_Date_Backup != null && !result.Publication_Date_Backup.value.includes("-01-01T")){
+										if (result.Publication_Date_Backup != null && result.Publication_Date_Backup_Precision.value != "9"){
 											entry.score++;
 										}
 										results.push(entry);
@@ -3024,7 +3024,7 @@
 						idType = "P6127";
 						break;
 				}
-				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?US_Title ?TV_Start ?TV_End WHERE {\n" +
+				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
 				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 				"  {\n" +
 				"    SELECT DISTINCT ?item WHERE {\n" +
@@ -3110,8 +3110,18 @@
 				"    ?Title_Entry ps:P1476 ?US_Title;\n" +
 				"      pq:P3005 wd:Q30.\n" +
 				"  }\n" +
-				"  OPTIONAL { ?item wdt:P580 ?TV_Start. }\n" +
-				"  OPTIONAL { ?item wdt:P582 ?TV_End. }\n" +
+				"  OPTIONAL { \n" +
+				"    ?item p:P580 ?TV_Start_entry.\n" +
+				"    ?TV_Start_entry ps:P580 ?TV_Start.\n" +
+				"    ?TV_Start_entry psv:P580 [wikibase:timePrecision ?TV_Start_Precision].\n" +
+				"    MINUS { ?TV_Start_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
+				"  OPTIONAL { \n" +
+				"    ?item p:P582 ?TV_End_entry.\n" +
+				"    ?TV_End_entry ps:P582 ?TV_End.\n" +
+				"    ?TV_End_entry psv:P582 [wikibase:timePrecision ?TV_End_Precision].\n" +
+				"    MINUS { ?TV_End_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+				"  }\n" +
 				"}";
 				
 				return sparqlQuery;
