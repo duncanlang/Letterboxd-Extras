@@ -373,7 +373,6 @@
 							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDB');
 
 						this.wikiData.state = 1;
-						//letterboxd.helpers.getWikiData(queryString).then((value) =>{
 						chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryString}, (value) => {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								// Loop and find the best result
@@ -518,7 +517,6 @@
 									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
 										try{
 											this.metaData.state = 1;
-											//letterboxd.helpers.getData(this.wikiData.metaURL).then((value) =>{
 											chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.metaURL}, (value) => {
 												var meta = value.response;
 												if (meta != ""){
@@ -561,7 +559,6 @@
 									if (this.mal.data == null && this.mal.state < 1){
 										try{
 											this.mal.state = 1;
-											//letterboxd.helpers.getData(url).then((value) =>{
 											chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 												var mal = value.response;
 												if (mal != ""){
@@ -576,7 +573,6 @@
 												}
 											});
 											
-											//letterboxd.helpers.getData(url + "/statistics").then((value) =>{
 											chrome.runtime.sendMessage({name: "GETDATA", url: url + "/statistics"}, (value) => {
 												var mal = value.response;
 												if (mal != ""){
@@ -721,7 +717,6 @@
 					if (this.omdbData.state < 1){
 						this.omdbData.state = 1;
 
-						//letterboxd.helpers.getOMDbData(queryString).then((value) => {
 						chrome.runtime.sendMessage({name: "GETDATA", url: queryString}, (value) => {
 							this.omdbData.data = value;
 							this.omdbData.state = 2;
@@ -1006,7 +1001,6 @@
 					if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
 						try{
 							this.tomatoData.state = 1;
-							//letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
 							chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.tomatoURL}, (value) => {
 								var tomato = value.response;
 								if (tomato != ""){
@@ -1893,7 +1887,6 @@
 				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
 				this.cinemascore.state = 1;
 
-				//letterboxd.helpers.getOMDbData(url).then((value) => {
 				chrome.runtime.sendMessage({name: "JSON", url: url}, (data) => {
 					var value = data.results;
 					// Check if found
@@ -1966,7 +1959,6 @@
 			getCinema(title, titleType){
 				var encoded = letterboxd.helpers.encodeASCII(title);
 				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-				//letterboxd.helpers.getOMDbData(url).then((value) => {
 				chrome.runtime.sendMessage({name: "JSON", url: url}, (value) => {
 					if (this.cinemascore.data == null){
 						this.cinemascore.data = value;
@@ -2428,87 +2420,6 @@
 		},
 
 		helpers: {
-			async getData(link) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'GET'
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
-			async getALData(link, query, al_id) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'POST',
-						headers: {
-							'content-type': 'application/json',
-							accept: 'application/json'
-						},
-						data: JSON.stringify({
-							query,
-							variables: { id: al_id }
-						})
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
-			request(options) {
-				return new Promise((resolve, reject) => {
-					options.onload = res => resolve(res);
-					options.onerror = err => reject(err);
-					options.ontimeout = err => reject(err);
-					GM_xmlhttpRequest(options); // eslint-disable-line new-cap
-				});
-			},
-
-			async getOMDbData(link) {  
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var ajaxOptions = {
-					url: link,
-					type : 'GET'
-				}
-
-				return $.when($.ajax(ajaxOptions))
-				.then(function (results) {
-					return results;
-				});
-			},
-
-			async getWikiData(link) {	
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var ajaxOptions = {
-					url: link,
-					type : 'GET'
-				}
-
-				var output =  $.when($.ajax(ajaxOptions))
-				.then(function (results) {
-					return results;
-				});
-				
-				return output;
-			},
-
 			createElement(tag, attrs, styles) {
 				const element = document.createElement(tag);
 				for (const aKey in attrs) {
