@@ -1,5 +1,5 @@
 {
-	"manifest_version": 2,
+	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
 	"version": "3.5.3",
@@ -14,8 +14,7 @@
 		"browser_style": true
 	},	  
 
-	"permissions": [
-		"https://letterboxd.com/*",
+	"host_permissions": [
 		"https://www.imdb.com/*",
 		"https://www.omdbapi.com/*",
 		"https://www.rottentomatoes.com/*",
@@ -24,15 +23,27 @@
 		"https://query.wikidata.org/*",
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
-		"https://graphql.anilist.co/*",
-		"storage"
+		"https://graphql.anilist.co/*"
 	],
+
+	"background": {
+		"service_worker": "background.js",
+		"type": "module"
+	},
 
 	"content_scripts": [
 		{
 			"matches": [ "https://letterboxd.com/*" ],
 			"js": [ "polyfill.js", "letterboxd-extras.user.js", "jquery-3.6.0.min.js" ],
 			"run_at": "document_start"
+		}
+	],
+	
+	"web_accessible_resources": [
+		{
+		  "resources": [ "images/mal-logo.png"],
+		  "matches": [ "https://letterboxd.com/*" ],
+		  "use_dynamic_url": true
 		}
 	]
 }

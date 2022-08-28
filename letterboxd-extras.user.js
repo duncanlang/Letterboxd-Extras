@@ -327,23 +327,16 @@
 				if (this.imdbID != "" && this.imdbData.state < 1){
 					// Call IMDb and Add to page when done
 					this.imdbData.state = 1;
-					letterboxd.helpers.getData(this.imdbData.url).then((value) => {
+					chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url}, (value) => {
+						this.imdbData.state = 2;
 						this.imdbData.raw = value.response;
 						this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
-				
-						if (this.imdbData.data != null){
-							if (this.imdbData.raw.includes('(TV Mini Series)'))
-								this.imdbData.isMiniSeries = true;
-							if (this.imdbData.raw.includes('(TV Episode)'))
-								this.imdbData.isTVEpisode = true;
-	
-							this.addIMDBScore();
-							this.imdbData.state = 2;
-						}
-					});
-					
+						this.addIMDBScore();
+					});		
+
+
 					// Call the IMDb main show page
-					letterboxd.helpers.getData(this.imdbData.url.replace('/ratings','')).then((value) => {
+					chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url.replace('/ratings','')}, (value) => {
 						this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
 				
 						if (this.imdbData.data2 != null){	
@@ -355,7 +348,8 @@
 					// Call BoxOfficeMojo
 					var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
 					this.addLink(mojoURL);
-					letterboxd.helpers.getData(mojoURL).then((value) => {
+					//letterboxd.helpers.getData(mojoURL).then((value) => {
+					chrome.runtime.sendMessage({name: "GETDATA", url: mojoURL}, (value) => {
 						this.mojoData.data = letterboxd.helpers.parseHTML(value.response);
 						this.addBoxOffice();
 
@@ -379,7 +373,7 @@
 							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDB');
 
 						this.wikiData.state = 1;
-						letterboxd.helpers.getWikiData(queryString).then((value) =>{
+						chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryString}, (value) => {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								// Loop and find the best result
 								if (value.results.bindings.length > 1){
@@ -523,7 +517,7 @@
 									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
 										try{
 											this.metaData.state = 1;
-											letterboxd.helpers.getData(this.wikiData.metaURL).then((value) =>{
+											chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.metaURL}, (value) => {
 												var meta = value.response;
 												if (meta != ""){
 													this.metaData.raw = meta;
@@ -565,7 +559,7 @@
 									if (this.mal.data == null && this.mal.state < 1){
 										try{
 											this.mal.state = 1;
-											letterboxd.helpers.getData(url).then((value) =>{
+											chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 												var mal = value.response;
 												if (mal != ""){
 													this.mal.data = JSON.parse(mal);
@@ -579,7 +573,7 @@
 												}
 											});
 											
-											letterboxd.helpers.getData(url + "/statistics").then((value) =>{
+											chrome.runtime.sendMessage({name: "GETDATA", url: url + "/statistics"}, (value) => {
 												var mal = value.response;
 												if (mal != ""){
 													this.mal.statistics = JSON.parse(mal);
@@ -599,6 +593,7 @@
 								}
 
 								// Get AniList data
+								// TODO Anilist with new background service
 								if (this.wiki != null && this.wiki.Anilist_ID != null && this.wiki.Anilist_ID.value != null){
 									this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
 									this.al.id = this.wiki.Anilist_ID.value;
@@ -620,14 +615,29 @@
 										}
 									  }
 									`;
+									var variables = {
+										id: this.al.id
+									};
+									var options = {
+										method: 'POST',
+										headers: {
+											'Content-Type': 'application/json',
+											'Accept': 'application/json'
+										},
+										body: JSON.stringify({
+											query: query,
+											variables: variables
+										})
+									};
 
 									if (this.al.data == null && this.al.state < 1){
 										try{
 											this.al.state = 1;
-											letterboxd.helpers.getALData(url, query, this.al.id).then((value) =>{
+											//letterboxd.helpers.getALData(url, query, this.al.id).then((value) =>{
+											chrome.runtime.sendMessage({name: "GETALDATA2", url: url, options: options}, (value) => {
 												var al = value.response;
 												if (al != ""){
-													this.al.data = JSON.parse(al).data.Media;
+													this.al.data = al.data.Media;
 
 													if (this.al.data != null){
 														this.al.url = this.al.data.siteUrl;
@@ -707,7 +717,7 @@
 					if (this.omdbData.state < 1){
 						this.omdbData.state = 1;
 
-						letterboxd.helpers.getOMDbData(queryString).then((value) => {
+						chrome.runtime.sendMessage({name: "GETDATA", url: queryString}, (value) => {
 							this.omdbData.data = value;
 							this.omdbData.state = 2;
 	
@@ -991,7 +1001,7 @@
 					if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
 						try{
 							this.tomatoData.state = 1;
-							letterboxd.helpers.getData(this.wikiData.tomatoURL).then((value) =>{
+							chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.tomatoURL}, (value) => {
 								var tomato = value.response;
 								if (tomato != ""){
 									this.tomatoData.raw = tomato;
@@ -1877,7 +1887,8 @@
 				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
 				this.cinemascore.state = 1;
 
-				letterboxd.helpers.getOMDbData(url).then((value) => {
+				chrome.runtime.sendMessage({name: "JSON", url: url}, (data) => {
+					var value = data.results;
 					// Check if found
 					if (this.cinemascore.data == null){
 						this.cinemascore.data = value;
@@ -1948,7 +1959,7 @@
 			getCinema(title, titleType){
 				var encoded = letterboxd.helpers.encodeASCII(title);
 				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-				letterboxd.helpers.getOMDbData(url).then((value) => {
+				chrome.runtime.sendMessage({name: "JSON", url: url}, (value) => {
 					if (this.cinemascore.data == null){
 						this.cinemascore.data = value;
 					}else{
@@ -2100,7 +2111,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-mal",
 					href: this.mal.data.url + '/stats',
-					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/mal-logo.png") + '");'
+					style: 'position: absolute; background-image: url("' + chrome.runtime.getURL("images/mal-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 
@@ -2409,87 +2420,6 @@
 		},
 
 		helpers: {
-			async getData(link) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'GET'
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
-			async getALData(link, query, al_id) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'POST',
-						headers: {
-							'content-type': 'application/json',
-							accept: 'application/json'
-						},
-						data: JSON.stringify({
-							query,
-							variables: { id: al_id }
-						})
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
-			request(options) {
-				return new Promise((resolve, reject) => {
-					options.onload = res => resolve(res);
-					options.onerror = err => reject(err);
-					options.ontimeout = err => reject(err);
-					GM_xmlhttpRequest(options); // eslint-disable-line new-cap
-				});
-			},
-
-			async getOMDbData(link) {  
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var ajaxOptions = {
-					url: link,
-					type : 'GET'
-				}
-
-				return $.when($.ajax(ajaxOptions))
-				.then(function (results) {
-					return results;
-				});
-			},
-
-			async getWikiData(link) {	
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var ajaxOptions = {
-					url: link,
-					type : 'GET'
-				}
-
-				var output =  $.when($.ajax(ajaxOptions))
-				.then(function (results) {
-					return results;
-				});
-				
-				return output;
-			},
-
 			createElement(tag, attrs, styles) {
 				const element = document.createElement(tag);
 				for (const aKey in attrs) {
@@ -3135,6 +3065,15 @@
 
 					return optionsl
 				});
+				
+				this.data = await chrome.storage.sync.get('options', function (storage) {
+					// Get and save options
+					let defaultOptions = null;
+					options = storage.options || Object.assign({}, defaultOptions);
+
+					return optionsl
+				});
+				*/
 			},
 			get(key) {
 				if (this.data != null)
@@ -3144,7 +3083,7 @@
 			},
 			set(key, value) {
 				this.data[key] = value;
-				chrome.storage.local.set(this.data);
+				//chrome.storage.local.set(this.data);
 			}
 		}
 	};
