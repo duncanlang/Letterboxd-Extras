@@ -1,4 +1,11 @@
 chrome.runtime.onMessage.addListener((msg, sender, response) => {
+    chrome.storage.sync.get('options', (data) => {
+        var options = data.options;
+        if (options.hasOwnProperty('console-log') && options['console-log'] == true){
+            console.log(msg.url);
+        }
+    });
+
     if (msg.name == "GETDATA"){ // Standard call
         fetch(msg.url).then(function(res) {
             if (res.status !== 200) {
