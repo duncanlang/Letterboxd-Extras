@@ -3060,7 +3060,7 @@
 				});
 			},
 			get(key) {
-				if (this.options != null)
+				if (this.options != null && this.options.hasOwnProperty(key) && this.options[key] != "")
 					return this.options[key];
 				else
 					return null;

@@ -34,13 +34,15 @@ async function load(){
         var elements = document.querySelectorAll('.setting');
         elements.forEach(element => {
             var key = element.id;
-            switch (element.type) {
-                case ('checkbox'):
-                    element.checked = options[key];
-                    break;
-                default:
-                    element.value = options[key];
-                    break;
+            if (options.hasOwnProperty(key) && options[key] != ""){
+                switch (element.type) {
+                    case ('checkbox'):
+                        element.checked = options[key];
+                        break;
+                    default:
+                        element.value = options[key];
+                        break;
+                }
             }
         });
     });
