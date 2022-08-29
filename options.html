@@ -20,7 +20,7 @@
         <h3>Rotten Tomatoes</h3>
         <div>
             <label>Default detail view:</label>
-            <select id="rt-default-view">
+            <select id="rt-default-view" class="setting">
                 <option value="hide">Hide</option>
                 <option value="show">Show</option>
                 <option value="remember">Remember Last</option>
@@ -28,14 +28,14 @@
         </div>
         <div>
             <label>Default critic score:</label>
-            <select id="critic-default">
+            <select id="critic-default" class="setting">
                 <option value="all">All Critics</option>
                 <option value="top">Top Critics</option>
             </select>
         </div>
         <div>
             <label>Default audience score:</label>
-            <select id="audience-default">
+            <select id="audience-default" class="setting">
                 <option value="all">All Audience</option>
                 <option value="verified">Verified Audience</option>
             </select>
@@ -45,7 +45,7 @@
         <h3>Metacritic</h3>
         <div>
             <label>Default detail view:</label>
-            <select id="meta-default-view">
+            <select id="meta-default-view" class="setting">
                 <option value="hide">Hide</option>
                 <option value="show">Show</option>
                 <option value="remember">Remember Last</option>
@@ -56,7 +56,7 @@
         <h3>Debug</h3>
         <div>
             <label>Log calls in console:</label>
-            <input type="checkbox" id="console-log" />
+            <input type="checkbox" id="console-log" class="setting"/>
         </div>
     </div>
     <script src="options.js"></script>

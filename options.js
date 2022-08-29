@@ -1,36 +1,5 @@
-var options;
-
-// Load from storage
-async function load(){
-    options = await browser.storage.local.get().then(function (storedSettings) {
-        return storedSettings;
-    });
-    set();
-}
-
-function save(){ //key, value){
-    //options[key] = value;
-    browser.storage.local.set(options);
-}
-
-function set(){
-    Object.keys(options).forEach(key => {
-        var element = document.querySelector('#' + key);
-        if (element != null){
-            switch (typeof (options[key])) {
-                case ('boolean'):
-                    element.checked = options[key];
-                    break;
-                case ('string'):
-                    element.value = options[key];
-                    break;
-            }
-
-            //element.value = options[key];
-        }
-    })
-}
-
+// 3rd Attempt
+var options = {};
 
 // On change, save
 document.addEventListener('change', event => {
@@ -43,10 +12,36 @@ document.addEventListener('change', event => {
             break;
     }
 
-    save();//event.target.id, event.target.value);
+    save();
 });
+// Save:
+function save(){
+    chrome.storage.sync.set({options});
+}
+
 
 // On load, load
 document.addEventListener('DOMContentLoaded', event => {
     load();
 });
+// Load
+async function load(){
+    // Assign the object
+    chrome.storage.sync.get('options', (data) => {
+        Object.assign(options, data.options);
+        
+        // Set the settings
+        var elements = document.querySelectorAll('.setting');
+        elements.forEach(element => {
+            var key = element.id;
+            switch (element.type) {
+                case ('checkbox'):
+                    element.checked = options[key];
+                    break;
+                default:
+                    element.value = options[key];
+                    break;
+            }
+        });
+    });
+}

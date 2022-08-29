@@ -3,7 +3,7 @@
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
 	"version": "3.5.3",
-	"minimum_chrome_version": "60.0.3112",
+	"minimum_chrome_version": "88",
 
 	"icons": {
 		"128": "icon128.png"
@@ -12,7 +12,11 @@
 	"options_ui": {
 		"page": "options.html",
 		"browser_style": true
-	},	  
+	},
+
+	"permissions": [
+		"storage"
+	],
 
 	"host_permissions": [
 		"https://www.imdb.com/*",

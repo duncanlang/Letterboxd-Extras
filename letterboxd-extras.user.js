@@ -3052,37 +3052,23 @@
 		},
 
 		storage: {
-			data: {},
-			async init() {
-				/*this.data = await chrome.storage.local.get().then(function (storedSettings) {
-					return storedSettings;
-				});*/
-				
-				this.data = await chrome.storage.sync.get('options', function (storage) {
-					// Get and save options
-					let defaultOptions = null;
-					options = storage.options || Object.assign({}, defaultOptions);
+			options: {},
 
-					return optionsl
-				});
-				
-				this.data = await chrome.storage.sync.get('options', function (storage) {
-					// Get and save options
-					let defaultOptions = null;
-					options = storage.options || Object.assign({}, defaultOptions);
-
-					return optionsl
+			async init() {	
+				chrome.storage.sync.get('options', (data) => {
+					Object.assign(this.options, data.options);
 				});
 			},
 			get(key) {
-				if (this.data != null)
-					return this.data[key];
+				if (this.options != null)
+					return this.options[key];
 				else
-					return "";
+					return null;
 			},
 			set(key, value) {
-				this.data[key] = value;
-				//chrome.storage.local.set(this.data);
+				this.options[key] = value;
+				var options = this.options;
+				chrome.storage.sync.set({options});
 			}
 		}
 	};
