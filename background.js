@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener((msg, sender, response) => {
     chrome.storage.sync.get('options', (data) => {
         var options = data.options;
-        if (options.hasOwnProperty('console-log') && options['console-log'] == true){
+        if (options != null && options.hasOwnProperty('console-log') && options['console-log'] == true){
             console.log(msg.url);
         }
     });
