@@ -2439,6 +2439,30 @@
 			}
 		},
 
+		search: {
+			running: false,
+			
+			redirected: false,
+
+			stopRunning() {
+				this.running = false;
+			},
+
+			async init(){
+				this.running = true;
+
+				var referrer = document.referrer.replace('https://letterboxd.com','');
+				
+				if (!referrer.startsWith('/search/') && !window.location.href.includes('/films/') &&this.redirected == false){
+					this.redirected = true;
+					window.location.replace(window.location.href.replace('/search/','/search/films/'));
+				}
+
+				// Stop
+				return this.stopRunning();
+			}
+		},
+
 		helpers: {
 			async getData(link) {
 				if (letterboxd.storage.get('console-log') === true)
@@ -3192,6 +3216,11 @@
 		if (window.location.hostname === 'letterboxd.com') {
 			if (window.location.pathname.startsWith('/film/') && !window.location.pathname.includes("ratings")) {
 				letterboxd.overview.init();
+			}
+			else if (window.location.pathname.startsWith('/search/')) {
+				if (letterboxd.storage.get('search-redirect') === true){
+					letterboxd.search.init();
+				}
 			}
 		}
 	});
