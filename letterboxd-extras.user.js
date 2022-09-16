@@ -249,6 +249,7 @@
 			// IMDb
 			imdbID: "",
 			imdbData: {state: 0, url: "", data: null, raw: null, state2 : 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null},
+			imdbRatingsSuffix: [],
 
 			// TMDB
 			tmdbID: '',
@@ -803,6 +804,11 @@
 				}else{
 					this.imdbData.rating = this.imdbData.data.querySelector('.ipl-rating-star__rating').innerText;
 				}
+
+				//divide score by 2 if user wants letterboxd-style ratings
+				if (letterboxd.storage.get('imdb-convert-rating') === true){
+					this.imdbData.rating = (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2);
+				}
 				
 				// Get the number of ratings
 				var tempArray = this.imdbData.data.querySelectorAll('.allText');
@@ -876,13 +882,28 @@
 				});
 				imdbScoreSection.append(imdbScoreSpan);
 				
+				var imdbTooltip;
+
+				if(letterboxd.storage.get('imdb-convert-rating') === true){
+					imdbTooltip = 'Weighted average of ' + this.imdbData.rating + ' based on ' + this.imdbData.num_ratings + ' ratings'
+				} else {
+					imdbTooltip = 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings + ' ratings'
+				}
+
 				// The element that is the score itself
 				const imdbScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
 					href: this.imdbData.url.replace('ratings','reviews'),
-					['data-original-title']: 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings + ' ratings'
+					['data-original-title']: imdbTooltip
 				});
-				imdbScore.innerText = this.imdbData.rating;
+
+				if(letterboxd.storage.get('imdb-convert-rating') === true){
+					// convert to 1 decimal place here, to display 2 decimal places while hovering over
+					imdbScore.innerText = Number(this.imdbData.rating).toFixed(1);
+				} else {
+					imdbScore.innerText = this.imdbData.rating;
+				}
+				
 				imdbScoreSpan.append(imdbScore);
 
 
@@ -894,6 +915,12 @@
 				const ul = letterboxd.helpers.createElement('ul', {
 				});
 				histogram.append(ul);
+
+				if (letterboxd.storage.get('imdb-convert-rating') === true){
+					this.imdbRatingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
+				} else {
+					this.imdbRatingsSuffix = ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10'];
+				}
 
 				for (var ii = 0; ii < 10; ii++){	
 					var left = (ii * 16).toString() + "px;";
@@ -907,7 +934,7 @@
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip imdb tooltip-extra',
 						href: url,
-						['data-original-title']: this.imdbData.votes[ii].toLocaleString() + " " + (ii + 1).toString() + '/10 ratings (' + this.imdbData.percents[ii].toString() + '%)'
+						['data-original-title']: this.imdbData.votes[ii].toLocaleString() + " " + this.imdbRatingsSuffix[ii] + ' ratings (' + this.imdbData.percents[ii].toString() + '%)'
 					});
 					il.append(a);
 
