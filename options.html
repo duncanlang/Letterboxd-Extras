@@ -4,8 +4,12 @@
   <head>
     <meta charset="utf-8"/>
     <style>
-        h3,label{
+        h3,label,p{
             margin-left: 15px;
+        }
+        p{
+            margin-top: 0px;
+            font-style: italic;
         }
         label{
             display: inline-block;
@@ -50,6 +54,23 @@
                 <option value="show">Show</option>
                 <option value="remember">Remember Last</option>
             </select>
+        </div>
+    </div>
+    <br>
+    <div>
+        <h3>Search</h3>
+        <div>
+            <label>Default results to films:</label>
+            <input type="checkbox" id="search-redirect"/>
+            <p>When enabled, the Letterboxd search will default to only show results for films, rather than showing all results.</p>
+        </div>
+    </div>
+    <br>
+    <div>
+        <h3>Misc</h3>
+        <div>
+            <label>Convert ratings to Letterboxd-Style rating:</label>
+            <input type="checkbox" id="convert-ratings" />
         </div>
     </div>
     <div>
