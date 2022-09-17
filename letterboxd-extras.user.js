@@ -266,11 +266,16 @@
 
 			// WikiData
 			wiki: null,
-			wikiData: {state: 0, tomatoURL: null, metaURL: "", 
+			wiki_dates: null,
+			wikiData: {state: 0, state_dates: 0, tomatoURL: null, metaURL: "", 
 				budget: {value: null, currency: null}, 
 				boxOfficeUS: {value: null, currency: null}, 
 				boxOfficeWW: {value: null, currency: null},
-				mpaa: null, date: null, date_origin: null, rating: null, US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null, AniDB_ID: null, AniList_ID: null, MAL_ID: null},
+				mpaa: null, 
+				countries: [],
+				date: {value: null, precision: null},
+				date_origin: {value: null, precision: null},
+				US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null, AniDB_ID: null, AniList_ID: null, MAL_ID: null},
 
 			// Rotten Tomatoes
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
@@ -282,7 +287,7 @@
 			mpaaRating: null,
 
 			// Date
-			filmDate: null,
+			filmDate: {date: null, precision: null},
 
 			// MAL
 			mal: {state: 0, id: null,  url: null, data: null, statistics: null, highest: 0},
@@ -366,55 +371,41 @@
 							this.addRating();
 
 						// If the domestic date was found on Mojo, add it now
-						if (this.filmDate != null && this.dateAdded == false)
-							this.addDate(this.filmDate);
+						if (this.filmDate.date != null && this.dateAdded == false)
+							this.addDate(this.filmDate.date);
 					});
 				}
 				if (this.imdbID != '' || this.tmdbID != ''){
 					// Call WikiData
 					if (this.wikiData.state < 1){
-						if (this.imdbID != '') // IMDb should be most reliable
-							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.imdbID, 'IMDB');
-						else if (this.tmdbID != '' && this.tmdbTV == true)
-							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDBTV');
-						else if (this.tmdbID != '') // Every page should have a TMDB ID
-							var queryString = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDB');
+						var id = "";
+						var idType = "";
+						if (this.imdbID != ''){ // IMDb should be most reliable 
+							var id = this.imdbID;
+							var idType = "IMDB";
+						}
+						else if (this.tmdbID != '' && this.tmdbTV == true){
+							var id = this.tmdbID;
+							var idType = "TMDBTV";
+						}
+						else if (this.tmdbID != ''){ // Every page should have a TMDB ID
+							var id = this.tmdbID;
+							var idType = "TMDB";
+						}
+						var queryString = letterboxd.helpers.getWikiDataQuery(id, idType, 'MAIN');
+						var queryStringDate = letterboxd.helpers.getWikiDataQuery(id, idType, 'DATE');
 
 						this.wikiData.state = 1;
 						letterboxd.helpers.getWikiData(queryString).then((value) =>{
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
-								// Loop and find the best result
-								if (value.results.bindings.length > 1){
-									var results = [];
-									for (var i = 0; i < value.results.bindings.length; i++){
-										var result = value.results.bindings[i];
-										var entry = {id: i, score: 0};
+								this.wiki = value.results.bindings[0];
 
-										if (result.TV_Start != null && !result.TV_Start.value.includes("-01-01T")){
-											entry.score++;
-										}
-										if (result.TV_End != null && !result.TV_End.value.includes("-01-01T")){
-											entry.score++;
-										}
-										if (result.Publication_Date != null && !result.Publication_Date.value.includes("-01-01T")){
-											entry.score++;
-										}
-										if (result.Publication_Date_Origin != null && !result.Publication_Date_Origin.value.includes("-01-01T")){
-											entry.score++;
-										}
-										if (result.Publication_Date_Backup != null && !result.Publication_Date_Backup.value.includes("-01-01T")){
-											entry.score++;
-										}
-										results.push(entry);
+								// Collect the countries
+								for (var i = 0; i < value.results.bindings.length; i++){
+									var result = value.results.bindings[i];
+									if (result.Country_Of_Origin != null && result.Country_Of_Origin.value != ""){
+										this.wikiData.countries.push(result.Country_Of_Origin.value);
 									}
-									results.sort((a, b) => {
-										return b.score - a.score;
-									});
-									this.wiki = value.results.bindings[results[0].id];
-								}
-								
-								if (this.wiki == null){
-									this.wiki = value.results.bindings[0];
 								}
 								
 								// Box Office and Budget
@@ -456,52 +447,14 @@
 								var options = { year: 'numeric', month: 'short', day: 'numeric' };
 								if (this.wiki.TV_Start != null){
 									this.wikiData.TV_Start = new Date(this.wiki.TV_Start.value.replace("Z","")).toLocaleDateString("en-UK", options);
-									this.filmDate = this.wikiData.TV_Start;
+									this.filmDate.date = this.wikiData.TV_Start;
+									this.filmDate.precision = "11";
 									var dateString = this.wikiData.TV_Start + " - ";
 									if (this.wiki.TV_End != null){
 										this.wikiData.TV_End = new Date(this.wiki.TV_End.value.replace("Z","")).toLocaleDateString("en-UK", options);
 										dateString += this.wikiData.TV_End;
 									}
 									this.addDate(dateString);
-								}else{								
-									// Get Date
-									if (this.wiki != null && this.wiki.Publication_Date != null){
-										this.wikiData.date = new Date(this.wiki.Publication_Date.value.replace("Z","")).toLocaleDateString("en-UK", options);
-									}
-									if (this.wiki != null && this.wiki.Publication_Date_Origin != null){
-										this.wikiData.date_origin = new Date(this.wiki.Publication_Date_Origin.value.replace("Z","")).toLocaleDateString("en-UK", options);
-									}
-
-									// Add the date to letterboxd
-									// Prefer Country of Origin Date
-									if (this.wikiData.date_origin != null){
-										if (this.filmDate != null && this.wikiData.date_origin.startsWith('1 Jan')){
-											// do nothing
-										}else{
-											this.filmDate = this.wikiData.date_origin;
-											this.addDate(this.filmDate);
-										}
-
-									// Then US Date
-									}else if (this.wikiData.date != null){
-										if (this.filmDate != null && this.wikiData.date.startsWith('1 Jan')){
-											// do nothing
-										}else{
-											this.filmDate = this.wikiData.date;
-											this.addDate(this.filmDate);
-										}
-
-									// Then Backup date (first date without country qualifier)
-									}else if (this.wiki != null && this.wiki.Publication_Date_Backup != null){
-										var date = new Date(this.wiki.Publication_Date_Backup.value.replace("Z","")).toLocaleDateString("en-UK", options);
-										this.wikiData.date = date;
-										if (this.filmDate != null && this.wikiData.date.startsWith('1 Jan')){
-											// do nothing
-										}else{
-											this.filmDate = date;
-											this.addDate(this.filmDate);
-										}
-									}
 								}
 				
 								// Add Rating
@@ -652,6 +605,82 @@
 								this.wikiData.state = 2;
 							}
 						});
+
+						// Call WikiData a second time for dates
+						letterboxd.helpers.getWikiData(queryStringDate).then((value) =>{
+							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+								this.wiki_dates = value.results.bindings;
+							}
+							this.wikiData.state_dates = 1;
+						});
+					}else{
+						if (this.wikiData.state == 2 && this.wikiData.state_dates == 1){
+							var dates = [];
+							var dates_origin = [];
+							for (var i = 0; i < this.wiki_dates.length; i++){
+								var date = {date: '', precision: '', country: '', format: '', score: 0};
+								date.date = this.wiki_dates[i].Date.value;
+
+								if (this.wiki_dates[i].Date_Precision != null && this.wiki_dates[i].Date_Precision.value != "") 
+									date.precision = this.wiki_dates[i].Date_Precision.value;
+								if (this.wiki_dates[i].Date_Country != null && this.wiki_dates[i].Date_Country.value != "") 
+									date.country = this.wiki_dates[i].Date_Country.value;
+								if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "") 
+									date.format = this.wiki_dates[i].Date_Format.value;
+
+								// Check limited release
+								if (!date.format.endsWith('Q3491297')){
+									date.score += 1;
+								}
+
+								// Check precision
+								if (date.precision != '9'){
+									date.score += 1;
+								}
+
+								// Country of Origin date
+								if (this.wikiData.countries.includes(date.country)){
+									var date_origin = {date: date.date, precision: date.precision, country: date.country, format: date.format, score: date.score};
+									dates_origin.push(date_origin);
+								}
+								// USA
+								if (date.country.endsWith('Q30')){
+									date.score += 1;
+									dates.push(date);
+								}
+								// Blank
+								if (date.country == ''){
+									dates.push(date);
+								}
+							}
+
+							// Sort arrays - highest score first, then by the earliest date
+							dates.sort((a, b) => {
+								return b.score - a.score || new Date(a.date).getTime() - new Date(b.date).getTime();
+							});
+							dates_origin.sort((a, b) => {
+								return  b.score - a.score || new Date(a.date).getTime() - new Date(b.date).getTime();
+							});
+
+							// Set dates
+							var options = { year: 'numeric', month: 'short', day: 'numeric' };
+							if (dates_origin.length > 0){
+								this.wikiData.date_origin = {value: dates_origin[0].date, precision: dates_origin[0].precision};
+								this.wikiData.date_origin.value = new Date(this.wikiData.date_origin.value.replace("Z","")).toLocaleDateString("en-UK", options);
+								this.filmDate.date = this.wikiData.date_origin.value;
+								this.addDate(this.filmDate.date);
+							}
+
+							if (dates.length > 0){
+								this.wikiData.date = {value: dates[0].date, precision: dates[0].precision};
+								this.wikiData.date.value = new Date(this.wikiData.date.value.replace("Z","")).toLocaleDateString("en-UK", options);
+								if (this.dateAdded == false){
+									this.filmDate.date = this.wikiData.date.value;
+									this.addDate(this.filmDate.date);
+								}
+							}
+							this.wikiData.state_dates = 2;
+						}
 					}
 				}
 
@@ -667,7 +696,7 @@
 					this.cinemascoreAlt = true;
 					if (this.wikiData.TV_Start == null){
 						var alt_Title = true;
-						if ((this.wikiData.date != null && new Date(this.wikiData.date).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin != null && new Date(this.wikiData.date_origin).getFullYear() != this.letterboxdYear)){
+						if ((this.wikiData.date.value != null && new Date(this.wikiData.date.value).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin.value != null && new Date(this.wikiData.date_origin.value).getFullYear() != this.letterboxdYear)){
 							if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")){
 								alt_Title = false;
 								this.addCinema();
@@ -703,7 +732,7 @@
 				}
 
 				// Call OMDb for backup
-				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || ((this.dateAdded == false || this.filmDate.startsWith("1 Jan")) && this.wikiData.TV_Start == null))){
+				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || ((this.dateAdded == false || this.filmDate.precision == "9") && this.wikiData.TV_Start == null))){
 
 					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
 					if (this.omdbData.state < 1){
@@ -716,9 +745,9 @@
 							// Check if OMDb response is valid
 							if (this.omdbData.data != null && this.omdbData.data.Response == "True"){			
 								// Add full release date
-								if (this.omdbData.data.Released != null && this.omdbData.data.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.startsWith("1 Jan"))){
-									this.filmDate = this.omdbData.data.Released;
-									this.addDate(this.filmDate);
+								if (this.omdbData.data.Released != null && this.omdbData.data.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.precision == "9")){
+									this.filmDate.date = this.omdbData.data.Released;
+									this.addDate(this.filmDate.date);
 
 									if(this.cinemascore.state < 2){
 										this.initCinema(null);
@@ -1802,14 +1831,14 @@
 						}else if (header == "MPAA"){
 							this.mpaaRating = data;
 						}else if (header == "Earliest Release Date" && data.includes("Domestic")){
-							this.filmDate = data.split("\n")[0];
-							this.filmDate = this.filmDate.replace(",","");
-							this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+							this.filmDate.date = data.split("\n")[0];
+							this.filmDate.date = this.filmDate.date.replace(",","");
+							this.filmDate.date = new Date(this.filmDate.date).toLocaleDateString("en-UK", options);
 						}
 					}
 
 					// Quick Check for release dates
-					if (this.filmDate == null || this.filmDate == ""){
+					if (this.filmDate.date == null || this.filmDate.date == ""){
 						var a_Section = this.mojoData.data.querySelector('.a-section.mojo-h-scroll');
 						if (a_Section != null && a_Section.childElementCount > 0 && a_Section.childNodes[0].innerText.includes("Domestic")){
 							var a_Section_Rows = a_Section.childNodes[2].rows;
@@ -1818,8 +1847,8 @@
 								var date = a_Section_Rows[ii].childNodes[1].innerText;
 								
 								if (header == "Domestic"){
-									this.filmDate = date.replace(",","");
-									this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+									this.filmDate.date = date.replace(",","");
+									this.filmDate.date = new Date(this.filmDate.date).toLocaleDateString("en-UK", options);
 								}
 							}
 						}
@@ -1831,8 +1860,8 @@
 								var markets = a_Section_Rows[ii].childNodes[2].innerText;
 								
 								if (group == "Original Release" && markets.includes("Domestic")){
-									this.filmDate = date.replace(",","");
-									this.filmDate = new Date(this.filmDate).toLocaleDateString("en-UK", options);
+									this.filmDate.date = date.replace(",","");
+									this.filmDate.date = new Date(this.filmDate.date).toLocaleDateString("en-UK", options);
 								}
 							}
 						}
@@ -1994,11 +2023,11 @@
 					}else if (this.omdbData.data != null){
 						years[1] = (new Date(this.omdbData.data.Released)).getFullYear().toString();
 					}
-					if (this.wikiData.date != null){
-						years[2] = (new Date(this.wikiData.date)).getFullYear().toString();
+					if (this.wikiData.date.value != null){
+						years[2] = (new Date(this.wikiData.date.value)).getFullYear().toString();
 					}
-					if (this.wikiData.date_origin != null){
-						years[3] = (new Date(this.wikiData.date_origin)).getFullYear().toString();
+					if (this.wikiData.date_origin.value != null){
+						years[3] = (new Date(this.wikiData.date_origin.value)).getFullYear().toString();
 					}
 
 					var result = null;
@@ -2012,6 +2041,8 @@
 								var withYear = title.toUpperCase() + ' (' + data[ii].YEAR + ')';
 								// If Exact
 								if (data[ii].TITLE == title.toUpperCase() || data[ii].TITLE == withYear){
+									found = true;
+								}else if (title.match(/^[0-9]+$/) && data[ii].TITLE == title + "**"){
 									found = true;
 								}else{
 									// If not, make sure it starts with the exact title
@@ -2458,6 +2489,30 @@
 
 				// Third
 				sidebar.append(rating);
+			}
+		},
+
+		search: {
+			running: false,
+			
+			redirected: false,
+
+			stopRunning() {
+				this.running = false;
+			},
+
+			async init(){
+				this.running = true;
+
+				var referrer = document.referrer.replace('https://letterboxd.com','');
+				
+				if (!referrer.startsWith('/search/') && !window.location.href.includes('/films/') &&this.redirected == false){
+					this.redirected = true;
+					window.location.replace(window.location.href.replace('/search/','/search/films/'));
+				}
+
+				// Stop
+				return this.stopRunning();
 			}
 		},
 
@@ -3021,6 +3076,7 @@
 				title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 
 				// I don't like doing it this way, but there is no other way for certain movies where cinemascore has incorrect data
+				output = title;
 				switch(title){
 					case "Harry Potter and the Order of the Phoenix":
 						output = "Harry Potter and Order of the Phoenix";
@@ -3028,6 +3084,10 @@
 					case "Ocean's Eleven":
 						if (year == "2001")
 							output = "Ocean's 11";
+						break;
+					case "One Eight Seven":
+						if (year == "1997")
+							output = "187";
 						break;
 					default:
 						output = title;
@@ -3051,7 +3111,7 @@
 				return value;
 			},
 			
-			getWikiDataQuery(id, idType){
+			getWikiDataQuery(id, idType, queryType){
 				/* WikiData Date Precision values:
 				0 - billion years
 				1 - hundred million years
@@ -3080,95 +3140,106 @@
 						idType = "P6127";
 						break;
 				}
-				var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?US_Title ?TV_Start ?TV_End WHERE {\n" +
-				"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
-				"  {\n" +
-				"    SELECT DISTINCT ?item WHERE {\n" +
-				"      ?item p:" + idType + " ?statement0.\n" +
-				"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
-				"    }\n" +
-				"    LIMIT 10\n" +
-				"  }\n" +
-				"  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }\n" +
-				"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
-				"  OPTIONAL { ?item wdt:P8729 ?Anilist_ID. }\n" +
-				"  OPTIONAL { ?item wdt:P4086 ?MAL_ID. }\n" +
-				"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P2130 ?Budget_Entry.\n" +
-				"    ?Budget_Entry ps:P2130 ?Budget.\n" +
-				"    OPTIONAL {\n" +
-				"      ?Budget_Entry psv:P2130 ?valuenode.\n" +
-				"      ?valuenode wikibase:quantityUnit ?Budget_Unit.\n" +
-				"      ?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].\n" +
-				"    }\n" +
-				"    MINUS { ?Budget_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P2142 ?Box_Office_Entry.\n" +
-				"    ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;\n" +
-				"      pq:P3005 wd:Q30.\n" +
-				"    OPTIONAL {\n" +
-				"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
-				"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
-				"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_OfficeUS_UnitLabel].\n" +
-				"    }\n" +
-				"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P2142 ?Box_Office_Entry.\n" +
-				"    ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;\n" +
-				"      pq:P3005 wd:Q2017699.\n" +
-				"    OPTIONAL {\n" +
-				"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
-				"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
-				"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_OfficeUS_UnitLabel].\n" +
-				"    }\n" +
-				"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P2142 ?Box_Office_EntryWW.\n" +
-				"    ?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;\n" +
-				"      pq:P3005 wd:Q13780930.\n" +
-				"    OPTIONAL {\n" +
-				"      ?Box_Office_EntryWW psv:P2142 ?valuenode3.\n" +
-				"      ?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.\n" +
-				"      ?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].\n" +
-				"    }\n" +
-				"    MINUS { ?Box_Office_EntryWW wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P577 ?Publication_Date_entry.\n" +
-				"    ?Publication_Date_entry ps:P577 ?Publication_Date;\n" +
-				"      pq:P291 wd:Q30.\n" +
-				"    ?Publication_Date_entry psv:P577 [wikibase:timePrecision ?Publication_Date_Precision].\n" +
-				"    MINUS { ?Publication_Date_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P577 ?Publication_Date_Backup_entry.\n" +
-				"    ?Publication_Date_Backup_entry ps:P577 ?Publication_Date_Backup.\n" +
-				"    ?Publication_Date_Backup_entry psv:P577 [wikibase:timePrecision ?Publication_Date_Backup_Precision].\n" +
-				"    FILTER NOT EXISTS { ?Publication_Date_Backup_entry pq:P291 [] }\n" +
-				"    MINUS { ?Publication_Date_Backup_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item wdt:P495 ?Country_Of_Origin.\n" +
-				"    OPTIONAL {\n" +
-				"      ?item p:P577 ?Date_Origin_entry.\n" +
-				"      ?Date_Origin_entry ps:P577 ?Publication_Date_Origin;\n" +
-				"        pq:P291 ?Country_Of_Origin.\n" +
-				"      ?Date_Origin_entry psv:P577 [wikibase:timePrecision ?Publication_Date_Origin_Precision].\n" +
-				"      MINUS { ?Date_Origin_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-				"    }\n" +
-				"  }\n" +
-				"  OPTIONAL {\n" +
-				"    ?item p:P1476 ?Title_Entry.\n" +
-				"    ?Title_Entry ps:P1476 ?US_Title;\n" +
-				"      pq:P3005 wd:Q30.\n" +
-				"  }\n" +
-				"  OPTIONAL { ?item wdt:P580 ?TV_Start. }\n" +
-				"  OPTIONAL { ?item wdt:P582 ?TV_End. }\n" +
-				"}";
+				if (queryType == "DATE"){
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Date ?Date_Country ?Date_CountryLabel ?Date_Precision ?Date_Format ?Date_FormatLabel WHERE {\n" +
+					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+					"  {\n" +
+					"    SELECT DISTINCT ?item WHERE {\n" +
+					"      ?item p:" + idType + " ?statement0.\n" +
+					"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+					"    }\n" +
+					"    LIMIT 15\n" +
+					"  }\n" +
+					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
+					"  OPTIONAL {\n" +
+					"    ?item p:P577 ?Entry.\n" +
+					"    ?Entry ps:P577 ?Date.\n" +
+					"    ?Entry psv:P577 [wikibase:timePrecision ?Date_Precision].\n" +
+					"    OPTIONAL { ?Entry pq:P291 ?Date_Country }.\n" +
+					"    OPTIONAL { ?Entry pq:P437 ?Date_Format }.\n" +
+					"    MINUS { ?Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"}";
+				}else{
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Country_Of_OriginLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Format ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?Publication_Date_Origin_Format ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
+					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+					"  {\n" +
+					"    SELECT DISTINCT ?item WHERE {\n" +
+					"      ?item p:" + idType + " ?statement0.\n" +
+					"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+					"    }\n" +
+					"    LIMIT 10\n" +
+					"  }\n" +
+					"  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P8729 ?Anilist_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P4086 ?MAL_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
+					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
+					"  OPTIONAL {\n" +
+					"    ?item p:P2130 ?Budget_Entry.\n" +
+					"    ?Budget_Entry ps:P2130 ?Budget.\n" +
+					"    OPTIONAL {\n" +
+					"      ?Budget_Entry psv:P2130 ?valuenode.\n" +
+					"      ?valuenode wikibase:quantityUnit ?Budget_Unit.\n" +
+					"      ?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].\n" +
+					"    }\n" +
+					"    MINUS { ?Budget_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?item p:P2142 ?Box_Office_Entry.\n" +
+					"    ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;\n" +
+					"      pq:P3005 wd:Q30.\n" +
+					"    OPTIONAL {\n" +
+					"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
+					"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
+					"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_OfficeUS_UnitLabel].\n" +
+					"    }\n" +
+					"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?item p:P2142 ?Box_Office_Entry.\n" +
+					"    ?Box_Office_Entry ps:P2142 ?Box_OfficeUS;\n" +
+					"      pq:P3005 wd:Q2017699.\n" +
+					"    OPTIONAL {\n" +
+					"      ?Box_Office_Entry psv:P2142 ?valuenode2.\n" +
+					"      ?valuenode2 wikibase:quantityUnit ?Box_Office_Unit.\n" +
+					"      ?Box_Office_Unit p:P498 [ps:P498 ?Box_OfficeUS_UnitLabel].\n" +
+					"    }\n" +
+					"    MINUS { ?Box_Office_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?item p:P2142 ?Box_Office_EntryWW.\n" +
+					"    ?Box_Office_EntryWW ps:P2142 ?Box_OfficeWW;\n" +
+					"      pq:P3005 wd:Q13780930.\n" +
+					"    OPTIONAL {\n" +
+					"      ?Box_Office_EntryWW psv:P2142 ?valuenode3.\n" +
+					"      ?valuenode3 wikibase:quantityUnit ?Box_OfficeWW_Unit.\n" +
+					"      ?Box_OfficeWW_Unit p:P498 [ps:P498 ?Box_OfficeWW_UnitLabel].\n" +
+					"    }\n" +
+					"    MINUS { ?Box_Office_EntryWW wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?item p:P1476 ?Title_Entry.\n" +
+					"    ?Title_Entry ps:P1476 ?US_Title;\n" +
+					"      pq:P3005 wd:Q30.\n" +
+					"  }\n" +
+					"  OPTIONAL { \n" +
+					"    ?item p:P580 ?TV_Start_entry.\n" +
+					"    ?TV_Start_entry ps:P580 ?TV_Start.\n" +
+					"    ?TV_Start_entry psv:P580 [wikibase:timePrecision ?TV_Start_Precision].\n" +
+					"    MINUS { ?TV_Start_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"  OPTIONAL { \n" +
+					"    ?item p:P582 ?TV_End_entry.\n" +
+					"    ?TV_End_entry ps:P582 ?TV_End.\n" +
+					"    ?TV_End_entry psv:P582 [wikibase:timePrecision ?TV_End_Precision].\n" +
+					"    MINUS { ?TV_End_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"}";
+				}
+
+				sparqlQuery = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + sparqlQuery;
 				
 				return sparqlQuery;
 			}
@@ -3198,6 +3269,11 @@
 		if (window.location.hostname === 'letterboxd.com') {
 			if (window.location.pathname.startsWith('/film/') && !window.location.pathname.includes("ratings")) {
 				letterboxd.overview.init();
+			}
+			else if (window.location.pathname.startsWith('/search/')) {
+				if (letterboxd.storage.get('search-redirect') === true){
+					letterboxd.search.init();
+				}
 			}
 		}
 	});
