@@ -297,6 +297,8 @@
 			dateAdded: false, 
 			ratingAdded: false,
 
+			ratingsSuffix: [],
+
 			stopRunning() {
 				this.running = false;
 			},
@@ -745,6 +747,12 @@
 					}				
 				}
 
+				if (letterboxd.storage.get('convert-ratings') === true){
+					this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
+				} else {
+					this.ratingsSuffix = ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10'];
+				}
+
 				// Stop
 				return this.stopRunning();
 			},
@@ -876,13 +884,27 @@
 				});
 				imdbScoreSection.append(imdbScoreSpan);
 				
+				var imdbTooltip;
+
+				if(letterboxd.storage.get('convert-ratings') === true){
+					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings + ' ratings'
+				} else {
+					imdbTooltip = 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings + ' ratings'
+				}
+
 				// The element that is the score itself
 				const imdbScore = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
 					href: this.imdbData.url.replace('ratings','reviews'),
-					['data-original-title']: 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings + ' ratings'
+					['data-original-title']: imdbTooltip
 				});
-				imdbScore.innerText = this.imdbData.rating;
+
+				if(letterboxd.storage.get('convert-ratings') === true){
+					imdbScore.innerText = (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(1);
+				} else {
+					imdbScore.innerText = this.imdbData.rating;
+				}
+				
 				imdbScoreSpan.append(imdbScore);
 
 
@@ -907,7 +929,7 @@
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip imdb tooltip-extra',
 						href: url,
-						['data-original-title']: this.imdbData.votes[ii].toLocaleString() + " " + (ii + 1).toString() + '/10 ratings (' + this.imdbData.percents[ii].toString() + '%)'
+						['data-original-title']: this.imdbData.votes[ii].toLocaleString() + " " + this.ratingsSuffix[ii] + ' ratings (' + this.imdbData.percents[ii].toString() + '%)'
 					});
 					il.append(a);
 
@@ -2117,16 +2139,29 @@
 				
 				// Create the tooltip text
 				var tooltip = "No score yet ( " + this.mal.scored_by.toLocaleString() + " ratings)";
-				if (this.al.score != "N/A")
-					tooltip = 'Weighted average of ' + this.mal.score + '/10 based on ' + this.mal.scored_by.toLocaleString() + ' ratings';
-				
+				if (this.mal.score != "N/A"){
+					if(letterboxd.storage.get('convert-ratings') === true){
+						tooltip = 'Weighted average of ' + (Number(this.mal.score) / 2).toFixed(2) + ' based on ' + this.mal.scored_by.toLocaleString() + ' ratings'
+					} else {
+						tooltip = 'Weighted average of ' + this.mal.score + '/10 based on ' + this.mal.scored_by.toLocaleString() + ' ratings'
+					}
+				}
+
 				// The element that is the score itself
 				const score = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
 					href: this.mal.data.url + '/reviews',
 					['data-original-title']: tooltip
 				});
-				score.innerText = this.mal.score.toFixed(2);
+				console.log(this.mal.score);
+				if (this.mal.score == "N/A"){
+					score.innerText = "N/A";
+				} else if(letterboxd.storage.get('convert-ratings') === true){
+					score.innerText = (Number(this.mal.score) / 2).toFixed(1);
+				} else {
+					score.innerText = this.mal.score.toFixed(1);
+				}
+				
 				scoreSpan.append(score);
 
 
@@ -2155,7 +2190,7 @@
 
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip imdb tooltip-extra',
-						['data-original-title']: this.mal.statistics.scores[ii].votes.toLocaleString() + " " + (ii + 1).toString() + '/10 ratings (' + this.mal.statistics.scores[ii].percentage.toString() + '%)'
+						['data-original-title']: this.mal.statistics.scores[ii].votes.toLocaleString() + " " + this.ratingsSuffix[ii] + ' ratings (' + this.mal.statistics.scores[ii].percentage.toString() + '%)'
 					});
 					il.append(a);
 
@@ -2284,8 +2319,13 @@
 
 				// Create the tooltip text
 				var tooltip = "No score yet ( " + this.al.num_ratings.toLocaleString() + " ratings)";
-				if (this.al.score != "N/A")
-					tooltip = 'Weighted average of ' + this.al.score + '/100 based on ' + this.al.num_ratings.toLocaleString() + ' ratings';
+				if (this.al.score != "N/A"){
+					if(letterboxd.storage.get('convert-ratings') === true){
+						tooltip = 'Weighted average of ' + (Number(this.al.score) / 20).toFixed(2) + ' based on ' + this.al.num_ratings.toLocaleString() + ' ratings'
+					} else {
+						tooltip = 'Weighted average of ' + this.al.score + '/100 based on ' + this.al.num_ratings.toLocaleString() + ' ratings'
+					}
+				}
 
 				// The element that is the score itself
 				const score = letterboxd.helpers.createElement('a', {
@@ -2293,7 +2333,13 @@
 					href: this.al.data.siteUrl + '/reviews',
 					['data-original-title']: tooltip
 				});
-				score.innerText = this.al.score + "%";
+				if (this.al.score == "N/A"){
+					score.innerText = "N/A";
+				} else if(letterboxd.storage.get('convert-ratings') === true){
+					score.innerText = (Number(this.al.score) / 20).toFixed(1);
+				} else {
+					score.innerText = this.al.score + "%";
+				}
 				scoreSpan.append(score);
 
 				// Add the bars for the rating
@@ -2316,9 +2362,16 @@
 					var amount = this.al.data.stats.scoreDistribution[ii].amount;
 					var percent = (amount / this.al.num_ratings * 100).toFixed(1);
 
+					var alRatingsSuffix;
+					if (letterboxd.storage.get('convert-ratings') === true){
+						alRatingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
+					} else {
+						alRatingsSuffix = ['10/100', '20/100', '30/100', '40/100', '50/100', '60/100', '70/100', '80/100', '90/100', '100/100'];
+					}
+
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip imdb tooltip-extra',
-						['data-original-title']: amount.toLocaleString() + " " + ((ii + 1) * 10).toString() + '/100 ratings (' + percent.toString() + '%)'
+						['data-original-title']: amount.toLocaleString() + " " + alRatingsSuffix[ii] + ' ratings (' + percent.toString() + '%)'
 					});
 					il.append(a);
 
