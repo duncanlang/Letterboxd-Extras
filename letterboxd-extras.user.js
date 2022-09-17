@@ -617,7 +617,7 @@
 						});
 
 						// Call WikiData a second time for dates
-						letterboxd.helpers.getWikiData(queryStringDate).then((value) =>{
+						chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryStringDate}, (value) => {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								this.wiki_dates = value.results.bindings;
 							}
