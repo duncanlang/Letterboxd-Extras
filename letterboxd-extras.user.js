@@ -75,7 +75,7 @@
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens {
 			background-position-x: left;
 			background-position-y: top;
 			background-repeat: no-repeat;
@@ -229,6 +229,20 @@
 		.text-footer-extra{
 			font-size: 12px;
 			color: #89a;
+		}
+		.sens-score{
+			display: flex;
+			flex-direction: row;
+			border: 1px solid white;
+			border-radius: 1px;
+			color: white;
+			font-size: 20px;
+			font-weight: 600;
+			font-family: "Sora", sans-serif;
+			align-items: center;
+			justify-content: center;
+			height: 30px;
+			width: 55px;
 		}
 	`);
 	/* eslint-enable */
@@ -2512,18 +2526,11 @@
 				section.append(heading);
 
 				const logoHolder = letterboxd.helpers.createElement('a', {
-					class: 'logo-sensCritique',
+					class: "logo-sens",
 					href: this.sensCritique.data.fields.url,
-					style: 'width: 100%;'
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
 				});
 				heading.append(logoHolder);
-				
-				const sensText  = letterboxd.helpers.createElement('span', {
-					class: 'text-meta',
-					style: 'height: 20px; width: 100px;',
-				});
-				sensText.innerText = "SensCritique";
-				logoHolder.append(sensText);
 				
 				// Score
 				//***************************************************************
@@ -2537,8 +2544,7 @@
 				
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight sens-score',
-					style: 'display: inline-block;'
+					class: 'tooltip display-rating -highlight sens-score'
 				});
 
 				// Add the hoverover text and href
@@ -2572,6 +2578,7 @@
 					'.al-ratings',
 					'.tomato-ratings',
 					'.meta-ratings',
+					'.sens-ratings',
 					'.anidb-ratings',
 					'.cinemascore'
 				];
