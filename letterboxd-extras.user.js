@@ -617,38 +617,40 @@
 							var dates_origin = [];
 							for (var i = 0; i < this.wiki_dates.length; i++){
 								var date = {date: '', precision: '', country: '', format: '', score: 0};
-								date.date = this.wiki_dates[i].Date.value;
+								if (this.wiki_dates[i].Date != null){
+									date.date = this.wiki_dates[i].Date.value;
 
-								if (this.wiki_dates[i].Date_Precision != null && this.wiki_dates[i].Date_Precision.value != "") 
-									date.precision = this.wiki_dates[i].Date_Precision.value;
-								if (this.wiki_dates[i].Date_Country != null && this.wiki_dates[i].Date_Country.value != "") 
-									date.country = this.wiki_dates[i].Date_Country.value;
-								if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "") 
-									date.format = this.wiki_dates[i].Date_Format.value;
+									if (this.wiki_dates[i].Date_Precision != null && this.wiki_dates[i].Date_Precision.value != "") 
+										date.precision = this.wiki_dates[i].Date_Precision.value;
+									if (this.wiki_dates[i].Date_Country != null && this.wiki_dates[i].Date_Country.value != "") 
+										date.country = this.wiki_dates[i].Date_Country.value;
+									if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "") 
+										date.format = this.wiki_dates[i].Date_Format.value;
 
-								// Check limited release
-								if (!date.format.endsWith('Q3491297')){
-									date.score += 1;
-								}
+									// Check limited release
+									if (!date.format.endsWith('Q3491297')){
+										date.score += 1;
+									}
 
-								// Check precision
-								if (date.precision != '9'){
-									date.score += 1;
-								}
+									// Check precision
+									if (date.precision != '9'){
+										date.score += 1;
+									}
 
-								// Country of Origin date
-								if (this.wikiData.countries.includes(date.country)){
-									var date_origin = {date: date.date, precision: date.precision, country: date.country, format: date.format, score: date.score};
-									dates_origin.push(date_origin);
-								}
-								// USA
-								if (date.country.endsWith('Q30')){
-									date.score += 1;
-									dates.push(date);
-								}
-								// Blank
-								if (date.country == ''){
-									dates.push(date);
+									// Country of Origin date
+									if (this.wikiData.countries.includes(date.country)){
+										var date_origin = {date: date.date, precision: date.precision, country: date.country, format: date.format, score: date.score};
+										dates_origin.push(date_origin);
+									}
+									// USA
+									if (date.country.endsWith('Q30')){
+										date.score += 1;
+										dates.push(date);
+									}
+									// Blank
+									if (date.country == ''){
+										dates.push(date);
+									}
 								}
 							}
 
