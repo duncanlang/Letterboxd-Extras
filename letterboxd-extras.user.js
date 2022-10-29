@@ -101,13 +101,16 @@
 			padding: 0px;
 			background-image: url("https://www.metacritic.com/images/icons/mc-mustsee.svg");
 		}
-		.imdb-ratings, .tomato-ratings, .meta-ratings, .cinemascore, .mal-ratings, .al-ratings{
-			margin-top: 15px !important;
+		.ratings-extras{
+			margin-top: 20px !important;
 		}
-		.tomato-ratings .section-heading, .meta-ratings .section-heading, .cinemascore .section-heading{
+		.ratings-extras .section-heading{
 			margin-bottom: 0px !important; 
 		}
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover{
+		.imdb-ratings .section-heading{
+			margin-bottom: 15px !important;
+		}
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -236,13 +239,30 @@
 			border: 1px solid white;
 			border-radius: 1px;
 			color: white;
-			font-size: 20px;
+			font-size: 16px;
 			font-weight: 600;
 			font-family: "Sora", sans-serif;
 			align-items: center;
 			justify-content: center;
-			height: 30px;
-			width: 55px;
+			height: 26px;
+			width: 45px;
+			margin-left: 1px;
+			margin-top: 5px;
+		}
+		.sens-score:hover{
+			color: white;
+			text-decoration: underline;
+		}
+		.sens-text{
+			font-size: 14px;
+			color: white;
+			width: 50px;
+			display: inline-block;
+			margin-left: 5px;
+		}
+		.sens-flex flex-container{
+			display: flex;
+			flex-direction: row;
 		}
 	`);
 	/* eslint-enable */
@@ -934,7 +954,7 @@
 				
 				// Add the section to the page
 				const imdbScoreSection = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart imdb-ratings'
+					class: 'section ratings-histogram-chart imdb-ratings ratings-extras'
 				});				
 
 				// Add the Header
@@ -1258,7 +1278,7 @@
 				//***************************************************************
 				// Add the section to the page
 				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart tomato-ratings'
+					class: 'section ratings-histogram-chart tomato-ratings ratings-extras'
 				});				
 
 				// Add the Header - 
@@ -1533,7 +1553,7 @@
 				//***************************************************************
 				// Add the section to the page
 				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart meta-ratings'
+					class: 'section ratings-histogram-chart meta-ratings ratings-extras'
 				});				
 
 				// Add the Header
@@ -1661,6 +1681,9 @@
 					}else if (url.includes("anidb")){
 						text = "ANIDB";
 						className = "anidb-button";
+					}else if (url.includes("senscritique")){
+						text = "CRITIQUE";
+						className = "sens-button";
 					}
 
 					if (document.querySelector('.' + className)){
@@ -1678,6 +1701,7 @@
 					var order = [
 						'.tomato-button',
 						'.meta-button',
+						'.sens-button',
 						'.mal-button',
 						'.al-button',
 						'.anidb-button',
@@ -2133,7 +2157,7 @@
 
 					// Add the section to the page
 					const section = letterboxd.helpers.createElement('section', {
-						class: 'section ratings-histogram-chart cinemascore'
+						class: 'section ratings-histogram-chart cinemascore ratings-extras'
 					});				
 
 					// Add the Header
@@ -2516,7 +2540,7 @@
 				//***************************************************************
 				// Add the section to the page
 				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart sens-ratings'
+					class: 'section ratings-histogram-chart sens-ratings ratings-extras'
 				});				
 
 				// Add the Header
@@ -2529,7 +2553,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-sens",
 					href: this.sensCritique.data.fields.url,
-					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
+					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 				
@@ -2537,11 +2561,18 @@
 				//***************************************************************
 				var rating = this.sensCritique.data.product.rating;
 				var ratingCount = this.sensCritique.data.product.stats.ratingCount;
-				var recommendedCount = this.sensCritique.data.product.stats.recommendedCount;
+				var recommendCount = this.sensCritique.data.product.stats.recommendCount;
 				var url = this.sensCritique.data.fields.url;
 
+				this.addLink(url);
+
+				const container = letterboxd.helpers.createElement('span', {});
+
 				// The span that holds the score
-				const span = letterboxd.helpers.createElement('span', {});
+				const span = letterboxd.helpers.createElement('div', {}, {
+					['display']: 'inline-block',
+					['width']: '55px'
+				});
 				
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
@@ -2556,11 +2587,35 @@
 				}else{
 					text.setAttribute('data-original-title','No score available');
 				}
-				text.setAttribute('href',url);
+				text.setAttribute('href',url + "/critiques");
 				text.innerText = rating
 				span.append(text);
 
-				section.append(span);
+				container.append(span);
+
+				// Number of ratings and likes text
+				//***************************************************************
+				const textSpan = letterboxd.helpers.createElement('div', {}, {
+					['display']: 'inline-block',
+					['width']: '150px',
+					['height']: '20px'
+				});
+				
+				// Rating count
+				const text2 = letterboxd.helpers.createElement('p', {
+					class: 'display-rating sens-text'
+				});
+				text2.innerText = "★ " + ratingCount
+				textSpan.append(text2);
+				// Recommend Count
+				const text3 = letterboxd.helpers.createElement('p', {
+					class: 'display-rating sens-text'
+				});
+				text3.innerText = "♥ " + recommendCount
+				textSpan.append(text3);
+
+				container.append(textSpan);
+				section.append(container);
 
 				// APPEND to the sidebar
 				//************************************************************
