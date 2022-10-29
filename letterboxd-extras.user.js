@@ -1285,7 +1285,6 @@
 				}
 
 				// Return if no scores what so ever
-				//if (this.tomatoData.audienceAll.percent == "--" && this.tomatoData.criticAll.percent == "--") return;
 				if (this.tomatoData.audienceAll.num_ratings == 0 && this.tomatoData.criticAll.num_ratings == 0) return;
 
 				// Now display all this on the page
@@ -2579,6 +2578,9 @@
 				var url = this.sensCritique.data.fields.url;
 
 				this.addLink(url);
+
+				// Do not display if there is no score or ratings
+				if (rating == null && ratingCount == 0) return;
 
 				const container = letterboxd.helpers.createElement('span', {});
 
