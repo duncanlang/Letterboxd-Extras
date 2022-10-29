@@ -1660,7 +1660,7 @@
 						}else if (document.querySelector('.mojo-button')){
 							document.querySelector('.mojo-button').before(button);
 						}else{
-							document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+							document.querySelector('.block-or-report-flag').before(button);
 						}
 					}
 				}
@@ -1679,7 +1679,7 @@
 						}else if (document.querySelector('.mojo-button')){
 							document.querySelector('.mojo-button').before(button);
 						}else{
-							document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+							document.querySelector('.block-or-report-flag').before(button);
 						}
 					}
 				}
@@ -1696,7 +1696,7 @@
 					}else if (document.querySelector('.rt-button')){
 						document.querySelector('.rt-button').after(button);
 					}else{
-						document.querySelector('.report-link.has-icon.icon-report.tooltip.tooltip-close-on-click.cboxElement').before(button);
+						document.querySelector('.block-or-report-flag').before(button);
 					}
 				}
 			},
@@ -1728,11 +1728,12 @@
 					var duration = footer.innerText.match(regex);
 
 					// Save the report button then remove the old text, then re-add
-					var report = footer.querySelector('.report-link');
-					report.style['margin-left'] = '2px';
-					newHolder.append(report);
-
+					var report = footer.querySelector('.block-flag-wrapper');
+					report.style['margin-left'] = '5px';
+					
 					footer.innerText = "";
+					footer.prepend(report);
+
 					// Add the duration
 					var hours = 0;
 					if (duration != null){
