@@ -256,9 +256,9 @@
 		.sens-text{
 			font-size: 14px;
 			color: white;
-			width: 50px;
+			width: auto;
 			display: inline-block;
-			margin-left: 5px;
+			margin-left: 10px;
 		}
 		.sens-flex flex-container{
 			display: flex;
@@ -278,6 +278,7 @@
 			// Letterboxd
 			letterboxdYear: null,
 			letterboxdTitle: null,
+			letterboxdNativeTitle: null,
 			letterboxdDirectors: [],
 			linksMoved: false,
 
@@ -354,34 +355,45 @@
 				if (document.querySelector(".number") && this.letterboxdYear == null){
 					this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
 					this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
-					//this.letterboxdDirectors = document.querySelectorAll('[href*="/director/"]');
 					this.letterboxdDirectors = Array.from(document.querySelectorAll('[href*="/director/"]')).map(x => x.innerText.toLowerCase())
+
+					var nativeTitle = document.querySelector('#featured-film-header p em')
+					if (nativeTitle != null){
+						this.letterboxdNativeTitle = nativeTitle.innerText;
+					}
 				}
 
 				// Add SensCritique
 				if (this.letterboxdTitle != null && this.sensCritique.state == 0){
 					this.sensCritique.state = 1;
-					letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", this.letterboxdTitle).then((value) =>{
+					var title = this.letterboxdTitle;
+					if (this.letterboxdNativeTitle != null) title = this.letterboxdNativeTitle;
+
+					letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", title).then((value) =>{
 						var sens = JSON.parse(value.response);
 						if (sens.data != null && sens.data.results != null)
 						{
 							sens = sens.data.results.hits.items;
+							var results = [];
 							for (var i = 0; i < sens.length; i++){
-								if (sens[i].fields.year == this.letterboxdYear){
-									this.sensCritique.data = sens[i];
-									this.addSensCritique();
-									break;
-								}else if (sens[i].fields.year == parseInt(this.letterboxdYear) + 1){
-									var directors = sens[i].product.directors;
-									for (var k = 0; k < directors.length; k++){
-										if (this.letterboxdDirectors.includes(directors[k].name.toLowerCase())){
-											this.sensCritique.data = sens[i];
-											this.addSensCritique();
-											break;
-										}
+								var result = {score: 0, data: sens[i]};
+
+								var directors = sens[i].product.directors;
+								for (var k = 0; k < directors.length; k++){
+									if (this.letterboxdDirectors.includes(directors[k].name.toLowerCase())){
+										result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
+										break;
 									}
-									if (this.sensCritique.data != null) break;
 								}
+
+								if (result.score > 0){
+									results.push(result);
+								}
+							}
+							if (results.length > 0){
+								results.sort((a, b) => {return b.score - a.score});
+								this.sensCritique.data = results[0].data;
+								this.addSensCritique();
 							}
 						}
 					});
@@ -392,8 +404,8 @@
 					this.initCinema(null);
 				}
 
-				// First Get the IMDb link
-				if (this.imdbID == "" && document.querySelector('.micro-button') != null){
+				// First Get the IMDb link 
+				if (this.imdbID == "" && document.querySelector('.micro-button') != null && document.querySelector('.block-flag-wrapper')){
 					// Gets the IMDb link and ID, and also TMDB id
 					this.getIMDbLink();
 					if (this.linksMoved == false)
@@ -2571,7 +2583,7 @@
 				// The span that holds the score
 				const span = letterboxd.helpers.createElement('div', {}, {
 					['display']: 'inline-block',
-					['width']: '55px'
+					['width']: 'auto'
 				});
 				
 				// The element that is the score itself
@@ -2580,14 +2592,21 @@
 				});
 
 				// Add the hoverover text and href
-				if (ratingCount > 0){
+				if (ratingCount > 0 && rating == null){
+					var hover = ratingCount.toLocaleString() + ' rating';
+					if (ratingCount > 1) hover += "s";
+					text.setAttribute('data-original-title', hover);
+					rating = "N/A";
+
+				}else if (ratingCount > 0){
 					var hover = "Weighted average of " + rating + "/10 based on " + ratingCount.toLocaleString() + ' ratings';
-					
-					text.setAttribute('data-original-title',hover);
+					text.setAttribute('data-original-title', hover);
+
 				}else{
-					text.setAttribute('data-original-title','No score available');
+					text.setAttribute('data-original-title', 'No score available');
+					rating = "N/A";
 				}
-				text.setAttribute('href',url + "/critiques");
+				text.setAttribute('href', url + "/critiques");
 				text.innerText = rating
 				span.append(text);
 
@@ -2597,22 +2616,15 @@
 				//***************************************************************
 				const textSpan = letterboxd.helpers.createElement('div', {}, {
 					['display']: 'inline-block',
-					['width']: '150px',
+					['width']: 'auto',
 					['height']: '20px'
 				});
-				
-				// Rating count
+				// Recommend Count
 				const text2 = letterboxd.helpers.createElement('p', {
 					class: 'display-rating sens-text'
 				});
-				text2.innerText = "★ " + ratingCount
+				text2.innerText = "♥ " + recommendCount.toLocaleString();
 				textSpan.append(text2);
-				// Recommend Count
-				const text3 = letterboxd.helpers.createElement('p', {
-					class: 'display-rating sens-text'
-				});
-				text3.innerText = "♥ " + recommendCount
-				textSpan.append(text3);
 
 				container.append(textSpan);
 				section.append(container);
