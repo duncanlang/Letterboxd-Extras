@@ -71,7 +71,21 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
                 response({response: null, url: null, status: res.status})
             }
         });
-
+    }else if (msg.name == "GETSENSDATA"){ // SensCritique
+        var query = msg.query;
+        fetch(msg.url, msg.options).then(function(res) {
+            try{
+                res.json().then(function(data) {
+                    if (data != null){
+                        response({response: data, url: res.url, status: res.status, errors: data.errors});
+                    }else{
+                        response({response: null, url: null, status: res.status})
+                    }
+                });
+            } catch{
+                response({response: null, url: null, status: res.status})
+            }
+        });
     }else if (msg.name == "JSON"){ // Standard JSON - used for CinemaScore
         fetch(msg.url).then(function(res) {
             if (res.status !== 200) {

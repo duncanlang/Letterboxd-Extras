@@ -369,9 +369,68 @@
 					if (letterboxd.storage.get('senscritique-enabled') === true){
 						var title = this.letterboxdTitle;
 						if (this.letterboxdNativeTitle != null) title = this.letterboxdNativeTitle;
-	
-						letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", title).then((value) =>{
-							var sens = JSON.parse(value.response);
+						var url = "https://apollo.senscritique.com/";
+						var query = `
+						query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
+							results(query: $query, filters: $filters) {
+								hits(page: $page, sortBy: $sortBy) {
+									sortedBy
+									page {
+										from
+										pageNumber
+										total
+										totalPages
+										__typename
+									}
+									items {
+										... on ResultHit {
+										id
+										product {
+											title
+											rating
+											dateRelease
+											dateReleaseOriginal
+											dateReleaseUS
+											stats {
+												ratingCount
+												recommendCount
+											}
+											directors {
+												name
+												person_id
+												url
+											}
+											url
+										}
+										fields {
+											title
+											url
+											year
+										}
+										}
+									}
+								}
+							}
+						}
+						`;
+						var options = {
+							method: 'POST',
+							headers: {
+								'content-type': 'application/json',
+								accept: 'application/json'
+							},
+							body: JSON.stringify({
+								query,
+								variables: {
+									filters: [{"identifier":"universe","value":"Films"}],
+									pages: {from: 0, size: 16},
+									query: title 
+								}
+							})
+						};
+
+						chrome.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
+							var sens = value.response; //JSON.parse(value.response);
 							if (sens.data != null && sens.data.results != null)
 							{
 								sens = sens.data.results.hits.items;
@@ -672,7 +731,6 @@
 									if (this.al.data == null && this.al.state < 1){
 										try{
 											this.al.state = 1;
-											//letterboxd.helpers.getALData(url, query, this.al.id).then((value) =>{
 											chrome.runtime.sendMessage({name: "GETALDATA2", url: url, options: options}, (value) => {
 												var al = value.response;
 												if (al != ""){
@@ -2582,7 +2640,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-sens",
 					href: this.sensCritique.data.fields.url,
-					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
+					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + chrome.runtime.getURL("images/sens-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 				
@@ -2722,46 +2780,6 @@
 		},
 
 		helpers: {
-			async getData(link) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'GET'
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
-			async getALData(link, query, al_id) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'POST',
-						headers: {
-							'content-type': 'application/json',
-							accept: 'application/json'
-						},
-						data: JSON.stringify({
-							query,
-							variables: { id: al_id }
-						})
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
 			async getSensData(link, query, title) {
 				if (letterboxd.storage.get('console-log') === true)
 					console.log("Letterboxd-extras | Calling: " + link);
@@ -2832,47 +2850,6 @@
 					console.error(err);
 				}
 				return null;
-			},
-
-			request(options) {
-				return new Promise((resolve, reject) => {
-					options.onload = res => resolve(res);
-					options.onerror = err => reject(err);
-					options.ontimeout = err => reject(err);
-					GM_xmlhttpRequest(options); // eslint-disable-line new-cap
-				});
-			},
-
-			async getOMDbData(link) {  
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var ajaxOptions = {
-					url: link,
-					type : 'GET'
-				}
-
-				return $.when($.ajax(ajaxOptions))
-				.then(function (results) {
-					return results;
-				});
-			},
-
-			async getWikiData(link) {	
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var ajaxOptions = {
-					url: link,
-					type : 'GET'
-				}
-
-				var output =  $.when($.ajax(ajaxOptions))
-				.then(function (results) {
-					return results;
-				});
-				
-				return output;
 			},
 
 			createElement(tag, attrs, styles) {
@@ -3528,15 +3505,16 @@
 			async init() {	
 				chrome.storage.sync.get('options', (data) => {
 					Object.assign(this.options, data.options);
+					
+					// Init default settings
+					if (this.options['imdb-enabled'] == null) this.set('imdb-enabled', true);
+					if (this.options['tomato-enabled'] == null) this.set('tomato-enabled', true);
+					if (this.options['metacritic-enabled'] == null) this.set('metacritic-enabled', true);
+					if (this.options['mal-enabled'] == null) this.set('mal-enabled', true);
+					if (this.options['al-enabled'] == null) this.set('al-enabled', true);
+					if (this.options['cinema-enabled'] == null) this.set('cinema-enabled', true);
 				});
 
-				// Init default settings
-				if (this.options['imdb-enabled'] == null) this.set('imdb-enabled', true);
-				if (this.options['tomato-enabled'] == null) this.set('tomato-enabled', true);
-				if (this.options['metacritic-enabled'] == null) this.set('metacritic-enabled', true);
-				if (this.options['mal-enabled'] == null) this.set('mal-enabled', true);
-				if (this.options['al-enabled'] == null) this.set('al-enabled', true);
-				if (this.options['cinema-enabled'] == null) this.set('cinema-enabled', true);
 				
 			},
 			get(key) {
