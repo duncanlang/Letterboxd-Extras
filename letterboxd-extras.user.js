@@ -879,7 +879,7 @@
 					}
 
 					// Metascore
-					if (this.metaData.state == 3 && this.imdbData.meta != null){
+					if (this.metaData.state == 3 && this.imdbData.meta != null && letterboxd.storage.get("metacritic-enabled") === true){
 						this.metaData.state = 2;
 						this.addMeta();
 					}
