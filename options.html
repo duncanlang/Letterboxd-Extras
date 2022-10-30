@@ -21,7 +21,32 @@
 
   <body>
     <div>
+        <h3>IMDb</h3>
+        <div>
+            <label>Display IMDb:</label>
+            <input type="checkbox" id="imdb-enabled"/>
+        </div>
+    </div>
+    <div>
+        <h3>MyAnimeList</h3>
+        <div>
+            <label>Display MyAnimeList:</label>
+            <input type="checkbox" id="mal-enabled"/>
+        </div>
+    </div>
+    <div>
+        <h3>AniList</h3>
+        <div>
+            <label>Display AniList:</label>
+            <input type="checkbox" id="al-enabled"/>
+        </div>
+    </div>
+    <div>
         <h3>Rotten Tomatoes</h3>
+        <div>
+            <label>Display Rotten Tomatoes:</label>
+            <input type="checkbox" id="tomato-enabled"/>
+        </div>
         <div>
             <label>Default detail view:</label>
             <select id="rt-default-view" class="setting">
@@ -48,12 +73,30 @@
     <div>
         <h3>Metacritic</h3>
         <div>
+            <label>Display Metacritic:</label>
+            <input type="checkbox" id="metacritic-enabled"/>
+        </div>
+        <div>
             <label>Default detail view:</label>
             <select id="meta-default-view" class="setting">
                 <option value="hide">Hide</option>
                 <option value="show">Show</option>
                 <option value="remember">Remember Last</option>
             </select>
+        </div>
+    </div>
+    <div>
+        <h3>SensCritique</h3>
+        <div>
+            <label>Display SensCritique:</label>
+            <input type="checkbox" id="senscritique-enabled"/>
+        </div>
+    </div>
+    <div>
+        <h3>CinemaScore</h3>
+        <div>
+            <label>Display CinemaScore:</label>
+            <input type="checkbox" id="cinema-enabled"/>
         </div>
     </div>
     <br>
@@ -73,6 +116,7 @@
             <input type="checkbox" id="convert-ratings" />
         </div>
     </div>
+    <br>
     <div>
         <h3>Debug</h3>
         <div>

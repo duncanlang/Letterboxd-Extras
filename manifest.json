@@ -27,7 +27,8 @@
 		"https://query.wikidata.org/*",
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
-		"https://graphql.anilist.co/*"
+		"https://graphql.anilist.co/*",
+		"https://apollo.senscritique.com/*"
 	],
 
 	"background": {
