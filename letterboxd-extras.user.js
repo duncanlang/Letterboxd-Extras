@@ -355,7 +355,6 @@
 				if (document.querySelector(".number") && this.letterboxdYear == null){
 					this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
 					this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
-					this.letterboxdDirectors = Array.from(document.querySelectorAll('[href*="/director/"]')).map(x => x.innerText.toLowerCase())
 
 					var nativeTitle = document.querySelector('#featured-film-header p em')
 					if (nativeTitle != null){
@@ -363,14 +362,20 @@
 					}
 				}
 
+				if (document.querySelector("#tab-crew")){
+					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+				}
+
 				// Add SensCritique
-				if (this.letterboxdTitle != null && this.sensCritique.state == 0 ){
+				if (this.letterboxdTitle != null && this.sensCritique.state == 0 && this.tmdbID != null && this.tmdbID != ""){
 					this.sensCritique.state = 1;
 					if (letterboxd.storage.get('senscritique-enabled') === true){
 						var title = this.letterboxdTitle;
-						if (this.letterboxdNativeTitle != null) title = this.letterboxdNativeTitle;
+						var type = "Films";
+						if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
+						if (this.tmdbTV == true) type = "Séries"
 	
-						letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", title).then((value) =>{
+						letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", title, type).then((value) =>{
 							var sens = JSON.parse(value.response);
 							if (sens.data != null && sens.data.results != null)
 							{
@@ -378,10 +383,18 @@
 								var results = [];
 								for (var i = 0; i < sens.length; i++){
 									var result = {score: 0, data: sens[i]};
-	
-									var directors = sens[i].product.directors;
+
+									var directors = [];
+									if (sens[i].product.directors != null)
+										directors = directors.concat(sens[i].product.directors);
+									if (sens[i].product.creators != null)
+										directors = directors.concat(sens[i].product.creators);
+									if (sens[i].product.producers != null)
+										directors = directors.concat(sens[i].product.producers);
+
 									for (var k = 0; k < directors.length; k++){
-										if (this.letterboxdDirectors.includes(directors[k].name.toLowerCase())){
+										var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+										if (this.letterboxdDirectors.includes(director)){
 											result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
 											break;
 										}
@@ -2277,7 +2290,7 @@
 					href: this.mal.data.url + '/reviews',
 					['data-original-title']: tooltip
 				});
-				console.log(this.mal.score);
+				
 				if (this.mal.score == "N/A"){
 					score.innerText = "N/A";
 				} else if(letterboxd.storage.get('convert-ratings') === true){
@@ -2752,7 +2765,7 @@
 				return null;
 			},
 
-			async getSensData(link, query, title) {
+			async getSensData(link, query, title, type) {
 				if (letterboxd.storage.get('console-log') === true)
 					console.log("Letterboxd-extras | Calling: " + link);
 
@@ -2786,6 +2799,16 @@
 										person_id
 										url
 									}
+									creators {
+										name
+										person_id
+										url
+									}
+									producers {
+										name
+										person_id
+										url
+									}
 									url
 								}
 								fields {
@@ -2811,7 +2834,7 @@
 						data: JSON.stringify({
 							query,
 							variables: {
-								filters: [{"identifier":"universe","value":"Films"}],
+								filters: [{"identifier":"universe","value":type}],
 								pages: {from: 0, size: 16},
 								query: title 
 							}
