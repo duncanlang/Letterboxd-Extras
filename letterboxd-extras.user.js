@@ -352,6 +352,7 @@
 
 				this.running = true;
 
+				// Get year and title
 				if (document.querySelector(".number") && this.letterboxdYear == null){
 					this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
 					this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
@@ -362,8 +363,11 @@
 					}
 				}
 
+				// Get directors and producers
 				if (document.querySelector("#tab-crew")){
 					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+					this.letterboxdDirectors = this.letterboxdDirectors.concat(producers);
 				}
 
 				// Add SensCritique
@@ -392,15 +396,22 @@
 									if (sens[i].product.producers != null)
 										directors = directors.concat(sens[i].product.producers);
 
+									// Match based on directors/producers/creators
 									for (var k = 0; k < directors.length; k++){
+										// Director name to lowercase and removed diacritics
 										var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 										if (this.letterboxdDirectors.includes(director)){
 											result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
 											break;
 										}
 									}
+									// Match based on exact name and year match
+									if (result.score == 0 && this.letterboxdTitle == sens[i].product.title && this.letterboxdYear == sens[i].fields.year){
+										result.score = 90;
+									}
 	
-									if (result.score > 0){
+									// Only consider it a match if greater or equal to 90 score
+									if (result.score >= 90){
 										results.push(result);
 									}
 								}
