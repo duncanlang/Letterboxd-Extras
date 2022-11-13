@@ -352,10 +352,10 @@
 
 				this.running = true;
 
+				// Get year and title
 				if (document.querySelector(".number") && this.letterboxdYear == null){
 					this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
 					this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
-					this.letterboxdDirectors = Array.from(document.querySelectorAll('[href*="/director/"]')).map(x => x.innerText.toLowerCase())
 
 					var nativeTitle = document.querySelector('#featured-film-header p em')
 					if (nativeTitle != null){
@@ -363,12 +363,22 @@
 					}
 				}
 
+				// Get directors and producers
+				if (document.querySelector("#tab-crew")){
+					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+					this.letterboxdDirectors = this.letterboxdDirectors.concat(producers);
+				}
+
 				// Add SensCritique
-				if (this.letterboxdTitle != null && this.sensCritique.state == 0 ){
+				if (this.letterboxdTitle != null && this.sensCritique.state == 0 && this.tmdbID != null && this.tmdbID != ""){
 					this.sensCritique.state = 1;
 					if (letterboxd.storage.get('senscritique-enabled') === true){
 						var title = this.letterboxdTitle;
+						var type = "Films";
 						if (this.letterboxdNativeTitle != null) title = this.letterboxdNativeTitle;
+						if (this.tmdbTV == true) type = "Séries"
+
 						var url = "https://apollo.senscritique.com/";
 						var query = `
 						query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
@@ -422,7 +432,7 @@
 							body: JSON.stringify({
 								query,
 								variables: {
-									filters: [{"identifier":"universe","value":"Films"}],
+									filters: [{"identifier":"universe","value":type}],
 									pages: {from: 0, size: 16},
 									query: title 
 								}
@@ -437,16 +447,31 @@
 								var results = [];
 								for (var i = 0; i < sens.length; i++){
 									var result = {score: 0, data: sens[i]};
-	
-									var directors = sens[i].product.directors;
+
+									var directors = [];
+									if (sens[i].product.directors != null)
+										directors = directors.concat(sens[i].product.directors);
+									if (sens[i].product.creators != null)
+										directors = directors.concat(sens[i].product.creators);
+									if (sens[i].product.producers != null)
+										directors = directors.concat(sens[i].product.producers);
+
+									// Match based on directors/producers/creators
 									for (var k = 0; k < directors.length; k++){
-										if (this.letterboxdDirectors.includes(directors[k].name.toLowerCase())){
+										// Director name to lowercase and removed diacritics
+										var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+										if (this.letterboxdDirectors.includes(director)){
 											result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
 											break;
 										}
 									}
+									// Match based on exact name and year match
+									if (result.score == 0 && this.letterboxdTitle == sens[i].product.title && this.letterboxdYear == sens[i].fields.year){
+										result.score = 90;
+									}
 	
-									if (result.score > 0){
+									// Only consider it a match if greater or equal to 90 score
+									if (result.score >= 90){
 										results.push(result);
 									}
 								}
@@ -2345,7 +2370,7 @@
 					href: this.mal.data.url + '/reviews',
 					['data-original-title']: tooltip
 				});
-				console.log(this.mal.score);
+				
 				if (this.mal.score == "N/A"){
 					score.innerText = "N/A";
 				} else if(letterboxd.storage.get('convert-ratings') === true){
@@ -2814,6 +2839,16 @@
 										person_id
 										url
 									}
+									creators {
+										name
+										person_id
+										url
+									}
+									producers {
+										name
+										person_id
+										url
+									}
 									url
 								}
 								fields {
@@ -2839,7 +2874,7 @@
 						data: JSON.stringify({
 							query,
 							variables: {
-								filters: [{"identifier":"universe","value":"Films"}],
+								filters: [{"identifier":"universe","value":type}],
 								pages: {from: 0, size: 16},
 								query: title 
 							}
