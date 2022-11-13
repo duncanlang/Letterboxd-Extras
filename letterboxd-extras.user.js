@@ -376,7 +376,7 @@
 					if (letterboxd.storage.get('senscritique-enabled') === true){
 						var title = this.letterboxdTitle;
 						var type = "Films";
-						if (this.letterboxdNativeTitle != null) title = this.letterboxdNativeTitle;
+						if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
 						if (this.tmdbTV == true) type = "Séries"
 
 						var url = "https://apollo.senscritique.com/";
@@ -2805,88 +2805,6 @@
 		},
 
 		helpers: {
-			async getSensData(link, query, title) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
-
-				var query = `
-				query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
-					results(query: $query, filters: $filters) {
-						hits(page: $page, sortBy: $sortBy) {
-							sortedBy
-							page {
-								from
-								pageNumber
-								total
-								totalPages
-								__typename
-							}
-							items {
-								... on ResultHit {
-								id
-								product {
-									title
-									rating
-									dateRelease
-									dateReleaseOriginal
-									dateReleaseUS
-									stats {
-										ratingCount
-										recommendCount
-									}
-									directors {
-										name
-										person_id
-										url
-									}
-									creators {
-										name
-										person_id
-										url
-									}
-									producers {
-										name
-										person_id
-										url
-									}
-									url
-								}
-								fields {
-									title
-									url
-									year
-								}
-								}
-							}
-						}
-					}
-				}
-				`;
-
-				try {
-					const res = await letterboxd.helpers.request({
-						url: link,
-						method: 'POST',
-						headers: {
-							'content-type': 'application/json',
-							accept: 'application/json'
-						},
-						data: JSON.stringify({
-							query,
-							variables: {
-								filters: [{"identifier":"universe","value":type}],
-								pages: {from: 0, size: 16},
-								query: title 
-							}
-						})
-					});
-					return {response: res.response, url: res.responseURL};
-				} catch (err) {
-					console.error(err);
-				}
-				return null;
-			},
-
 			createElement(tag, attrs, styles) {
 				const element = document.createElement(tag);
 				for (const aKey in attrs) {
