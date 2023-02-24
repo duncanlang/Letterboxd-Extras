@@ -1262,9 +1262,9 @@
 					// MOVIES
 					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#score-details-json').innerHTML);
 					// Critic All
-					if (scoredetails.modal.tomatometerScoreAll.score != null){
-						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.score.toString();
-						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.tomatometerState;
+					if (scoredetails.modal.tomatometerScoreAll.value != null){
+						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
+						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
 						this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
 					}
 					if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
@@ -1273,13 +1273,13 @@
 						this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
 					}
 					// Critic Top
-					if (scoredetails.modal.tomatometerScoreTop.score != null){
-						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.score.toString();
-						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.tomatometerState;
+					if (scoredetails.modal.tomatometerScoreTop.value != null){
+						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
+						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
 						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
 
-						var score = scoredetails.modal.tomatometerScoreTop.score;
-						var state = scoredetails.modal.tomatometerScoreTop.tomatometerState;
+						var score = scoredetails.modal.tomatometerScoreTop.value;
+						var state = scoredetails.modal.tomatometerScoreTop.state;
 						if (score < 60 && state.includes("fresh")){
 							this.tomatoData.criticTop.state = "rotten";
 						}else if(score >= 60 && state == "rotten"){
@@ -1293,9 +1293,9 @@
 					}
 					
 					// Audience All	
-					if (scoredetails.modal.audienceScoreAll.score != null){
-						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.score.toString();
-						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.audienceClass;
+					if (scoredetails.modal.audienceScoreAll.value != null){
+						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
+						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
 						this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
 					}
 					if (scoredetails.modal.audienceScoreAll.ratingCount != null){
@@ -1307,9 +1307,9 @@
 					}
 
 					// Audience Verified
-					if (scoredetails.modal.audienceScoreVerified.score != null){
-						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.score.toString();
-						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.audienceClass;
+					if (scoredetails.modal.audienceScoreVerified.value != null){
+						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
+						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
 						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
 					}
 					if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
