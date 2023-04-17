@@ -738,13 +738,13 @@
 									if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "") 
 										date.format = this.wiki_dates[i].Date_Format.value;
 
-									// Check limited release
+									// Check distribution formate - if not limited release
 									if (!date.format.endsWith('Q3491297')){
 										date.score += 1;
 									}
 
-									// Check precision
-									if (date.precision != '9'){
+									// Check precision, 2 for day, 1 for month
+									if (Number(date.precision) > 9){
 										date.score += 1;
 									}
 
@@ -753,15 +753,14 @@
 										var date_origin = {date: date.date, precision: date.precision, country: date.country, format: date.format, score: date.score};
 										dates_origin.push(date_origin);
 									}
+
 									// USA
 									if (date.country.endsWith('Q30')){
+										date.score += 2;
+									}else if (date.country != ''){
 										date.score += 1;
-										dates.push(date);
 									}
-									// Blank
-									if (date.country == ''){
-										dates.push(date);
-									}
+									dates.push(date);
 								}
 							}
 
@@ -774,9 +773,16 @@
 							});
 
 							// Set dates
-							var options = { year: 'numeric', month: 'short', day: 'numeric' };
+							var options = { year: 'numeric'};
 							if (dates_origin.length > 0){
 								this.wikiData.date_origin = {value: dates_origin[0].date, precision: dates_origin[0].precision};
+								if (this.wikiData.date_origin.precision == "11"){
+									options.month = "short";
+									options.day = "numeric";
+								}else if (this.wikiData.date_origin.precision == "10"){
+									options.month = "short";
+								}
+
 								this.wikiData.date_origin.value = new Date(this.wikiData.date_origin.value.replace("Z","")).toLocaleDateString("en-UK", options);
 								this.filmDate.date = this.wikiData.date_origin.value;
 								this.addDate(this.filmDate.date);
@@ -784,6 +790,13 @@
 
 							if (dates.length > 0){
 								this.wikiData.date = {value: dates[0].date, precision: dates[0].precision};
+								if (this.wikiData.date.precision == "11"){
+									options.month = "short";
+									options.day = "numeric";
+								}else if (this.wikiData.date.precision == "10"){
+									options.month = "short";
+								}
+
 								this.wikiData.date.value = new Date(this.wikiData.date.value.replace("Z","")).toLocaleDateString("en-UK", options);
 								if (this.dateAdded == false){
 									this.filmDate.date = this.wikiData.date.value;
@@ -992,7 +1005,7 @@
 				if(letterboxd.storage.get('convert-ratings') === true){
 					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				} else {
-					imdbTooltip = 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
+					imdbTooltip = 'Weighted average of ' + this.imdbData.rating.toFixed(1) + '/10 based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				}
 
 				// The element that is the score itself
@@ -1005,7 +1018,7 @@
 				if(letterboxd.storage.get('convert-ratings') === true){
 					imdbScore.innerText = (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(1);
 				} else {
-					imdbScore.innerText = this.imdbData.rating;
+					imdbScore.innerText = this.imdbData.rating.toFixed(1);
 				}
 				
 				imdbScoreSpan.append(imdbScore);
