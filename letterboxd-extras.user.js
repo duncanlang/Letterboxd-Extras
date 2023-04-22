@@ -957,7 +957,7 @@
 				// Get the score from the IMDb page
 				//**********************************************/
 				const body = this.imdbData.data.querySelector('body');
-				if (body.getAttribute["id"] == "styleguide-v2"){
+				if (body.getAttribute("id") == "styleguide-v2"){
 					if (this.getIMDBScoreV2() == false){
 						return;
 					}
@@ -1005,7 +1005,7 @@
 				if(letterboxd.storage.get('convert-ratings') === true){
 					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				} else {
-					imdbTooltip = 'Weighted average of ' + this.imdbData.rating.toFixed(1) + '/10 based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
+					imdbTooltip = 'Weighted average of ' + Number(this.imdbData.rating).toFixed(1) + '/10 based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				}
 
 				// The element that is the score itself
@@ -1018,7 +1018,7 @@
 				if(letterboxd.storage.get('convert-ratings') === true){
 					imdbScore.innerText = (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(1);
 				} else {
-					imdbScore.innerText = this.imdbData.rating.toFixed(1);
+					imdbScore.innerText = Number(this.imdbData.rating).toFixed(1);
 				}
 				
 				imdbScoreSpan.append(imdbScore);
