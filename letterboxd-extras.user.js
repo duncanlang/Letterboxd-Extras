@@ -738,13 +738,13 @@
 									if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "") 
 										date.format = this.wiki_dates[i].Date_Format.value;
 
-									// Check limited release
+									// Check distribution formate - if not limited release
 									if (!date.format.endsWith('Q3491297')){
 										date.score += 1;
 									}
 
-									// Check precision
-									if (date.precision != '9'){
+									// Check precision, 2 for day, 1 for month
+									if (Number(date.precision) > 9){
 										date.score += 1;
 									}
 
@@ -753,15 +753,14 @@
 										var date_origin = {date: date.date, precision: date.precision, country: date.country, format: date.format, score: date.score};
 										dates_origin.push(date_origin);
 									}
+
 									// USA
 									if (date.country.endsWith('Q30')){
+										date.score += 2;
+									}else if (date.country != ''){
 										date.score += 1;
-										dates.push(date);
 									}
-									// Blank
-									if (date.country == ''){
-										dates.push(date);
-									}
+									dates.push(date);
 								}
 							}
 
@@ -774,9 +773,16 @@
 							});
 
 							// Set dates
-							var options = { year: 'numeric', month: 'short', day: 'numeric' };
+							var options = { year: 'numeric'};
 							if (dates_origin.length > 0){
 								this.wikiData.date_origin = {value: dates_origin[0].date, precision: dates_origin[0].precision};
+								if (this.wikiData.date_origin.precision == "11"){
+									options.month = "short";
+									options.day = "numeric";
+								}else if (this.wikiData.date_origin.precision == "10"){
+									options.month = "short";
+								}
+
 								this.wikiData.date_origin.value = new Date(this.wikiData.date_origin.value.replace("Z","")).toLocaleDateString("en-UK", options);
 								this.filmDate.date = this.wikiData.date_origin.value;
 								this.addDate(this.filmDate.date);
@@ -784,6 +790,13 @@
 
 							if (dates.length > 0){
 								this.wikiData.date = {value: dates[0].date, precision: dates[0].precision};
+								if (this.wikiData.date.precision == "11"){
+									options.month = "short";
+									options.day = "numeric";
+								}else if (this.wikiData.date.precision == "10"){
+									options.month = "short";
+								}
+
 								this.wikiData.date.value = new Date(this.wikiData.date.value.replace("Z","")).toLocaleDateString("en-UK", options);
 								if (this.dateAdded == false){
 									this.filmDate.date = this.wikiData.date.value;
@@ -941,58 +954,21 @@
 
 				if (!document.querySelector('.sidebar')) return;
 
-				// No Ratings - return
-				if (this.imdbData.data.querySelector('.sectionHeading').innerHTML.includes('No Ratings Available')) return
-
-
-				// Get the score
-				if (this.imdbData.data.querySelector('.ratingTable.Selected .bigcell')){
-					this.imdbData.rating = this.imdbData.data.querySelector('.ratingTable.Selected .bigcell').innerText;
+				// Get the score from the IMDb page
+				//**********************************************/
+				const body = this.imdbData.data.querySelector('body');
+				if (body.getAttribute["id"] == "styleguide-v2"){
+					if (this.getIMDBScoreV2() == false){
+						return;
+					}
 				}else{
-					this.imdbData.rating = this.imdbData.data.querySelector('.ipl-rating-star__rating').innerText;
-				}
-				
-				// Get the number of ratings
-				var tempArray = this.imdbData.data.querySelectorAll('.allText');
-				for (var ii = 0; ii < tempArray.length; ii++){
-					if (tempArray[ii].innerHTML.includes('IMDb users have given a')){
-						this.imdbData.num_ratings = letterboxd.helpers.getTextBetween(tempArray[ii].innerText,'\n                ','\nIMDb users');
-						break;
+					if (this.getIMDBScoreNew() == false){
+						return;
 					}
 				}
 
-				// Get the votes
-				var tables = this.imdbData.data.querySelectorAll('table')
-				var tableRows = tables[0].rows;
-
-				var k = 0
-				for (var ii = 1; ii < tableRows.length; ii++){
-					var votes = tableRows[ii].cells[2].children[0].children[0].innerText;
-					votes = votes.replaceAll(',','');
-					votes = votes.replaceAll(/\s/g,'');
-					votes = votes.replaceAll('.','');
-					votes = parseInt(votes);
-
-					if (votes > 0){
-						var percent = letterboxd.helpers.getTextBetween(tableRows[ii].cells[1].children[1].children[0].innerHTML,'&nbsp;\n','\n');
-						percent = parseFloat(percent)
-					}else{
-						percent = parseFloat(0);
-					}
-
-					this.imdbData.percents[k] = percent;
-					this.imdbData.votes[k] = votes;
-
-					if (votes > this.imdbData.highest)
-						this.imdbData.highest = votes;
-
-					k++;
-				}
-
-				this.imdbData.percents[k] = this.imdbData.percents.reverse();
-				this.imdbData.votes[k] = this.imdbData.votes.reverse();
-
-				// Actually add the score ****************
+				// Add the score to the page
+				//********************************************* */
 				
 				// Add the section to the page
 				const imdbScoreSection = letterboxd.helpers.createElement('section', {
@@ -1027,9 +1003,9 @@
 				var imdbTooltip;
 
 				if(letterboxd.storage.get('convert-ratings') === true){
-					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings + ' ratings'
+					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				} else {
-					imdbTooltip = 'Weighted average of ' + this.imdbData.rating + '/10 based on ' + this.imdbData.num_ratings + ' ratings'
+					imdbTooltip = 'Weighted average of ' + this.imdbData.rating.toFixed(1) + '/10 based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				}
 
 				// The element that is the score itself
@@ -1042,7 +1018,7 @@
 				if(letterboxd.storage.get('convert-ratings') === true){
 					imdbScore.innerText = (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(1);
 				} else {
-					imdbScore.innerText = this.imdbData.rating;
+					imdbScore.innerText = this.imdbData.rating.toFixed(1);
 				}
 				
 				imdbScoreSpan.append(imdbScore);
@@ -1120,6 +1096,97 @@
 				//*****************************************************************
 				$(".tooltip-extra").on("mouseover", ShowTwipsy);
 				$(".tooltip-extra").on("mouseout", HideTwipsy);
+			},
+
+			getIMDBScoreV2(){
+				// If IMDb loads the old 'styleguide-v2' page
+
+				// No Ratings - return
+				if (this.imdbData.data.querySelector('.sectionHeading').innerHTML.includes('No Ratings Available')) return false
+
+				// Get the score
+				if (this.imdbData.data.querySelector('.ratingTable.Selected .bigcell')){
+					this.imdbData.rating = this.imdbData.data.querySelector('.ratingTable.Selected .bigcell').innerText;
+				}else{
+					this.imdbData.rating = this.imdbData.data.querySelector('.ipl-rating-star__rating').innerText;
+				}
+				
+				// Get the number of ratings
+				var tempArray = this.imdbData.data.querySelectorAll('.allText');
+				for (var ii = 0; ii < tempArray.length; ii++){
+					if (tempArray[ii].innerHTML.includes('IMDb users have given a')){
+						this.imdbData.num_ratings = letterboxd.helpers.getTextBetween(tempArray[ii].innerText,'\n                ','\nIMDb users');
+						break;
+					}
+				}
+
+				// Get the votes
+				var tables = this.imdbData.data.querySelectorAll('table')
+				var tableRows = tables[0].rows;
+
+				var k = 0
+				for (var ii = 1; ii < tableRows.length; ii++){
+					var votes = tableRows[ii].cells[2].children[0].children[0].innerText;
+					votes = votes.replaceAll(',','');
+					votes = votes.replaceAll(/\s/g,'');
+					votes = votes.replaceAll('.','');
+					votes = parseInt(votes);
+
+					if (votes > 0){
+						var percent = letterboxd.helpers.getTextBetween(tableRows[ii].cells[1].children[1].children[0].innerHTML,'&nbsp;\n','\n');
+						percent = parseFloat(percent)
+					}else{
+						percent = parseFloat(0);
+					}
+
+					this.imdbData.percents[k] = percent;
+					this.imdbData.votes[k] = votes;
+
+					if (votes > this.imdbData.highest)
+						this.imdbData.highest = votes;
+
+					k++;
+				}
+
+				this.imdbData.percents[k] = this.imdbData.percents.reverse();
+				this.imdbData.votes[k] = this.imdbData.votes.reverse();
+
+				return true;
+			},
+
+			getIMDBScoreNew(){
+				// If IMDb load the new design
+
+				// No Ratings - return
+				if (this.imdbData.data.querySelector('.sc-7b66e0e3-0 kcXuZM')) return false
+
+				// Get the JSON data
+				var scoreInfo = JSON.parse(letterboxd.helpers.getTextBetween(this.imdbData.raw, '<script id="__NEXT_DATA__" type="application/json">',"</script>"));
+
+				var histogramData = scoreInfo.props.pageProps.contentData.histogramData;
+
+				// Score
+				this.imdbData.rating = histogramData.aggregateRating;
+
+				// Rating Count
+				this.imdbData.num_ratings = histogramData.totalVoteCount;
+
+				// Get the votes
+				var histogramValues = histogramData.histogramValues;
+
+				for (var ii = 0; ii < histogramValues.length; ii++){
+					var index = histogramValues[ii].rating - 1;
+					var votes = histogramValues[ii].voteCount;
+					var percent = ((votes / this.imdbData.num_ratings) * 100).toFixed(1);
+
+					this.imdbData.percents[index] = percent;
+					this.imdbData.votes[index] = votes;
+					
+					if (votes > this.imdbData.highest)
+						this.imdbData.highest = votes;
+				}
+
+				return true;
 			},
 
 			getIMDBAdditional(){
