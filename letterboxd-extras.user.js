@@ -1256,127 +1256,66 @@
 				this.tomatoData.audienceAll = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
 				this.tomatoData.audienceVerified = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
 
-				// Different collected for Movies vs TV
-				if (!this.wikiData.tomatoURL.includes('/tv/')){
-					// MOVIES
-					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#score-details-json').innerHTML);
-					// Critic All
-					if (scoredetails.modal.tomatometerScoreAll.value != null){
-						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
-						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
-						this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
-					}
-					if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
-						this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
-						this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
-						this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
-					}
-					// Critic Top
-					if (scoredetails.modal.tomatometerScoreTop.value != null){
-						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
-						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
-						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
+				// The Same for both Movies and TV now
+				var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#scoreDetails').innerHTML);
+				// Critic All
+				if (scoredetails.modal.tomatometerScoreAll.value != null){
+					this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
+					this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
+					this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
+				}
+				if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
+					this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
+					this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
+					this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
+				}
+				// Critic Top
+				if (scoredetails.modal.tomatometerScoreTop.value != null){
+					this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
+					this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
+					this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
 
-						var score = scoredetails.modal.tomatometerScoreTop.value;
-						var state = scoredetails.modal.tomatometerScoreTop.state;
-						if (score < 60 && state.includes("fresh")){
-							this.tomatoData.criticTop.state = "rotten";
-						}else if(score >= 60 && state == "rotten"){
-							this.tomatoData.criticTop.state = "fresh";
-						}
+					var score = scoredetails.modal.tomatometerScoreTop.value;
+					var state = scoredetails.modal.tomatometerScoreTop.state;
+					if (score < 60 && state.includes("fresh")){
+						this.tomatoData.criticTop.state = "rotten";
+					}else if(score >= 60 && state == "rotten"){
+						this.tomatoData.criticTop.state = "fresh";
 					}
-					if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
-						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
-						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
-						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
-					}
+				}
+				if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
+					this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
+					this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
+					this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
+				}
+				
+				// Audience All	
+				if (scoredetails.modal.audienceScoreAll.value != null){
+					this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
+					this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
+					this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
+				}
+				if (scoredetails.modal.audienceScoreAll.ratingCount != null){
+					this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
+					this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
+					this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
+					// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+					this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
+				}
+
+				// Audience Verified
+				if (scoredetails.modal.audienceScoreVerified.value != null){
+					this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
+					this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
+					this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
+				}
+				if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
+					this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
+					this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
+					this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
 					
-					// Audience All	
-					if (scoredetails.modal.audienceScoreAll.value != null){
-						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
-						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
-						this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
-					}
-					if (scoredetails.modal.audienceScoreAll.ratingCount != null){
-						this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
-						this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
-						this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
-					}
-
-					// Audience Verified
-					if (scoredetails.modal.audienceScoreVerified.value != null){
-						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
-						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
-						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
-					}
-					if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
-						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
-						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
-						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
-						
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+					// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
 					this.tomatoData.audienceVerified.num_ratings = (scoredetails.modal.audienceScoreVerified.likedCount + scoredetails.modal.audienceScoreVerified.notLikedCount).toString();
-					}
-
-				}else{
-					// TV MINI SERIES
-					var scoreInfo = JSON.parse(letterboxd.helpers.getTextBetween(this.tomatoData.raw, ".scoreInfo = ",";"));
-					
-					// Critic All
-					if (scoreInfo.tomatometerAllCritics.score != null){
-						this.tomatoData.criticAll.percent 					= scoreInfo.tomatometerAllCritics.score.toString();
-						this.tomatoData.criticAll.state 					= scoreInfo.tomatometerAllCritics.state;
-						this.tomatoData.criticAll.rating 					= scoreInfo.tomatometerAllCritics.averageRating;
-						this.tomatoData.criticAll.likedCount 				= scoreInfo.tomatometerAllCritics.likedCount.toString();
-						this.tomatoData.criticAll.notLikedCount 			= scoreInfo.tomatometerAllCritics.notLikedCount.toString();
-
-						if (scoreInfo.tomatometerAllCritics.ratingCount != null){
-							this.tomatoData.criticAll.num_ratings 			= scoreInfo.tomatometerAllCritics.ratingCount.toString();
-						}else if (scoreInfo.tomatometerAllCritics.reviewCount != null){
-							this.tomatoData.criticAll.num_ratings 			= scoreInfo.tomatometerAllCritics.reviewCount.toString();
-						}
-					}
-					// Critic Top
-					if (scoreInfo.tomatometerTopCritics.score != null){
-						this.tomatoData.criticTop.percent 				= scoreInfo.tomatometerTopCritics.score.toString();
-						this.tomatoData.criticTop.state 				= scoreInfo.tomatometerTopCritics.state;
-						this.tomatoData.criticTop.rating 				= scoreInfo.tomatometerTopCritics.averageRating;
-						this.tomatoData.criticTop.likedCount 			= scoreInfo.tomatometerTopCritics.likedCount.toString();
-						this.tomatoData.criticTop.notLikedCount 		= scoreInfo.tomatometerTopCritics.notLikedCount.toString();
-						
-						if (scoreInfo.tomatometerTopCritics.ratingCount != null){
-							this.tomatoData.criticTop.num_ratings 			= scoreInfo.tomatometerTopCritics.ratingCount.toString();
-						}else if (scoreInfo.tomatometerTopCritics.reviewCount != null){
-							this.tomatoData.criticTop.num_ratings 			= scoreInfo.tomatometerTopCritics.reviewCount.toString();
-						}
-					}
-					
-					// Audience All	
-					if (scoreInfo.audienceAll != null && scoreInfo.audienceAll.score != null){
-						this.tomatoData.audienceAll.percent 				= scoreInfo.audienceAll.score.toString();
-						this.tomatoData.audienceAll.state 					= scoreInfo.audienceAll.state;
-						this.tomatoData.audienceAll.rating 					= scoreInfo.audienceAll.averageRating;
-						//this.tomatoData.audienceAll.num_ratings 			= scoreInfo.audienceAll.ratingCount.toString();
-						this.tomatoData.audienceAll.likedCount 				= scoreInfo.audienceAll.likedCount.toString();
-						this.tomatoData.audienceAll.notLikedCount 			= scoreInfo.audienceAll.notLikedCount.toString();
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceAll.num_ratings = (scoreInfo.audienceAll.likedCount + scoreInfo.audienceAll.notLikedCount).toString();
-					}
-					
-					// Audience Verified - shouldn't ever be a thing for TV, but what the heck
-					if (scoreInfo.audienceAll != null && scoreInfo.audienceVerified != null){
-						this.tomatoData.audienceVerified.percent 		= scoreInfo.audienceVerified.score.toString();
-						this.tomatoData.audienceVerified.state 			= scoreInfo.audienceVerified.state;
-						this.tomatoData.audienceVerified.rating 		= scoreInfo.audienceVerified.averageRating;
-						//this.tomatoData.audienceVerified.num_ratings 	= scoreInfo.audienceVerified.ratingCount.toString();
-						this.tomatoData.audienceVerified.likedCount 	= scoreInfo.audienceVerified.likedCount.toString();
-						this.tomatoData.audienceVerified.notLikedCount 	= scoreInfo.audienceVerified.notLikedCount.toString();
-						
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceVerified.num_ratings = (scoreInfo.audienceVerified.likedCount + scoreInfo.audienceVerified.notLikedCount).toString();
-					}
 				}
 
 				// Return if no scores what so ever
