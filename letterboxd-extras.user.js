@@ -1071,7 +1071,7 @@
 				var imdbTooltip;
 
 				if(letterboxd.storage.get('convert-ratings') === true){
-					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
+					imdbTooltip = 'Weighted average of ' + (Number(this.imdbData.rating) / 2).toFixed(2) + ' based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				} else {
 					imdbTooltip = 'Weighted average of ' + Number(this.imdbData.rating).toFixed(1) + '/10 based on ' + this.imdbData.num_ratings.toLocaleString() + ' ratings'
 				}
@@ -1084,7 +1084,7 @@
 				});
 
 				if(letterboxd.storage.get('convert-ratings') === true){
-					imdbScore.innerText = (Number(this.imdbData.rating.replace(',', '.')) / 2).toFixed(1);
+					imdbScore.innerText = (Number(this.imdbData.rating) / 2).toFixed(1);
 				} else {
 					imdbScore.innerText = Number(this.imdbData.rating).toFixed(1);
 				}
@@ -1177,6 +1177,10 @@
 					this.imdbData.rating = this.imdbData.data.querySelector('.ratingTable.Selected .bigcell').innerText;
 				}else{
 					this.imdbData.rating = this.imdbData.data.querySelector('.ipl-rating-star__rating').innerText;
+				}
+				// Fix if comma is used as decimal
+				if (typeof this.imdbData.rating == 'string' && this.imdbData.rating.includes(',')){
+					this.imdbData.rating = this.imdbData.rating.replace(',','.');
 				}
 				
 				// Get the number of ratings
