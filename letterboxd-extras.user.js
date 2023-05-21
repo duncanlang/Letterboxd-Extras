@@ -274,6 +274,7 @@
 			lastLocation: window.location.pathname,
 
 			running: false,
+			mobile: false,
 
 			// Letterboxd
 			letterboxdYear: null,
@@ -352,14 +353,34 @@
 
 				this.running = true;
 
+				// Determine mobile
+				if (document.querySelector("html")){
+					var htmlEl = document.querySelector("html");
+					if (htmlEl.getAttribute("id").includes("no-mobile")){
+						this.mobile = false;
+					}else{
+						this.mobile = true;
+					}
+				}
+
 				// Get year and title
 				if (document.querySelector(".number") && this.letterboxdYear == null){
-					this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
-					this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
+					if (this.mobile){
+						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
+						this.letterboxdTitle = document.querySelector(".details .headline-1").innerText;
 
-					var nativeTitle = document.querySelector('#featured-film-header p em')
-					if (nativeTitle != null){
-						this.letterboxdNativeTitle = nativeTitle.innerText;
+						var nativeTitle = document.querySelector('.details .originalname')
+						if (nativeTitle != null){
+							this.letterboxdNativeTitle = nativeTitle.innerText;
+						}
+					}else{
+						this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
+	
+						var nativeTitle = document.querySelector('#featured-film-header p em')
+						if (nativeTitle != null){
+							this.letterboxdNativeTitle = nativeTitle.innerText;
+						}
 					}
 				}
 
@@ -440,8 +461,8 @@
 
 				if (this.imdbID != "" && this.imdbData.state < 1){
 					// Call IMDb and Add to page when done
-					this.imdbData.state = 1;
 					if (letterboxd.storage.get('imdb-enabled') === true){
+						this.imdbData.state = 1;
 						letterboxd.helpers.getData(this.imdbData.url).then((value) => {
 							this.imdbData.raw = value.response;
 							this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
@@ -926,6 +947,10 @@
 							imdbLink = imdbLink.replace("http","https");
 						if (imdbLink.includes("maindetails"))
 							imdbLink = imdbLink.replace("maindetails","ratings");
+
+						if (this.mobile){
+							imdbLink = imdbLink.replace('www.','m.');
+						}
 
 						this.imdbData.url = imdbLink;
 
@@ -1476,12 +1501,16 @@
 					// Scores
 					var criticScore = this.metaData.data.querySelector('.ms_wrapper .metascore_w');
 					var criticScore2 = this.metaData.data.querySelector('.c-siteReviewScore:not(.c-siteReviewScore_user) span');
+					var criticScore3 = this.metaData.data.querySelector('.metascore_w:not(.user) span');
 					if (criticScore != null){
 						// Standard page with score
 						this.metaData.critic.rating = criticScore.innerText;
 					}else if(criticScore2 != null){
 						// Non-standard page (parasite)
 						this.metaData.critic.rating = criticScore2.innerText;
+					}else if(criticScore3 != null){
+						// Mobile site
+						this.metaData.critic.rating = criticScore3.innerText;
 					}else{
 						// TV episodes with no Metascore
 						this.metaData.critic.rating = "N/A";
@@ -1489,12 +1518,16 @@
 
 					var userScore = this.metaData.data.querySelector('.us_wrapper .metascore_w');
 					var userScore2 = this.metaData.data.querySelector('.c-siteReviewScore_user span');
+					var userScore3 = this.metaData.data.querySelector('.metascore_w.user');
 					if (userScore != null){
 						// Standard page with score
 						this.metaData.user.rating = userScore.innerText;
 					}else if(userScore2 != null){
 						// Non-standard page (parasite)
 						this.metaData.user.rating = userScore2.innerText;
+					}else if(userScore3 != null){
+						// Mobile site
+						this.metaData.user.rating = userScore3.innerText;
 					}else{
 						// TV episodes with no Metascore
 						this.metaData.critic.rating = "N/A";
@@ -1587,6 +1620,14 @@
 						this.metaData.user.negative = negative;
 						this.metaData.user.num_ratings = count;
 						this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
+					}
+					// Grab rating counts for mobile
+					if (ratings.length == 0 && criticScore3 != null){
+						var distributions = this.metaData.data.querySelectorAll(".metascore_stats .distributions .single_row")
+
+						// Positive
+						
+
 					}
 				}else{
 					if (this.imdbData.meta != null){
@@ -2017,19 +2058,36 @@
 			},
 
 			addRating(){
-				if (document.querySelector('.rated')) return;
-
-				const year = document.querySelector('.number');
-
-				const small = letterboxd.helpers.createElement('small', {
-					class: 'number rated'
-				});
-				year.after(small);
+				if (document.querySelector('.extras-rating')) return;
 				
-				const p = letterboxd.helpers.createElement('p', {
-				});
-				p.innerText = this.mpaaRating;
-				small.append(p);
+				if (this.mobile){
+					const year = document.querySelector('.details .releaseyear .bullet');
+
+					const rating = letterboxd.helpers.createElement('span', {
+						class: 'extras-rating'
+					});
+					rating.innerText = " " + this.mpaaRating;
+					year.after(rating);
+					
+					const bullet = letterboxd.helpers.createElement('span', {
+						class: 'bullet'
+					});
+					bullet.innerText = " · ";
+					rating.after(bullet);
+
+				}else{
+					const year = document.querySelector('.number');
+	
+					const small = letterboxd.helpers.createElement('small', {
+						class: 'number extras-rating'
+					});
+					year.after(small);
+					
+					const p = letterboxd.helpers.createElement('p', {
+					});
+					p.innerText = this.mpaaRating;
+					small.append(p);
+				}
 
 				this.ratingAdded = true;
 

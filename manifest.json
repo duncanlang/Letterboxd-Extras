@@ -16,7 +16,7 @@
 
 	"permissions": [
 		"https://letterboxd.com/*",
-		"https://www.imdb.com/*",
+		"https://*.imdb.com/*",
 		"https://www.omdbapi.com/*",
 		"https://www.rottentomatoes.com/*",
 		"https://www.boxofficemojo.com/*",
