@@ -1542,11 +1542,81 @@
 					}
 					// Grab rating counts for mobile
 					if (ratings.length == 0 && criticScore3 != null){
-						var distributions = this.metaData.data.querySelectorAll(".metascore_stats .distributions .single_row")
+						var distributions = this.metaData.data.querySelector(".critic.reviews .metascore_stats .distributions")
 
 						// Positive
+						var positive = distributions.querySelector('.bar_wrapper.positive');
+						if (positive != null){
+							var number = positive.parentNode.querySelector('.number');
+							positive = Number(number.innerText.replace(" Positive Ratings", "").trim());
+						}else{
+							positive = 0;
+						}
 						
+						// Mixed
+						var mixed = distributions.querySelector('.bar_wrapper.mixed');
+						if (mixed != null){
+							var number = mixed.parentNode.querySelector('.number');
+							mixed = Number(number.innerText.replace(" Mixed Ratings", "").trim());
+						}else{
+							mixed = 0;
+						}
+						
+						// Negative
+						var negative = distributions.querySelector('.bar_wrapper.negative');
+						if (negative != null){
+							var number = negative.parentNode.querySelector('.number');
+							negative = Number(number.innerText.replace(" Negative Ratings", "").trim());
+						}else{
+							negative = 0;
+						}
 
+						var count = positive + mixed + negative;
+
+						this.metaData.critic.positive = positive;
+						this.metaData.critic.mixed = mixed;
+						this.metaData.critic.negative = negative;
+						this.metaData.critic.num_ratings = count;
+						this.metaData.critic.highest = letterboxd.helpers.getMetaHighest(this.metaData.critic);
+					}
+					
+					if (ratings.length == 0 && userScore3 != null){
+						var distributions = this.metaData.data.querySelector(".user.reviews .metascore_stats .distributions")
+
+						// Positive
+						var positive = distributions.querySelector('.bar_wrapper.positive');
+						if (positive != null){
+							var number = positive.parentNode.querySelector('.number');
+							positive = Number(number.innerText.replace(" Positive Ratings", "").trim());
+						}else{
+							positive = 0;
+						}
+						
+						// Mixed
+						var mixed = distributions.querySelector('.bar_wrapper.mixed');
+						if (mixed != null){
+							var number = mixed.parentNode.querySelector('.number');
+							mixed = Number(number.innerText.replace(" Mixed Ratings", "").trim());
+						}else{
+							mixed = 0;
+						}
+						
+						// Negative
+						var negative = distributions.querySelector('.bar_wrapper.negative');
+						if (negative != null){
+							var number = negative.parentNode.querySelector('.number');
+							negative = Number(number.innerText.replace(" Negative Ratings", "").trim());
+						}else{
+							negative = 0;
+						}
+
+						var count = positive + mixed + negative;
+
+						this.metaData.user.positive = positive;
+						this.metaData.user.mixed = mixed;
+						this.metaData.user.negative = negative;
+						this.metaData.user.num_ratings = count;
+						this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
 					}
 				}else{
 					if (this.imdbData.meta != null){
@@ -3068,9 +3138,9 @@
 
 			createMetaScore(type, display, url, data, mustSee){
 				// The span that holds the score
-				var style = "";
+				var style = "display: inline-block;";
 				if (type == "critic" || mustSee)
-					style = " margin-right: 10px;"
+					style += " margin-right: 10px;"
 				const span = letterboxd.helpers.createElement('span', {
 					style: style
 				});
