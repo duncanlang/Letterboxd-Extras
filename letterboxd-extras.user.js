@@ -346,6 +346,7 @@
 			metaAdded: false,
 			dateAdded: false, 
 			ratingAdded: false,
+			durationAdded: false,
 
 			ratingsSuffix: [],
 
@@ -464,6 +465,11 @@
 					this.getIMDbLink();
 					if (this.linksMoved == false)
 						this.moveLinks();
+
+					if (this.isMobile && this.durationAdded == false){
+						this.addDurationMobile();
+					}
+					
 				}
 
 				if (this.imdbID != "" && this.imdbData.state < 1){
@@ -1860,6 +1866,29 @@
 					}
 					this.linksMoved = true;
 				}
+			},
+
+			addDurationMobile(){
+				const durationElement = document.querySelector(".trailerandduration");
+
+				if (durationElement != null){
+					var regex = new RegExp(/([0-9.,]+)(.+)(mins|min)/);
+					var duration = durationElement.innerText.match(regex);
+					
+					var totalMinutes = parseFloat(letterboxd.helpers.cleanNumber(duration[1]));
+					const minutes = totalMinutes % 60;
+					var hours = Math.floor(totalMinutes / 60);
+					var format = hours + "h " + minutes + "m";
+
+					const newDuration = letterboxd.helpers.createElement('p', {
+						style: 'margin-bottom: 0px;'
+					});
+					newDuration.innerText = "(" + format + ")";
+
+					durationElement.append(newDuration);
+
+				}
+				this.durationAdded == true;
 			},
 
 			addDate(date){
