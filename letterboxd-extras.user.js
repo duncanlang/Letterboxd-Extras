@@ -3857,6 +3857,12 @@
 })();
 
 function ShowTwipsy(event){
+	var htmlEl = document.querySelector("html");
+	if (htmlEl.getAttribute("class").includes("no-mobile")){
+	}else{
+		return;
+	}
+
 	//if (document.querySelector('.twipsy.fade.above.in')){
 	if (document.querySelector('.twipsy-extra-out')){
 		//var temp = document.querySelector('.twipsy.fade.above.in');
