@@ -188,6 +188,14 @@
 			padding-top: 0px;
 			padding-bottom: 0px;
 		}
+		.rt-button.critic-toggle, .rt-button.audience-toggle{
+			display: block;
+			width: 50px;
+			font-size: 11px;
+			height: 13px;
+			line-height: 14px;
+			margin-top: 4px;
+		}
 		.rt-bar{
 			display: inline-block;
 			height: 5px;
@@ -203,12 +211,34 @@
 			background-color: #678;
 			vertical-align: top;
 		}
+		.rt-bar.text-label{
+			display: inline-block;
+			font-size: 8px;
+			width: 30px;
+		}
+		.rt-bar.text-count{
+			display: inline-block;
+			font-size: 9px;
+			width: 25px;
+			margin-left: 5px;
+		}
+		.rt-bar.text-label.extras-mobile{
+			font-size: 9px;
+		}
+		.rt-bar.text-count.extras-mobile{
+			font-size: 10px;
+		}
 		.show-details{
 			font-size: 9px !important;
 			top: 10px !important;
 		}
 		.show-details:hover{
 			cursor: pointer;
+		}
+
+		.mobile-details-text{
+			width: 100% !important;
+			font-size: 10px;
 		}
 
 		.meta-score-details{
@@ -1028,13 +1058,43 @@
 				imdbLogoHolder.innerHTML = '<svg id="home_img" class="ipc-logo" xmlns="http://www.w3.org/2000/svg" width="32" height="16" viewBox="0 0 64 32" version="1.1"><g fill="#F5C518"><rect x="0" y="0" width="100%" height="100%" rx="4"></rect></g><g transform="translate(8.000000, 7.000000)" fill="#000000" fill-rule="nonzero"><polygon points="0 18 5 18 5 0 0 0"></polygon><path d="M15.6725178,0 L14.5534833,8.40846934 L13.8582008,3.83502426 C13.65661,2.37009263 13.4632474,1.09175121 13.278113,0 L7,0 L7,18 L11.2416347,18 L11.2580911,6.11380679 L13.0436094,18 L16.0633571,18 L17.7583653,5.8517865 L17.7707076,18 L22,18 L22,0 L15.6725178,0 Z"></path><path d="M24,18 L24,0 L31.8045586,0 C33.5693522,0 35,1.41994415 35,3.17660424 L35,14.8233958 C35,16.5777858 33.5716617,18 31.8045586,18 L24,18 Z M29.8322479,3.2395236 C29.6339219,3.13233348 29.2545158,3.08072342 28.7026524,3.08072342 L28.7026524,14.8914865 C29.4312846,14.8914865 29.8796736,14.7604764 30.0478195,14.4865461 C30.2159654,14.2165858 30.3021941,13.486105 30.3021941,12.2871637 L30.3021941,5.3078959 C30.3021941,4.49404499 30.272014,3.97397442 30.2159654,3.74371416 C30.1599168,3.5134539 30.0348852,3.34671372 29.8322479,3.2395236 Z"></path><path d="M44.4299079,4.50685823 L44.749518,4.50685823 C46.5447098,4.50685823 48,5.91267586 48,7.64486762 L48,14.8619906 C48,16.5950653 46.5451816,18 44.749518,18 L44.4299079,18 C43.3314617,18 42.3602746,17.4736618 41.7718697,16.6682739 L41.4838962,17.7687785 L37,17.7687785 L37,0 L41.7843263,0 L41.7843263,5.78053556 C42.4024982,5.01015739 43.3551514,4.50685823 44.4299079,4.50685823 Z M43.4055679,13.2842155 L43.4055679,9.01907814 C43.4055679,8.31433946 43.3603268,7.85185468 43.2660746,7.63896485 C43.1718224,7.42607505 42.7955881,7.2893916 42.5316822,7.2893916 C42.267776,7.2893916 41.8607934,7.40047379 41.7816216,7.58767002 L41.7816216,9.01907814 L41.7816216,13.4207851 L41.7816216,14.8074788 C41.8721037,15.0130276 42.2602358,15.1274059 42.5316822,15.1274059 C42.8031285,15.1274059 43.1982131,15.0166981 43.281155,14.8074788 C43.3640968,14.5982595 43.4055679,14.0880581 43.4055679,13.2842155 Z"></path></g></svg>'
 				imdbHeading.append(imdbLogoHolder);
 
-				imdbScoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "imdb", this.imdbData.rating, this.imdbData.num_ratings, this.imdbData.url.replace('ratings','reviews')));
+				if (this.isMobile){
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details imdb-show-details',
+						['target']: 'imdb-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					imdbScoreSection.append(showDetails);
+				}
+
+				imdbScoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "imdb", this.imdbData.rating, this.imdbData.num_ratings, this.imdbData.url.replace('ratings','reviews'), this.isMobile));
 				imdbScoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "imdb", this.imdbData.url, this.imdbData.num_ratings, this.imdbData.votes, this.imdbData.percents, this.imdbData.highest));
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'imdb-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = "temp";
+					detailsSpan.append(detailsText);
+					
+					imdbScoreSection.append(detailsSpan);
+				}
 
 				// Append to the sidebar
 				//*****************************************************************
 				this.appendRating(imdbScoreSection, 'imdb-ratings');
-
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".imdb-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
 				
 				// Add the hover events
 				//*****************************************************************
@@ -1306,36 +1366,26 @@
 				});
 				section.append(criticSpan);
 
-
-				// Add toggle buttons
+				// Add the div to hold the toggle buttons
+				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
 					style: 'display: block; margin-right: 10px;'
 				});
 				criticSpan.append(buttonDiv);
-				// All button
-				const allButton = letterboxd.helpers.createElement('span', {
-					class: 'rt-button critic-all selected',
-					['target']: 'score-critic-all'
-				});
-				if (this.tomatoData.criticAll.percent == "--"){
-					//allButton.className += " disabled";
+
+				if (this.isMobile){
+					// Add single toggle button
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
+
+				}else{
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-all", "ALL", "score-critic-all", true, false, this.isMobile));
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-top", "TOP", "score-critic-top", false, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
 				}
-				allButton.innerText = "ALL";
-				buttonDiv.append(allButton);
-				// Top button
-				const topButton = letterboxd.helpers.createElement('span', {
-					class: 'rt-button critic-top',
-					['target']: 'score-critic-top'
-				});
-				if (this.tomatoData.criticTop.percent == "--"){
-					topButton.className += " disabled";
-				}
-				topButton.innerText = "TOP";
-				buttonDiv.append(topButton);
 
 				// Add scores
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all","Critic",this.wikiData.tomatoURL,this.tomatoData.criticAll,"block"));
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top","Top Critic",this.wikiData.tomatoURL,this.tomatoData.criticTop,"none"));
+				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all","Critic",this.wikiData.tomatoURL,this.tomatoData.criticAll,"block", this.isMobile));
+				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top","Top Critic",this.wikiData.tomatoURL,this.tomatoData.criticTop,"none", this.isMobile));
+
 
 				// AUDIENCE SCORE
 				//************************************************************
@@ -1345,36 +1395,25 @@
 				});
 				section.append(audienceSpan);
 
-
-				// Add toggle buttons
+				// Add the toggle buttons
+				// Div to hold buttons
 				const buttonDiv2 = letterboxd.helpers.createElement('div', {
 					style: 'display: block; margin-right: 10px;'
 				});
 				audienceSpan.append(buttonDiv2);
-				// All button
-				const allButton2 = letterboxd.helpers.createElement('span', {
-					class: 'rt-button audience-all selected',
-					['target']: 'score-audience-all'
-				});
-				if (this.tomatoData.audienceAll.percent == "--"){
-					//allButton2.className += " disabled";
+				
+				if (this.isMobile){
+					// Add single toggle button
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+
+				}else{
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.isMobile));
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "TOP", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
 				}
-				allButton2.innerText = "ALL";
-				buttonDiv2.append(allButton2);
-				// Verified button
-				const verifiedButton2 = letterboxd.helpers.createElement('span', {
-					class: 'rt-button audience-verified',
-					['target']: 'score-audience-verified'
-				});
-				if (this.tomatoData.audienceVerified.percent == "--"){
-					verifiedButton2.className += " disabled";
-				}
-				verifiedButton2.innerText = "VERIFIED";
-				buttonDiv2.append(verifiedButton2);
 
 				// Add scores
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all","Audience",this.wikiData.tomatoURL,this.tomatoData.audienceAll,"block"));
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified","Verified Audience",this.wikiData.tomatoURL,this.tomatoData.audienceVerified,"none"));
+				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all","Audience",this.wikiData.tomatoURL,this.tomatoData.audienceAll,"block", this.isMobile));
+				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified","Verified Audience",this.wikiData.tomatoURL,this.tomatoData.audienceVerified,"none", this.isMobile));
 
 
 				// APPEND to the sidebar
@@ -1383,12 +1422,16 @@
 				
 				// Add click event for score buttons
 				//************************************************************
-				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
-				if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
-					$(".rt-button.critic-top").click();
-				}
-				if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
-					$(".rt-button.audience-verified").click();
+				if (this.isMobile){
+					$(".rt-button:not(.disabled)").on('click', changeTomatoScoreMobile);
+				}else{
+					$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
+						$(".rt-button.critic-top").click();
+					}
+					if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
+						$(".rt-button.audience-verified").click();
+					}
 				}
 				
 				//Add click for Show details button
@@ -1548,7 +1591,8 @@
 						var positive = distributions.querySelector('.bar_wrapper.positive');
 						if (positive != null){
 							var number = positive.parentNode.querySelector('.number');
-							positive = Number(number.innerText.replace(" Positive Ratings", "").trim());
+							positive = letterboxd.helpers.cleanNumber(number.innerText.replace(" Positive Ratings", "").trim());
+							positive = Number(positive);
 						}else{
 							positive = 0;
 						}
@@ -1556,8 +1600,9 @@
 						// Mixed
 						var mixed = distributions.querySelector('.bar_wrapper.mixed');
 						if (mixed != null){
-							var number = mixed.parentNode.querySelector('.number');
-							mixed = Number(number.innerText.replace(" Mixed Ratings", "").trim());
+							var number = mixed.parentNode.querySelector('.number');							
+							mixed = letterboxd.helpers.cleanNumber(number.innerText.replace(" Mixed Ratings", "").trim());
+							mixed = Number(mixed);
 						}else{
 							mixed = 0;
 						}
@@ -1566,7 +1611,8 @@
 						var negative = distributions.querySelector('.bar_wrapper.negative');
 						if (negative != null){
 							var number = negative.parentNode.querySelector('.number');
-							negative = Number(number.innerText.replace(" Negative Ratings", "").trim());
+							negative = letterboxd.helpers.cleanNumber(number.innerText.replace(" Negative Ratings", "").trim());
+							negative = Number(negative)
 						}else{
 							negative = 0;
 						}
@@ -1587,7 +1633,8 @@
 						var positive = distributions.querySelector('.bar_wrapper.positive');
 						if (positive != null){
 							var number = positive.parentNode.querySelector('.number');
-							positive = Number(number.innerText.replace(" Positive Ratings", "").trim());
+							positive = letterboxd.helpers.cleanNumber(number.innerText.replace(" Positive Ratings", "").trim());
+							positive = Number(positive);
 						}else{
 							positive = 0;
 						}
@@ -1595,8 +1642,9 @@
 						// Mixed
 						var mixed = distributions.querySelector('.bar_wrapper.mixed');
 						if (mixed != null){
-							var number = mixed.parentNode.querySelector('.number');
-							mixed = Number(number.innerText.replace(" Mixed Ratings", "").trim());
+							var number = mixed.parentNode.querySelector('.number');							
+							mixed = letterboxd.helpers.cleanNumber(number.innerText.replace(" Mixed Ratings", "").trim());
+							mixed = Number(mixed);
 						}else{
 							mixed = 0;
 						}
@@ -1605,7 +1653,8 @@
 						var negative = distributions.querySelector('.bar_wrapper.negative');
 						if (negative != null){
 							var number = negative.parentNode.querySelector('.number');
-							negative = Number(number.innerText.replace(" Negative Ratings", "").trim());
+							negative = letterboxd.helpers.cleanNumber(number.innerText.replace(" Negative Ratings", "").trim());
+							negative = Number(negative)
 						}else{
 							negative = 0;
 						}
@@ -1687,12 +1736,12 @@
 				var url = "";
 				if (this.wikiData.metaURL != null && this.wikiData.metaURL != "")
 					url = this.wikiData.metaURL + "/critic-reviews";
-				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic,this.metaData.mustSee));				
+				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic,this.metaData.mustSee, this.isMobile));				
 				
 				// User score
 				//***************************************************************
 				if (this.metaData.data != null){
-					section.append(letterboxd.helpers.createMetaScore("user","User",this.wikiData.metaURL + "/user-reviews",this.metaData.user,this.metaData.mustSee));
+					section.append(letterboxd.helpers.createMetaScore("user","User",this.wikiData.metaURL + "/user-reviews",this.metaData.user,this.metaData.mustSee, this.isMobile));
 				}
 
 				// Add Must see if applicable
@@ -2468,7 +2517,7 @@
 						this.mal.highest = this.mal.statistics.scores[ii].votes;
 				}
 
-				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "mal", this.mal.score, this.mal.scored_by, this.mal.data.url + '/reviews'));
+				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "mal", this.mal.score, this.mal.scored_by, this.mal.data.url + '/reviews', this.isMobile));
 				scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "mal", "", this.mal.scored_by, this.mal.statistics.scores, this.mal.statistics.scores, this.mal.highest));
 
 				// Append to the sidebar
@@ -2653,7 +2702,7 @@
 				ul.after(span5Star);
 				*/
 				
-				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "al", this.al.score, this.al.num_ratings, this.al.data.siteUrl + '/reviews'));
+				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "al", this.al.score, this.al.num_ratings, this.al.data.siteUrl + '/reviews', this.isMobile));
 				scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "al", "", this.al.num_ratings, this.al.data.stats.scoreDistribution, this.al.data.stats.scoreDistribution[ii], this.al.highest));
 
 				// Append to the sidebar
@@ -3007,11 +3056,15 @@
 				return element;
 			},
 
-			createTomatoScore(type, display, url, data, visibility){	
+			createTomatoScore(type, display, url, data, visibility, isMobile){	
 				const scoreDiv = letterboxd.helpers.createElement('div', {
 					class: 'rt-score-div score-' + type,
 					style: 'display: ' + visibility + ';'
 				});
+
+				if (visibility == "none"){
+					scoreDiv.className += " disabled";
+				}
 				
 				var image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
 				if (data.state == "certified-fresh"){
@@ -3024,7 +3077,7 @@
 					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-fresh.6c24d79faaf.svg';
 				}else if (data.state == "spilled"){
 					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-rotten.f419e4046b7.svg';
-				}else if(type == "Critic"){
+				}else if(type.includes("critic")){
 					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
 				}else{
 					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg';
@@ -3075,23 +3128,68 @@
 					class: 'rt-score-details',
 					style: 'display: none; width: 140px; margin-left: 5px; margin-bottom: 10px;'
 				});
-				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings)));
-				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings)));
+				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings), isMobile));
+				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings), isMobile));
 				
 				scoreDiv.append(chartSpan);
+
+				// Add the tooltip as text for mobile
+				if (isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'rt-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = hover;
+					detailsSpan.append(detailsText);
+					
+					scoreDiv.append(detailsSpan);
+				}
 
 				return scoreDiv;
 			},
 
-			createTomatoBarCount(type, count, total){
+			createTomatoButton(type, text, target, selected, disabled, isMobile){
+				if (target.includes(',')){
+					var targets = target.split(',');
+					target = targets[0];
+					var targetOther = targets[1];
+				}else{
+					var targetOther = "";
+				}
+
+				const button = letterboxd.helpers.createElement('span', {
+					class: 'rt-button ' + type,
+					['target']: target,
+					['targetOther']: targetOther
+				});
+				if (selected){
+					button.className += " selected";
+				}
+				if (disabled){
+					button.className += " disabled";
+				}
+				if (isMobile){
+					button.className += " extras-mobile";
+				}
+				button.innerText = text;
+
+				return button;
+			},
+
+			createTomatoBarCount(type, count, total, isMobile){
 				// Span that holds it all
 				const span = letterboxd.helpers.createElement('span', {
 					style: 'display: block; width: 140px;'
 				});
 				// Text label (ie, 'Fresh")
 				const label = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; font-size: 8px; width: 30px;'
+					class: 'rt-bar text-label'
 				});
+				if (isMobile)
+					label.className += " extras-mobile";
 				label.innerText = type;
 				span.append(label);
 				
@@ -3116,8 +3214,10 @@
 
 				// Text that shows the num of ratings
 				const countText = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; font-size: 9px; width: 25px; margin-left: 5px;'
+					class: 'rt-bar text-count'
 				});
+				if (isMobile)
+					countText.className += " extras-mobile";
 				countText.innerText = count.toLocaleString();
 				span.append(countText);
 
@@ -3136,7 +3236,7 @@
 				return highest;
 			},
 
-			createMetaScore(type, display, url, data, mustSee){
+			createMetaScore(type, display, url, data, mustSee, isMobile){
 				// The span that holds the score
 				var style = "display: inline-block;";
 				if (type == "critic" || mustSee)
@@ -3195,6 +3295,21 @@
 				chartSpan.append(letterboxd.helpers.createMetaBarCount("Mixed", data.mixed, data.highest, letterboxd.helpers.determineMetaColour(50,false)));
 				chartSpan.append(letterboxd.helpers.createMetaBarCount("Negative",data.negative, data.highest, letterboxd.helpers.determineMetaColour(0,false)));
 				span.append(chartSpan);
+
+				// Add the tooltip as text for mobile
+				if (isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'meta-score-details mobile-details-text',
+						style: 'display: none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = hover;
+					detailsSpan.append(detailsText);
+					
+					span.append(detailsSpan);
+				}
 
 				return span;
 			},
@@ -3331,7 +3446,7 @@
 				}
 			},
 			
-			createHistogramScore(letterboxd, type, rating, count, url){
+			createHistogramScore(letterboxd, type, rating, count, url, isMobile){
 				// The span that holds the score
 				var style = "";
 				if (letterboxd.overview.isMobile == true){
@@ -3345,6 +3460,7 @@
 				});
 				
 				var suffix = "/10";
+				var tooltip = "";
 				if (rating != "N/A"){
 					// Convert the score if needed
 					if(letterboxd.storage.get('convert-ratings') === true){
@@ -3362,7 +3478,7 @@
 					}
 					
 					// Create tooltip text
-					var tooltip = 'Weighted average of ' + rating + suffix + ' based on ' + count.toLocaleString() + ' ratings'
+					tooltip = 'Weighted average of ' + rating + suffix + ' based on ' + count.toLocaleString() + ' ratings'
 				}
 
 				// The element that is the score itself
@@ -3907,6 +4023,35 @@ function changeTomatoScore(event){
 	var otherButton = event.target.parentNode.querySelector('.selected');
 	event.target.className += " selected";
 	otherButton.className = otherButton.className.replace(' selected','');
+}
+
+
+function changeTomatoScoreMobile(event){
+	// Get the parent node
+	var parent = event.target.parentNode.parentNode;
+	// Grab the target score div and then the other non-target score div
+	var targetNode = parent.querySelector('.rt-score-div.disabled');
+	var otherNode = parent.querySelector('.rt-score-div:not(.disabled)');
+
+	// Hide the current visible score, display the current hidden score
+	otherNode.style.display = 'none';
+	targetNode.style.display = 'block';
+
+	// Changed the text of the button
+	var text = "";
+	var targetClass = targetNode.getAttribute('class');
+	if (targetClass.includes('score-critic-all') || targetClass.includes('score-audience-all')){
+		text = "ALL";
+	}else if (targetClass.includes('score-critic-top')){
+		text = "TOP";
+	}else if (targetClass.includes('score-audience-verified')){
+		text = "VERIFIED";
+	}
+	event.target.innerText = text;
+
+	// Swap .disabled class on the scores
+	otherNode.className += " disabled";
+	targetNode.className = targetNode.className.replace(' disabled','');
 }
 
 
