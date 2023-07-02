@@ -135,25 +135,17 @@
 			letter-spacing: 0;
 			vertical-align: super;
 		}
-		.rating-star-extra, .rating-star-mal, .rating-star-al{
-			background: transparent !important;
-			overflow: visible !important;
-			text-indent: -0.5px !important;
-			line-height: 0.6 !important;
-			font-size: 12.5px !important;
-			color: gold;
-		}
-		.rating-star-extra:not(.rating-star-extra-mobile){
-			letter-spacing: -0.5px;
-		}
-		.rating-star-extra.rating-star-extra-mobile{
-			letter-spacing: -1.4px !important;
+		.rating-star-imdb{
+			color: #2e51a2;
+			filter: brightness(0) saturate(100%) invert(75%) sepia(25%) saturate(1440%) hue-rotate(359deg) brightness(106%) contrast(92%);
 		}
 		.rating-star-mal{
 			color: #2e51a2;
+			filter: brightness(0) saturate(100%) invert(30%) sepia(8%) saturate(7389%) hue-rotate(193deg) brightness(94%) contrast(95%);
 		}
 		.rating-star-al{
 			color: #3db4f2;
+			filter: brightness(0) saturate(100%) invert(67%) sepia(28%) saturate(3210%) hue-rotate(171deg) brightness(97%) contrast(95%);
 		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
@@ -3462,12 +3454,15 @@
 				}
 
 				// Add the stars for visual
+				// Uses the same star image that letterboxd uses, but with some css filters to change the colors
+				// See: https://stackoverflow.com/questions/42966641/how-to-transform-black-into-any-given-color-using-only-css-filters/43960991#43960991
+				// Also: https://codepen.io/sosuke/pen/Pjoqqp
 				// 1 Star
 				const span1Star = letterboxd.helpers.createElement('span', {
 					class: 'rating-green rating-green-tiny rating-1'
 				});
 				const span1StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-2 rating-star-extra rating-star-' + type + starClass
+					class: 'rating rated-2 rating-star-' + type + starClass
 				});
 				span1StarInner.innerText = "★";
 				span1Star.append(span1StarInner);
@@ -3477,7 +3472,7 @@
 					class: 'rating-green rating-green-tiny rating-5'
 				});
 				const span5StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-10 rating-star-extra rating-star-' + type + starClass
+					class: 'rating rated-10 rating-star-' + type + starClass
 				});
 				span5StarInner.innerText = "★★★★★";
 				span5Star.append(span5StarInner);
