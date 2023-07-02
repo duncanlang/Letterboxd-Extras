@@ -21,6 +21,9 @@
 	
 	/* eslint-disable */
 	GM_addStyle(`
+		.section-heading-extras{
+			height: 20px !important;
+		}
 		.imdb-score {
 			border-radius:20px;
 			color:#789;
@@ -109,6 +112,9 @@
 		}
 		.imdb-ratings .section-heading{
 			margin-bottom: 15px !important;
+		}
+		.rating-histogram-extras{
+			margin-bottom: 10px !important;
 		}
 		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover{
 			opacity: 50%;
@@ -402,10 +408,10 @@
 				}
 
 				// Get year and title
-				if (document.querySelector(".number") && this.letterboxdYear == null){
+				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".number"))) && this.letterboxdYear == null){
 					if (this.isMobile){
-						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
-						this.letterboxdTitle = document.querySelector(".details .headline-1").innerText;
+						this.letterboxdYear = document.querySelector(".film-header-lockup .details .releaseyear a").innerText;
+						this.letterboxdTitle = document.querySelector(".film-header-lockup .details .headline-1").innerText;
 
 						var nativeTitle = document.querySelector('.details .originalname')
 						if (nativeTitle != null){
@@ -1045,8 +1051,7 @@
 
 				// Add the Header
 				const imdbHeading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 16px;'
+					class: 'section-heading section-heading-extras'
 				});
 				imdbScoreSection.append(imdbHeading);
 
@@ -1073,6 +1078,11 @@
 
 				// Add the tooltip as text for mobile
 				if (this.isMobile){
+					var score = imdbScoreSection.querySelector(".average-rating .tooltip");
+					var tooltip = "";
+					if (score != null)
+						tooltip = score.getAttribute('data-original-title');
+
 					const detailsSpan = letterboxd.helpers.createElement('span', {
 						class: 'imdb-score-details mobile-details-text',
 						style: 'display:none'
@@ -1080,7 +1090,7 @@
 
 					const detailsText = letterboxd.helpers.createElement('p', {
 					});
-					detailsText.innerText = "temp";
+					detailsText.innerText = tooltip;
 					detailsSpan.append(detailsText);
 					
 					imdbScoreSection.append(detailsSpan);
@@ -1338,8 +1348,7 @@
 
 				// Add the Header - 
 				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 20px;'
+					class: 'section-heading section-heading-extras'
 				});
 				section.append(heading);
 
@@ -1688,8 +1697,7 @@
 
 				// Add the Header
 				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 20px;'
+					class: 'section-heading section-heading-extras'
 				});
 				section.append(heading);
 
@@ -2391,8 +2399,7 @@
 
 				// Add the Header
 				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 16px;'
+					class: 'section-heading section-heading-extras'
 				});
 				scoreSection.append(heading);
 
@@ -2403,113 +2410,15 @@
 				});
 				heading.append(logoHolder);
 
-				/*
-				// The span that holds the score
-				const scoreSpan = letterboxd.helpers.createElement('span', {
-					['itemprop']: 'aggregateRating',
-					['itemscope']: '',
-					['itemtype']: 'http://schema.org/AggregateRating',
-					class: 'average-rating',
-					style: 'left: 188px; position:absolute;'
-				});
-				scoreSection.append(scoreSpan);
-
-				
-				// Create the tooltip text
-				var tooltip = "No score yet ( " + this.mal.scored_by.toLocaleString() + " ratings)";
-				if (this.mal.score != "N/A"){
-					if(letterboxd.storage.get('convert-ratings') === true){
-						tooltip = 'Weighted average of ' + (Number(this.mal.score) / 2).toFixed(2) + ' based on ' + this.mal.scored_by.toLocaleString() + ' ratings'
-					} else {
-						tooltip = 'Weighted average of ' + this.mal.score + '/10 based on ' + this.mal.scored_by.toLocaleString() + ' ratings'
-					}
-				}
-
-				// The element that is the score itself
-				const score = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
-					href: this.mal.data.url + '/reviews',
-					['data-original-title']: tooltip
-				});
-				
-				if (this.mal.score == "N/A"){
-					score.innerText = "N/A";
-				} else if(letterboxd.storage.get('convert-ratings') === true){
-					score.innerText = (Number(this.mal.score) / 2).toFixed(1);
-				} else {
-					score.innerText = this.mal.score.toFixed(1);
-				}
-				
-				scoreSpan.append(score);
-
-
-				// Add the bars for the rating
-				const histogram = letterboxd.helpers.createElement('div', {
-					class: 'rating-histogram clear rating-histogram-exploded'
-				});
-				scoreSection.append(histogram);
-				const ul = letterboxd.helpers.createElement('ul', {
-				});
-				histogram.append(ul);
-
-				// Loop first and determine highest votes
-				for (var ii = 0; ii < 10; ii++){
-					if (this.mal.statistics.scores[ii].votes > this.mal.highest)
-						this.mal.highest = this.mal.statistics.scores[ii].votes;
-				}
-
-				for (var ii = 0; ii < 10; ii++){	
-					var left = (ii * 16).toString() + "px;";
-					const il = letterboxd.helpers.createElement('li', {
-						class: 'rating-histogram-bar',
-						style: "width: 15px; left: " + left
+				if (this.isMobile){
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details mal-show-details',
+						['target']: 'mal-score-details'
 					});
-					ul.append(il);
-
-					const a = letterboxd.helpers.createElement('a', {
-						class: 'ir tooltip imdb tooltip-extra',
-						['data-original-title']: this.mal.statistics.scores[ii].votes.toLocaleString() + " " + this.ratingsSuffix[ii] + ' ratings (' + this.mal.statistics.scores[ii].percentage.toString() + '%)'
-					});
-					il.append(a);
-
-					var max = 44.0;
-					var min = 1;
-					var percent = this.mal.statistics.scores[ii].votes / this.mal.highest;
-					var height = (max * percent);
-
-					if (height < min)
-						height = min;
-
-					height = height.toString() + "px;";
-
-					const i = letterboxd.helpers.createElement('i', {
-						style: 'height: ' + height
-					});
-					a.append(i);
+					showDetails.innerText = "Show Details";
+					scoreSection.append(showDetails);
 				}
-
-				// Add the stars for visual
-				const span1Star = letterboxd.helpers.createElement('span', {
-					class: 'rating-green rating-green-tiny rating-1'
-				});
-				const span1StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-2 rating-star-mal'
-				});
-				span1StarInner.innerText = "★";
-				span1Star.append(span1StarInner);
-
-				const span5Star = letterboxd.helpers.createElement('span', {
-					class: 'rating-green rating-green-tiny rating-5'
-				});
-				const span5StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-10 rating-star-mal'
-				});
-				span5StarInner.innerText = "★★★★★";
-				span5Star.append(span5StarInner);
-
-				ul.before(span1Star);
-				ul.after(span5Star);
-				*/
 				
 				// Loop first and determine highest votes
 				for (var ii = 0; ii < 10; ii++){
@@ -2520,10 +2429,35 @@
 				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "mal", this.mal.score, this.mal.scored_by, this.mal.data.url + '/reviews', this.isMobile));
 				scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "mal", "", this.mal.scored_by, this.mal.statistics.scores, this.mal.statistics.scores, this.mal.highest));
 
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					var score = scoreSection.querySelector(".average-rating .tooltip");
+					var tooltip = "";
+					if (score != null)
+						tooltip = score.getAttribute('data-original-title');
+
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mal-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					scoreSection.append(detailsSpan);
+				}
+
 				// Append to the sidebar
 				//*****************************************************************
 				this.appendRating(scoreSection, 'mal-ratings');
-
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".mal-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
 				
 				// Add the hover events
 				//*****************************************************************
@@ -2568,8 +2502,7 @@
 
 				// Add the Header
 				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 16px;'
+					class: 'section-heading section-heading-extras'
 				});
 				scoreSection.append(heading);
 
@@ -2593,122 +2526,48 @@
 				logoText.innerText = "AniList"
 				logoHolder.append(logoText);
 
-				/*
-				// The span that holds the score
-				const scoreSpan = letterboxd.helpers.createElement('span', {
-					['itemprop']: 'aggregateRating',
-					['itemscope']: '',
-					['itemtype']: 'http://schema.org/AggregateRating',
-					class: 'average-rating',
-					style: 'left: 188px; position:absolute;'
-				});
-				scoreSection.append(scoreSpan);
-				
-
-				// Create the tooltip text
-				var tooltip = "No score yet ( " + this.al.num_ratings.toLocaleString() + " ratings)";
-				if (this.al.score != "N/A"){
-					if(letterboxd.storage.get('convert-ratings') === true){
-						tooltip = 'Weighted average of ' + (Number(this.al.score) / 20).toFixed(2) + ' based on ' + this.al.num_ratings.toLocaleString() + ' ratings'
-					} else {
-						tooltip = 'Weighted average of ' + this.al.score + '/100 based on ' + this.al.num_ratings.toLocaleString() + ' ratings'
-					}
-				}
-
-				// The element that is the score itself
-				const score = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
-					href: this.al.data.siteUrl + '/reviews',
-					['data-original-title']: tooltip
-				});
-				if (this.al.score == "N/A"){
-					score.innerText = "N/A";
-				} else if(letterboxd.storage.get('convert-ratings') === true){
-					score.innerText = (Number(this.al.score) / 20).toFixed(1);
-				} else {
-					score.innerText = this.al.score + "%";
-				}
-				scoreSpan.append(score);
-
-				// Add the bars for the rating
-				const histogram = letterboxd.helpers.createElement('div', {
-					class: 'rating-histogram clear rating-histogram-exploded'
-				});
-				scoreSection.append(histogram);
-				const ul = letterboxd.helpers.createElement('ul', {
-				});
-				histogram.append(ul);
-
-				for (var ii = 0; ii < 10; ii++){	
-					var left = (ii * 16).toString() + "px;";
-					const il = letterboxd.helpers.createElement('li', {
-						class: 'rating-histogram-bar',
-						style: "width: 15px; left: " + left
+				if (this.isMobile){
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details al-show-details',
+						['target']: 'al-score-details'
 					});
-					ul.append(il);
-
-					var amount = this.al.data.stats.scoreDistribution[ii].amount;
-					var percent = (amount / this.al.num_ratings * 100).toFixed(1);
-
-					var alRatingsSuffix;
-					if (letterboxd.storage.get('convert-ratings') === true){
-						alRatingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
-					} else {
-						alRatingsSuffix = ['10/100', '20/100', '30/100', '40/100', '50/100', '60/100', '70/100', '80/100', '90/100', '100/100'];
-					}
-
-					const a = letterboxd.helpers.createElement('a', {
-						class: 'ir tooltip imdb tooltip-extra',
-						['data-original-title']: amount.toLocaleString() + " " + alRatingsSuffix[ii] + ' ratings (' + percent.toString() + '%)'
-					});
-					il.append(a);
-
-					var max = 44.0;
-					var min = 1;
-					percent = amount / this.al.highest;
-					var height = (max * percent);
-
-					if (height < min)
-						height = min;
-
-					height = height.toString() + "px;";
-
-					const i = letterboxd.helpers.createElement('i', {
-						style: 'height: ' + height
-					});
-					a.append(i);
+					showDetails.innerText = "Show Details";
+					scoreSection.append(showDetails);
 				}
-
-				// Add the stars for visual
-				const span1Star = letterboxd.helpers.createElement('span', {
-					class: 'rating-green rating-green-tiny rating-1'
-				});
-				const span1StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-2 rating-star-al'
-				});
-				span1StarInner.innerText = "★";
-				span1Star.append(span1StarInner);
-
-				const span5Star = letterboxd.helpers.createElement('span', {
-					class: 'rating-green rating-green-tiny rating-5'
-				});
-				const span5StarInner = letterboxd.helpers.createElement('span', {
-					class: 'rating rated-10 rating-star-al'
-				});
-				span5StarInner.innerText = "★★★★★";
-				span5Star.append(span5StarInner);
-
-				ul.before(span1Star);
-				ul.after(span5Star);
-				*/
 				
 				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "al", this.al.score, this.al.num_ratings, this.al.data.siteUrl + '/reviews', this.isMobile));
 				scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "al", "", this.al.num_ratings, this.al.data.stats.scoreDistribution, this.al.data.stats.scoreDistribution[ii], this.al.highest));
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					var score = scoreSection.querySelector(".average-rating .tooltip");
+					var tooltip = "";
+					if (score != null)
+						tooltip = score.getAttribute('data-original-title');
+
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'al-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					scoreSection.append(detailsSpan);
+				}
 
 				// Append to the sidebar
 				//*****************************************************************
 				this.appendRating(scoreSection, 'al-ratings');
 
+				//Add click for Show details button
+				//************************************************************
+				$(".al-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
 				
 				// Add the hover events
 				//*****************************************************************
@@ -2732,8 +2591,7 @@
 
 				// Add the Header
 				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading',
-					style: 'height: 20px;'
+					class: 'section-heading section-heading-extras'
 				});
 				section.append(heading);
 
@@ -2743,6 +2601,16 @@
 					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
 				});
 				heading.append(logoHolder);
+				
+				if (this.isMobile){
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details sens-show-details',
+						['target']: 'sens-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
 				
 				// Score
 				//***************************************************************
@@ -2756,7 +2624,10 @@
 				// Do not display if there is no score or ratings
 				if (rating == null && ratingCount == 0) return;
 
-				const container = letterboxd.helpers.createElement('span', {});
+				const container = letterboxd.helpers.createElement('span', {}, {
+					['display']: 'block',
+					['margin-bottom']: '10px'
+				});
 
 				// The span that holds the score
 				const span = letterboxd.helpers.createElement('div', {}, {
@@ -2770,20 +2641,19 @@
 				});
 
 				// Add the hoverover text and href
+				var tooltip = 'No score available';
 				if (ratingCount > 0 && rating == null){
-					var hover = ratingCount.toLocaleString() + ' rating';
+					tooltip = ratingCount.toLocaleString() + ' rating';
 					if (ratingCount > 1) hover += "s";
-					text.setAttribute('data-original-title', hover);
 					rating = "N/A";
 
 				}else if (ratingCount > 0){
-					var hover = "Weighted average of " + rating + "/10 based on " + ratingCount.toLocaleString() + ' ratings';
-					text.setAttribute('data-original-title', hover);
+					tooltip = "Weighted average of " + rating + "/10 based on " + ratingCount.toLocaleString() + ' ratings';
 
 				}else{
-					text.setAttribute('data-original-title', 'No score available');
 					rating = "N/A";
 				}
+				text.setAttribute('data-original-title', tooltip);
 				text.setAttribute('href', url + "/critiques");
 				text.innerText = rating
 				span.append(text);
@@ -2807,9 +2677,30 @@
 				container.append(textSpan);
 				section.append(container);
 
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'sens-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					section.append(detailsSpan);
+				}
+
 				// APPEND to the sidebar
 				//************************************************************
 				this.appendRating(section, 'sens-ratings');
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".sens-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
 
 				// Add Hover events
 				//************************************************************
@@ -3504,7 +3395,7 @@
 			createHistogramGraph(letterboxd, type, url, count, votes, percents, highest){
 				// Add the bars for the rating
 				const histogram = letterboxd.helpers.createElement('div', {
-					class: 'rating-histogram clear rating-histogram-exploded'
+					class: 'rating-histogram clear rating-histogram-exploded rating-histogram-extras'
 				});
 				const ul = letterboxd.helpers.createElement('ul', {
 				});
