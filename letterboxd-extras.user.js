@@ -2019,6 +2019,11 @@
 			addRating(){
 				if (document.querySelector('.rated')) return;
 
+				if(letterboxd.storage.get('mpa-enabled') === false){
+					this.ratingAdded = true;
+					return;
+				}
+
 				const year = document.querySelector('.number');
 
 				const small = letterboxd.helpers.createElement('small', {
