@@ -1431,6 +1431,12 @@
 				//************************************************************
 				if (this.isMobile){
 					$(".rt-button:not(.disabled)").on('click', changeTomatoScoreMobile);
+					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
+						$(".rt-button.critic-toggle").click();
+					}
+					if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
+						$(".rt-button.audience-toggle").click();
+					}
 				}else{
 					$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
 					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
@@ -1441,7 +1447,7 @@
 					}
 				}
 				
-				//Add click for Show details button
+				// Add click for Show details button
 				//************************************************************
 				$(".rt-show-details").on('click', function(event){
 					toggleDetails(event, letterboxd);
