@@ -239,10 +239,16 @@
 			font-size: 10px;
 		}
 
-		.meta-score-details{
+		.meta-score-details:not(.mobile-details-text){
 			width: 180px;
 			margin-left: 5px;
 			margin-bottom: 10px;
+		}
+		.meta-score-details:not(.extras-mobile) span span{
+			font-size: 8px;
+		}
+		.meta-score-details.extras-mobile span span{
+			font-size: 9px;
 		}
 		.meta-bar{
 			display: inline-block;
@@ -3127,6 +3133,10 @@
 				const span = letterboxd.helpers.createElement('span', {
 					style: style
 				});
+
+				var mobileClass = "";
+				if (isMobile)
+					mobileClass = 'extras-mobile';
 				
 				var colour = letterboxd.helpers.determineMetaColour(data.rating, (type == "user"));
 				var className = 'meta-score';
@@ -3171,7 +3181,7 @@
 
 				// Add the positive/mixed/negative bars
 				const chartSpan = letterboxd.helpers.createElement('span', {
-					class: 'meta-score-details',
+					class: 'meta-score-details ' + mobileClass,
 					style: 'display: none'
 				});
 				chartSpan.append(letterboxd.helpers.createMetaBarCount("Positive", data.positive, data.highest, letterboxd.helpers.determineMetaColour(100,false)));
@@ -3202,9 +3212,9 @@
 				const span = letterboxd.helpers.createElement('span', {
 					style: 'display: block; width: 160px;'
 				});
-				// Text label (ie, 'Fresh")
+				// Text label
 				const label = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; font-size: 8px; width: 40px;'
+					style: 'display: inline-block; width: 40px;'
 				});
 				label.innerText = type;
 				span.append(label);
@@ -3342,11 +3352,12 @@
 					style: style + ' position:absolute;'
 				});
 				
+				var convertRatings = letterboxd.storage.get('convert-ratings');
 				var suffix = "/10";
 				var tooltip = "";
 				if (rating != "N/A"){
 					// Convert the score if needed
-					if(letterboxd.storage.get('convert-ratings') === true){
+					if(convertRatings === true){
 						if (type == "al"){
 							rating = (Number(rating) / 20).toFixed(1);
 						}else{
@@ -3373,7 +3384,7 @@
 
 				if (rating == "N/A"){
 					scoreElement.innerText = "N/A";
-				} else if (type == "al"){
+				} else if (type == "al" && convertRatings === false){
 					scoreElement.innerText = rating + "%";
 				} else {
 					scoreElement.innerText = rating;
