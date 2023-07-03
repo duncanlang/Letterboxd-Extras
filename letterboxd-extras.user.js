@@ -3465,20 +3465,20 @@
 		storage: {
 			options: {},
 
-			async init() {	
+			async init() {
 				browser.storage.local.get('options', (data) => {
-					Object.assign(this.options, data.options);
-					
-					// Init default settings
-					if (this.options['imdb-enabled'] == null) this.set('imdb-enabled', true);
-					if (this.options['tomato-enabled'] == null) this.set('tomato-enabled', true);
-					if (this.options['metacritic-enabled'] == null) this.set('metacritic-enabled', true);
-					if (this.options['mal-enabled'] == null) this.set('mal-enabled', true);
-					if (this.options['al-enabled'] == null) this.set('al-enabled', true);
-					if (this.options['cinema-enabled'] == null) this.set('cinema-enabled', true);
-				});
-
-				
+					if (data != null && data.options != null){
+						Object.assign(this.options, data.options);
+						
+						// Init default settings
+						if (this.options['imdb-enabled'] == null) this.set('imdb-enabled', true);
+						if (this.options['tomato-enabled'] == null) this.set('tomato-enabled', true);
+						if (this.options['metacritic-enabled'] == null) this.set('metacritic-enabled', true);
+						if (this.options['mal-enabled'] == null) this.set('mal-enabled', true);
+						if (this.options['al-enabled'] == null) this.set('al-enabled', true);
+						if (this.options['cinema-enabled'] == null) this.set('cinema-enabled', true);
+					}
+				});				
 			},
 			get(key) {
 				if (this.options != null && this.options.hasOwnProperty(key) && this.options[key] != "")
@@ -3489,7 +3489,7 @@
 			set(key, value) {
 				this.options[key] = value;
 				var options = this.options;
-				browser.storage.sync.set({options});
+				browser.storage.local.set({options});
 			}
 		}
 	};

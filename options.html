@@ -6,10 +6,12 @@
     <style>
         h3,label,p{
             margin-left: 15px;
+			font-family: sans-serif;
         }
         p{
             margin-top: 0px;
             font-style: italic;
+            font-size: 11px;
         }
         label{
             display: inline-block;
@@ -105,7 +107,7 @@
         <div>
             <label>Default results to films:</label>
             <input type="checkbox" id="search-redirect" class="setting"/>
-            <p>When enabled, the Letterboxd search will default to only show results for films, rather than showing all results.</p>
+            <p>Default the Letterboxd search to only show results for films, rather than showing all results.</p>
         </div>
     </div>
     <br>
@@ -114,6 +116,7 @@
         <div>
             <label>Convert ratings to Letterboxd-Style rating:</label>
             <input type="checkbox" id="convert-ratings" class="setting"/>
+            <p>Convert the IMDb, MyAnimeList, and Anilist ratings to a 5 point scale.</p>
         </div>
     </div>
     <br>

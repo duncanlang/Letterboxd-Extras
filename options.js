@@ -16,7 +16,7 @@ document.addEventListener('change', event => {
 });
 // Save:
 function save(){
-    chrome.storage.sync.set({options});
+    browser.storage.local.set({options});
 }
 
 
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', event => {
 // Load
 async function load(){
     // Assign the object
-    chrome.storage.sync.get('options', (data) => {
+    browser.storage.local.get('options', (data) => {
         Object.assign(options, data.options);
         
         // Init default settings

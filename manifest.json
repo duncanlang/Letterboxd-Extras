@@ -9,6 +9,14 @@
 		"128": "icon128.png"
 	},
 
+	"action": {
+		"default_icon": {
+		  "16": "icon128.png"
+		},
+		"default_title": "Open Settings",
+		"default_popup": "options.html"
+	},	  
+
 	"options_ui": {
 		"page": "options.html",
 		"browser_style": false
