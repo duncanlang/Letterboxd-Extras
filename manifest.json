@@ -11,8 +11,15 @@
 
 	"options_ui": {
 		"page": "options.html",
-		"browser_style": true
+		"browser_style": false
 	},
+
+	"browser_specific_settings": {
+		"gecko": {
+		  "id": "{9abb0ce4-6348-4119-b97a-3f8116351aca}",
+		  "strict_min_version": "109.0"
+		}
+	},	  
 
 	"permissions": [
 		"storage"
@@ -32,7 +39,7 @@
 	],
 
 	"background": {
-		"service_worker": "background.js",
+		"scripts": ["background.js"],
 		"type": "module"
 	},
 
@@ -47,8 +54,7 @@
 	"web_accessible_resources": [
 		{
 		  "resources": [ "images/mal-logo.png", "images/sens-logo.png"],
-		  "matches": [ "https://letterboxd.com/*" ],
-		  "use_dynamic_url": true
+		  "matches": [ "https://letterboxd.com/*" ]
 		}
 	]
 }

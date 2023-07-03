@@ -439,7 +439,7 @@
 							})
 						};
 
-						chrome.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
+						browser.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
 							var sens = value.response; //JSON.parse(value.response);
 							if (sens.data != null && sens.data.results != null)
 							{
@@ -502,7 +502,7 @@
 					// Call IMDb and Add to page when done
 					this.imdbData.state = 1;
 					if (letterboxd.storage.get('imdb-enabled') === true){
-						chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url}, (value) => {
+						browser.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url}, (value) => {
 							this.imdbData.state = 2;
 							this.imdbData.raw = value.response;
 							this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
@@ -511,7 +511,7 @@
 						
 						
 						// Call the IMDb main show page
-						chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url.replace('/ratings','')}, (value) => {
+						browser.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url.replace('/ratings','')}, (value) => {
 							this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
 						
 							if (this.imdbData.data2 != null){	
@@ -524,7 +524,7 @@
 						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
 						this.addLink(mojoURL);
 						//letterboxd.helpers.getData(mojoURL).then((value) => {
-						chrome.runtime.sendMessage({name: "GETDATA", url: mojoURL}, (value) => {
+						browser.runtime.sendMessage({name: "GETDATA", url: mojoURL}, (value) => {
 								this.mojoData.data = letterboxd.helpers.parseHTML(value.response);
 								this.addBoxOffice();
 
@@ -559,7 +559,7 @@
 						var queryStringDate = letterboxd.helpers.getWikiDataQuery(id, idType, 'DATE');
 
 						this.wikiData.state = 1;
-						chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryString}, (value) => {
+						browser.runtime.sendMessage({name: "GETWIKIDATA", url: queryString}, (value) => {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								this.wiki = value.results.bindings[0];
 
@@ -641,7 +641,7 @@
 									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
 										try{
 											this.metaData.state = 1;
-											chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.metaURL}, (value) => {
+											browser.runtime.sendMessage({name: "GETDATA", url: this.wikiData.metaURL}, (value) => {
 												var meta = value.response;
 												if (meta != ""){
 													this.metaData.raw = meta;
@@ -683,7 +683,7 @@
 									if (this.mal.data == null && this.mal.state < 1){
 										try{
 											this.mal.state = 1;
-											chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
+											browser.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 												var mal = value.response;
 												if (mal != ""){
 													this.mal.data = JSON.parse(mal);
@@ -697,7 +697,7 @@
 												}
 											});
 											
-											chrome.runtime.sendMessage({name: "GETDATA", url: url + "/statistics"}, (value) => {
+											browser.runtime.sendMessage({name: "GETDATA", url: url + "/statistics"}, (value) => {
 												var mal = value.response;
 												if (mal != ""){
 													this.mal.statistics = JSON.parse(mal);
@@ -756,7 +756,7 @@
 									if (this.al.data == null && this.al.state < 1){
 										try{
 											this.al.state = 1;
-											chrome.runtime.sendMessage({name: "GETALDATA2", url: url, options: options}, (value) => {
+											browser.runtime.sendMessage({name: "GETALDATA2", url: url, options: options}, (value) => {
 												var al = value.response;
 												if (al != ""){
 													this.al.data = al.data.Media;
@@ -784,7 +784,7 @@
 						});
 
 						// Call WikiData a second time for dates
-						chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryStringDate}, (value) => {
+						browser.runtime.sendMessage({name: "GETWIKIDATA", url: queryStringDate}, (value) => {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								this.wiki_dates = value.results.bindings;
 							}
@@ -930,7 +930,7 @@
 					if (this.omdbData.state < 1){
 						this.omdbData.state = 1;
 
-						chrome.runtime.sendMessage({name: "GETDATA", url: queryString}, (value) => {
+						browser.runtime.sendMessage({name: "GETDATA", url: queryString}, (value) => {
 							this.omdbData.data = value;
 							this.omdbData.state = 2;
 	
@@ -1292,7 +1292,7 @@
 					if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1){
 						try{
 							this.tomatoData.state = 1;
-							chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.tomatoURL}, (value) => {
+							browser.runtime.sendMessage({name: "GETDATA", url: this.wikiData.tomatoURL}, (value) => {
 								var tomato = value.response;
 								if (tomato != ""){
 									this.tomatoData.raw = tomato;
@@ -2122,7 +2122,7 @@
 				this.cinemascore.state = 1;
 
 				if (letterboxd.storage.get('cinema-enabled') === true){
-					chrome.runtime.sendMessage({name: "JSON", url: url}, (data) => {
+					browser.runtime.sendMessage({name: "JSON", url: url}, (data) => {
 						var value = data.results;
 						// Check if found
 						if (this.cinemascore.data == null){
@@ -2195,7 +2195,7 @@
 			getCinema(title, titleType){
 				var encoded = letterboxd.helpers.encodeASCII(title);
 				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
-				chrome.runtime.sendMessage({name: "JSON", url: url}, (value) => {
+				browser.runtime.sendMessage({name: "JSON", url: url}, (value) => {
 					if (this.cinemascore.data == null){
 						this.cinemascore.data = value;
 					}else{
@@ -2349,7 +2349,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-mal",
 					href: this.mal.data.url + '/stats',
-					style: 'position: absolute; background-image: url("' + chrome.runtime.getURL("images/mal-logo.png") + '");'
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/mal-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 
@@ -2675,7 +2675,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-sens",
 					href: this.sensCritique.data.fields.url,
-					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + chrome.runtime.getURL("images/sens-logo.png") + '");'
+					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 				
@@ -3466,7 +3466,7 @@
 			options: {},
 
 			async init() {	
-				chrome.storage.sync.get('options', (data) => {
+				browser.storage.local.get('options', (data) => {
 					Object.assign(this.options, data.options);
 					
 					// Init default settings
@@ -3489,7 +3489,7 @@
 			set(key, value) {
 				this.options[key] = value;
 				var options = this.options;
-				chrome.storage.sync.set({options});
+				browser.storage.sync.set({options});
 			}
 		}
 	};
