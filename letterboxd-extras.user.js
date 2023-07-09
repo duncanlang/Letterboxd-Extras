@@ -2135,6 +2135,11 @@
 
 			addRating(){
 				if (document.querySelector('.extras-rating')) return;
+
+				if(letterboxd.storage.get('mpa-enabled') === false){
+					this.ratingAdded = true;
+					return;
+				}
 				
 				if (this.isMobile){
 					const year = document.querySelector('.details .releaseyear .bullet');
@@ -3828,6 +3833,7 @@
 				if (this.data['mal-enabled'] == null) this.set('mal-enabled', true);
 				if (this.data['al-enabled'] == null) this.set('al-enabled', true);
 				if (this.data['cinema-enabled'] == null) this.set('cinema-enabled', true);
+				if (this.data['mpa-enabled'] == null) this.set(mpa-enabled, true);
 				
 			},
 			get(key) {
