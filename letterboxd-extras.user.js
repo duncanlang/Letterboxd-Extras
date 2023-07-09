@@ -190,8 +190,8 @@
 			display: block;
 			width: 50px;
 			font-size: 11px;
-			height: 13px;
-			line-height: 14px;
+			height: 17px;
+			line-height: 18px;
 			margin-top: 4px;
 		}
 		.rt-bar{
