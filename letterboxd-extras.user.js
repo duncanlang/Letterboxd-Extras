@@ -69,6 +69,10 @@
 			border-radius: 100px;
 			/*margin-left: 10px;*/
 		}
+		.extras-meta-score {
+			display: inline-block;
+			vertical-align: top;
+		}
 		.cinema-grade, .cinema-grade:hover {
 			font-size:20px;
 		}
@@ -1509,7 +1513,7 @@
 					}
 
 					// Grab the 'must see'
-					if (this.metaData.data.querySelector('.must-see.product')){
+					if (this.metaData.data.querySelector('.must-see.product') || this.metaData.data.querySelector('.must.product')){
 						this.metaData.mustSee = true;
 					}
 
@@ -1759,7 +1763,7 @@
 				// Add Must see if applicable
 				if (this.metaData.mustSee == true){
 					const mustSeeSpan = letterboxd.helpers.createElement('span', {
-						class: 'meta-must-see tooltip display-rating -highlight',
+						class: 'meta-must-see tooltip display-rating -highlight extras-meta-score',
 						style: 'margin-top: 5px;',
 						['data-original-title']: 'Metacritic Must-See'
 					});
@@ -3158,8 +3162,8 @@
 					className += "-user"
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight ' + className,
-					style: 'background-color: ' + colour + '; display: inline-block;'
+					class: 'tooltip display-rating -highlight extras-meta-score ' + className,
+					style: 'background-color: ' + colour
 				});
 
 				// Add the hoverover text and href
