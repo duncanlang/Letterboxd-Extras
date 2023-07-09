@@ -2000,6 +2000,8 @@
 			},
 
 			addDurationMobile(){
+				if (document.querySelector(".extras-duration")) return
+
 				const durationElement = document.querySelector(".trailerandduration");
 
 				if (durationElement != null){
@@ -2012,6 +2014,7 @@
 					var format = hours + "h " + minutes + "m";
 
 					const newDuration = letterboxd.helpers.createElement('p', {
+						class: 'extras-duration',
 						style: 'margin-bottom: 0px;'
 					});
 					newDuration.innerText = "(" + format + ")";
@@ -3358,7 +3361,7 @@
 					style: style + ' position:absolute;'
 				});
 				
-				var convertRatings = letterboxd.storage.get('convert-ratings');
+				var convertRatings = (letterboxd.storage.get('convert-ratings') === true);
 				var suffix = "/10";
 				var tooltip = "";
 				if (rating != "N/A"){
@@ -3390,7 +3393,7 @@
 
 				if (rating == "N/A"){
 					scoreElement.innerText = "N/A";
-				} else if (type == "al" && convertRatings === false){
+				} else if (type == "al" && convertRatings == false){
 					scoreElement.innerText = rating + "%";
 				} else {
 					scoreElement.innerText = rating;
