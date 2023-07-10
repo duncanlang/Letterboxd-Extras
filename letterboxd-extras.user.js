@@ -3839,7 +3839,7 @@
 				if (this.data['mal-enabled'] == null) this.set('mal-enabled', true);
 				if (this.data['al-enabled'] == null) this.set('al-enabled', true);
 				if (this.data['cinema-enabled'] == null) this.set('cinema-enabled', true);
-				if (this.data['mpa-enabled'] == null) this.set(mpa-enabled, true);
+				if (this.data['mpa-enabled'] == null) this.set('mpa-enabled', true);
 				
 			},
 			get(key) {
