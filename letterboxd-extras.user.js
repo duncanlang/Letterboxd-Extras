@@ -331,7 +331,7 @@
 			tmdbTV: false,
 
 			// Mojo
-			mojoData: {url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: ""},
+			mojoData: {url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: "", added: false},
 
 			// Cinemascore
 			cinemascore: {state: 0, data: null, result: null},
@@ -2042,7 +2042,8 @@
 			},
 
 			addBoxOffice(){
-				if (document.querySelector('.box-office') && document.querySelector('.budget')) return;
+				//if (document.querySelector('.box-office') && document.querySelector('.budget')) return;
+				if (this.mojoData.added == true) return;
 
 				// First Grab the info
 				//*****************************************************
@@ -2107,7 +2108,7 @@
 								}
 							}
 						}
-					}	
+					}
 				}
 
 				// Return if we have nothing
@@ -2122,15 +2123,20 @@
 				}
 				// Add the Box Office US
 				//*****************************************************
-				if (this.mojoData.boxOfficeUS != "" && !document.querySelector('.box-office-us')){
+				if (this.mojoData.boxOfficeUS != ""){// && !document.querySelector('.box-office-us')){
 					letterboxd.helpers.createDetailsRow("Box Office (US)", this.mojoData.boxOfficeUS);
 				}
 
 				// Add the Box Office WW
 				//*****************************************************
-				if (this.mojoData.boxOfficeWW != "" && !document.querySelector('.box-office-ww')){
-					letterboxd.helpers.createDetailsRow("Box Office (WW)", this.mojoData.boxOfficeWW);
+				if (this.mojoData.boxOfficeWW != ""){// && !document.querySelector('.box-office-ww')){
+					// Don't add the WW box office if it's equal to the US
+					if (parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeWW)) > parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeUS))){
+						letterboxd.helpers.createDetailsRow("Box Office (WW)", this.mojoData.boxOfficeWW);
+					}
 				}
+
+				this.mojoData.added = true;
 			},
 
 			addRating(){
