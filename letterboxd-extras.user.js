@@ -52,7 +52,7 @@
 		}
 		.meta-score, .meta-score:hover, .meta-score-user, .meta-score-user:hover, .cinema-grade, .cinema-grade:hover {
 			color: white;
-			display: block;
+			display: inline-block;
 			font-family: Arial,Helvetica,sans-serif;
 			font-size: 16px;
 			font-weight: bold !important;
@@ -68,10 +68,6 @@
 		.meta-score-user, .meta-score-user:hover {
 			border-radius: 100px;
 			/*margin-left: 10px;*/
-		}
-		.extras-meta-score {
-			display: inline-block;
-			vertical-align: top;
 		}
 		.cinema-grade, .cinema-grade:hover {
 			font-size:20px;
@@ -1763,7 +1759,7 @@
 				// Add Must see if applicable
 				if (this.metaData.mustSee == true){
 					const mustSeeSpan = letterboxd.helpers.createElement('span', {
-						class: 'meta-must-see tooltip display-rating -highlight extras-meta-score',
+						class: 'meta-must-see tooltip display-rating -highlight',
 						style: 'margin-top: 5px;',
 						['data-original-title']: 'Metacritic Must-See'
 					});
@@ -3145,9 +3141,9 @@
 
 			createMetaScore(type, display, url, data, mustSee, isMobile){
 				// The span that holds the score
-				var style = "display: inline-block;";
+				var style = "";
 				if (type == "critic" || mustSee)
-					style += " margin-right: 10px;"
+					style += "margin-right: 10px;"
 				const span = letterboxd.helpers.createElement('span', {
 					style: style
 				});
@@ -3162,7 +3158,7 @@
 					className += "-user"
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight extras-meta-score ' + className,
+					class: 'tooltip display-rating -highlight ' + className,
 					style: 'background-color: ' + colour
 				});
 
