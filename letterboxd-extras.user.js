@@ -1415,7 +1415,7 @@
 
 				}else{
 					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.isMobile));
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "TOP", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "VERIFIED", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
 				}
 
 				// Add scores
