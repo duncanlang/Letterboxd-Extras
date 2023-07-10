@@ -37,6 +37,7 @@ async function load(){
         if (options['mal-enabled'] == null) options['mal-enabled'] = true;
         if (options['al-enabled'] == null) options['al-enabled'] = true;
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
+        if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
         
         // Set the settings
         var elements = document.querySelectorAll('.setting');
