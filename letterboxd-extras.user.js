@@ -438,9 +438,9 @@
 					this.sensCritique.state = 1;
 					if (letterboxd.storage.get('senscritique-enabled') === true){
 						var title = this.letterboxdTitle;
-						var type = "Films";
+						var type = "movie";
 						if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
-						if (this.tmdbTV == true) type = "Séries"
+						if (this.tmdbTV == true) type = "tvShow"
 	
 						letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", title, type).then((value) =>{
 							var sens = JSON.parse(value.response);
