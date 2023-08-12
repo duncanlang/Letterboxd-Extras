@@ -116,7 +116,7 @@
 		.rating-histogram-extras{
 			margin-bottom: 10px !important;
 		}
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -146,6 +146,13 @@
 		.rating-star-al{
 			color: #3db4f2;
 			filter: brightness(0) saturate(100%) invert(67%) sepia(28%) saturate(3210%) hue-rotate(171deg) brightness(97%) contrast(95%);
+		}
+		.rating-star-mubi{
+			color: #FFF;
+			filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(803%) hue-rotate(267deg) brightness(106%) contrast(101%);
+			scale: 1.8;
+			margin-top: 8px;
+			margin-left: 5px;
 		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
@@ -351,7 +358,8 @@
 				countries: [],
 				date: {value: null, precision: null},
 				date_origin: {value: null, precision: null},
-				US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null, AniDB_ID: null, AniList_ID: null, MAL_ID: null},
+				US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null, AniDB_ID: null, AniList_ID: null, MAL_ID: null,
+				Mubi_ID: null, Mubi_URL: null},
 
 			// Rotten Tomatoes
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
@@ -359,6 +367,9 @@
 			// Metacritic
 			metaData: {state: 0, data: null, raw: null, mustSee: false, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
 
+			// Mubi
+			mubiData: {state: 0, data: null, raw: null, url: null, rating: null, ratingAlt: null, num_ratings: null, popularity: null},
+			
 			// MPAA rating
 			mpaaRating: null,
 
@@ -684,6 +695,15 @@
 
 									this.wikiData.tomatoURL = url;
 									this.initTomato();
+								}
+
+								// Get and add Mubi
+								if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){ //&& letterboxd.storage.get('tomato-enabled') === true){
+									var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
+
+									this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
+									this.wikiData.Mubi_URL = url;
+									this.initMubi();
 								}
 
 								// Get MAL data
@@ -1798,6 +1818,125 @@
 
 			},
 
+			initMubi(){
+				if (this.wikiData.Mubi_URL != null && this.wikiData.Mubi_URL != ""){
+	
+					if (this.mubiData.data == null && this.mubiData.state < 1){
+						try{
+							this.mubiData.state = 1;
+							letterboxd.helpers.getMubiData(this.wikiData.Mubi_URL).then((value) =>{
+								var mubi = value.response;
+								if (mubi != ""){
+									this.mubiData.raw = mubi;
+									this.mubiData.data = JSON.parse(mubi);
+									//this.wikiData.Mubi_URL = value.url;
+									
+									this.addMubi();
+									this.mubiData.state = 2;
+									
+									this.addLink(this.mubiData.url);
+								}
+							});
+						}catch{
+							console.log("Unable to parse MUBI URL");
+							this.mubiData.state = 3;
+						}
+					}else if (this.mubiData.state < 1){
+						this.mubiData.state = 3;
+					}
+				}
+			},
+
+			addMubi(){
+				if (document.querySelector('.mubi-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+
+				// Collect Date from MUBI response
+				//***************************************************************
+				this.mubiData.rating = this.mubiData.data.average_rating_out_of_ten;
+				this.mubiData.ratingAlt = this.mubiData.data.average_rating;
+				this.mubiData.num_ratings = this.mubiData.data.number_of_ratings;
+				this.mubiData.popularity = this.mubiData.data.popularity;
+				this.mubiData.url = this.mubiData.data.web_url;
+
+				// Add to Letterboxd
+				//***************************************************************
+				// Add the section to the page
+				const section = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart mubi-ratings ratings-extras'
+				});				
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading section-heading-extras'
+				});
+				section.append(heading);
+
+				const logo = letterboxd.helpers.createElement('a', {
+					class: 'logo-mubi',
+					style: 'width: 100%;'
+				});
+				logo.innerHTML = '<svg viewBox="0 0 800 240" width="48px" style="vertical-align:top" class="css-13o7eu2 e101vm530"><g fill="#FFFFFF"><path d="M444.53,171.29a45.66,45.66,0,0,0-15.67-14.69,39.3,39.3,0,0,0,11.78-12.32q4.42-7.34,4.43-17.94a40.2,40.2,0,0,0-3.46-16.85,38.1,38.1,0,0,0-9.61-13,43.34,43.34,0,0,0-14.7-8.32,57.32,57.32,0,0,0-18.69-2.92H324.07V236.54h78.86a56.74,56.74,0,0,0,19.34-3.14,44.75,44.75,0,0,0,15-8.74A38.58,38.58,0,0,0,447,211a44,44,0,0,0,3.46-17.71Q450.47,180.36,444.53,171.29Zm-92.37-62.23h44.29q9.72,0,15.13,4.65t5.4,13.72q0,9.06-5.4,14.26t-15.13,5.18H352.16Zm65.14,98q-5.07,5.73-16.53,5.73H352.16V170.64h48.61q11.24,0,16.43,6.37a23.43,23.43,0,0,1,5.18,15.24Q422.38,201.33,417.3,207Z"></path><path d="M268.53,235.24a58,58,0,0,0,19.77-12.42,53.71,53.71,0,0,0,12.42-18.58,60.11,60.11,0,0,0,4.33-22.8V85.29H277v96.15A39.87,39.87,0,0,1,274.47,196a30,30,0,0,1-7,10.8,30.73,30.73,0,0,1-10.91,6.81,43.43,43.43,0,0,1-28.3,0,30.77,30.77,0,0,1-10.92-6.81,30.25,30.25,0,0,1-7-10.8,40.09,40.09,0,0,1-2.48-14.59V85.29H179.73v96.15a60.3,60.3,0,0,0,4.32,22.8,53.71,53.71,0,0,0,12.42,18.58,58.33,58.33,0,0,0,19.67,12.42,77.84,77.84,0,0,0,52.39,0"></path><path d="M80.13,236.54l34.36-65.9q3-5.61,5.39-10.59t4.54-9.83q2.16-4.86,4.22-9.94t4.43-10.69h.86q-.44,6-.86,11.34c-.3,3.53-.51,6.95-.65,10.26s-.25,6.74-.33,10.27-.11,7.31-.11,11.34v63.74h28.09V85.29H128.75L99.36,142.76q-3,5.85-5.51,10.81c-1.66,3.31-3.24,6.56-4.75,9.72s-3,6.41-4.43,9.73-3,6.84-4.54,10.58Q77.75,178,75.59,173t-4.43-9.73c-1.51-3.16-3.1-6.41-4.75-9.72s-3.49-6.91-5.51-10.81L31.51,85.29H.19V236.54H28.27V172.8q0-6-.1-11.34t-.33-10.27q-.21-5-.65-10.26t-.86-11.34h.86q2.16,5.61,4.32,10.69t4.33,9.94c1.43,3.24,2.95,6.52,4.53,9.83s3.39,6.85,5.4,10.59Z"></path><rect x="468.61" y="85.29" width="28.09" height="151.25"></rect><g fill="#FFFFFF"><circle cx="766.5" cy="118.11" r="33.13"></circle><circle cx="595.89" cy="118.11" r="33.13"></circle><circle cx="681.2" cy="118.11" r="33.13"></circle><circle cx="595.89" cy="33.13" r="33.13"></circle><circle cx="681.2" cy="33.13" r="33.13"></circle><circle cx="595.89" cy="203.1" r="33.13"></circle><circle cx="681.2" cy="203.1" r="33.13"></circle></g></g></svg>';
+				logo.setAttribute('href', this.mubiData.url);
+				heading.append(logo);
+				
+				// Score
+				//***************************************************************
+				// Add a star to match the MUBI site
+				const span1Star = letterboxd.helpers.createElement('span', {
+					class: 'rating-green rating-green-tiny rating-1'
+				});
+				const span1StarInner = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-2 rating-star-mubi'
+				});
+				span1StarInner.innerText = "★";
+				span1Star.append(span1StarInner);
+				section.append(span1Star);
+
+				// The span that holds the score
+				const span = letterboxd.helpers.createElement('span', {
+					style: ''
+				});
+
+				// The element that is the score itself
+				const text = letterboxd.helpers.createElement('a', {
+					class: 'tooltip display-rating -highlight mubi-score'
+				});
+
+				// Add the hoverover text and href
+				var score = "N/A";
+				if (this.mubiData.num_ratings > 0){
+					var totalScore = "/10";
+					score = this.mubiData.rating;
+					if (letterboxd.storage.get('convert-ratings') === true){
+						totalScore = "/5";
+						score = this.mubiData.ratingAlt;
+					}
+					var hover = "Average of " + score + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
+					if (this.mubiData.num_ratings != 1)
+						hover += "s"
+
+				}else{
+					var hover = "No score available";
+				}
+				text.innerText = score;
+				text.setAttribute('data-original-title',hover);
+				text.setAttribute('href', this.mubiData.url + "/ratings");
+				span.append(text);
+				
+				section.append(span);
+
+				// APPEND to the sidebar
+				//************************************************************
+				this.appendRating(section, 'mubi-ratings');
+
+				// Add Hover events
+				//************************************************************
+				$(".tooltip.display-rating.-highlight.mubi-score").on("mouseover", ShowTwipsy);
+				$(".tooltip.display-rating.-highlight.mubi-score").on("mouseout", HideTwipsy);
+			},
+
 			addLink(url){
 				// Check if already added
 				if (!this.linksAdded.includes(url)){
@@ -1826,6 +1965,9 @@
 					}else if (url.includes("senscritique")){
 						text = "CRITIQUE";
 						className = "sens-button";
+					}else if (url.includes("mubi.com")){
+						text = "MUBI";
+						className = "mubi-button";
 					}
 
 					if (document.querySelector('.' + className)){
@@ -1844,6 +1986,7 @@
 						'.tomato-button',
 						'.meta-button',
 						'.sens-button',
+						'.mubi-button',
 						'.mal-button',
 						'.al-button',
 						'.anidb-button',
@@ -2734,6 +2877,7 @@
 					'.tomato-ratings',
 					'.meta-ratings',
 					'.sens-ratings',
+					'.mubi-ratings',
 					'.anidb-ratings',
 					'.cinemascore'
 				];
@@ -2797,6 +2941,28 @@
 					const res = await letterboxd.helpers.request({
 						url: link,
 						method: 'GET'
+					});
+					return {response: res.response, url: res.responseURL};
+				} catch (err) {
+					console.error(err);
+				}
+				return null;
+			},
+
+			async getMubiData(link) {
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("Letterboxd-extras | Calling: " + link);
+
+				try {
+					const res = await letterboxd.helpers.request({
+						url: link,
+						method: 'GET',
+						headers: {
+							'content-type': 'application/json',
+							accept: 'application/json',
+							'client_country': 'US',
+							'client': 'web'
+						}
 					});
 					return {response: res.response, url: res.responseURL};
 				} catch (err) {
@@ -3740,7 +3906,7 @@
 					"  }\n" +
 					"}";
 				}else{
-					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Country_Of_OriginLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Format ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?Publication_Date_Origin_Format ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"  {\n" +
 					"    SELECT DISTINCT ?item WHERE {\n" +
@@ -3753,8 +3919,8 @@
 					"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P8729 ?Anilist_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P4086 ?MAL_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P7299 ?Mubi_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
-					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P2130 ?Budget_Entry.\n" +
 					"    ?Budget_Entry ps:P2130 ?Budget.\n" +
