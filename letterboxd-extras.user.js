@@ -303,6 +303,21 @@
 			display: flex;
 			flex-direction: row;
 		}
+		.extras-table{
+			width: 100%;
+			margin-bottom: 10px;
+			border: 1px solid hsla(0,0%,100%,.25);
+			border-radius: 4px;
+			padding: 3px;
+			padding-left: 5px;
+			padding-right: 5px;
+		}
+		.extras-table .extras-header{
+			width: 40%;
+		}
+		.extras-table .extras-value{
+			width: 60%;
+		}
 	`);
 	/* eslint-enable */
 
@@ -2788,6 +2803,103 @@
 			}
 		},
 
+		person: {
+			running: false,
+
+			tmdbID: null,
+			wiki: null,
+
+			stopRunning() {
+				this.running = false;
+			},
+
+			async init(){
+				this.running = true;
+
+				// First Get the IMDb link 
+				if (this.tmdbID == null && document.querySelector('.js-tmdb-person-bio') != null){
+					// Loop and find TMDB
+					const links = document.querySelector('.js-tmdb-person-bio');
+					this.tmdbID = links.getAttribute('data-tmdb-id');
+
+					this.callWikiData();
+				}
+
+				// Stop
+				return this.stopRunning();
+			},
+
+			callWikiData(){
+				// Get the Query String
+				var queryString = letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDBPERSON', 'PERSON');
+
+				// Call WikiData
+				letterboxd.helpers.getWikiData(queryString).then((value) =>{
+					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+						this.wiki = value.results.bindings[0];
+						
+						this.addWikiData();
+					}
+				});
+			},
+
+			addWikiData(){
+				if (document.querySelector('.extras-table')) return;
+
+				// Collect basic info
+				//*****************************************
+				var options = { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
+
+				// Birth date
+				if (this.wiki.Date_Of_Birth != null && this.wiki.Date_Of_Birth.value != null){
+					var birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString("en-UK", options);
+					// TODO: we should have precision, I bet some people only have year
+				}else{
+					var birth = null;
+				}
+				// Death date
+				if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null){
+					var death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", options);
+				}else{
+					var death = null;
+				}
+				// Years Active
+				if (this.wiki.Years_Start != null && this.wiki.Years_Start.value != null){
+					var yearsActive = new Date(this.wiki.Years_Start.value).getFullYear().toString();
+					if (this.wiki.Years_End != null && this.wiki.Years_End.value != null){
+						yearsActive += "-" + new Date(this.wiki.Years_End.value).getFullYear().toString();
+					}else{
+						yearsActive += "-present"
+					}
+				}else{
+					var yearsActive = null;
+				}
+
+				// TODO, add wikipedia link. See if I can get the wikipedia based on the language of the browser? and fallback to english
+
+
+				// Create Table
+				//*****************************************
+				const table = document.createElement("table");
+				table.setAttribute('class','extras-table');
+
+				if (birth != null){
+					letterboxd.helpers.createTableRow(table, "Born", birth);
+				}
+				if (death != null){
+					letterboxd.helpers.createTableRow(table, "Died", death);
+				}
+				if (yearsActive != null){
+					letterboxd.helpers.createTableRow(table, "Years active", yearsActive);
+				}
+
+				// Add to page
+				//*****************************************
+				document.querySelector('.js-tmdb-person-bio').before(table);
+			}
+
+		},
+
 		helpers: {
 			async getData(link) {
 				if (letterboxd.storage.get('console-log') === true)
@@ -3739,6 +3851,36 @@
 					"    MINUS { ?Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"  }\n" +
 					"}";
+				}else if (queryType == "PERSON"){
+						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?CitizenshipLabel ?Date_Of_Birth ?Date_Of_Death ?City_Of_BirthLabel ?Country_Of_BirthLabel ?Wikipedia ?Years_Start ?Years_End  WHERE {\n" +
+						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+						"  {\n" +
+						"    SELECT DISTINCT ?item WHERE {\n" +
+						"      ?item p:P4985 ?statement0.\n" +
+						"      ?statement0 ps:P4985 \"" + id + "\".\n" +
+						"    }\n" +
+						"    LIMIT 10\n" +
+						"  }\n" +
+						"  OPTIONAL { ?item wdt:P27 ?Citizenship. }\n" +
+						"  OPTIONAL { ?item wdt:P569 ?Date_Of_Birth. }\n" +
+						"  OPTIONAL { ?item wdt:P570 ?Date_Of_Death. }\n" +
+						"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
+						"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
+						"  OPTIONAL { \n" +
+						"    ?item p:P19 ?Entry.\n" +
+						"    ?Entry ps:P19 ?City_Of_Birth.\n" +
+						"    OPTIONAL { \n" +
+						"      ?City_Of_Birth p:P17 ?Country.\n" +
+						"      ?Country ps:P17 ?Country_Of_Birth.\n" +
+						"    }\n" +
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?Wikipedia schema:about ?item .\n" +
+						"    ?Wikipedia schema:inLanguage \"en\" .\n" +
+						"    ?Wikipedia schema:isPartOf <https://en.wikipedia.org/> .\n" +
+						"  }\n" +
+						"}\n" +
+						"";
 				}else{
 					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Country_Of_OriginLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Format ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?Publication_Date_Origin_Format ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
@@ -3821,6 +3963,17 @@
 				sparqlQuery = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + sparqlQuery;
 				
 				return sparqlQuery;
+			},
+			
+			createTableRow(table, header, value){
+				var row = table.insertRow();
+				var cell1 = row.insertCell();
+				cell1.setAttribute('class','extras-header');
+				var cell2 = row.insertCell();
+				cell2.setAttribute('class','extras-value');
+
+				cell1.appendChild(document.createTextNode(header));
+				cell2.appendChild(document.createTextNode(value));
 			}
 		},
 
@@ -3864,6 +4017,11 @@
 				if (letterboxd.storage.get('search-redirect') === true){
 					letterboxd.search.init();
 				}
+			}else if (window.location.pathname.startsWith('/actor/') ||
+			window.location.pathname.startsWith('/director/') ||
+			window.location.pathname.startsWith('/writer/') ||
+			window.location.pathname.startsWith('/producer/')){
+				letterboxd.person.init();
 			}
 		}
 	});
