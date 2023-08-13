@@ -379,7 +379,7 @@
 			metaData: {state: 0, data: null, raw: null, mustSee: false, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
 
 			// Mubi
-			mubiData: {state: 0, data: null, raw: null, url: null, rating: null, ratingAlt: null, num_ratings: null, popularity: null},
+			mubiData: {state: 0, data: null, raw: null, url: null, rating: null, ratingAlt: null, num_ratings: 0, popularity: 0},
 			
 			// MPAA rating
 			mpaaRating: null,
@@ -709,12 +709,18 @@
 								}
 
 								// Get and add Mubi
-								if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){ //&& letterboxd.storage.get('tomato-enabled') === true){
-									var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
+								if (letterboxd.storage.get('mubi-enabled') === true){
+									if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){
+										var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
 
-									this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
-									this.wikiData.Mubi_URL = url;
-									this.initMubi();
+										this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
+										this.wikiData.Mubi_URL = url;
+										this.initMubi();
+									}else{
+										// WikiData does not have the MUBI ID, lets use the API to search instead
+										var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
+										this.mubiSearch(url);
+									}
 								}
 
 								// Get MAL data
@@ -1840,7 +1846,6 @@
 								if (mubi != ""){
 									this.mubiData.raw = mubi;
 									this.mubiData.data = JSON.parse(mubi);
-									//this.wikiData.Mubi_URL = value.url;
 									
 									this.addMubi();
 									this.mubiData.state = 2;
@@ -1858,6 +1863,41 @@
 				}
 			},
 
+			mubiSearch(url){
+				// Use the API search to find and match the movie
+				try{
+					this.mubiData.state = 1;
+					letterboxd.helpers.getMubiData(url).then((value) =>{
+						var mubi = value.response;
+						if (mubi != ""){
+							var films = JSON.parse(mubi).films;
+							
+							var index = -1;
+							for (var i = 0; i < films.length; i++){
+								if (this.tmdbTV == true && !(films[i].genres.includes("TV Series") || films[i].genres.includes("TV Mini-series"))){
+									continue;
+								}else if (this.letterboxdYear == films[i].year && (this.letterboxdTitle.toUpperCase() == films[i].title.toUpperCase() || this.letterboxdTitle.toUpperCase() == films[i].original_title)){
+									index = i;
+									break;	
+								}
+							}
+
+							if (index >= 0){
+								this.mubiData.data = films[i];
+
+								this.addMubi();
+								this.mubiData.state = 2;
+								
+								this.addLink(this.mubiData.url);
+							}
+						}
+					});
+				}catch{
+					console.log("Unable to parse MUBI search URL");
+					this.mubiData.state = 3;
+				}
+			},
+
 			addMubi(){
 				if (document.querySelector('.mubi-ratings')) return;
 
@@ -1867,9 +1907,16 @@
 				//***************************************************************
 				this.mubiData.rating = this.mubiData.data.average_rating_out_of_ten;
 				this.mubiData.ratingAlt = this.mubiData.data.average_rating;
-				this.mubiData.num_ratings = this.mubiData.data.number_of_ratings;
-				this.mubiData.popularity = this.mubiData.data.popularity;
+				if (this.mubiData.data.number_of_ratings != null){
+					this.mubiData.num_ratings = this.mubiData.data.number_of_ratings;
+				}
+				if (this.mubiData.data.popularity != null){
+					this.mubiData.popularity = this.mubiData.data.popularity;
+				}
 				this.mubiData.url = this.mubiData.data.web_url;
+
+				// Do not display if there is no score or ratings
+				if (this.mubiData.rating == null && this.mubiData.num_ratings == 0) return;
 
 				// Add to Letterboxd
 				//***************************************************************
@@ -1922,7 +1969,7 @@
 				// Score and hover
 				var score = this.mubiData.rating;
 				var totalScore = "/10";
-				var hover = "Average of " + score + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
+				var hover = "Average of " + score.toFixed(1) + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
 				if (this.mubiData.num_ratings != 1)
 					hover += "s"
 				
@@ -1932,9 +1979,16 @@
 				}
 
 				// If no ratings, display as N/A and change hover
-				if (this.mubiData.num_ratings == 0){
+				if (score == null && this.mubiData.num_ratings == 0){
 					score = "N/A";
 					hover = "No score available";
+				}else if (this.mubiData.num_ratings == 0){
+					score = "N/A";
+					hover = this.mubiData.num_ratings.toLocaleString() + ' rating';
+					if (this.mubiData.num_ratings != 1)
+						hover += "s"
+				}else{
+					score = score.toFixed(1)
 				}
 
 				scoreText.innerText = score;
