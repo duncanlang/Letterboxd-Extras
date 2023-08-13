@@ -126,7 +126,7 @@
 			width: 100px;
 		}
 		.logo-mubi{
-			width: 100%;
+			width: 50px;
 			height: 26px;
 			display: block;
 			margin-left: 2px;
@@ -1959,6 +1959,16 @@
 				logo.setAttribute('href', this.mubiData.url);
 				heading.append(logo);
 				
+				if (this.isMobile){
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details mubi-show-details',
+						['target']: 'mubi-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
+				
 				// Score
 				//***************************************************************
 				// Create a span that holds the entire 
@@ -2023,9 +2033,30 @@
 				scoreTotal.innerText = totalScore;
 				scoreSpan.append(scoreTotal);
 
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mubi-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = hover;
+					detailsSpan.append(detailsText);
+					
+					section.append(detailsSpan);
+				}
+
 				// APPEND to the sidebar
 				//************************************************************
 				this.appendRating(section, 'mubi-ratings');
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".mubi-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
 
 				// Add Hover events
 				//************************************************************
