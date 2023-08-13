@@ -1874,11 +1874,32 @@
 							
 							var index = -1;
 							for (var i = 0; i < films.length; i++){
+								// If TV, must have TV genres
 								if (this.tmdbTV == true && !(films[i].genres.includes("TV Series") || films[i].genres.includes("TV Mini-series"))){
 									continue;
-								}else if (this.letterboxdYear == films[i].year && (this.letterboxdTitle.toUpperCase() == films[i].title.toUpperCase() || this.letterboxdTitle.toUpperCase() == films[i].original_title)){
+								}
+								
+								// Check if the year and name is exact match
+								if (this.letterboxdYear == films[i].year && (this.letterboxdTitle.toUpperCase() == films[i].title.toUpperCase() || this.letterboxdTitle.toUpperCase() == films[i].original_title)){
 									index = i;
 									break;	
+								}
+								
+								// Match based on directors and within 5 years (to account for differences in listed year)
+								for (var k = 0; k < films[i].directors.length; k++){
+									// Director name to lowercase and removed diacritics
+									var director = films[i].directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+									if (this.letterboxdDirectors.includes(director)){
+										// Check to see if film is within 5 years
+										var score = Math.abs((parseInt(this.letterboxdYear)) - films[i].year)
+										if (score < 5){
+											index = i
+											break;
+										}
+									}
+								}
+								if (index != -1){
+									break;
 								}
 							}
 
