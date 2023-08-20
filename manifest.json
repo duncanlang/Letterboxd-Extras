@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
-	"version": "3.7.0",
+	"version": "3.8.0",
 	"minimum_chrome_version": "88",
 
 	"icons": {
@@ -30,7 +30,8 @@
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
 		"https://graphql.anilist.co/*",
-		"https://apollo.senscritique.com/*"
+		"https://apollo.senscritique.com/*",
+		"https://api.mubi.com/*"
 	],
 
 	"background": {
