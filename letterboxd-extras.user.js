@@ -327,6 +327,7 @@
 		}
 		.extras-table td{
 			padding-bottom: 10px;
+		}
 		.mubi-score{
 			color: #FFF;
 			font-size: 18px;
