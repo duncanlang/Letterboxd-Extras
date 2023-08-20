@@ -2484,7 +2484,7 @@
 				var encoded = letterboxd.helpers.encodeASCII(title);
 
 				// Create the URL and send the request
-				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+				var url = "https://webapp.cinemascore.com/guest/search/title/" + encoded;
 				this.cinemascore.state = 1;
 
 				if (letterboxd.storage.get('cinema-enabled') === true){
