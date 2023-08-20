@@ -303,6 +303,25 @@
 			display: flex;
 			flex-direction: row;
 		}
+		.extras-table{
+			width: 100%;
+			margin-bottom: 10px;
+			border: 1px solid hsla(0,0%,100%,.25);
+			border-radius: 4px;
+			padding-top: 3px;
+			padding-left: 5px;
+			padding-right: 5px;
+			font-size: 95%;
+		}
+		.extras-table .extras-header{
+			width: 40%;
+		}
+		.extras-table .extras-value{
+			width: 60%;
+		}
+		.extras-table td{
+			padding-bottom: 10px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -2788,6 +2807,187 @@
 			}
 		},
 
+		person: {
+			running: false,
+
+			tmdbID: null,
+			wiki: null,
+			letterboxdName: null,
+
+			stopRunning() {
+				this.running = false;
+			},
+
+			async init(){
+				this.running = true;
+
+				// Get the person's name from the page
+				if (this.letterboxdName == null && document.querySelector('h1.title-1') != null){
+					this.getName();
+				}
+
+				// Get the TMDB id and call wikidata 
+				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.js-tmdb-person-bio') != null){
+					// Loop and find TMDB
+					const links = document.querySelector('.js-tmdb-person-bio');
+					this.tmdbID = links.getAttribute('data-tmdb-id');
+
+					this.callWikiData();
+				}
+
+				// Stop
+				return this.stopRunning();
+			},
+
+			getName(){
+				var nameElement = document.querySelector('h1.title-1');
+
+				this.letterboxdName = nameElement.textContent;
+			},
+
+			callWikiData(){
+				// Get the Query String
+				var lang = null;
+				try{
+					lang = window.navigator.language.substring(0,2);
+				}
+				catch{}
+				var queryString = letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDBPERSON', 'PERSON', lang);
+
+				// Call WikiData
+				letterboxd.helpers.getWikiData(queryString).then((value) =>{
+					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+						this.wiki = value.results.bindings[0];
+						
+						this.addWikiData();
+						this.addWikiButton();
+					}
+				});
+			},
+
+			addWikiData(){
+				if (document.querySelector('.extras-table')) return;
+
+				// Collect basic info
+				//*****************************************
+				var isAlive = this.wiki.Date_Of_Death == null || this.wiki.Date_Of_Death.value == null;
+
+				var options = { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
+				var options2 = { year: 'numeric', timeZone: 'UTC' };
+
+				// Birth name and date
+				var name = null;
+				var birth = null;
+				var birthPlace = null;
+				if (this.wiki.BirthName != null && this.wiki.BirthName.value != null){
+					if (this.wiki.BirthName.value != this.wiki.itemLabel.value && this.wiki.BirthName.value != this.letterboxdName){
+						name = this.wiki.BirthName.value;
+					}
+				}
+				if (this.wiki.Date_Of_Birth != null && this.wiki.Date_Of_Birth.value != null && this.wiki.Date_Of_Birth_Precision.value >= 9){
+					var birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(this.wiki.Date_Of_Birth_Precision));
+					if (isAlive == true){
+						var age = letterboxd.helpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
+						birth += " (age " + age + ")";
+					}
+					if (this.wiki.BirthCityLabel != null && this.wiki.BirthCityLabel.value != null){
+						birthPlace = this.wiki.BirthCityLabel.value;
+						if (this.wiki.BirthCountry != null && this.wiki.BirthCountry.value != null){
+							birthPlace += ", " + this.wiki.BirthCountry.value;
+						}
+					}
+					// TODO: we should have precision, I bet some people only have year
+				}
+				// Death date
+				var death = null;
+				var deathPlace = null;
+				if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9){
+					var death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(this.wiki.Date_Of_Death_Precision));
+
+					var age = letterboxd.helpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
+					death += " (aged " + age + ")";
+					
+					if (this.wiki.DeathCityLabel != null && this.wiki.DeathCityLabel.value != null){
+						deathPlace = this.wiki.DeathCityLabel.value;
+						if (this.wiki.DeathCountry != null && this.wiki.DeathCountry.value != null){
+							deathPlace += ", " + this.wiki.DeathCountry.value;
+						}
+					}
+				}
+				// Years Active
+				if (this.wiki.Years_Start != null && this.wiki.Years_Start.value != null){
+					var yearsActive = new Date(this.wiki.Years_Start.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
+					if (this.wiki.Years_End != null && this.wiki.Years_End.value != null){
+						yearsActive += "–" + new Date(this.wiki.Years_End.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
+					}else{
+						yearsActive += "–present";
+					}
+				}else{
+					var yearsActive = null;
+				}
+
+				// Create Table
+				//*****************************************
+				const table = document.createElement("table");
+				table.setAttribute('class','extras-table');
+				var empty = true;
+
+				if (birth != null){
+					if (name != null){
+						letterboxd.helpers.createTableRow(table, "Born", name, birth, birthPlace);
+					}else{
+						letterboxd.helpers.createTableRow(table, "Born", birth, birthPlace);
+					}
+					empty = false;
+				}
+				if (death != null){
+					if (deathPlace != null){
+						letterboxd.helpers.createTableRow(table, "Died", death, deathPlace);
+					}else{
+						letterboxd.helpers.createTableRow(table, "Died", death, null);
+					}
+					empty = false;
+				}
+				if (yearsActive != null){
+					letterboxd.helpers.createTableRow(table, "Years active", yearsActive);
+					empty = false;
+				}
+
+				// Add to page
+				//*****************************************
+				if (empty == false){
+					if (document.querySelector('.js-tmdb-person-bio') != null){
+						document.querySelector('.js-tmdb-person-bio').before(table);
+					}else if (document.querySelector('.avatar.person-image') != null){
+						document.querySelector('.avatar.person-image').after(table);
+					}
+				}
+			},
+
+			addWikiButton(){
+				if (document.querySelector('.wiki-button')) return;
+
+				if (this.wiki.Wikipedia != null && this.wiki.Wikipedia.value != null){
+					var url = this.wiki.Wikipedia.value;
+				}else if (this.wiki.WikipediaEN != null && this.wiki.WikipediaEN.value != null){
+					var url = this.wiki.WikipediaEN.value;
+				}else{
+					return;
+				}
+
+				// Create Button Element
+				var button = letterboxd.helpers.createElement('a', {
+					class: 'micro-button wiki-button',
+					href: url
+				});
+				button.innerText = "WIKI";
+	
+				// Add to Page
+				document.querySelector('.micro-button').after(button);
+			}
+
+		},
+
 		helpers: {
 			async getData(link) {
 				if (letterboxd.storage.get('console-log') === true)
@@ -3690,7 +3890,7 @@
 				return value;
 			},
 			
-			getWikiDataQuery(id, idType, queryType){
+			getWikiDataQuery(id, idType, queryType, lang){
 				/* WikiData Date Precision values:
 				0 - billion years
 				1 - hundred million years
@@ -3704,6 +3904,9 @@
 				13 - minute
 				14 - second
 				*/
+
+				if (lang == null)
+					lang = "en";
 				
 				switch(idType.toUpperCase()){
 					case "IMDB":
@@ -3739,6 +3942,104 @@
 					"    MINUS { ?Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"  }\n" +
 					"}";
+				}else if (queryType == "PERSON"){
+						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End  WHERE {\n" +
+						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+						"  {\n" +
+						"    SELECT DISTINCT ?item WHERE {\n" +
+						"      ?item p:P4985 ?statement0.\n" +
+						"      ?statement0 ps:P4985 \"" + id + "\".\n" +
+						"    }\n" +
+						"    LIMIT 10\n" +
+						"  }\n" +
+						"  OPTIONAL { \n" +
+						"    ?item wdt:P1477 ?BirthName.\n" +
+						"    FILTER(LANG(?BirthName) = \"en\") .\n" +
+						"  }\n" +
+						"  OPTIONAL { \n" +
+						"    ?item p:P569 ?BirthEntry.\n" +
+						"    ?BirthEntry ps:P569 ?Date_Of_Birth.\n" +
+						"    ?BirthEntry psv:P569 [wikibase:timePrecision ?Date_Of_Birth_Precision]. \n" +
+						"    ?BirthEntry a wikibase:BestRank\n" +
+						"  }\n" +
+						"  OPTIONAL { \n" +
+						"    ?item p:P570 ?DeathEntry.\n" +
+						"    ?DeathEntry ps:P570 ?Date_Of_Death.\n" +
+						"    ?DeathEntry psv:P570 [wikibase:timePrecision ?Date_Of_Death_Precision].\n" +
+						"    ?DeathEntry a wikibase:BestRank\n" +
+						"  }\n" +
+						"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
+						"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
+						"  OPTIONAL { \n" +
+						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    ?item p:P19 ?Entry.\n" +
+						"    ?Entry ps:P19 ?BirthCity.  \n" +
+						"    ?BirthCity wdt:P31/wdt:P279* ?locationType.\n" +
+						"    OPTIONAL { \n" +
+						"      ?BirthCity p:P17 ?Country.\n" +
+						"      ?Country ps:P17 ?Country_Of_Birth.\n" +
+						"      ?Country a wikibase:BestRank\n" +
+						"      OPTIONAL { \n" +
+						"        ?Country_Of_Birth wdt:P298 ?BirthCountry.\n" +
+						"      }\n" +
+						"    }\n" +
+						"  }\n" +
+						"  OPTIONAL { \n" +
+						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    ?item p:P19 ?Entry.\n" +
+						"    ?Entry ps:P19 ?BirthTemp.  \n" +
+						"    ?BirthTemp wdt:P131 ?BirthCity.\n" +
+						"    ?BirthCity wdt:P31/wdt:P279* ?locationType2.\n" +
+						"    OPTIONAL { \n" +
+						"      ?BirthCity p:P17 ?Country.\n" +
+						"      ?Country ps:P17 ?Country_Of_Birth.\n" +
+						"      ?Country a wikibase:BestRank\n" +
+						"      OPTIONAL { \n" +
+						"        ?Country_Of_Birth wdt:P298 ?BirthCountry.\n" +
+						"      }\n" +
+						"    }\n" +
+						"  }\n" +
+						"  OPTIONAL { \n" +
+						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    ?item p:P20 ?Entry2.\n" +
+						"    ?Entry2 ps:P20 ?DeathCity.\n" +
+						"    ?DeathCity wdt:P31/wdt:P279* ?locationType3.\n" +
+						"    OPTIONAL { \n" +
+						"      ?DeathCity p:P17 ?Country2.\n" +
+						"      ?Country2 ps:P17 ?Country_Of_Death.\n" +
+						"      ?Country2 a wikibase:BestRank\n" +
+						"      OPTIONAL { \n" +
+						"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
+						"      }\n" +
+						"    }\n" +
+						"  }\n" +
+						"  OPTIONAL { \n" +
+						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    ?item p:P20 ?Entry2.\n" +
+						"    ?Entry2 ps:P20 ?DeathTemp.  \n" +
+						"    ?DeathTemp wdt:P131 ?DeathCity.\n" +
+						"    ?DeathCity wdt:P31/wdt:P279* ?locationType4.\n" +
+						"    OPTIONAL { \n" +
+						"      ?DeathCity p:P17 ?Country2.\n" +
+						"      ?Country2 ps:P17 ?Country_Of_Death.\n" +
+						"      ?Country2 a wikibase:BestRank\n" +
+						"      OPTIONAL { \n" +
+						"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
+						"      }\n" +
+						"    }\n" +
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?WikipediaEN schema:about ?item .\n" +
+						"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
+						"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?Wikipedia schema:about ?item .\n" +
+						"    ?Wikipedia schema:inLanguage \""+ lang + "\" .\n" +
+						"    ?Wikipedia schema:isPartOf <https://"+ lang + ".wikipedia.org/> .\n" +
+						"  }\n" +
+						"}\n" +
+						"";
 				}else{
 					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Country_Of_OriginLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?Publication_Date ?Publication_Date_Precision ?Publication_Date_Format ?Publication_Date_Backup ?Publication_Date_Backup_Precision ?Publication_Date_Origin ?Publication_Date_Origin_Precision ?Publication_Date_Origin_Format ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
@@ -3821,6 +4122,65 @@
 				sparqlQuery = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + sparqlQuery;
 				
 				return sparqlQuery;
+			},
+			
+			createTableRow(table, label, value1, value2, value3){
+				var row = table.insertRow();
+
+				var cell1 = row.insertCell();
+				cell1.setAttribute('class','extras-header');
+				var cell2 = row.insertCell();
+				cell2.setAttribute('class','extras-value');
+
+				// Add label cell
+				cell1.appendChild(document.createTextNode(label));
+
+				// Add value cells
+				var div1 = this.createElement("div", {class: 'extras-table-value'})
+				div1.innerText = value1;
+				cell2.appendChild(div1);
+
+				if (value2 != null){
+					var div2 = this.createElement("div", {class: 'extras-table-value'})
+					div2.innerText = value2;
+					cell2.appendChild(div2);	
+				}
+				
+				if (value3 != null){
+					var div3 = this.createElement("div", {class: 'extras-table-value'})
+					div3.innerText = value3;
+					cell2.appendChild(div3);	
+				}
+			},
+			
+			calculateAge(start, end) {
+				var ageDifMs = end - start;
+				var ageDate = new Date(ageDifMs);
+				return Math.abs(ageDate.getUTCFullYear() - 1970);
+			},
+
+			getDateOptions(precision){				
+				/* Using the WikiData Date Precision values:
+				0 - billion years
+				1 - hundred million years
+				6 - millennium
+				7 - century
+				8 - decade
+				9 - year
+				10 - month
+				11 - day
+				12 - hour
+				13 - minute
+				14 - second
+				*/
+
+				if (precision == 9){
+					return { year: 'numeric', timeZone: 'UTC' }
+				}else if (precision == 10){
+					return { year: 'numeric', month: 'short', timeZone: 'UTC' };
+				}else{
+					return { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
+				}
 			}
 		},
 
@@ -3864,6 +4224,30 @@
 				if (letterboxd.storage.get('search-redirect') === true){
 					letterboxd.search.init();
 				}
+			}else if (window.location.pathname.startsWith('/actor/') ||
+			window.location.pathname.startsWith('/director/') ||
+			window.location.pathname.startsWith('/writer/') ||
+			window.location.pathname.startsWith('/producer/') ||
+			window.location.pathname.startsWith('/executive-producer/') ||
+			window.location.pathname.startsWith('/additional-directing/') ||
+			window.location.pathname.startsWith('/original-writer/') ||
+			window.location.pathname.startsWith('/casting/') ||
+			window.location.pathname.startsWith('/editor/') ||
+			window.location.pathname.startsWith('/cinematography/') ||
+			window.location.pathname.startsWith('/additional-photography/') ||
+			window.location.pathname.startsWith('/production-design/') ||
+			window.location.pathname.startsWith('/art-direction/') ||
+			window.location.pathname.startsWith('/set-decoration/') ||
+			window.location.pathname.startsWith('/special-effects/') ||
+			window.location.pathname.startsWith('/visual-effects/') ||
+			window.location.pathname.startsWith('/stunts/') ||
+			window.location.pathname.startsWith('/composer/') ||
+			window.location.pathname.startsWith('/sound/') ||
+			window.location.pathname.startsWith('/costume-design/') ||
+			window.location.pathname.startsWith('/makeup/') ||
+			window.location.pathname.startsWith('/hairstyling/')
+			){ 
+				letterboxd.person.init();
 			}
 		}
 	});
