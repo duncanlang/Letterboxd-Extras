@@ -4205,7 +4205,8 @@
 						"      }\n" +
 						"    }\n" +
 						"  }\n" +
-						"  OPTIONAL {\n" +
+						// Chrome is dumb and the fetch doesn't work with this for some reason. Until I can figure this out, chrome users will have to do without :(
+						/*"  OPTIONAL {\n" +
 						"    ?WikipediaEN schema:about ?item .\n" +
 						"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
 						"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
@@ -4214,7 +4215,7 @@
 						"    ?Wikipedia schema:about ?item .\n" +
 						"    ?Wikipedia schema:inLanguage \""+ lang + "\" .\n" +
 						"    ?Wikipedia schema:isPartOf <https://"+ lang + ".wikipedia.org/> .\n" +
-						"  }\n" +
+						"  }\n" +*/
 						"}\n" +
 						"";
 				}else{
