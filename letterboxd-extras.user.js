@@ -2559,7 +2559,7 @@
 
 			getCinema(title, titleType){
 				var encoded = letterboxd.helpers.encodeASCII(title);
-				var url = "https://api.cinemascore.com/guest/search/title/" + encoded;
+				var url = "https://webapp.cinemascore.com/guest/search/title/" + encoded;
 				letterboxd.helpers.getOMDbData(url).then((value) => {
 					if (this.cinemascore.data == null){
 						this.cinemascore.data = value;
