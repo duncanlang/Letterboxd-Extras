@@ -1928,11 +1928,11 @@
 					if (this.mubiData.data == null && this.mubiData.state < 1){
 						try{
 							this.mubiData.state = 1;
-							letterboxd.helpers.getMubiData(this.wikiData.Mubi_URL).then((value) =>{
+							chrome.runtime.sendMessage({name: "GETMUBIDATA", url: this.wikiData.Mubi_URL}, (value) => {
 								var mubi = value.response;
 								if (mubi != ""){
 									this.mubiData.raw = mubi;
-									this.mubiData.data = JSON.parse(mubi);
+									this.mubiData.data = mubi;
 									
 									this.addMubi();
 									this.mubiData.state = 2;
@@ -1954,10 +1954,10 @@
 				// Use the API search to find and match the movie
 				try{
 					this.mubiData.state = 1;
-					letterboxd.helpers.getMubiData(url).then((value) =>{
+					chrome.runtime.sendMessage({name: "GETMUBIDATA", url: url}, (value) => {
 						var mubi = value.response;
 						if (mubi != ""){
-							var films = JSON.parse(mubi).films;
+							var films = mubi.films;
 							
 							var index = -1;
 							for (var i = 0; i < films.length; i++){
@@ -3195,7 +3195,7 @@
 				var queryString = letterboxd.helpers.getWikiDataQuery(this.tmdbID, 'TMDBPERSON', 'PERSON', lang);
 
 				// Call WikiData
-				letterboxd.helpers.getWikiData(queryString).then((value) =>{
+				chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryString}, (value) => {
 					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 						this.wiki = value.results.bindings[0];
 						
