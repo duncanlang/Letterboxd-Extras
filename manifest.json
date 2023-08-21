@@ -25,7 +25,7 @@
 		"https://www.omdbapi.com/*",
 		"https://www.rottentomatoes.com/*",
 		"https://www.boxofficemojo.com/*",
-		"https://api.cinemascore.com/*",
+		"https://webapp.cinemascore.com/*",
 		"https://query.wikidata.org/*",
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
