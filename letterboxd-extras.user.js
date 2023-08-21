@@ -2644,7 +2644,8 @@
 
 			verifyCinema(data, title, titleType){
 				if (this.cinemascore.state < 2 && data != null && data.length > 0 && data[0].GRADE != ""){
-					const year = document.querySelector('.number').childNodes[0].innerHTML;
+					//const year = document.querySelector('.number').childNodes[0].innerHTML;
+					const year = this.letterboxdYear;
 
 					var years = [year,"","",""];
 
