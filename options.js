@@ -3,16 +3,31 @@ var options = {};
 
 // On change, save
 document.addEventListener('change', event => {
-    switch (event.target.type) {
-        case ('checkbox'):
-            options[event.target.id] = event.target.checked;
-            break;
-        default:
-            options[event.target.id] = event.target.value;
-            break;
-    }
+    var permission = event.target.getAttribute('permission');
+    if (permission != null && permission != "" && event.target.checked == true){
+        chrome.permissions.request({
+            origins: [permission]
+        }, (granted) => {
+            if (granted){
+                options[event.target.id] = event.target.checked;
 
-    save();
+                save();
+            }else{
+                event.target.checked = false;
+            }
+        });
+    }else{
+        switch (event.target.type) {
+            case ('checkbox'):
+                options[event.target.id] = event.target.checked;
+                break;
+            default:
+                options[event.target.id] = event.target.value;
+                break;
+        }
+    
+        save();
+    }
 });
 // Save:
 function save(){

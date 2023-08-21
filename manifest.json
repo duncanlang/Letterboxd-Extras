@@ -30,7 +30,10 @@
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
 		"https://graphql.anilist.co/*",
-		"https://apollo.senscritique.com/*",
+		"https://apollo.senscritique.com/*"
+	],
+	
+	"optional_host_permissions": [
 		"https://api.mubi.com/*"
 	],
 
