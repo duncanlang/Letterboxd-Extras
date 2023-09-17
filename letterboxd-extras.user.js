@@ -53,7 +53,7 @@
 		.meta-score, .meta-score:hover, .meta-score-user, .meta-score-user:hover, .cinema-grade, .cinema-grade:hover {
 			color: white;
 			display: inline-block;
-			font-family: Arial,Helvetica,sans-serif;
+			font-family: ProximaNova,sans-serif;
 			font-size: 16px;
 			font-weight: bold !important;
 			width: 30px;
@@ -98,12 +98,19 @@
 		.icon-popcorn {
 			background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg");
 		}
-		.meta-must-see{
+
+		.meta-must-see, .meta-must-watch{
 			width: 30px;
 			height: 30px;
 			padding: 0px;
-			background-image: url("https://www.metacritic.com/images/icons/mc-mustsee.svg");
 		}
+		.meta-must-see{
+			background-image: url("https://www.metacritic.com/a/neutron/images/logos/badge/must-see.png");
+		}
+		.meta-must-watch{
+			background-image: url("https://www.metacritic.com/a/neutron/images/logos/badge/must-watch.png");
+		}
+
 		.ratings-extras{
 			margin-top: 20px !important;
 		}
@@ -395,7 +402,7 @@
 			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
 
 			// Metacritic
-			metaData: {state: 0, data: null, raw: null, mustSee: false, critic: {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "tbd", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
+			metaData: {state: 0, data: null, raw: null, mustSee: false, critic: {rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
 
 			// Mubi
 			mubiData: {state: 0, data: null, raw: null, url: null, rating: null, ratingAlt: null, num_ratings: 0, popularity: 0},
@@ -677,7 +684,7 @@
 				
 								// Add Rating
 								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
-									this.mpaaRating = letterboxd.helpers.determineMPAARating(this.wiki.MPAA_film_ratingLabel.value);
+									this.mpaaRating = this.wiki.MPAA_film_ratingLabel.value;
 									this.addRating();	
 								}
 
@@ -1258,6 +1265,10 @@
 						this.imdbData.highest = votes;
 				}
 
+				if (this.imdbData.rating == 0 || this.imdbData.num_ratings == 0 || histogramValues.length == 0){
+					return false;
+				}
+
 				return true;
 			},
 
@@ -1530,212 +1541,119 @@
 				//***************************************************************
 				if (this.metaData.data != null){
 					// Scores
-					var criticScore = this.metaData.data.querySelector('.ms_wrapper .metascore_w');
-					var criticScore2 = this.metaData.data.querySelector('.c-siteReviewScore:not(.c-siteReviewScore_user) span');
-					var criticScore3 = this.metaData.data.querySelector('.metascore_w:not(.user) span');
+					var criticScore = this.metaData.data.querySelector('.c-productHero_score-container .c-siteReviewScore:not(.c-siteReviewScore_user) span');
 					if (criticScore != null){
 						// Standard page with score
 						this.metaData.critic.rating = criticScore.innerText;
-					}else if(criticScore2 != null){
-						// Non-standard page (parasite)
-						this.metaData.critic.rating = criticScore2.innerText;
-					}else if(criticScore3 != null){
-						// Mobile site
-						this.metaData.critic.rating = criticScore3.innerText;
 					}else{
 						// TV episodes with no Metascore
 						this.metaData.critic.rating = "N/A";
 					}
 
-					var userScore = this.metaData.data.querySelector('.us_wrapper .metascore_w');
-					var userScore2 = this.metaData.data.querySelector('.c-siteReviewScore_user span');
-					var userScore3 = this.metaData.data.querySelector('.metascore_w.user');
+					var userScore = this.metaData.data.querySelector('.c-productHero_score-container .c-siteReviewScore_user span');
 					if (userScore != null){
 						// Standard page with score
 						this.metaData.user.rating = userScore.innerText;
-					}else if(userScore2 != null){
-						// Non-standard page (parasite)
-						this.metaData.user.rating = userScore2.innerText;
-					}else if(userScore3 != null){
-						// Mobile site
-						this.metaData.user.rating = userScore3.innerText;
 					}else{
 						// TV episodes with no Metascore
-						this.metaData.critic.rating = "N/A";
+						this.metaData.user.rating = "N/A";
 					}
 
 					// Grab the 'must see'
-					if (this.metaData.data.querySelector('.must-see.product') || this.metaData.data.querySelector('.must.product')){
+					if (this.metaData.data.querySelector('.c-productScoreInfo_must')){
 						this.metaData.mustSee = true;
 					}
 
-					// Grab the rating counts
-					var ratings = this.metaData.data.querySelectorAll('.reviews .fxdcol');
-					for(var i = 0; i < ratings.length; i++){
-						var positive = ratings[i].querySelector('.chart.positive .count.fr');
-						var mixed = ratings[i].querySelector('.chart.mixed .count.fr');
-						var negative = ratings[i].querySelector('.chart.negative .count.fr');
+					// Grab the rating counts (same for desktop and mobile)
+					// Critic
+					var criticSection = this.metaData.data.querySelector('.c-reviewsSection_criticReviews');
+
+					if (criticSection != null){
+						var criticScore = criticSection.querySelector('.c-siteReviewScore span');
+
+						if (criticScore != null){
+							this.metaData.critic.rating = criticScore.innerText;
+						}
+
+						var criticPositive = criticSection.querySelectorAll('.c-reviewsStats_positiveStats span');
+						var criticNeutral = criticSection.querySelectorAll('.c-reviewsStats_neutralStats span');
+						var criticNegative = criticSection.querySelectorAll('.c-reviewsStats_negativeStats span');
+
+						if (criticPositive.length == 2){
+							this.metaData.critic.positive = parseInt(criticPositive[1].innerText.replace(" Reviews",""));
+						}
+						if (criticNeutral.length == 2){
+							this.metaData.critic.mixed = parseInt(criticNeutral[1].innerText.replace(" Reviews",""));
+						}
+						if (criticNegative.length == 2){
+							this.metaData.critic.negative = parseInt(criticNegative[1].innerText.replace(" Reviews",""));
+						}
+
+						this.metaData.critic.num_ratings = this.metaData.critic.positive + this.metaData.critic.mixed + this.metaData.critic.negative;
 						
-						positive = parseInt(letterboxd.helpers.cleanNumber(positive.innerText));
-						mixed = parseInt(letterboxd.helpers.cleanNumber(mixed.innerText));
-						negative = parseInt(letterboxd.helpers.cleanNumber(negative.innerText));
-						var count = positive + mixed + negative;
+						// If there are ratings, but no reviews so metacritic doesn't display the breakdown
+						if (!(this.metaData.critic.rating == "N/A" || this.metaData.critic.rating == "tbd") && this.metaData.critic.num_ratings == 0){
+							var temp =  letterboxd.helpers.getTextBetween(this.metaData.raw,'score:' + this.metaData.critic.rating.toString() + ',','sentiment:');
 
-						var data;
-						if (ratings[i].querySelector('.section_title a').innerText.includes("Metascore")){
-							data = this.metaData.critic;
-						}else{
-							data = this.metaData.user;
+							this.metaData.critic.num_ratings = parseInt(letterboxd.helpers.getTextBetween(temp,'reviewCount:',','));
+							this.metaData.critic.positive = parseInt(letterboxd.helpers.getTextBetween(temp,'positiveCount:',','));
+							this.metaData.critic.mixed = parseInt(letterboxd.helpers.getTextBetween(temp,'neutralCount:',','));
+							this.metaData.critic.negative = parseInt(letterboxd.helpers.getTextBetween(temp,'negativeCount:',','));
+
+							if (this.metaData.critic.num_ratings.isNaN)	this.metaData.critic.num_ratings = 0
+							if (this.metaData.critic.positive.isNaN)	this.metaData.critic.positive = 0
+							if (this.metaData.critic.mixed.isNaN)	this.metaData.critic.mixed = 0
+							if (this.metaData.critic.negative.isNaN)	this.metaData.critic.negative = 0
 						}
 
-						data.positive = positive;
-						data.mixed = mixed;
-						data.negative = negative;
-						data.num_ratings = count;
-						data.highest = letterboxd.helpers.getMetaHighest(data);
-					}
-					// Grab rating counts for non-standard pages (parasite)
-					if (ratings.length == 0 && criticScore2 != null){
-						var positive = criticScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
-						var mixed = criticScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
-						var negative = criticScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
-						// Positive
-						if (positive != null)
-							positive = parseInt(letterboxd.helpers.cleanNumber(positive.childNodes[0].innerText)); 
-						else
-							positive = 0;
-						// Mixed
-						if (mixed != null)
-							mixed = parseInt(letterboxd.helpers.cleanNumber(mixed.childNodes[0].innerText));
-						else
-							mixed = 0;
-						// Negative
-						if (negative != null)
-							negative = parseInt(letterboxd.helpers.cleanNumber(negative.childNodes[0].innerText));
-						else
-							negative = 0;
-							
-						var count = positive + mixed + negative;
-
-						this.metaData.critic.positive = positive;
-						this.metaData.critic.mixed = mixed;
-						this.metaData.critic.negative = negative;
-						this.metaData.critic.num_ratings = count;
-						this.metaData.critic.highest = letterboxd.helpers.getMetaHighest(this.metaData.critic);
-
-					}
-					if (ratings.length == 0 && userScore2 != null){
-						var positive = userScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphPositive');
-						var mixed = userScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNeutral');
-						var negative = userScore2.parentNode.parentNode.parentNode.parentNode.querySelector('.c-EntertainmentProductScoreGraph_scoreGraphNegative');
-						// Positive
-						if (positive != null)
-							positive = parseInt(letterboxd.helpers.cleanNumber(positive.childNodes[0].innerText)); 
-						else
-							positive = 0;
-						// Mixed
-						if (mixed != null)
-							mixed = parseInt(letterboxd.helpers.cleanNumber(mixed.childNodes[0].innerText));
-						else
-							mixed = 0;
-						// Negative
-						if (negative != null)
-							negative = parseInt(letterboxd.helpers.cleanNumber(negative.childNodes[0].innerText));
-						else
-							negative = 0;
-							
-						var count = positive + mixed + negative;
-
-						this.metaData.user.positive = positive;
-						this.metaData.user.mixed = mixed;
-						this.metaData.user.negative = negative;
-						this.metaData.user.num_ratings = count;
-						this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
-					}
-					// Grab rating counts for mobile
-					if (ratings.length == 0 && criticScore3 != null){
-						var distributions = this.metaData.data.querySelector(".critic.reviews .metascore_stats .distributions")
-
-						// Positive
-						var positive = distributions.querySelector('.bar_wrapper.positive');
-						if (positive != null){
-							var number = positive.parentNode.querySelector('.number');
-							positive = letterboxd.helpers.cleanNumber(number.innerText.replace(" Positive Ratings", "").trim());
-							positive = Number(positive);
-						}else{
-							positive = 0;
-						}
-						
-						// Mixed
-						var mixed = distributions.querySelector('.bar_wrapper.mixed');
-						if (mixed != null){
-							var number = mixed.parentNode.querySelector('.number');							
-							mixed = letterboxd.helpers.cleanNumber(number.innerText.replace(" Mixed Ratings", "").trim());
-							mixed = Number(mixed);
-						}else{
-							mixed = 0;
-						}
-						
-						// Negative
-						var negative = distributions.querySelector('.bar_wrapper.negative');
-						if (negative != null){
-							var number = negative.parentNode.querySelector('.number');
-							negative = letterboxd.helpers.cleanNumber(number.innerText.replace(" Negative Ratings", "").trim());
-							negative = Number(negative)
-						}else{
-							negative = 0;
-						}
-
-						var count = positive + mixed + negative;
-
-						this.metaData.critic.positive = positive;
-						this.metaData.critic.mixed = mixed;
-						this.metaData.critic.negative = negative;
-						this.metaData.critic.num_ratings = count;
 						this.metaData.critic.highest = letterboxd.helpers.getMetaHighest(this.metaData.critic);
 					}
-					
-					if (ratings.length == 0 && userScore3 != null){
-						var distributions = this.metaData.data.querySelector(".user.reviews .metascore_stats .distributions")
 
-						// Positive
-						var positive = distributions.querySelector('.bar_wrapper.positive');
-						if (positive != null){
-							var number = positive.parentNode.querySelector('.number');
-							positive = letterboxd.helpers.cleanNumber(number.innerText.replace(" Positive Ratings", "").trim());
-							positive = Number(positive);
-						}else{
-							positive = 0;
+
+					// Users
+					var userSection = this.metaData.data.querySelector('.c-reviewsSection_userReviews');
+
+					if (userSection != null){
+						var userScore = userSection.querySelector('.c-siteReviewScore span');
+
+						if (userScore != null){
+							this.metaData.user.rating = userScore.innerText;
+						}
+
+						var userPositive = userSection.querySelectorAll('.c-reviewsStats_positiveStats span');
+						var userNeutral = userSection.querySelectorAll('.c-reviewsStats_neutralStats span');
+						var userNegative = userSection.querySelectorAll('.c-reviewsStats_negativeStats span');
+
+						if (userPositive.length == 2){
+							this.metaData.user.positive = parseInt(userPositive[1].innerText.replace(" Ratings",""));
+						}
+						if (userNeutral.length == 2){
+							this.metaData.user.mixed = parseInt(userNeutral[1].innerText.replace(" Ratings",""));
+						}
+						if (userNegative.length == 2){
+							this.metaData.user.negative = parseInt(userNegative[1].innerText.replace(" Ratings",""));
+						}
+
+						this.metaData.user.num_ratings = this.metaData.user.positive + this.metaData.user.mixed + this.metaData.user.negative;
+						
+						// If there are ratings, but no reviews so metacritic doesn't display the breakdown
+						if (!(this.metaData.user.rating == "N/A" || this.metaData.user.rating == "tbd") && this.metaData.user.num_ratings == 0){
+							var temp =  letterboxd.helpers.getTextBetween(this.metaData.raw,'score:' + this.metaData.user.rating.toString() + ',','sentiment:');
+
+							this.metaData.user.num_ratings = parseInt(letterboxd.helpers.getTextBetween(temp,'reviewCount:',','));
+							this.metaData.user.positive = parseInt(letterboxd.helpers.getTextBetween(temp,'positiveCount:',','));
+							this.metaData.user.mixed = parseInt(letterboxd.helpers.getTextBetween(temp,'neutralCount:',','));
+							this.metaData.user.negative = parseInt(letterboxd.helpers.getTextBetween(temp,'negativeCount:',','));
+							
+							if (Number.isNaN(this.metaData.user.num_ratings))	this.metaData.user.num_ratings = 0
+							if (Number.isNaN(this.metaData.user.positive))	this.metaData.user.positive = 0
+							if (Number.isNaN(this.metaData.user.mixed))	this.metaData.user.mixed = 0
+							if (Number.isNaN(this.metaData.user.negative))	this.metaData.user.negative = 0
 						}
 						
-						// Mixed
-						var mixed = distributions.querySelector('.bar_wrapper.mixed');
-						if (mixed != null){
-							var number = mixed.parentNode.querySelector('.number');							
-							mixed = letterboxd.helpers.cleanNumber(number.innerText.replace(" Mixed Ratings", "").trim());
-							mixed = Number(mixed);
-						}else{
-							mixed = 0;
-						}
-						
-						// Negative
-						var negative = distributions.querySelector('.bar_wrapper.negative');
-						if (negative != null){
-							var number = negative.parentNode.querySelector('.number');
-							negative = letterboxd.helpers.cleanNumber(number.innerText.replace(" Negative Ratings", "").trim());
-							negative = Number(negative)
-						}else{
-							negative = 0;
-						}
-
-						var count = positive + mixed + negative;
-
-						this.metaData.user.positive = positive;
-						this.metaData.user.mixed = mixed;
-						this.metaData.user.negative = negative;
-						this.metaData.user.num_ratings = count;
 						this.metaData.user.highest = letterboxd.helpers.getMetaHighest(this.metaData.user);
 					}
+
 				}else{
 					if (this.imdbData.meta != null){
 						this.metaData.critic.rating = this.imdbData.meta;
@@ -1802,24 +1720,36 @@
 				// Critic score
 				//***************************************************************
 				var url = "";
-				if (this.wikiData.metaURL != null && this.wikiData.metaURL != "")
-					url = this.wikiData.metaURL + "/critic-reviews";
+				if (this.wikiData.metaURL != null && this.wikiData.metaURL != ""){
+					if (url.endsWith != "/") url += "/"
+					url = this.wikiData.metaURL + "critic-reviews";
+				}
 				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic,this.metaData.mustSee, this.isMobile));				
 				
 				// User score
 				//***************************************************************
 				if (this.metaData.data != null){
-					section.append(letterboxd.helpers.createMetaScore("user","User",this.wikiData.metaURL + "/user-reviews",this.metaData.user,this.metaData.mustSee, this.isMobile));
+					url = url.replace("/critic-reviews", "/user-reviews")
+					section.append(letterboxd.helpers.createMetaScore("user","User",url,this.metaData.user,this.metaData.mustSee, this.isMobile));
 				}
 
 				// Add Must see if applicable
 				if (this.metaData.mustSee == true){
-					const mustSeeSpan = letterboxd.helpers.createElement('span', {
-						class: 'meta-must-see tooltip display-rating -highlight',
-						style: 'margin-top: 5px;',
-						['data-original-title']: 'Metacritic Must-See'
-					});
-					section.append(mustSeeSpan);
+					if (this.tmdbTV){
+						const mustSeeSpan = letterboxd.helpers.createElement('span', {
+							class: 'meta-must-see meta-must-watch tooltip display-rating -highlight',
+							style: 'margin-top: 5px;',
+							['data-original-title']: 'Metacritic Must-Watch'
+						});
+						section.append(mustSeeSpan);
+					}else{
+						const mustSeeSpan = letterboxd.helpers.createElement('span', {
+							class: 'meta-must-see tooltip display-rating -highlight',
+							style: 'margin-top: 5px;',
+							['data-original-title']: 'Metacritic Must-See'
+						});
+						section.append(mustSeeSpan);
+					}
 				}
 
 				// APPEND to the sidebar
@@ -3653,13 +3583,18 @@
 					mobileClass = 'extras-mobile';
 				
 				var colour = letterboxd.helpers.determineMetaColour(data.rating, (type == "user"));
+				var textColour = letterboxd.helpers.determineMetaTextColour(data.rating, (type == "user"));
 				var className = 'meta-score';
 				if (type == "user")
 					className += "-user"
+				var style = 'background-color: ' + colour + '; color: ' + textColour
+				if (data.rating == "tbd" || data.rating == "N/A")
+					style += '; border: 1px solid grey'
+
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight ' + className,
-					style: 'background-color: ' + colour
+					style: style
 				});
 
 				// Add the hoverover text and href
@@ -4077,56 +4012,33 @@
 			},
 
 			determineMetaColour(metascore, user){
-				var output = "#ccc"; //grey tba
+				var output = "transparent"; // transparent background tba
 				if (metascore != "tbd" && metascore != "N/A" ){
 					var score = parseFloat(metascore);
 					if (user == true) score = score * 10;
 
 					if (score >= 61){
-						output = "#66CC33" // Green
+						output = "#00ce7a" // Green
 					}else if(score >= 40){
-						output = "#FFCC33"; // Yellow
+						output = "#ffbd3f"; // Yellow
 					}else{
-						output = "#FF0000"; // Red
+						output = "#ff6874"; // Red
 					}
 				}
 				return output;
 			},
 
-			determineMPAARating(value){
-				var output = "";
-				// ugh this sucks
-				switch(value){
-					case "Q18665330":
-						output = "G"
-						break;
-					case "Q18665334":
-						output = "PG"
-						break;
-					case "Q18665339":
-						output = "PG-13"
-						break;
-					case "Q18665344":
-						output = "R"
-						break;
-					case "Q18665349":
-						output = "NC-17"
-						break;
-					case "Q47274658":
-						output = "X"
-						break;
-					case "Q29841070":
-						output = "M"
-						break;
-					case "Q29841078":
-						output = "GP"
-						break;
-					case "Q50321114":
-						output = "M/PG"
-						break;
-					default:
-						output = value;
-						break;
+			determineMetaTextColour(metascore, user){
+				var output = "lightgray"; // Grey/black default
+				if (metascore != "tbd" && metascore != "N/A" ){
+					var score = parseFloat(metascore);
+					if (user == true) score = score * 10;
+
+					if(score >= 40){
+						output = "#262626"; // Grey/black
+					}else{
+						output = "#fff"; // White
+					}
 				}
 				return output;
 			},
