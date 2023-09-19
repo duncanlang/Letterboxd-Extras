@@ -1661,7 +1661,8 @@
 						
 						// If there are ratings, but no reviews so metacritic doesn't display the breakdown
 						if (!(this.metaData.critic.rating == "N/A" || this.metaData.critic.rating == "tbd") && this.metaData.critic.num_ratings == 0){
-							var temp =  letterboxd.helpers.getTextBetween(this.metaData.raw,'score:' + this.metaData.critic.rating.toString() + ',','sentiment:');
+							// parseFloat() will remove insigificant zeroes (so 7.0 will become 7)
+							var temp = letterboxd.helpers.getTextBetween(this.metaData.raw,'score:' + parseFloat(this.metaData.critic.rating).toString() + ',','sentiment:');
 
 							this.metaData.critic.num_ratings = parseInt(letterboxd.helpers.getTextBetween(temp,'reviewCount:',','));
 							this.metaData.critic.positive = parseInt(letterboxd.helpers.getTextBetween(temp,'positiveCount:',','));
@@ -1706,7 +1707,8 @@
 						
 						// If there are ratings, but no reviews so metacritic doesn't display the breakdown
 						if (!(this.metaData.user.rating == "N/A" || this.metaData.user.rating == "tbd") && this.metaData.user.num_ratings == 0){
-							var temp =  letterboxd.helpers.getTextBetween(this.metaData.raw,'score:' + this.metaData.user.rating.toString() + ',','sentiment:');
+							// parseFloat() will remove insigificant zeroes (so 7.0 will become 7)
+							var temp = letterboxd.helpers.getTextBetween(this.metaData.raw,'score:' + parseFloat(this.metaData.user.rating).toString() + ',','sentiment:');
 
 							this.metaData.user.num_ratings = parseInt(letterboxd.helpers.getTextBetween(temp,'reviewCount:',','));
 							this.metaData.user.positive = parseInt(letterboxd.helpers.getTextBetween(temp,'positiveCount:',','));
@@ -1723,6 +1725,7 @@
 					}
 
 				}else{
+					// When metacritic score can only be found from omdb or imdb
 					if (this.imdbData.meta != null){
 						this.metaData.critic.rating = this.imdbData.meta;
 					}else if (this.omdbData.data.Metascore != null){
@@ -3829,9 +3832,13 @@
 
 			getTextBetween(text, start, end){
 				var tempArray = text.split(start);
-				tempArray = tempArray[1].split(end);
-
-				return (tempArray[0]);
+				if (tempArray.length >= 2){
+					tempArray = tempArray[1].split(end);
+	
+					return (tempArray[0]);
+				}else{
+					return ""
+				}
 			},
 
 			parseHTML(html){
