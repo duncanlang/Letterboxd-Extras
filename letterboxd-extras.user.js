@@ -280,6 +280,13 @@
 		}
 		.micro-button{
 			margin-right: 3px;
+			margin-bottom: 3px;
+			height: 12px;
+			line-height: 1;
+			display: inline-block;
+		}
+		p.text-link .report-link{
+			vertical-align: top !important;
 		}
 		.text-footer-extra{
 			font-size: 12px;
@@ -364,6 +371,9 @@
 		.filmaff-score:hover{
 			color: white;
 			text-decoration: underline;
+		}
+		.filmaff-score.extras-mobile{
+			border-radius: 0.3em;
 		}
 	`);
 	/* eslint-enable */
@@ -818,7 +828,13 @@
 								// Get and add FilmAffinity
 								if (letterboxd.storage.get('filmaff-enabled') === true){
 									if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){
-										var url = "https://www.filmaffinity.com/" + this.browserLocale.toLowerCase() + "/film" + this.wiki.FilmAffinity_ID.value + ".html";
+										var validLocales = ['us','ca','mx','es','uk','ie','au','ar','cl','co','uy','py','pe','ec','ve','cr','hn','gt','bo','do'];
+										var locale = "us";
+										if (validLocales.includes(this.browserLocale.toLowerCase())){
+											locale = this.browserLocale.toLowerCase();
+										}
+
+										var url = "https://www.filmaffinity.com/" + locale + "/film" + this.wiki.FilmAffinity_ID.value + ".html";
 
 										this.wikiData.FilmAffinity_ID = this.wiki.FilmAffinity_ID.value;
 										this.wikiData.FilmAffinity_URL = url;
@@ -2129,13 +2145,26 @@
 				
 				// Collect Date from the FilmAffinity Page
 				//***************************************************************
-				if (this.filmaffData.data.querySelector("#movie-rat-avg") != null){
-					this.filmaffData.rating = this.filmaffData.data.querySelector("#movie-rat-avg").getAttribute("content");
-					this.filmaffData.rating = parseFloat(this.filmaffData.rating);
-				}
-				if (this.filmaffData.data.querySelector("#movie-count-rat span") != null){
-					this.filmaffData.num_ratings = this.filmaffData.data.querySelector("#movie-count-rat span").getAttribute("content");
-					this.filmaffData.num_ratings = parseFloat(this.filmaffData.num_ratings);
+				if (this.isMobile == true){
+					// Get score from mobile site
+					if (this.filmaffData.data.querySelector('span[itemprop="ratingValue"]') != null){
+						this.filmaffData.rating = this.filmaffData.data.querySelector('span[itemprop="ratingValue"]').getAttribute("content");
+						this.filmaffData.rating = parseFloat(this.filmaffData.rating);
+					}
+					if (this.filmaffData.data.querySelector('span[itemprop="ratingValue"]') != null){
+						this.filmaffData.num_ratings = this.filmaffData.data.querySelector('span[itemprop="ratingCount"]').getAttribute("content");
+						this.filmaffData.num_ratings = parseFloat(this.filmaffData.num_ratings);
+					}
+				}else{
+					// Get score from desktop site
+					if (this.filmaffData.data.querySelector("#movie-rat-avg") != null){
+						this.filmaffData.rating = this.filmaffData.data.querySelector("#movie-rat-avg").getAttribute("content");
+						this.filmaffData.rating = parseFloat(this.filmaffData.rating);
+					}
+					if (this.filmaffData.data.querySelector("#movie-count-rat span") != null){
+						this.filmaffData.num_ratings = this.filmaffData.data.querySelector("#movie-count-rat span").getAttribute("content");
+						this.filmaffData.num_ratings = parseFloat(this.filmaffData.num_ratings);
+					}
 				}
 
 				// Do not display if there is no score or ratings
@@ -2177,6 +2206,7 @@
 					['display']: 'block',
 					['margin-bottom']: '10px'
 				});
+				section.append(container);
 
 				// The span that holds the score
 				const span = letterboxd.helpers.createElement('div', {}, {
@@ -2188,6 +2218,7 @@
 				const text = letterboxd.helpers.createElement('a', {
 					class: 'tooltip display-rating -highlight filmaff-score'
 				});
+				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
 
 				// Add the hoverover text and href
 				var tooltip = 'No score available';
@@ -2197,7 +2228,7 @@
 					this.filmaffData.rating = "N/A";
 
 				}else if (this.filmaffData.num_ratings > 0){
-					tooltip = "Weighted average of " + this.filmaffData.rating.toFixed(1) + "/10 based on " + this.filmaffData.num_ratings.toLocaleString() + ' ratings';
+					tooltip = "Average of " + this.filmaffData.rating.toFixed(1).toLocaleString() + "/10 based on " + this.filmaffData.num_ratings.toLocaleString() + ' ratings';
 				}else{
 					this.filmaffData.rating = "N/A";
 				}
@@ -2222,8 +2253,6 @@
 					
 					section.append(detailsSpan);
 				}
-
-				section.append(container);
 
 				// APPEND to the sidebar
 				//************************************************************
@@ -2338,14 +2367,17 @@
 				if (buttons != null && buttons.length > 0){
 					// Create a new div to hold the buttons
 					const newHolder = letterboxd.helpers.createElement('div', {},{
-						['margin-top']: '8px'
+						['margin-top']: '5px'
 					});
 					// Create the 'More at' text
 					const text = letterboxd.helpers.createElement('span', {
 						class: 'text-footer-extra'
 					});
+					if (this.isMobile == false){
+						text.style['margin-left'] = '10px';
+					}
 					text.innerText = "More at ";
-					newHolder.append(text);
+					//newHolder.append(text);
 	
 					// Append each button to new div
 					buttons.forEach(button => {
@@ -2385,6 +2417,7 @@
 					}
 					
 					// Append the new div
+					footer.append(text);
 					footer.append(newHolder);
 
 					if (hours > 0){
