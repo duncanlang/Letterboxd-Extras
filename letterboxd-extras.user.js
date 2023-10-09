@@ -2096,7 +2096,7 @@
 					});
 					button.innerText = text;
 
-					if(letterboxd.storage.get('open-same-tab') === false){
+					if(letterboxd.storage.get('open-same-tab') != true){
 						button.setAttribute("target","_blank");
 					}
 
