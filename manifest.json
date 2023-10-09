@@ -27,6 +27,7 @@
 		"https://graphql.anilist.co/*",
 		"https://apollo.senscritique.com/*",
 		"https://api.mubi.com/*",
+		"https://www.filmaffinity.com/*",
 		"storage"
 	],
 
