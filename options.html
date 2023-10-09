@@ -120,12 +120,20 @@
     <div>
         <h3>Misc</h3>
         <div>
-            <label>Convert ratings to Letterboxd-Style rating:</label>
-            <input type="checkbox" id="convert-ratings" />
+            <label>Convert ratings:</label>
+            <select id="convert-ratings">
+                <option value="false">Leave unchanged</option>
+                <option value="5">5-point scale</option>
+                <option value="10">10-point scale</option>
+            </select>
         </div>
         <div>
             <label>Display MPA film ratings:</label>
             <input type="checkbox" id="mpa-enabled" />
+        </div>
+        <div>
+            <label>Open 'More At' links in same tab:</label>
+            <input type="checkbox" id="open-same-tab" />
         </div>
     </div>
     <br>
