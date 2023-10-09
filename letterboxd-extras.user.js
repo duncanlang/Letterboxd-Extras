@@ -621,7 +621,9 @@
 
 						// Call BoxOfficeMojo
 						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
-						this.addLink(mojoURL);
+						if (letterboxd.storage.get('mojo-link-enabled') === true){
+							this.addLink(mojoURL);
+						}
 						letterboxd.helpers.getData(mojoURL).then((value) => {
 							this.mojoData.data = letterboxd.helpers.parseHTML(value.response);
 							this.addBoxOffice();
@@ -4397,6 +4399,7 @@
 				if (this.data['al-enabled'] == null) this.set('al-enabled', true);
 				if (this.data['cinema-enabled'] == null) this.set('cinema-enabled', true);
 				if (this.data['mpa-enabled'] == null) this.set('mpa-enabled', true);
+				if (this.data['mojo-link-enabled'] == null) this.set('mojo-link-enabled', true);
 				
 			},
 			get(key) {

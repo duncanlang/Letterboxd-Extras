@@ -16,6 +16,7 @@ async function load() {
     if (options['al-enabled'] == null) options['al-enabled'] = true;
     if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
     if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
+    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     set();
 }
 
