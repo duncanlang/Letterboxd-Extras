@@ -365,6 +365,7 @@
 			letterboxdNativeTitle: null,
 			letterboxdDirectors: [],
 			linksMoved: false,
+			scoreConverted: false,
 
 			// IMDb
 			imdbID: "",
@@ -472,6 +473,41 @@
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
 					}
+				}
+
+				// Convert to 10-point scale
+				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".average-rating") != null){
+					// Convert main rating
+					var score = document.querySelector(".average-rating .display-rating");
+					score.innerText = (parseFloat(score.innerText) * 2).toFixed(1).toString();
+
+					// Convert tooltip
+					var tooltip = score.getAttribute("data-original-title");
+
+					var regex = new RegExp(/Weighted average of ([1-5]{1}.[0-9]{1,2})/);
+					var oldScore = tooltip.match(regex)[1];
+					var newScore = (parseFloat(oldScore) * 2).toFixed(2).toString() + "/10";
+
+					score.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
+
+					// Convert the histogram graph
+					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
+					var histogramBars = document.querySelectorAll(".rating-histogram .rating-histogram-bar");
+					for (var i = 0; i < histogramBars.length; i++){
+						if (histogramBars[i].getAttribute("data-original-title") != null){
+							var bar = histogramBars[i];
+						}else{
+							var bar = histogramBars[i].querySelector("a");
+						}
+						tooltip = bar.getAttribute("data-original-title");
+
+						oldScore = tooltip.match(regex)[1];
+						newScore = (i + 1).toString() + "/10";
+
+						bar.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
+					}
+
+					this.scoreConverted = true;
 				}
 
 				// Get directors and producers
@@ -1031,7 +1067,7 @@
 					}				
 				}
 
-				if (letterboxd.storage.get('convert-ratings') === true){
+				if (letterboxd.storage.get('convert-ratings') === "5"){
 					this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
 				} else {
 					this.ratingsSuffix = ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10'];
@@ -1956,7 +1992,7 @@
 				if (this.mubiData.num_ratings != 1)
 					hover += "s"
 				
-				if (letterboxd.storage.get('convert-ratings') === true){
+				if (letterboxd.storage.get('convert-ratings') === "5"){
 					totalScore = "/5";
 					score = this.mubiData.ratingAlt;
 				}
@@ -2060,6 +2096,10 @@
 					});
 					button.innerText = text;
 
+					if(letterboxd.storage.get('open-same-tab') === false){
+						button.setAttribute("target","_blank");
+					}
+
 					// Determine Placement
 					var order = [
 						'.tomato-button',
@@ -2078,7 +2118,6 @@
 						var temp = document.querySelector(order[i]);
 						if (temp != null){
 							temp.before(button);
-							//button.after('\n')
 							return;
 						}
 					}
@@ -2088,7 +2127,6 @@
 						var temp = document.querySelector(order[i]);
 						if (temp != null){
 							temp.after(button);
-							//button.before('\n')
 							return;
 						}
 					}
@@ -2097,66 +2135,6 @@
 					var buttons = document.querySelectorAll('.micro-button');
 					var lastButton = buttons[buttons.length-1];
 					lastButton.after(button);
-					//lastButton.after("\n");
-				}
-			},
-			
-			addLinks(){
-				if (!document.querySelector('.text-link.text-footer')) return;
-
-				// Add Rotten Tomatoes
-				if (this.wikiData.tomatoURL != null){
-					if (!document.querySelector('.tomato-button') && this.wikiData.tomatoURL != ""){
-						var button = letterboxd.helpers.createElement('a', {
-							class: 'micro-button track-event tomato-button',
-							href: this.wikiData.tomatoURL,
-							style: "margin-right: 4px;"
-						});
-						button.innerText = "RT";
-
-						if (document.querySelector('.meta-button')){
-							document.querySelector('.meta-button').before(button);
-						}else if (document.querySelector('.mojo-button')){
-							document.querySelector('.mojo-button').before(button);
-						}else{
-							document.querySelector('.block-or-report-flag').before(button);
-						}
-					}
-				}
-				// Add Metacritic
-				if (this.wikiData.metaURL != null){
-					if (!document.querySelector('.meta-button') && this.wikiData.metaURL != ""){
-						var button = letterboxd.helpers.createElement('a', {
-							class: 'micro-button track-event meta-button',
-							href: this.wikiData.metaURL,
-							style: "margin-right: 4px;"
-						});
-						button.innerText = "META";
-
-						if (document.querySelector('.tomato-button')){
-							document.querySelector('.tomato-button').after(button);
-						}else if (document.querySelector('.mojo-button')){
-							document.querySelector('.mojo-button').before(button);
-						}else{
-							document.querySelector('.block-or-report-flag').before(button);
-						}
-					}
-				}
-				// Add Mojo
-				if (!document.querySelector('.mojo-button') && this.imdbID != ""){
-					var button = letterboxd.helpers.createElement('a', {
-						class: 'micro-button track-event mojo-button',
-						href: 'https://www.boxofficemojo.com/title/' + this.imdbID
-					});
-					button.innerText = "Mojo";
-
-					if (document.querySelector('.mojo-button')){
-						document.querySelector('.mojo-button').after(button);
-					}else if (document.querySelector('.rt-button')){
-						document.querySelector('.rt-button').after(button);
-					}else{
-						document.querySelector('.block-or-report-flag').before(button);
-					}
 				}
 			},
 
@@ -2179,6 +2157,9 @@
 					// Append each button to new div
 					buttons.forEach(button => {
 						newHolder.append(button);
+						if(letterboxd.storage.get('open-same-tab') === true){
+							button.setAttribute("target","");
+						}
 					});
 					
 
@@ -2885,7 +2866,7 @@
 				var tooltip = 'No score available';
 				if (ratingCount > 0 && rating == null){
 					tooltip = ratingCount.toLocaleString() + ' rating';
-					if (ratingCount > 1) hover += "s";
+					if (ratingCount > 1) tooltip += "s";
 					rating = "N/A";
 
 				}else if (ratingCount > 0){
@@ -3804,7 +3785,7 @@
 					style: style + ' position:absolute;'
 				});
 				
-				var convertRatings = (letterboxd.storage.get('convert-ratings') === true);
+				var convertRatings = (letterboxd.storage.get('convert-ratings') === "5");
 				var suffix = "/10";
 				var tooltip = "";
 				if (rating != "N/A"){
@@ -4401,6 +4382,9 @@
 			data: {},
 			async init() {
 				this.data = await browser.storage.local.get().then(function (storedSettings) {
+					if (storedSettings["convert-ratings"] === true){
+						storedSettings["convert-ratings"] = "5";
+					}
 
 					return storedSettings;
 				});
@@ -4458,7 +4442,8 @@
 			window.location.pathname.startsWith('/sound/') ||
 			window.location.pathname.startsWith('/costume-design/') ||
 			window.location.pathname.startsWith('/makeup/') ||
-			window.location.pathname.startsWith('/hairstyling/')
+			window.location.pathname.startsWith('/hairstyling/') ||
+			window.location.pathname.startsWith('/choreography/')
 			){ 
 				letterboxd.person.init();
 			}

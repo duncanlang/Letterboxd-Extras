@@ -3,6 +3,9 @@ var options;
 // Load from storage
 async function load() {
     options = await browser.storage.local.get().then(function (storedSettings) {
+        if (storedSettings["convert-ratings"] === true){
+            storedSettings["convert-ratings"] = "5";
+        }
         return storedSettings;
     });
     // Init default settings
