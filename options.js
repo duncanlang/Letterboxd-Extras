@@ -37,7 +37,20 @@ function set() {
                     break;
             }
         }
+
+        if (element.getAttribute("permission") != null){
+            checkPermission(element);
+        }
     })
+}
+
+async function checkPermission(element){
+    let permissionsToRequest = { origins: [element.getAttribute("permission")] };
+    const response = await browser.permissions.contains(permissionsToRequest);
+
+    if (response == false && element.checked == true){
+        element.checked = false;
+    }
 }
 
 
@@ -47,6 +60,19 @@ document.addEventListener('change', event => {
 });
 
 async function changeSetting(event) {
+    if (event.target.getAttribute("permission") != null){
+        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
+        if (event.target.checked == true){
+            const response = await browser.permissions.request(permissionsToRequest);
+
+            if (response != true){
+                event.target.checked = false;
+            }
+        }else{
+            browser.permissions.remove(permissionsToRequest);
+        }
+    }
+
     switch (event.target.type) {
         case ('checkbox'):
             options[event.target.id] = event.target.checked;
@@ -54,19 +80,6 @@ async function changeSetting(event) {
         default:
             options[event.target.id] = event.target.value;
             break;
-    }
-
-    if (event.target.getAttribute("permission") != null){
-        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
-        if (event.target.checked == true){
-            const response = await browser.permissions.request(permissionsToRequest);
-
-            if (response != true){
-                options[event.target.id] = false;
-            }
-        }else{
-            browser.permissions.remove(permissionsToRequest);
-        }
     }
 
     save();

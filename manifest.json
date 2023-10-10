@@ -34,13 +34,13 @@
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
 		"https://graphql.anilist.co/*",
-		"https://*.filmaffinity.com/*",
 		"storage"
 	],
 
 	"optional_permissions": [
 		"https://apollo.senscritique.com/*",
-		"https://api.mubi.com/*"
+		"https://api.mubi.com/*",
+		"https://*.filmaffinity.com/*"
 	],
 
 	"content_scripts": [

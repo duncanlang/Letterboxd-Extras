@@ -5,6 +5,27 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <style>
+        body {
+            --body-text-color: #00f;
+            color: var(--body-text-color);
+            --body-back-color: #ff0;
+            background-color: var(--body-back-color); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Color scheme */
+        @media (prefers-color-scheme: light) {
+            body {
+                --body-text-color: #000;
+                --body-back-color: #ffffff;
+            }
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                --body-text-color: #f4f4f4;
+                --body-back-color: #23222b;
+            }
+        }
+
         h3,label,p{
             margin-left: 15px;
         }
@@ -104,7 +125,7 @@
         <h3>FilmAffinity</h3>
         <div>
             <label>Display FilmAffinity:</label>
-            <input type="checkbox" id="filmaff-enabled"/>
+            <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*"/>
         </div>
     </div>
     <div>
