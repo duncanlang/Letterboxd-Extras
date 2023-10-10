@@ -16,6 +16,7 @@ async function load() {
     if (options['al-enabled'] == null) options['al-enabled'] = true;
     if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
     if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
+    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     set();
 }
 
@@ -42,6 +43,10 @@ function set() {
 
 // On change, save
 document.addEventListener('change', event => {
+    changeSetting(event);
+});
+
+async function changeSetting(event) {
     switch (event.target.type) {
         case ('checkbox'):
             options[event.target.id] = event.target.checked;
@@ -51,8 +56,21 @@ document.addEventListener('change', event => {
             break;
     }
 
+    if (event.target.getAttribute("permission") != null){
+        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
+        if (event.target.checked == true){
+            const response = await browser.permissions.request(permissionsToRequest);
+
+            if (response != true){
+                options[event.target.id] = false;
+            }
+        }else{
+            browser.permissions.remove(permissionsToRequest);
+        }
+    }
+
     save();
-});
+}
 
 // On load, load
 document.addEventListener('DOMContentLoaded', event => {

@@ -4,6 +4,15 @@
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
 	"version": "3.8.2",
 	"minimum_chrome_version": "88",
+	
+	
+	"browser_action": {
+		"default_title": "Open Settings",
+		"default_popup": "options.html",
+		"default_icon": {
+			"16": "icon128.png"
+		}
+	},
 
 	"icons": {
 		"128": "icon128.png"
@@ -25,10 +34,13 @@
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
 		"https://graphql.anilist.co/*",
-		"https://apollo.senscritique.com/*",
-		"https://api.mubi.com/*",
 		"https://*.filmaffinity.com/*",
 		"storage"
+	],
+
+	"optional_permissions": [
+		"https://apollo.senscritique.com/*",
+		"https://api.mubi.com/*"
 	],
 
 	"content_scripts": [
