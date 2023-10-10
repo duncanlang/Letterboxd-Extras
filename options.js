@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', event => {
 async function load(){
     // Assign the object
     browser.storage.local.get('options', (data) => {
+        if (data.options["convert-ratings"] === true){
+            data.options["convert-ratings"] = "5";
+        }
         Object.assign(options, data.options);
         
         // Init default settings
@@ -37,6 +40,8 @@ async function load(){
         if (options['mal-enabled'] == null) options['mal-enabled'] = true;
         if (options['al-enabled'] == null) options['al-enabled'] = true;
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
+        if (options['mpa-enabled'] == null) options('mpa-enabled', true);
+        if (options['mojo-link-enabled'] == null) options('mojo-link-enabled', true);
         
         // Set the settings
         var elements = document.querySelectorAll('.setting');

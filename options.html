@@ -3,6 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <style>
         h3,label,p{
             margin-left: 15px;
@@ -95,6 +96,13 @@
         </div>
     </div>
     <div>
+        <h3>MUBI</h3>
+        <div>
+            <label>Display MUBI:</label>
+            <input type="checkbox" id="mubi-enabled"/>
+        </div>
+    </div>
+    <div>
         <h3>CinemaScore</h3>
         <div>
             <label>Display CinemaScore:</label>
@@ -114,9 +122,25 @@
     <div>
         <h3>Misc</h3>
         <div>
-            <label>Convert ratings to Letterboxd-Style rating:</label>
-            <input type="checkbox" id="convert-ratings" class="setting"/>
+            <label>Convert ratings:</label>
+            <select id="convert-ratings" class="setting">
+                <option value="false">Leave unchanged</option>
+                <option value="5">5-point scale</option>
+                <option value="10">10-point scale</option>
+            </select>
             <p>Convert the IMDb, MyAnimeList, and Anilist ratings to a 5 point scale.</p>
+        </div>
+        <div>
+            <label>Display MPA film ratings:</label>
+            <input type="checkbox" id="mpa-enabled" class="setting"/>
+        </div>
+        <div>
+            <label>Open 'More At' links in same tab:</label>
+            <input type="checkbox" id="open-same-tab" class="setting"/>
+        </div>
+        <div>
+            <label>Display BoxOfficeMojo link:</label>
+            <input type="checkbox" id="mojo-link-enabled" class="setting"/>
         </div>
     </div>
     <br>
