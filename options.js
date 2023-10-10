@@ -3,6 +3,11 @@ var options = {};
 
 // On change, save
 document.addEventListener('change', event => {
+    changeSetting(event)
+});
+
+
+async function changeSetting(event) {
     switch (event.target.type) {
         case ('checkbox'):
             options[event.target.id] = event.target.checked;
@@ -12,8 +17,22 @@ document.addEventListener('change', event => {
             break;
     }
 
+    if (event.target.getAttribute("permission") != null && event.target.checked == true){
+        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
+        const response = await browser.permissions.request(permissionsToRequest);
+
+        if (response == true){
+            console.log("permission requested");
+        }else{
+            console.log("permission NOT requested");
+        }
+    }else{
+        console.log("settinmg does not have permission attribute");
+    }
+
     save();
-});
+}
+
 // Save:
 function save(){
     browser.storage.local.set({options});

@@ -692,6 +692,17 @@
 					}
 				}
 				if (this.imdbID != '' || this.tmdbID != ''){
+					// Check for WikiData permission and request if necessary
+					/*
+					let permissionsToRequest = {origins: ["https://query.wikidata.org/*"]}; 
+					const hasWikiData = await browser.permissions.contains(permissionsToRequest);
+					if (hasWikiData == false){
+  						const response = await browser.permissions.request(permissionsToRequest);
+						if (response == false){
+							this.wikiData.state = 3;
+						}
+					}*/
+
 					// Call WikiData
 					if (this.wikiData.state < 1){
 						var id = "";
@@ -1898,11 +1909,11 @@
 					if (this.mubiData.data == null && this.mubiData.state < 1){
 						try{
 							this.mubiData.state = 1;
-							letterboxd.helpers.getMubiData(this.wikiData.Mubi_URL).then((value) =>{
+							browser.runtime.sendMessage({name: "GETMUBIDATA", url: this.wikiData.Mubi_URL}, (value) => {
 								var mubi = value.response;
 								if (mubi != ""){
 									this.mubiData.raw = mubi;
-									this.mubiData.data = JSON.parse(mubi);
+									this.mubiData.data = mubi;
 									
 									this.addMubi();
 									this.mubiData.state = 2;
@@ -1924,10 +1935,10 @@
 				// Use the API search to find and match the movie
 				try{
 					this.mubiData.state = 1;
-					letterboxd.helpers.getMubiData(url).then((value) =>{
+					browser.runtime.sendMessage({name: "GETMUBIDATA", url: url}, (value) => {
 						var mubi = value.response;
 						if (mubi != ""){
-							var films = JSON.parse(mubi).films;
+							var films = mubi.films;
 							
 							var index = -1;
 							for (var i = 0; i < films.length; i++){

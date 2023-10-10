@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener((msg, sender, response) => {
-    chrome.storage.sync.get('options', (data) => {
+    chrome.storage.local.get('options', (data) => {
         var options = data.options;
         if (options != null && options.hasOwnProperty('console-log') && options['console-log'] == true){
             console.log(msg.url);
@@ -86,6 +86,31 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
                 response({response: null, url: null, status: res.status})
             }
         });
+    }else if (msg.name == "GETMUBIDATA"){ // MUBI
+        var query = msg.query;
+        fetch(msg.url, 
+            {
+                method: 'GET',
+                headers: {
+                    'content-type': 'application/json',
+                    accept: 'application/json',
+                    'client_country': 'US',
+                    'client': 'web'
+                }
+            }
+            ).then(function(res) {
+            try{
+                res.json().then(function(data) {
+                    if (data != null){
+                        response({response: data, url: res.url, status: res.status, errors: data.errors});
+                    }else{
+                        response({response: null, url: null, status: res.status})
+                    }
+                });
+            } catch{
+                response({response: null, url: null, status: res.status})
+            }
+        });
     }else if (msg.name == "JSON"){ // Standard JSON - used for CinemaScore
         fetch(msg.url).then(function(res) {
             if (res.status !== 200) {
@@ -96,7 +121,6 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
                 response({results: data, status: res.status});
             });
         });
-
     }
 
     return true;
