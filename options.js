@@ -92,6 +92,7 @@ async function changeSetting(event) {
             }
         }else{
             browser.permissions.remove(permissionsToRequest);
+            checkPermission(event.target); // this will hide the "missing permission" if it's showing
         }
     }
 }
