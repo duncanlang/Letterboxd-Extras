@@ -62,6 +62,10 @@
             width: 125px;
             margin-bottom: 10px;
         }
+        
+        .div-request-permission{
+            display: none;
+        }
     </style>
 </head>
 
@@ -137,6 +141,10 @@
             <label for="senscritique-enabled">Display SensCritique:</label>
             <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" />
         </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="senscritique-permissions" class="request-permission" permissionTarget="senscritique-enabled" value="Request Permission"/>
+        </div>
     </div>
     <div>
         <h3>MUBI</h3>
@@ -144,12 +152,20 @@
             <label for="mubi-enabled">Display MUBI:</label>
             <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" />
         </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="mubi-permissions" class="request-permission" permissionTarget="mubi-enabled" value="Request Permission"/>
+        </div>
     </div>
     <div>
         <h3>FilmAffinity</h3>
         <div>
             <label for="filmaff-enabled">Display FilmAffinity:</label>
             <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="filmaff-permissions" class="request-permission" permissionTarget="filmaff-enabled" value="Request Permission"/>
         </div>
     </div>
     <div>
@@ -182,8 +198,7 @@
                 <option value="5">5-point scale</option>
                 <option value="10">10-point scale</option>
             </select>
-            <p>Converts ratings to different rating scales. Effects Letterboxd, IMDb, MyAnimeList, AniList, and Mubi.
-            </p>
+            <p>Converts ratings to different rating scales. Effects Letterboxd, IMDb, MyAnimeList, AniList, and Mubi.</p>
         </div>
         <div>
             <label for="mpa-enabled">Display MPA film ratings:</label>

@@ -48,8 +48,17 @@ async function checkPermission(element){
     let permissionsToRequest = { origins: [element.getAttribute("permission")] };
     const response = await browser.permissions.contains(permissionsToRequest);
 
-    if (response == false && element.checked == true){
-        element.checked = false;
+    var div = element.parentNode.parentNode.querySelector(".div-request-permission");
+    if (div != null){
+        if (response == true && element.checked == true){
+            // Permission exists and setting is enabled
+            div.setAttribute("style","display:none;");
+        }else if(response == false && element.checked == true){
+            // Permission does NOT exist and setting is enabled
+            div.setAttribute("style","display:block;");
+        }else{
+            div.setAttribute("style","display:none;");
+        }
     }
 }
 
@@ -60,19 +69,6 @@ document.addEventListener('change', event => {
 });
 
 async function changeSetting(event) {
-    if (event.target.getAttribute("permission") != null){
-        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
-        if (event.target.checked == true){
-            const response = await browser.permissions.request(permissionsToRequest);
-
-            if (response != true){
-                event.target.checked = false;
-            }
-        }else{
-            browser.permissions.remove(permissionsToRequest);
-        }
-    }
-
     switch (event.target.type) {
         case ('checkbox'):
             options[event.target.id] = event.target.checked;
@@ -83,6 +79,44 @@ async function changeSetting(event) {
     }
 
     save();
+    
+    if (event.target.getAttribute("permission") != null){
+        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
+        if (event.target.checked == true){
+            const response = await browser.permissions.request(permissionsToRequest);
+
+            if (response != true){
+                event.target.checked = false;
+                options[event.target.id] = event.target.checked;
+                save();
+            }
+        }else{
+            browser.permissions.remove(permissionsToRequest);
+        }
+    }
+}
+
+// Request permission if missing
+document.addEventListener('click', event => {
+    if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-permission" && event.target.getAttribute("permissionTarget") != null){
+        requestPermission(event);
+    }
+});
+async function requestPermission(event){
+    // Get the element that has the permission
+    var permissionTarget = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
+    // Make sure it has the permission
+    if (permissionTarget.getAttribute("permission") != null){
+        // Get the permission from the element that has it
+        var permission = permissionTarget.getAttribute("permission");
+        let permissionsToRequest = { origins: [permission] };
+
+        // Request the permission
+        const response = await browser.permissions.request(permissionsToRequest);
+        if (response == true){
+            event.target.parentNode.setAttribute("style","display:none;");
+        }
+    }
 }
 
 // On load, load
