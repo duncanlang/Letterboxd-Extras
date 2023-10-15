@@ -516,9 +516,9 @@
 				}
 
 				// Convert to 10-point scale
-				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".average-rating") != null){
+				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating") != null){
 					// Convert main rating
-					var score = document.querySelector(".average-rating .display-rating");
+					var score = document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating .display-rating");
 					score.innerText = (parseFloat(score.innerText) * 2).toFixed(1).toString();
 
 					// Convert tooltip
