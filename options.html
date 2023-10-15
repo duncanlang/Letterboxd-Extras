@@ -1,76 +1,100 @@
 <!DOCTYPE html>
 
 <html>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            --body-text-color: #00f;
+            --body-text-color: #000;
+            --body-back-color: #ffffff;
+            --body-text-alt-color: #7d7d7d;
+
             color: var(--body-text-color);
-            --body-back-color: #ff0;
-            background-color: var(--body-back-color); 
+            background-color: var(--body-back-color);
+
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         /* Color scheme */
         @media (prefers-color-scheme: light) {
             body {
                 --body-text-color: #000;
                 --body-back-color: #ffffff;
+                --body-text-alt-color: #7d7d7d;
             }
         }
+
         @media (prefers-color-scheme: dark) {
             body {
                 --body-text-color: #f4f4f4;
                 --body-back-color: #23222b;
+                --body-text-alt-color: #a3a2a7;
             }
         }
 
-        h3,label,p{
+        h3,
+        label,
+        p,
+        a {
             margin-left: 15px;
+            margin-right: 15px;
         }
-        p{
+
+        p {
             margin-top: 0px;
             font-style: italic;
+            font-size: 11px;
+            width: 500px;
+            color: var(--body-text-alt-color);
         }
-        label{
+
+        a{
+            color: rgb(51, 167, 255);
+        }
+        a:hover{
+            opacity: 50%;
+        }
+
+        label {
             display: inline-block;
             width: 125px;
             margin-bottom: 10px;
         }
     </style>
-  </head>
+</head>
 
-  <body>
+<body>
     <div>
         <h3>IMDb</h3>
         <div>
-            <label>Display IMDb:</label>
-            <input type="checkbox" id="imdb-enabled"/>
+            <label for="imdb-enabled">Display IMDb:</label>
+            <input type="checkbox" id="imdb-enabled" />
         </div>
     </div>
     <div>
         <h3>MyAnimeList</h3>
         <div>
-            <label>Display MyAnimeList:</label>
-            <input type="checkbox" id="mal-enabled"/>
+            <label for="mal-enabled">Display MyAnimeList:</label>
+            <input type="checkbox" id="mal-enabled" />
         </div>
     </div>
     <div>
         <h3>AniList</h3>
         <div>
-            <label>Display AniList:</label>
-            <input type="checkbox" id="al-enabled"/>
+            <label for="al-enabled">Display AniList:</label>
+            <input type="checkbox" id="al-enabled" />
         </div>
     </div>
     <div>
         <h3>Rotten Tomatoes</h3>
         <div>
-            <label>Display Rotten Tomatoes:</label>
-            <input type="checkbox" id="tomato-enabled"/>
+            <label for="tomato-enabled">Display Rotten Tomatoes:</label>
+            <input type="checkbox" id="tomato-enabled" />
         </div>
         <div>
-            <label>Default detail view:</label>
+            <label for="rt-default-view">Default detail view:</label>
             <select id="rt-default-view">
                 <option value="hide">Hide</option>
                 <option value="show">Show</option>
@@ -78,14 +102,14 @@
             </select>
         </div>
         <div>
-            <label>Default critic score:</label>
+            <label for="critic-default">Default critic score:</label>
             <select id="critic-default">
                 <option value="all">All Critics</option>
                 <option value="top">Top Critics</option>
             </select>
         </div>
         <div>
-            <label>Default audience score:</label>
+            <label for="audience-default">Default audience score:</label>
             <select id="audience-default">
                 <option value="all">All Audience</option>
                 <option value="verified">Verified Audience</option>
@@ -95,11 +119,11 @@
     <div>
         <h3>Metacritic</h3>
         <div>
-            <label>Display Metacritic:</label>
-            <input type="checkbox" id="metacritic-enabled"/>
+            <label for="metacritic-enabled">Display Metacritic:</label>
+            <input type="checkbox" id="metacritic-enabled" />
         </div>
         <div>
-            <label>Default detail view:</label>
+            <label for="meta-default-view">Default detail view:</label>
             <select id="meta-default-view">
                 <option value="hide">Hide</option>
                 <option value="show">Show</option>
@@ -110,72 +134,92 @@
     <div>
         <h3>SensCritique</h3>
         <div>
-            <label>Display SensCritique:</label>
-            <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*"/>
+            <label for="senscritique-enabled">Display SensCritique:</label>
+            <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" />
         </div>
     </div>
     <div>
         <h3>MUBI</h3>
         <div>
-            <label>Display MUBI:</label>
-            <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*"/>
+            <label for="mubi-enabled">Display MUBI:</label>
+            <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" />
         </div>
     </div>
     <div>
         <h3>FilmAffinity</h3>
         <div>
-            <label>Display FilmAffinity:</label>
-            <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*"/>
+            <label for="filmaff-enabled">Display FilmAffinity:</label>
+            <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" />
         </div>
     </div>
     <div>
         <h3>CinemaScore</h3>
         <div>
-            <label>Display CinemaScore:</label>
-            <input type="checkbox" id="cinema-enabled"/>
+            <label for="cinema-enabled">Display CinemaScore:</label>
+            <input type="checkbox" id="cinema-enabled" />
         </div>
     </div>
-    <br>
+
+    <hr width="100%">
+
     <div>
         <h3>Search</h3>
         <div>
-            <label>Default results to films:</label>
-            <input type="checkbox" id="search-redirect"/>
-            <p>When enabled, the Letterboxd search will default to only show results for films, rather than showing all results.</p>
+            <label for="search-redirect">Default results to films:</label>
+            <input type="checkbox" id="search-redirect" />
+            <p>Defaults the Letterboxd search to only show results for films, rather than showing all results.</p>
         </div>
     </div>
-    <br>
+
+    <hr width="100%">
+
     <div>
         <h3>Misc</h3>
         <div>
-            <label>Convert ratings:</label>
+            <label for="convert-ratings">Convert ratings:</label>
             <select id="convert-ratings">
                 <option value="false">Leave unchanged</option>
                 <option value="5">5-point scale</option>
                 <option value="10">10-point scale</option>
             </select>
+            <p>Converts ratings to different rating scales. Effects Letterboxd, IMDb, MyAnimeList, AniList, and Mubi.
+            </p>
         </div>
         <div>
-            <label>Display MPA film ratings:</label>
+            <label for="mpa-enabled">Display MPA film ratings:</label>
             <input type="checkbox" id="mpa-enabled" />
         </div>
         <div>
-            <label>Open 'More At' links in same tab:</label>
+            <label for="open-same-tab">Open 'More At' links in same tab:</label>
             <input type="checkbox" id="open-same-tab" />
         </div>
         <div>
-            <label>Display BoxOfficeMojo link:</label>
+            <label for="mojo-link-enabled">Display BoxOfficeMojo link:</label>
             <input type="checkbox" id="mojo-link-enabled" />
         </div>
     </div>
-    <br>
+
+    <hr width="100%">
+
     <div>
         <h3>Debug</h3>
         <div>
-            <label>Log calls in console:</label>
+            <label for="console-log">Log calls in console:</label>
             <input type="checkbox" id="console-log" />
         </div>
     </div>
+
+    <hr width="100%">
+
+    <div>
+        <div>
+            <a href="https://github.com/duncanlang/Letterboxd-Extras/issues" style="color: rgb(51, 167, 255);">Report an issue or submit a feature suggestion on Github</a>
+        </div>
+    </div>
+
+    <hr width="100%">
+
     <script src="options.js"></script>
-  </body>
+</body>
+
 </html>
