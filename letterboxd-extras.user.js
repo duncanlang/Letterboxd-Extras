@@ -2925,7 +2925,7 @@
 				// Create and Add				
 				// Add the section to the page
 				const scoreSection = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart mal-ratings extras-chart'
+					class: 'section ratings-histogram-chart mal-ratings ratings-extras extras-chart'
 				});				
 
 				// Add the Header
@@ -3028,7 +3028,7 @@
 				// Create and Add
 				// Add the section to the page
 				const scoreSection = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart al-ratings extras-chart'
+					class: 'section ratings-histogram-chart al-ratings ratings-extras extras-chart'
 				});				
 
 				// Add the Header
