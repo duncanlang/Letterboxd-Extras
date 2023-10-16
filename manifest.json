@@ -9,7 +9,9 @@
 		"default_title": "Letterboxd Extras Settings",
 		"default_popup": "options.html",
 		"default_icon": {
-			"16": "icon128.png"
+			"16": "icon16.png",
+			"32": "icon32.png",
+			"128": "icon128.png"
 		}
 	},
 
