@@ -718,7 +718,9 @@
 								this.wiki = value.results.bindings[0];
 
 								// Add Wikipedia Link
-								this.addWikiButton();
+								if (letterboxd.storage.get('wiki-link-enabled') === true){
+									this.addWikiButton();
+								}
 
 								// Collect the countries
 								for (var i = 0; i < value.results.bindings.length; i++){
@@ -1112,7 +1114,8 @@
 
 			addWikiButton(){
 				if (document.querySelector('.wiki-button')) return;
-
+				
+				
 				if (this.wiki.Wikipedia != null && this.wiki.Wikipedia.value != null){
 					var url = this.wiki.Wikipedia.value;
 				}else if (this.wiki.WikipediaEN != null && this.wiki.WikipediaEN.value != null){
@@ -3266,7 +3269,9 @@
 						this.wiki = value.results.bindings[0];
 						
 						this.addWikiData();
-						this.addWikiButton();
+						if (letterboxd.storage.get('wiki-link-enabled') === true){
+							this.addWikiButton();
+						}
 					}
 				});
 			},
@@ -4629,6 +4634,7 @@
 				if (this.data['cinema-enabled'] == null) this.set('cinema-enabled', true);
 				if (this.data['mpa-enabled'] == null) this.set('mpa-enabled', true);
 				if (this.data['mojo-link-enabled'] == null) this.set('mojo-link-enabled', true);
+				if (this.data['wiki-link-enabled'] == null) this.set('wiki-link-enabled', true);
 				
 			},
 			get(key) {
