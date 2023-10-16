@@ -6,7 +6,7 @@ A browser add-on that adds additional features to the movie tracking database si
 <a href="https://chrome.google.com/webstore/detail/letterboxd-extras/edhldpamlnkpekapihiolppcdppgeice"><img src="https://user-images.githubusercontent.com/585534/107280622-91a8ea80-6a26-11eb-8d07-77c548b28665.png" alt="Get Letterboxd Extras for Chromium"></a>
 <a href="https://microsoftedge.microsoft.com/addons/detail/letterboxd-extras/khnodkkceaakcafenlmnbbjgfkhjmbgh"><img src="https://user-images.githubusercontent.com/585534/107280673-a5ece780-6a26-11eb-9cc7-9fa9f9f81180.png" alt="Get Letterboxd Extras for Microsoft Edge"></a>
 
-**This add-on supports the mobile Letterboxd website and should work on any mobile browser that supports either Firefox or Chrome add-ons**
+**This add-on also supports the mobile Letterboxd website and should work on any mobile browser that supports either Firefox or Chrome add-ons**
 
 ## Features
 - Displays ratings on film pages from:
@@ -18,6 +18,7 @@ A browser add-on that adds additional features to the movie tracking database si
   - CinemaScore
   - SensCritique (disabled by default)
   - MUBI (disabled by default)
+  - FilmAffinity (disabled by default)
 - Adds a Wikipedia-like info box of the born, died, and years active for people
 - Adds links to the enabled sited and also BoxOfficeMojo 
 - Adds MPA rating
