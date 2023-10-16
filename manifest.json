@@ -2,8 +2,17 @@
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
-	"version": "3.8.2",
+	"version": "3.9.0",
 	"minimum_chrome_version": "88",
+	
+	
+	"browser_action": {
+		"default_title": "Letterboxd Extras Settings",
+		"default_popup": "options.html",
+		"default_icon": {
+			"16": "icon128.png"
+		}
+	},
 
 	"icons": {
 		"128": "icon128.png"
@@ -34,7 +43,9 @@
 	],
 	
 	"optional_host_permissions": [
-		"https://api.mubi.com/*"
+		"https://api.mubi.com/*",
+		"https://apollo.senscritique.com/*",
+		"https://*.filmaffinity.com/*"
 	],
 
 	"background": {

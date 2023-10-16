@@ -59,6 +59,9 @@ async function load() {
     // Assign the object
     chrome.storage.sync.get('options', (data) => {
         Object.assign(options, data.options);
+        if (options["convert-ratings"] === true){
+            options["convert-ratings"] = "5";
+        }
 
         // Init default settings
         if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
@@ -68,6 +71,7 @@ async function load() {
         if (options['al-enabled'] == null) options['al-enabled'] = true;
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
         if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
+        if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
 
         // Set the settings
         var elements = document.querySelectorAll('.setting');
