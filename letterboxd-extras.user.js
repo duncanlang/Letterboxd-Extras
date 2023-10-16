@@ -2783,7 +2783,7 @@
 
 					// Add the Header
 					const heading = letterboxd.helpers.createElement('h2', {
-						class: 'section-heading',
+						class: 'section-heading section-heading-extras',
 						style: 'height: 13px;'
 					});
 					section.append(heading);
