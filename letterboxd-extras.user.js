@@ -4416,6 +4416,8 @@
 					"    ?TV_End_entry psv:P582 [wikibase:timePrecision ?TV_End_Precision].\n" +
 					"    MINUS { ?TV_End_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"  }\n" +
+					// Chrome is dumb and the fetch doesn't work with this for some reason. Until I can figure this out, chrome users will have to do without :(
+					/*"  
 					"  OPTIONAL {\n" +
 					"    ?WikipediaEN schema:about ?item .\n" +
 					"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
@@ -4425,7 +4427,7 @@
 					"    ?Wikipedia schema:about ?item .\n" +
 					"    ?Wikipedia schema:inLanguage \""+ lang + "\" .\n" +
 					"    ?Wikipedia schema:isPartOf <https://"+ lang + ".wikipedia.org/> .\n" +
-					"  }\n" +
+					"  }\n" +*/
 					"}";
 				}
 
