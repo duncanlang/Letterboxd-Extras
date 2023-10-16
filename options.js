@@ -72,6 +72,7 @@ async function load() {
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
         if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
         if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
+        if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
 
         // Set the settings
         var elements = document.querySelectorAll('.setting');
