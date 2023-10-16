@@ -529,8 +529,10 @@
 
 				// Convert to 10-point scale
 				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating") != null){
+					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
+					
 					// Convert main rating
-					var score = document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating .display-rating");
+					var score = section.querySelector(".average-rating .display-rating");
 					score.innerText = (parseFloat(score.innerText) * 2).toFixed(1).toString();
 
 					// Convert tooltip
@@ -544,7 +546,7 @@
 
 					// Convert the histogram graph
 					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
-					var histogramBars = document.querySelectorAll(".rating-histogram .rating-histogram-bar");
+					var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
 					for (var i = 0; i < histogramBars.length; i++){
 						if (histogramBars[i].getAttribute("data-original-title") != null){
 							var bar = histogramBars[i];
@@ -768,6 +770,9 @@
 						chrome.runtime.sendMessage({name: "GETWIKIDATA", url: queryString}, (value) => {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 								this.wiki = value.results.bindings[0];
+
+								// Add Wikipedia Link
+								this.addWikiButton();
 
 								// Collect the countries
 								for (var i = 0; i < value.results.bindings.length; i++){
@@ -1150,7 +1155,8 @@
 					this.imdbData.state2 = 2;
 
 					// MPAA / Parental Guidence
-					if (this.mpaaRating == null && this.imdbData.mpaa != null){
+					var ratings = ["G","PG","PG-13","R","NC-17","X","M","GP","M/PG"];
+					if (this.mpaaRating == null && this.imdbData.mpaa != null && ratings.includes(this.imdbData.mpaa)){
 						this.mpaaRating = this.imdbData.mpaa;
 						this.addRating();
 					}
@@ -1162,51 +1168,6 @@
 					}
 				}
 
-				// Call OMDb for backup
-				if (this.wikiData.state == 2 && this.imdbData.state2 == 2 && (this.tomatoData.state == 3 || this.metaData.state == 3 || ((this.dateAdded == false || this.filmDate.precision == "9") && this.wikiData.TV_Start == null))){
-
-					var queryString = "https://www.omdbapi.com/?apikey=afd82b43&i=" + this.imdbID + "&plot=short&r=json&tomatoes=true";
-					if (this.omdbData.state < 1){
-						this.omdbData.state = 1;
-
-						chrome.runtime.sendMessage({name: "GETDATA", url: queryString}, (value) => {
-							this.omdbData.data = value;
-							this.omdbData.state = 2;
-	
-							// Check if OMDb response is valid
-							if (this.omdbData.data != null && this.omdbData.data.Response == "True"){			
-								// Add full release date
-								if (this.omdbData.data.Released != null && this.omdbData.data.Released != "N/A" && (this.wiki == null || this.wiki.Publication_Date == null) && (this.dateAdded == false || this.filmDate.precision == "9")){
-									this.filmDate.date = this.omdbData.data.Released;
-									this.addDate(this.filmDate.date);
-
-									if(this.cinemascore.state < 2){
-										this.initCinema(null);
-									}
-								}
-			
-								// Add Rating
-								if (this.omdbData.data.Rated != null && this.omdbData.data.Rated != "N/A" && (this.wiki == null || this.wiki.MPAA_film_ratingLabel == null) && this.ratingAdded == false){
-									this.mpaaRating = this.omdbData.data.Rated;
-									this.addRating();	
-								}
-		
-								// Add Metacritic
-								if (this.omdbData.data.Metascore != null && this.omdbData.data.Metascore != "N/A" && (this.wiki == null || this.wiki.Metacritic_ID == null || this.wiki.Metacritic_ID.value == null) && this.metaAdded == false && letterboxd.storage.get('metacritic-enabled') === true){
-									this.addMeta();
-								}
-		
-								// Get Rotten Tomatoes data
-								if (this.omdbData.data.tomatoURL != null && this.omdbData.data.tomatoURL != "" && this.omdbData.data.tomatoURL != "N/A" && (this.wiki == null || this.wiki.Rotten_Tomatoes_ID == null || this.wiki.Rotten_Tomatoes_ID.value == null) && this.rtAdded == false && letterboxd.storage.get('tomato-enabled') === true){
-									this.omdbData.data.tomatoURL = letterboxd.helpers.fixURL(this.omdbData.data.tomatoURL);
-									this.wikiData.tomatoURL = this.omdbData.data.tomatoURL;
-									this.initTomato();
-								}
-							}
-						});
-					}				
-				}
-
 				if (letterboxd.storage.get('convert-ratings') === "5"){
 					this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
 				} else {
@@ -1215,6 +1176,20 @@
 
 				// Stop
 				return this.stopRunning();
+			},
+
+			addWikiButton(){
+				if (document.querySelector('.wiki-button')) return;
+
+				if (this.wiki.Wikipedia != null && this.wiki.Wikipedia.value != null){
+					var url = this.wiki.Wikipedia.value;
+				}else if (this.wiki.WikipediaEN != null && this.wiki.WikipediaEN.value != null){
+					var url = this.wiki.WikipediaEN.value;
+				}else{
+					return;
+				}
+
+				this.addLink(url);
 			},
 
 			getIMDbLink(){
@@ -1450,7 +1425,7 @@
 
 			getIMDBAdditional(){
 				// First see if it has a parental rating
-				var details = this.imdbData.data2.querySelectorAll('.ipc-inline-list.ipc-inline-list--show-dividers.sc-8c396aa2-0.kqWovI.baseAlt li');
+				var details = this.imdbData.data2.querySelectorAll('.ipc-inline-list.ipc-inline-list--show-dividers.sc-afe43def-4.kdXikI.baseAlt li');
 				if (details != null){
 					for (var i = 0; i < details.length; i++){
 						var a = details[i].querySelector('a');
@@ -1464,7 +1439,7 @@
 				}
 
 				// Next grab the metascore if it has it
-				var meta = this.imdbData.data2.querySelector('.score-meta');
+				var meta = this.imdbData.data2.querySelector('.metacritic-score-box');
 				if (meta != null){
 					this.imdbData.meta = meta.innerText.trim();
 				}
@@ -2386,6 +2361,9 @@
 					}else if (url.includes("filmaffinity.com")){
 						text = "AFFINITY";
 						className = "filmaff-button";
+					}else if (url.includes("wikipedia")){
+						text = "WIKI";
+						className = "wiki-button";
 					}
 
 					if (document.querySelector('.' + className)){
@@ -2413,7 +2391,8 @@
 						'.mal-button',
 						'.al-button',
 						'.anidb-button',
-						'.mojo-button'
+						'.mojo-button',
+						'.wiki-button'
 					];
 	
 					var index = order.indexOf('.' + className);	
@@ -4361,7 +4340,7 @@
 						"}\n" +
 						"";
 				}else{
-					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?WikipediaEN  WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"  {\n" +
 					"    SELECT DISTINCT ?item WHERE {\n" +
@@ -4436,6 +4415,16 @@
 					"    ?TV_End_entry ps:P582 ?TV_End.\n" +
 					"    ?TV_End_entry psv:P582 [wikibase:timePrecision ?TV_End_Precision].\n" +
 					"    MINUS { ?TV_End_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?WikipediaEN schema:about ?item .\n" +
+					"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
+					"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?Wikipedia schema:about ?item .\n" +
+					"    ?Wikipedia schema:inLanguage \""+ lang + "\" .\n" +
+					"    ?Wikipedia schema:isPartOf <https://"+ lang + ".wikipedia.org/> .\n" +
 					"  }\n" +
 					"}";
 				}
