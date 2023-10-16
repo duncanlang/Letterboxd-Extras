@@ -22,7 +22,17 @@
 	/* eslint-disable */
 	GM_addStyle(`
 		.section-heading-extras{
+			height: 13px !important;
+		}
+		.tomato-ratings .section-heading-extras,
+		.meta-ratings .section-heading-extras,
+		.sens-ratings .section-heading-extras{
 			height: 20px !important;
+		}
+		.tomato-ratings .show-details,
+		.meta-ratings .show-details,
+		.sens-ratings .show-details{
+			top: 10px !important;
 		}
 		.imdb-score {
 			border-radius:20px;
@@ -114,15 +124,18 @@
 		.ratings-extras{
 			margin-top: 20px !important;
 		}
-		.ratings-extras .section-heading{
-			margin-bottom: 0px !important; 
-		}
-		.imdb-ratings .section-heading{
+		
+		.ratings-extras.extras-chart .section-heading-extras{
 			margin-bottom: 15px !important;
+		}
+
+		.ratings-extras:not(.extras-chart) .section-heading-extras{
+			margin-bottom: 0px !important; 
 		}
 		.rating-histogram-extras{
 			margin-bottom: 10px !important;
 		}
+
 		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover{
 			opacity: 50%;
 		}
@@ -241,7 +254,6 @@
 		}
 		.show-details{
 			font-size: 9px !important;
-			top: 10px !important;
 		}
 		.show-details:hover{
 			cursor: pointer;
@@ -1203,7 +1215,7 @@
 				
 				// Add the section to the page
 				const imdbScoreSection = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart imdb-ratings ratings-extras'
+					class: 'section ratings-histogram-chart imdb-ratings ratings-extras extras-chart'
 				});				
 
 				// Add the Header
@@ -2844,7 +2856,7 @@
 				// Create and Add				
 				// Add the section to the page
 				const scoreSection = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart mal-ratings'
+					class: 'section ratings-histogram-chart mal-ratings extras-chart'
 				});				
 
 				// Add the Header
@@ -2947,7 +2959,7 @@
 				// Create and Add
 				// Add the section to the page
 				const scoreSection = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart al-ratings'
+					class: 'section ratings-histogram-chart al-ratings extras-chart'
 				});				
 
 				// Add the Header

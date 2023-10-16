@@ -36,10 +36,9 @@ function set() {
                     element.value = options[key];
                     break;
             }
-        }
-
-        if (element.getAttribute("permission") != null){
-            checkPermission(element);
+            if (element.getAttribute("permission") != null){
+                checkPermission(element);
+            }
         }
     })
 }
