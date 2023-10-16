@@ -900,7 +900,7 @@
 
 								// Get and add FilmAffinity
 								if (letterboxd.storage.get('filmaff-enabled') === true){
-									if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){
+									if (this.wiki != null && this.wiki.FilmAffinity_ID != null && this.wiki.FilmAffinity_ID.value != null ){
 										var validLocales = ['us','ca','mx','es','uk','ie','au','ar','cl','co','uy','py','pe','ec','ve','cr','hn','gt','bo','do'];
 										var locale = "us";
 										if (validLocales.includes(this.browserLocale.toLowerCase())){
