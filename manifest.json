@@ -6,7 +6,7 @@
 	"minimum_chrome_version": "88",
 	
 	
-	"browser_action": {
+	"action": {
 		"default_title": "Letterboxd Extras Settings",
 		"default_popup": "options.html",
 		"default_icon": {
@@ -38,8 +38,7 @@
 		"https://query.wikidata.org/*",
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
-		"https://graphql.anilist.co/*",
-		"https://apollo.senscritique.com/*"
+		"https://graphql.anilist.co/*"
 	],
 	
 	"optional_host_permissions": [

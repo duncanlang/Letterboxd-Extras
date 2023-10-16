@@ -2194,11 +2194,11 @@
 
 			initFilmAffinity(){
 				if (this.wikiData.FilmAffinity_URL != null && this.wikiData.FilmAffinity_URL != ""){
-	
+
 					if (this.filmaffData.data == null && this.filmaffData.state < 1){
 						try{
 							this.filmaffData.state = 1;
-							letterboxd.helpers.getMubiData(this.wikiData.FilmAffinity_URL).then((value) =>{
+							chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.FilmAffinity_URL}, (value) => {
 								var filmaff = value.response;
 								if (filmaff != ""){
 									this.filmaffData.raw = filmaff;
