@@ -4,7 +4,12 @@
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
 	"version": "3.9.0",
 	"minimum_chrome_version": "88",
-	
+
+	"browser_specific_settings": {
+		"gecko_android": {
+		  "strict_min_version": "100.0"
+		}
+	},	  
 	
 	"browser_action": {
 		"default_title": "Letterboxd Extras Settings",
