@@ -4232,6 +4232,7 @@
 					"    SELECT DISTINCT ?item WHERE {\n" +
 					"      ?item p:" + idType + " ?statement0.\n" +
 					"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+					"      MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"    }\n" +
 					"    LIMIT 15\n" +
 					"  }\n" +
@@ -4252,6 +4253,7 @@
 						"    SELECT DISTINCT ?item WHERE {\n" +
 						"      ?item p:P4985 ?statement0.\n" +
 						"      ?statement0 ps:P4985 \"" + id + "\".\n" +
+						"      MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
 						"    }\n" +
 						"    LIMIT 10\n" +
 						"  }\n" +
@@ -4351,6 +4353,7 @@
 					"    SELECT DISTINCT ?item WHERE {\n" +
 					"      ?item p:" + idType + " ?statement0.\n" +
 					"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+					"      MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"    }\n" +
 					"    LIMIT 10\n" +
 					"  }\n" +
