@@ -655,7 +655,7 @@
 				}
 
 				// Add Cinema Score
-				if (this.cinemascore.data == null && document.querySelector(".headline-1.js-widont.prettify") && this.cinemascore.state < 1){
+				if (this.cinemascore.data == null && document.querySelector(".headline-1.js-widont.prettify") && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null){
 					this.initCinema(null);
 				}
 
@@ -2701,6 +2701,17 @@
 									this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
 								}
 							}
+
+							// Search Before Colon (:)
+							//****************************************************************
+							if (this.cinemascore.state < 2 && title.includes(": ")){
+								var temp = title.split(": ");
+								if (temp[1].toUpperCase().includes("THE MOVIE")){
+									// Already done before
+								}else{
+									this.getCinema(letterboxd.helpers.getValidASCIIString(temp[0]), 'begin');
+								}
+							}
 							
 							// Replace Numbers with Roman Numerals
 							//****************************************************************
@@ -2748,8 +2759,10 @@
 
 			verifyCinema(data, title, titleType){
 				if (this.cinemascore.state < 2 && data != null && data.length > 0 && data[0].GRADE != ""){
-					//const year = document.querySelector('.number').childNodes[0].innerHTML;
+					var romanExp = new RegExp(/\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))\b/);
+					var	numeric = new RegExp(/([0-9]+)/);
 					const year = this.letterboxdYear;
+
 
 					var years = [year,"","",""];
 
@@ -2793,6 +2806,10 @@
 								// Make sure it begins with the searched title
 								var reg = new RegExp('^(' + title + '){1}( |,|\\.|:|-|$)','i')
 								found = data[ii].TITLE.match(reg);
+							}
+
+							if ((this.letterboxdTitle.match(romanExp) || this.letterboxdTitle.match(numeric)) && !(data[ii].TITLE.match(romanExp) || data[ii].TITLE.match(numeric))){
+								found = false;
 							}
 
 							if (found){
@@ -4335,7 +4352,9 @@
 				var output = '';
 
 				for(var i = 0; i < input.length; i++){
-					if (input.codePointAt(i) >= 256){
+					if (input[i] == "–"){
+						output += "-";
+					}else if (input.codePointAt(i) >= 256){
 						break;
 					}else{
 						output += input[i];
