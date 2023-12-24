@@ -3415,7 +3415,6 @@
 							birthPlace += ", " + this.wiki.BirthCountry.value;
 						}
 					}
-					// TODO: we should have precision, I bet some people only have year
 				}
 				// Death date
 				var death = null;
