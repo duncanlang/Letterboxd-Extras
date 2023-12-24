@@ -387,6 +387,9 @@
 		.filmaff-score.extras-mobile{
 			border-radius: 0.3em;
 		}
+		.extras-bullet:hover{
+			color: #678;
+		}
 	`);
 	/* eslint-enable */
 
@@ -408,6 +411,7 @@
 			letterboxdDirectors: [],
 			linksMoved: false,
 			scoreConverted: false,
+			fansConverted: false,
 
 			// IMDb
 			imdbID: "",
@@ -562,6 +566,84 @@
 					}
 
 					this.scoreConverted = true;
+				}
+
+				// Replace 'Fans' with rating count
+				if (this.fansConverted == false && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null){
+					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
+
+					var fansLink = section.querySelector("a.all-link.more-link");
+					var score = section.querySelector(".average-rating .display-rating");
+					if (score != null){
+						// Grab count and link from score element
+						var regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]ratings)/);
+						var count = score.getAttribute("data-original-title").match(regex)[1];
+						var ratingsUrl = score.getAttribute("href");
+					}else{
+						// Collect the rating count by tallying the bar graph
+						var count = 0;
+						var ratingsUrl = "";
+						regex = new RegExp(/^([0-9,.]+)\b/);
+						var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
+						for (var i = 0; i < histogramBars.length; i++){
+							if (histogramBars[i].getAttribute("data-original-title") != null){
+								var bar = histogramBars[i];
+							}else{
+								var bar = histogramBars[i].querySelector("a");
+							}
+							tooltip = bar.getAttribute("data-original-title");
+							var regexMatch = tooltip.match(regex);
+							if (regexMatch != null && regexMatch.length > 1){
+								count += parseInt(letterboxd.helpers.cleanNumber(regexMatch[1]));
+							}
+
+							if (ratingsUrl == ""){
+								ratingsUrl = bar.getAttribute("href");
+								if (ratingsUrl != null){
+									ratingsUrl = ratingsUrl.substring(0, ratingsUrl.indexOf("/rated"));
+								}else{
+									ratingsUrl = "";
+								}
+							}
+						}
+					}
+
+					if (letterboxd.storage.get('replace-fans') === "replace" && fansLink != null){
+						// Replace the existing fans text with ratings
+						fansLink.innerText = count + " ratings";
+
+					}else if (letterboxd.storage.get('replace-fans') === "both" && fansLink != null){
+						// Add the rating count next to the fans
+						// Create the bullet point
+						var right = fansLink.clientWidth + 5;
+						const bullet = letterboxd.helpers.createElement('a', {
+							class: 'all-link more-link extras-bullet',
+							style: 'right: ' + right.toString() + 'px'
+						});
+						bullet.innerText = "•";
+						fansLink.before(bullet);
+						
+						// Create the rating count link
+						right += bullet.clientWidth + 5;
+						const ratingCount = letterboxd.helpers.createElement('a', {
+							class: 'all-link more-link',
+							style: 'right: ' + right.toString() + 'px',
+							href: ratingsUrl
+						});
+						ratingCount.innerText = count;
+						bullet.before(ratingCount);
+
+					}else if (fansLink == null){
+						// Fans element does not exist, create one for the ratings count
+						const ratingCount = letterboxd.helpers.createElement('a', {
+							class: 'all-link more-link',
+							href: ratingsUrl
+						});
+						ratingCount.innerText = count + " ratings";
+						section.querySelector(".rating-histogram-exploded").before(ratingCount);
+					}
+
+					this.fansConverted = true;
 				}
 
 				// Get directors and producers
