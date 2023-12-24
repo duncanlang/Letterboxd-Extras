@@ -445,6 +445,7 @@
 				US_Title: null, Alt_Title: null, TV_Start: null, TV_End: null, AniDB_ID: null, AniList_ID: null, MAL_ID: null,
 				Mubi_ID: null, Mubi_URL: null,
 				FilmAffinity_ID: null, FilmAffinity_URL: null,
+				SensCritique_ID: null, SensCritique_URL: null,
 			},
 
 			// Rotten Tomatoes
@@ -651,61 +652,6 @@
 					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
 					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
 					this.letterboxdDirectors = this.letterboxdDirectors.concat(producers);
-				}
-
-				// Add SensCritique
-				if (this.letterboxdTitle != null && this.sensCritique.state == 0 && this.tmdbID != null && this.tmdbID != ""){
-					this.sensCritique.state = 1;
-					if (letterboxd.storage.get('senscritique-enabled') === true){
-						var title = this.letterboxdTitle;
-						var type = "movie";
-						if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
-						if (this.tmdbTV == true) type = "tvShow"
-	
-						letterboxd.helpers.getSensData("https://apollo.senscritique.com/", "", title, type).then((value) =>{
-							var sens = JSON.parse(value.response);
-							if (sens.data != null && sens.data.results != null)
-							{
-								sens = sens.data.results.hits.items;
-								var results = [];
-								for (var i = 0; i < sens.length; i++){
-									var result = {score: 0, data: sens[i]};
-
-									var directors = [];
-									if (sens[i].product.directors != null)
-										directors = directors.concat(sens[i].product.directors);
-									if (sens[i].product.creators != null)
-										directors = directors.concat(sens[i].product.creators);
-									if (sens[i].product.producers != null)
-										directors = directors.concat(sens[i].product.producers);
-
-									// Match based on directors/producers/creators
-									for (var k = 0; k < directors.length; k++){
-										// Director name to lowercase and removed diacritics
-										var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-										if (this.letterboxdDirectors.includes(director)){
-											result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
-											break;
-										}
-									}
-									// Match based on exact name and year match
-									if (result.score == 0 && this.letterboxdTitle == sens[i].product.title && this.letterboxdYear == sens[i].fields.year){
-										result.score = 90;
-									}
-	
-									// Only consider it a match if greater or equal to 90 score
-									if (result.score >= 90){
-										results.push(result);
-									}
-								}
-								if (results.length > 0){
-									results.sort((a, b) => {return b.score - a.score});
-									this.sensCritique.data = results[0].data;
-									this.addSensCritique();
-								}
-							}
-						});
-					}
 				}
 
 				// Add Cinema Score
@@ -927,6 +873,27 @@
 										this.mubiSearch(url);
 									}
 								}
+
+								// Get and add SensCritique
+								if (letterboxd.storage.get('senscritique-enabled') === true){
+									if (this.wiki != null && this.wiki.SensCritique_ID != null && this.wiki.SensCritique_ID.value != null ){
+										var type = "movie";
+										if (this.tmdbTV == true) type = "tvShow"
+										letterboxd.helpers.getSensDataWithID("https://apollo.senscritique.com/", this.wiki.SensCritique_ID.value).then((value) =>{
+											var sens = JSON.parse(value.response);
+											if (sens.data != null)
+											{
+												this.sensCritique.data = sens.data;
+												this.addSensCritique();
+											}
+										});
+
+									}else{
+										// WikiData does not have the SensCritique ID, lets use the API to search instead
+										this.searchSensCritique();
+									}
+								}
+
 
 								// Get and add FilmAffinity
 								if (letterboxd.storage.get('filmaff-enabled') === true){
@@ -3101,12 +3068,72 @@
 				$(".tooltip-extra").on("mouseout", HideTwipsy);
 			},
 
+			searchSensCritique(){
+				this.sensCritique.state = 1;
+
+				var title = this.letterboxdTitle;
+				var type = "movie";
+				if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
+				if (this.tmdbTV == true) type = "tvShow"
+
+				letterboxd.helpers.getSensData("https://apollo.senscritique.com/", title, type).then((value) =>{
+					var sens = JSON.parse(value.response);
+					if (sens.data != null && sens.data.results != null)
+					{
+						sens = sens.data.results.hits.items;
+						var results = [];
+						for (var i = 0; i < sens.length; i++){
+							var result = {score: 0, data: sens[i]};
+
+							var directors = [];
+							if (sens[i].product.directors != null)
+								directors = directors.concat(sens[i].product.directors);
+							if (sens[i].product.creators != null)
+								directors = directors.concat(sens[i].product.creators);
+							if (sens[i].product.producers != null)
+								directors = directors.concat(sens[i].product.producers);
+
+							// Match based on directors/producers/creators
+							for (var k = 0; k < directors.length; k++){
+								// Director name to lowercase and removed diacritics
+								var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+								if (this.letterboxdDirectors.includes(director)){
+									result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
+									break;
+								}
+							}
+							// Match based on exact name and year match
+							if (result.score == 0 && this.letterboxdTitle == sens[i].product.title && this.letterboxdYear == sens[i].fields.year){
+								result.score = 90;
+							}
+
+							// Only consider it a match if greater or equal to 90 score
+							if (result.score >= 90){
+								results.push(result);
+							}
+						}
+						if (results.length > 0){
+							results.sort((a, b) => {return b.score - a.score});
+							this.sensCritique.data = results[0].data;
+							this.addSensCritique();
+						}
+					}
+				});
+			},
+
 			addSensCritique(){
 				if (document.querySelector('.sens-ratings')) return;
 
 				if (!document.querySelector('.sidebar')) return;
 
 				if (this.sensCritique.data == null) return;
+
+				var url = "";
+				if (this.sensCritique.data.fields != null && this.sensCritique.data.fields.url != null){
+					url = this.sensCritique.data.fields.url;
+				}else{
+					url = "https://www.senscritique.com" + this.sensCritique.data.product.url
+				}
 
 				// Lets add it to the page
 				//***************************************************************
@@ -3123,7 +3150,7 @@
 
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-sens",
-					href: this.sensCritique.data.fields.url,
+					href: url,
 					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
 				});
 				heading.append(logoHolder);
@@ -3143,7 +3170,6 @@
 				var rating = this.sensCritique.data.product.rating;
 				var ratingCount = this.sensCritique.data.product.stats.ratingCount;
 				var recommendCount = this.sensCritique.data.product.stats.recommendCount;
-				var url = this.sensCritique.data.fields.url;
 
 				this.addLink(url);
 
@@ -3544,62 +3570,63 @@
 				return null;
 			},
 
-			async getSensData(link, query, title, type) {
+			async getSensData(link, title, type) {
 				if (letterboxd.storage.get('console-log') === true)
 					console.log("Letterboxd-extras | Calling: " + link);
 
+				// Different Query for search or direct ID request
 				var query = `
-				query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
-					results(query: $query, filters: $filters) {
-						hits(page: $page, sortBy: $sortBy) {
-							sortedBy
-							page {
-								from
-								pageNumber
-								total
-								totalPages
-								__typename
-							}
-							items {
-								... on ResultHit {
-								id
-								product {
-									title
-									rating
-									dateRelease
-									dateReleaseOriginal
-									dateReleaseUS
-									stats {
-										ratingCount
-										recommendCount
-									}
-									directors {
-										name
-										person_id
-										url
-									}
-									creators {
-										name
-										person_id
-										url
-									}
-									producers {
-										name
-										person_id
-										url
-									}
-									url
+					query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
+						results(query: $query, filters: $filters) {
+							hits(page: $page, sortBy: $sortBy) {
+								sortedBy
+								page {
+									from
+									pageNumber
+									total
+									totalPages
+									__typename
 								}
-								fields {
-									title
-									url
-									year
-								}
+								items {
+									... on ResultHit {
+									id
+									product {
+										title
+										rating
+										dateRelease
+										dateReleaseOriginal
+										dateReleaseUS
+										stats {
+											ratingCount
+											recommendCount
+										}
+										directors {
+											name
+											person_id
+											url
+										}
+										creators {
+											name
+											person_id
+											url
+										}
+										producers {
+											name
+											person_id
+											url
+										}
+										url
+									}
+									fields {
+										title
+										url
+										year
+									}
+									}
 								}
 							}
 						}
 					}
-				}
 				`;
 
 				try {
@@ -3615,7 +3642,51 @@
 							variables: {
 								filters: [{"identifier":"universe","value":type}],
 								pages: {from: 0, size: 16},
-								query: title 
+								query: title
+							}
+						})
+					});
+					return {response: res.response, url: res.responseURL};
+				} catch (err) {
+					console.error(err);
+				}
+				return null;
+			},
+
+			async getSensDataWithID(link, id) {
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("Letterboxd-extras | Calling: " + link);
+
+				// Different Query for search or direct ID request
+				var query =  `
+					query ($id: Int!) {
+						product(id: $id) {
+							title
+							rating
+							dateRelease
+							dateReleaseOriginal
+							dateReleaseUS
+							stats {
+								ratingCount
+								recommendCount
+							}
+							url
+						}
+					}
+				`;
+
+				try {
+					const res = await letterboxd.helpers.request({
+						url: link,
+						method: 'POST',
+						headers: {
+							'content-type': 'application/json',
+							accept: 'application/json'
+						},
+						data: JSON.stringify({
+							query,
+							variables: {
+								id: parseInt(id)
 							}
 						})
 					});
@@ -4544,7 +4615,7 @@
 						"}\n" +
 						"";
 				}else{
-					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?WikipediaEN  WHERE {\n" +
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?MPAA_film_ratingLabel ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"  {\n" +
 					"    SELECT DISTINCT ?item WHERE {\n" +
@@ -4560,6 +4631,7 @@
 					"  OPTIONAL { ?item wdt:P4086 ?MAL_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P7299 ?Mubi_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P480 ?FilmAffinity_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P10100 ?SensCritique_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P2130 ?Budget_Entry.\n" +
