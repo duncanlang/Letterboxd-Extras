@@ -390,6 +390,13 @@
 		.extras-bullet:hover{
 			color: #678;
 		}
+		.budget.detail p{
+			display: inline;
+		}
+		.budget.detail a{
+			display: inline;
+			margin-left: 10px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -435,7 +442,7 @@
 			wiki: null,
 			wiki_dates: null,
 			wikiData: {state: 0, state_dates: 0, tomatoURL: null, metaURL: "", 
-				budget: {value: null, currency: null}, 
+				budget: {value: null, currency: null, togetherWith: null}, 
 				boxOfficeUS: {value: null, currency: null}, 
 				boxOfficeWW: {value: null, currency: null},
 				mpaa: null, 
@@ -763,11 +770,13 @@
 									this.wikiData.budget.value = this.wiki.Budget.value;
 									if (this.wiki.Budget_UnitLabel != null)
 										this.wikiData.budget.currency = this.wiki.Budget_UnitLabel.value;
+									if (this.wiki.Budget_TogetherWith != null)
+										this.wikiData.budget.togetherWith = this.wiki.Budget_TogetherWith.value;
 
 									var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.budget.value));
 									var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.budget));
-									if (this.mojoData.budget == "" || (value > value2)){
-										letterboxd.helpers.createDetailsRow("Budget",this.wikiData.budget.value, this.wikiData.budget.currency);
+									if (this.mojoData.budget == "" || (value > value2) || this.wikiData.budget.togetherWith != null){
+										letterboxd.helpers.createDetailsRow("Budget",this.wikiData.budget.value, this.wikiData.budget.currency, this.wikiData.budget.togetherWith);
 									}
 								}
 								if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null){
@@ -4063,7 +4072,7 @@
 				return span;
 			},
 
-			createDetailsRow(headerText, value, currency){
+			createDetailsRow(headerText, value, currency, togetherWith){
 				// Determine className
 				var className = "";
 				switch(headerText){
@@ -4093,14 +4102,26 @@
 							break;
 					}
 				}
+
+				var sharedEl = null;
+				if (togetherWith != null && togetherWith != ""){
+					sharedEl = letterboxd.helpers.createElement('a', {
+						href: "/film/" + togetherWith
+					});
+					sharedEl.innerText = "(Shared)";
+				}
 				
-				// Replace value if already added
+				// Check if already added to the page
 				if (document.querySelector('.' + className + '') != null){
+					// Replace the exising value
 					var p = document.querySelector('.' + className + ' p');
 					p.innerText = value;
 
-				// Otherwise add new
+					// Add the shared togetherwith link
+					p.after(sharedEl);
+
 				}else{
+					// Add new details row
 					// Create the Elements
 					//********************************************
 					// Create the row header element				
@@ -4122,6 +4143,9 @@
 					const p = letterboxd.helpers.createElement('p', {});
 					p.innerText = value;
 					sluglist.append(p);
+
+					// Add the shared togetherwith link
+					sluglist.append(sharedEl);
 
 					// Append to the Tab Details
 					//********************************************
@@ -4621,7 +4645,7 @@
 						"}\n" +
 						"";
 				}else{
-					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"  {\n" +
 					"    SELECT DISTINCT ?item WHERE {\n" +
@@ -4647,6 +4671,10 @@
 					"      ?Budget_Entry psv:P2130 ?valuenode.\n" +
 					"      ?valuenode wikibase:quantityUnit ?Budget_Unit.\n" +
 					"      ?Budget_Unit p:P498 [ps:P498 ?Budget_UnitLabel].\n" +
+					"    }\n" +
+					"    OPTIONAL {\n" +
+					"      ?Budget_Entry pq:P1706 ?TogetherWith.\n" +
+					"      ?TogetherWith wdt:P6127 ?Budget_TogetherWith\n" +
 					"    }\n" +
 					"    MINUS { ?Budget_Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"  }\n" +
