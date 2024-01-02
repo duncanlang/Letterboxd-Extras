@@ -2775,6 +2775,7 @@
 				var encoded = letterboxd.helpers.encodeASCII(title);
 				var url = "https://webapp.cinemascore.com/guest/search/title/" + encoded;
 				chrome.runtime.sendMessage({name: "JSON", url: url}, (value) => {
+					value = value.results;
 					if (this.cinemascore.data == null){
 						this.cinemascore.data = value;
 					}else{
