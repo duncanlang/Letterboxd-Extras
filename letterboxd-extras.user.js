@@ -1103,9 +1103,13 @@
 					if (this.wikiData.SensCritique_ID != null && this.wikiData.SensCritique_ID != ""){
 						// ID found in WikiData
 						this.sensCritique.state = 1;
-						letterboxd.helpers.getSensDataWithID("https://apollo.senscritique.com/", this.wikiData.SensCritique_ID).then((value) =>{
+
+						var url = "https://apollo.senscritique.com/";
+						var options = letterboxd.helpers.getSensIDQuery(this.wikiData.SensCritique_ID);
+
+						chrome.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
 							this.sensCritique.state = 2;
-							var sens = JSON.parse(value.response);
+							var sens = value.response;
 							if (sens.data != null)
 							{
 								this.sensCritique.data = sens.data;
@@ -3106,10 +3110,13 @@
 				var type = "movie";
 				if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
 				if (this.tmdbTV == true) type = "tvShow"
+				
+				var url = "https://apollo.senscritique.com/";
+				var options = letterboxd.helpers.getSensSearchQuery(type, title);
 
-				letterboxd.helpers.getSensData("https://apollo.senscritique.com/", title, type).then((value) =>{
+				chrome.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
 					this.sensCritique.state = 2;
-					var sens = JSON.parse(value.response);
+					var sens = value.response;
 					if (sens.data != null && sens.data.results != null)
 					{
 						sens = sens.data.results.hits.items;
@@ -4278,6 +4285,103 @@
 				value = value.replaceAll('$','');
 
 				return value;
+			},
+
+			getSensSearchQuery(type, title){
+				var query = `
+				query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
+					results(query: $query, filters: $filters) {
+						hits(page: $page, sortBy: $sortBy) {
+							sortedBy
+							page {
+								from
+								pageNumber
+								total
+								totalPages
+								__typename
+							}
+							items {
+								... on ResultHit {
+								id
+								product {
+									title
+									rating
+									dateRelease
+									dateReleaseOriginal
+									dateReleaseUS
+									stats {
+										ratingCount
+										recommendCount
+									}
+									directors {
+										name
+										person_id
+										url
+									}
+									url
+								}
+								fields {
+									title
+									url
+									year
+								}
+								}
+							}
+						}
+					}
+				}
+				`;
+				var options = {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/json',
+						accept: 'application/json'
+					},
+					body: JSON.stringify({
+						query,
+						variables: {
+							filters: [{"identifier":"universe","value":type}],
+							pages: {from: 0, size: 16},
+							query: title 
+						}
+					})
+				};
+
+				return options;
+			},
+
+			getSensIDQuery(id){
+				var query =  `
+					query ($id: Int!) {
+						product(id: $id) {
+							title
+							rating
+							dateRelease
+							dateReleaseOriginal
+							dateReleaseUS
+							stats {
+								ratingCount
+								recommendCount
+							}
+							url
+						}
+					}
+				`;
+				var options = {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/json',
+						accept: 'application/json'
+					},
+					body: JSON.stringify({
+						query,
+						variables: {
+							id: parseInt(id)
+						}
+					})
+				};
+
+				return options;
 			},
 			
 			getWikiDataQuery(id, idType, queryType, lang){
