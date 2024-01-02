@@ -868,41 +868,18 @@
 									this.initTomato();
 								}
 
-								// Get and add Mubi
-								if (letterboxd.storage.get('mubi-enabled') === true){
-									if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){
-										var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
+								// Get the MUBI ID to use later
+								if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null ){
+									var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
 
-										this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
-										this.wikiData.Mubi_URL = url;
-										this.initMubi();
-									}else{
-										// WikiData does not have the MUBI ID, lets use the API to search instead
-										var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
-										this.mubiSearch(url);
-									}
+									this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
+									this.wikiData.Mubi_URL = url;
 								}
 
-								// Get and add SensCritique
-								if (letterboxd.storage.get('senscritique-enabled') === true){
-									if (this.wiki != null && this.wiki.SensCritique_ID != null && this.wiki.SensCritique_ID.value != null ){
-										var type = "movie";
-										if (this.tmdbTV == true) type = "tvShow"
-										letterboxd.helpers.getSensDataWithID("https://apollo.senscritique.com/", this.wiki.SensCritique_ID.value).then((value) =>{
-											var sens = JSON.parse(value.response);
-											if (sens.data != null)
-											{
-												this.sensCritique.data = sens.data;
-												this.addSensCritique();
-											}
-										});
-
-									}else{
-										// WikiData does not have the SensCritique ID, lets use the API to search instead
-										this.searchSensCritique();
-									}
+								// Get the SensCritique ID to use for later
+								if (this.wiki != null && this.wiki.SensCritique_ID != null && this.wiki.SensCritique_ID.value != null ){										
+									this.wikiData.SensCritique_ID = this.wiki.SensCritique_ID.value;
 								}
-
 
 								// Get and add FilmAffinity
 								if (letterboxd.storage.get('filmaff-enabled') === true){
@@ -1014,9 +991,9 @@
 										}
 									}
 								}
-
-								this.wikiData.state = 2;
 							}
+
+							this.wikiData.state = 2;
 						});
 
 						// Call WikiData a second time for dates
@@ -1027,7 +1004,7 @@
 							this.wikiData.state_dates = 1;
 						});
 					}else{
-						if (this.wikiData.state == 2 && this.wikiData.state_dates == 1){
+						if (this.wikiData.state == 2 && this.wikiData.state_dates == 1 && this.wiki != null && this.wiki_dates != null){
 							var dates = [];
 							var dates_origin = [];
 							for (var i = 0; i < this.wiki_dates.length; i++){
@@ -1097,6 +1074,39 @@
 							}
 							this.wikiData.state_dates = 2;
 						}
+					}
+				}
+
+				// Add Mubi
+				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2 && this.mubiData.state < 1){
+					if (this.wikiData.Mubi_ID != null && this.wikiData.Mubi_ID != ""){
+						// ID found in WikiData
+						this.mubiData.state = 1;
+						this.initMubi();
+					}else{
+						// No ID from Wikidata, search using the API instead
+						var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
+						this.mubiSearch(url);
+					}
+				}
+
+				// Add Senscritique
+				if (letterboxd.storage.get('senscritique-enabled') === true && this.wikiData.state == 2 && this.sensCritique.state < 1){
+					if (this.wikiData.SensCritique_ID != null && this.wikiData.SensCritique_ID != ""){
+						// ID found in WikiData
+						this.sensCritique.state = 1;
+						letterboxd.helpers.getSensDataWithID("https://apollo.senscritique.com/", this.wikiData.SensCritique_ID).then((value) =>{
+							this.sensCritique.state = 2;
+							var sens = JSON.parse(value.response);
+							if (sens.data != null)
+							{
+								this.sensCritique.data = sens.data;
+								this.addSensCritique();
+							}
+						});
+					}else{
+						// No ID from Wikidata, search using the API instead
+						this.searchSensCritique();
 					}
 				}
 
@@ -1921,10 +1931,8 @@
 
 			initMubi(){
 				if (this.wikiData.Mubi_URL != null && this.wikiData.Mubi_URL != ""){
-	
-					if (this.mubiData.data == null && this.mubiData.state < 1){
+					if (this.mubiData.data == null){
 						try{
-							this.mubiData.state = 1;
 							letterboxd.helpers.getMubiData(this.wikiData.Mubi_URL).then((value) =>{
 								var mubi = value.response;
 								if (mubi != ""){
@@ -3091,6 +3099,7 @@
 				if (this.tmdbTV == true) type = "tvShow"
 
 				letterboxd.helpers.getSensData("https://apollo.senscritique.com/", title, type).then((value) =>{
+					this.sensCritique.state = 2;
 					var sens = JSON.parse(value.response);
 					if (sens.data != null && sens.data.results != null)
 					{
