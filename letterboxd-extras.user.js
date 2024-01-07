@@ -539,43 +539,6 @@
 					}
 				}
 
-				// Convert to 10-point scale
-				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating") != null){
-					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
-					
-					// Convert main rating
-					var score = section.querySelector(".average-rating .display-rating");
-					score.innerText = (parseFloat(score.innerText) * 2).toFixed(1).toString();
-
-					// Convert tooltip
-					var tooltip = score.getAttribute("data-original-title");
-
-					var regex = new RegExp(/Weighted average of ([1-5]{1}.[0-9]{1,2})/);
-					var oldScore = tooltip.match(regex)[1];
-					var newScore = (parseFloat(oldScore) * 2).toFixed(2).toString() + "/10";
-
-					score.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
-
-					// Convert the histogram graph
-					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
-					var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
-					for (var i = 0; i < histogramBars.length; i++){
-						if (histogramBars[i].getAttribute("data-original-title") != null){
-							var bar = histogramBars[i];
-						}else{
-							var bar = histogramBars[i].querySelector("a");
-						}
-						tooltip = bar.getAttribute("data-original-title");
-
-						oldScore = tooltip.match(regex)[1];
-						newScore = (i + 1).toString() + "/10";
-
-						bar.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
-					}
-
-					this.scoreConverted = true;
-				}
-
 				// Replace 'Fans' with rating count
 				if (this.fansConverted == false && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null){
 					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
@@ -585,7 +548,11 @@
 					if (score != null){
 						// Grab count and link from score element
 						var regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]ratings)/);
-						var count = score.getAttribute("data-original-title").match(regex)[1];
+						if (this.isMobile){
+							var count = score.getAttribute("title").match(regex)[1];
+						}else{
+							var count = score.getAttribute("data-original-title").match(regex)[1];
+						}
 						var ratingsUrl = score.getAttribute("href");
 					}else{
 						// Collect the rating count by tallying the bar graph
@@ -594,12 +561,16 @@
 						regex = new RegExp(/^([0-9,.]+)\b/);
 						var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
 						for (var i = 0; i < histogramBars.length; i++){
-							if (histogramBars[i].getAttribute("data-original-title") != null){
+							if (histogramBars[i].getAttribute("data-original-title") != null || histogramBars[i].getAttribute("title") != null ){
 								var bar = histogramBars[i];
 							}else{
 								var bar = histogramBars[i].querySelector("a");
 							}
-							tooltip = bar.getAttribute("data-original-title");
+							if (this.isMobile){
+								tooltip = bar.getAttribute("title");
+							}else{
+								tooltip = bar.getAttribute("data-original-title");
+							}
 							var regexMatch = tooltip.match(regex);
 							if (regexMatch != null && regexMatch.length > 1){
 								count += parseInt(letterboxd.helpers.cleanNumber(regexMatch[1]));
@@ -652,6 +623,43 @@
 					}
 
 					this.fansConverted = true;
+				}
+
+				// Convert to 10-point scale
+				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating") != null){
+					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
+					
+					// Convert main rating
+					var score = section.querySelector(".average-rating .display-rating");
+					score.innerText = (parseFloat(score.innerText) * 2).toFixed(1).toString();
+
+					// Convert tooltip
+					var tooltip = score.getAttribute("data-original-title");
+
+					var regex = new RegExp(/Weighted average of ([1-5]{1}.[0-9]{1,2})/);
+					var oldScore = tooltip.match(regex)[1];
+					var newScore = (parseFloat(oldScore) * 2).toFixed(2).toString() + "/10";
+
+					score.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
+
+					// Convert the histogram graph
+					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
+					var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
+					for (var i = 0; i < histogramBars.length; i++){
+						if (histogramBars[i].getAttribute("data-original-title") != null){
+							var bar = histogramBars[i];
+						}else{
+							var bar = histogramBars[i].querySelector("a");
+						}
+						tooltip = bar.getAttribute("data-original-title");
+
+						oldScore = tooltip.match(regex)[1];
+						newScore = (i + 1).toString() + "/10";
+
+						bar.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
+					}
+
+					this.scoreConverted = true;
 				}
 
 				// Get directors and producers
