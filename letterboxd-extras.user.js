@@ -397,6 +397,11 @@
 			display: inline-block;
 			margin-left: 10px;
 		}
+		.extras-show-more{
+			margin-top: 10px;
+			width: 95%;
+			text-align: center;
+		}
 	`);
 	/* eslint-enable */
 
@@ -3308,6 +3313,29 @@
 				var index = order.indexOf('.' + className);
 				var sidebar = document.querySelector('.sidebar');
 
+				if (letterboxd.storage.get('hide-ratings-enabled') === true){
+					var currentSidebar = sidebar;
+					sidebar = document.querySelector('.extras-ratings-holder');
+					
+					if (sidebar == null){
+						sidebar = letterboxd.helpers.createElement('div', {
+							class: 'extras-ratings-holder',
+							style: 'display: none'
+						});
+						currentSidebar.append(sidebar)
+
+						const moreButton = letterboxd.helpers.createElement('a', {
+							class: 'text-slug extras-show-more'
+						});
+						moreButton.innerText = "Show more ratings";
+						currentSidebar.append(moreButton)
+						
+						$(".extras-show-more").on('click', function(event){
+							toggleAllRatings(event, letterboxd);
+						});
+					}
+				}
+
 				// First
 				for (var i = index + 1; i < order.length; i++){
 					var temp = sidebar.querySelector(order[i]);
@@ -5031,5 +5059,17 @@ function toggleDetails(event, letterboxd){
 	}else{
 		event.target.innerText = "SHOW DETAILS";
 		letterboxd.storage.set(target.replace('.',''), "hide");
+	}
+}
+
+function toggleAllRatings(event, letterboxd){
+	var element = document.querySelector(".extras-ratings-holder");
+
+	if (element.style.display == "none"){
+		element.style.display = "block";
+		event.target.innerText = "Show less ratings";
+	}else{
+		element.style.display = "none";
+		event.target.innerText = "Show more ratings";
 	}
 }
