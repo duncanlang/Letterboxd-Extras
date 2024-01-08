@@ -391,10 +391,10 @@
 			color: #678;
 		}
 		.budget.detail p{
-			display: inline;
+			display: inline-block;
 		}
 		.budget.detail a{
-			display: inline;
+			display: inline-block;
 			margin-left: 10px;
 		}
 	`);
@@ -4135,7 +4135,9 @@
 					p.innerText = value;
 
 					// Add the shared togetherwith link
-					p.after(sharedEl);
+					if (sharedEl != null){
+						p.after(sharedEl);
+					}
 
 				}else{
 					// Add new details row
@@ -4162,7 +4164,9 @@
 					sluglist.append(p);
 
 					// Add the shared togetherwith link
-					sluglist.append(sharedEl);
+					if (sharedEl != null){
+						sluglist.append(sharedEl);
+					}
 
 					// Append to the Tab Details
 					//********************************************
