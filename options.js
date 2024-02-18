@@ -18,6 +18,12 @@ async function load() {
     if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
     if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
+    if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
+    if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
+    if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = true;
+    if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
+    if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
+    if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
     set();
 }
 
@@ -32,6 +38,15 @@ function set() {
             switch (typeof (options[key])) {
                 case ('boolean'):
                     element.checked = options[key];
+
+                    if (element.getAttribute("subid") != null){
+                        var target = document.querySelector("#" + element.getAttribute("subid"));
+                        if (element.checked){
+                            target.className = target.className.replace("disabled","");
+                        }else{
+                            target.className += " disabled";
+                        }
+                    }
                     break;
                 case ('string'):
                     element.value = options[key];
@@ -72,6 +87,15 @@ async function changeSetting(event) {
     switch (event.target.type) {
         case ('checkbox'):
             options[event.target.id] = event.target.checked;
+
+            if (event.target.getAttribute("subid") != null){
+                var target = document.querySelector("#" + event.target.getAttribute("subid"));
+                if (event.target.checked){
+                    target.className = target.className.replace("disabled","");
+                }else{
+                    target.className += " disabled";
+                }
+            }
             break;
         default:
             options[event.target.id] = event.target.value;

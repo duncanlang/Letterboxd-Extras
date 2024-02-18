@@ -62,12 +62,17 @@
 
         label {
             display: inline-block;
-            width: 125px;
+            width: 175px;
             margin-bottom: 10px;
         }
         
         .div-request-permission{
             display: none;
+        }
+
+        .disabled{
+            pointer-events: none;
+            opacity: 50%;
         }
     </style>
 </head>
@@ -98,55 +103,85 @@
         <h3>Rotten Tomatoes</h3>
         <div>
             <label for="tomato-enabled">Display Rotten Tomatoes:</label>
-            <input type="checkbox" id="tomato-enabled" />
+            <input type="checkbox" id="tomato-enabled" subid="tomato-div"/>
         </div>
-        <div>
-            <label for="rt-default-view">Default detail view:</label>
-            <select id="rt-default-view">
-                <option value="hide">Hide</option>
-                <option value="show">Show</option>
-                <option value="remember">Remember Last</option>
-            </select>
-        </div>
-        <div>
-            <label for="critic-default">Default critic score:</label>
-            <select id="critic-default">
-                <option value="all">All Critics</option>
-                <option value="top">Top Critics</option>
-            </select>
-        </div>
-        <div>
-            <label for="audience-default">Default audience score:</label>
-            <select id="audience-default">
-                <option value="all">All Audience</option>
-                <option value="verified">Verified Audience</option>
-            </select>
+        <div id="tomato-div">
+            <div>
+                <label for="tomato-critic-enabled">Display critic ratings:</label>
+                <input type="checkbox" id="tomato-critic-enabled" />
+            </div>
+            <div>
+                <label for="tomato-audience-enabled">Display audience ratings:</label>
+                <input type="checkbox" id="tomato-audience-enabled" />
+            </div>
+            <div>
+                <label for="rt-default-view">Default detail view:</label>
+                <select id="rt-default-view">
+                    <option value="hide">Hide</option>
+                    <option value="show">Show</option>
+                    <option value="remember">Remember Last</option>
+                </select>
+            </div>
+            <div>
+                <label for="critic-default">Default critic score:</label>
+                <select id="critic-default">
+                    <option value="all">All Critics</option>
+                    <option value="top">Top Critics</option>
+                </select>
+            </div>
+            <div>
+                <label for="audience-default">Default audience score:</label>
+                <select id="audience-default">
+                    <option value="all">All Audience</option>
+                    <option value="verified">Verified Audience</option>
+                </select>
+            </div>
         </div>
     </div>
     <div>
         <h3>Metacritic</h3>
         <div>
             <label for="metacritic-enabled">Display Metacritic:</label>
-            <input type="checkbox" id="metacritic-enabled" />
+            <input type="checkbox" id="metacritic-enabled" subid="meta-div"/>
         </div>
-        <div>
-            <label for="meta-default-view">Default detail view:</label>
-            <select id="meta-default-view">
-                <option value="hide">Hide</option>
-                <option value="show">Show</option>
-                <option value="remember">Remember Last</option>
-            </select>
+        <div id="meta-div">
+            <div>
+                <label for="metacritic-critic-enabled">Display critic ratings:</label>
+                <input type="checkbox" id="metacritic-critic-enabled" />
+            </div>
+            <div>
+                <label for="metacritic-users-enabled">Display user ratings:</label>
+                <input type="checkbox" id="metacritic-users-enabled" />
+            </div>
+            <div>
+                <label for="metacritic-mustsee-enabled">Display Must-See/Must-Watch:</label>
+                <input type="checkbox" id="metacritic-mustsee-enabled" />
+            </div>
+            <div>
+                <label for="meta-default-view">Default detail view:</label>
+                <select id="meta-default-view">
+                    <option value="hide">Hide</option>
+                    <option value="show">Show</option>
+                    <option value="remember">Remember Last</option>
+                </select>
+            </div>
         </div>
     </div>
     <div>
         <h3>SensCritique</h3>
         <div>
             <label for="senscritique-enabled">Display SensCritique:</label>
-            <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" />
+            <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" subid="sens-div" />
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
             <input type="button" id="senscritique-permissions" class="request-permission" permissionTarget="senscritique-enabled" value="Request Permission"/>
+        </div>
+        <div id="sens-div">
+            <div>
+                <label for="sens-favorites-enabled">Display recommended count:</label>
+                <input type="checkbox" id="sens-favorites-enabled" />
+            </div>
         </div>
     </div>
     <div>

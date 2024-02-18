@@ -1590,61 +1590,74 @@
 
 				// CRITIC SCORE /  TOMATOMETER
 				//************************************************************
-				// The span that holds the score
-				const criticSpan = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; padding-right: 10px;'
-				});
-				section.append(criticSpan);
+				var criticAdded = false;
+				if (letterboxd.storage.get('tomato-critic-enabled') === true){
+					// The span that holds the score
+					const criticSpan = letterboxd.helpers.createElement('span', {
+						style: 'display: inline-block; padding-right: 10px;'
+					});
+					section.append(criticSpan);
 
-				// Add the div to hold the toggle buttons
-				// Div to hold buttons
-				const buttonDiv = letterboxd.helpers.createElement('div', {
-					style: 'display: block; margin-right: 10px;'
-				});
-				criticSpan.append(buttonDiv);
+					// Add the div to hold the toggle buttons
+					// Div to hold buttons
+					const buttonDiv = letterboxd.helpers.createElement('div', {
+						style: 'display: block; margin-right: 10px;'
+					});
+					criticSpan.append(buttonDiv);
 
-				if (this.isMobile){
-					// Add single toggle button
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
+					if (this.isMobile){
+						// Add single toggle button
+						buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
 
-				}else{
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-all", "ALL", "score-critic-all", true, false, this.isMobile));
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-top", "TOP", "score-critic-top", false, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
+					}else{
+						buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-all", "ALL", "score-critic-all", true, false, this.isMobile));
+						buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-top", "TOP", "score-critic-top", false, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
+					}
+
+					// Add scores
+					criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all","Critic",this.wikiData.tomatoURL,this.tomatoData.criticAll,"block", this.isMobile));
+					criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top","Top Critic",this.wikiData.tomatoURL,this.tomatoData.criticTop,"none", this.isMobile));
+
+					criticAdded = true;
 				}
-
-				// Add scores
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all","Critic",this.wikiData.tomatoURL,this.tomatoData.criticAll,"block", this.isMobile));
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top","Top Critic",this.wikiData.tomatoURL,this.tomatoData.criticTop,"none", this.isMobile));
-
 
 				// AUDIENCE SCORE
 				//************************************************************
-				// The span that holds the score
-				const audienceSpan = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; padding-right: 10px;'
-				});
-				section.append(audienceSpan);
+				var audienceAdded = false;
+				if (letterboxd.storage.get('tomato-audience-enabled') === true){
+					// The span that holds the score
+					const audienceSpan = letterboxd.helpers.createElement('span', {
+						style: 'display: inline-block; padding-right: 10px;'
+					});
+					section.append(audienceSpan);
 
-				// Add the toggle buttons
-				// Div to hold buttons
-				const buttonDiv2 = letterboxd.helpers.createElement('div', {
-					style: 'display: block; margin-right: 10px;'
-				});
-				audienceSpan.append(buttonDiv2);
-				
-				if (this.isMobile){
-					// Add single toggle button
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+					// Add the toggle buttons
+					// Div to hold buttons
+					const buttonDiv2 = letterboxd.helpers.createElement('div', {
+						style: 'display: block; margin-right: 10px;'
+					});
+					audienceSpan.append(buttonDiv2);
+					
+					if (this.isMobile){
+						// Add single toggle button
+						buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
 
-				}else{
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.isMobile));
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "VERIFIED", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+					}else{
+						buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.isMobile));
+						buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "VERIFIED", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+					}
+
+					// Add scores
+					audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all","Audience",this.wikiData.tomatoURL,this.tomatoData.audienceAll,"block", this.isMobile));
+					audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified","Verified Audience",this.wikiData.tomatoURL,this.tomatoData.audienceVerified,"none", this.isMobile));
+
+					audienceAdded = true;
 				}
 
-				// Add scores
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all","Audience",this.wikiData.tomatoURL,this.tomatoData.audienceAll,"block", this.isMobile));
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified","Verified Audience",this.wikiData.tomatoURL,this.tomatoData.audienceVerified,"none", this.isMobile));
-
+				if (criticAdded == false && audienceAdded == false){
+					this.rtAdded = true; // so it doesn't keep calling
+					return;
+				}
 
 				// APPEND to the sidebar
 				//************************************************************
@@ -1875,40 +1888,56 @@
 					showDetails.innerText = "Show Details";
 					section.append(showDetails);
 				}
+
+				var url = "";
+				if (url.endsWith != "/") url += "/"
+				url = this.wikiData.metaURL + "critic-reviews";
 				
 				// Critic score
 				//***************************************************************
-				var url = "";
-				if (this.wikiData.metaURL != null && this.wikiData.metaURL != ""){
-					if (url.endsWith != "/") url += "/"
-					url = this.wikiData.metaURL + "critic-reviews";
+				var criticAdded = false;
+				if (letterboxd.storage.get('metacritic-critic-enabled') === true){
+					if (this.wikiData.metaURL != null && this.wikiData.metaURL != ""){
+					}
+					section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic,this.metaData.mustSee, this.isMobile));
+					criticAdded = true;
 				}
-				section.append(letterboxd.helpers.createMetaScore("critic","Critic",url,this.metaData.critic,this.metaData.mustSee, this.isMobile));				
 				
 				// User score
 				//***************************************************************
-				if (this.metaData.data != null){
-					url = url.replace("/critic-reviews", "/user-reviews")
-					section.append(letterboxd.helpers.createMetaScore("user","User",url,this.metaData.user,this.metaData.mustSee, this.isMobile));
+				var userAdded = false;
+				if (letterboxd.storage.get('metacritic-users-enabled') === true){
+					if (this.metaData.data != null){
+						url = url.replace("/critic-reviews", "/user-reviews")
+						section.append(letterboxd.helpers.createMetaScore("user","User",url,this.metaData.user,this.metaData.mustSee, this.isMobile));
+						userAdded = true;
+					}
 				}
 
 				// Add Must see if applicable
-				if (this.metaData.mustSee == true){
-					if (this.tmdbTV){
-						const mustSeeSpan = letterboxd.helpers.createElement('span', {
-							class: 'meta-must-see meta-must-watch tooltip display-rating -highlight',
-							style: 'margin-top: 5px;',
-							['data-original-title']: 'Metacritic Must-Watch'
-						});
-						section.append(mustSeeSpan);
-					}else{
-						const mustSeeSpan = letterboxd.helpers.createElement('span', {
-							class: 'meta-must-see tooltip display-rating -highlight',
-							style: 'margin-top: 5px;',
-							['data-original-title']: 'Metacritic Must-See'
-						});
-						section.append(mustSeeSpan);
+				if (letterboxd.storage.get('metacritic-mustsee-enabled') === true){
+					if (this.metaData.mustSee == true){
+						if (this.tmdbTV){
+							const mustSeeSpan = letterboxd.helpers.createElement('span', {
+								class: 'meta-must-see meta-must-watch tooltip display-rating -highlight',
+								style: 'margin-top: 5px;',
+								['data-original-title']: 'Metacritic Must-Watch'
+							});
+							section.append(mustSeeSpan);
+						}else{
+							const mustSeeSpan = letterboxd.helpers.createElement('span', {
+								class: 'meta-must-see tooltip display-rating -highlight',
+								style: 'margin-top: 5px;',
+								['data-original-title']: 'Metacritic Must-See'
+							});
+							section.append(mustSeeSpan);
+						}
 					}
+				}
+
+				if (criticAdded == false && userAdded == false){
+					this.metaAdded = true; // so it doesn't keep calling
+					return;
 				}
 
 				// APPEND to the sidebar
@@ -3256,12 +3285,15 @@
 					['width']: 'auto',
 					['height']: '20px'
 				});
-				// Recommend Count
-				const text2 = letterboxd.helpers.createElement('p', {
-					class: 'display-rating sens-text'
-				});
-				text2.innerText = "♥ " + recommendCount.toLocaleString();
-				textSpan.append(text2);
+
+				if (letterboxd.storage.get('sens-favorites-enabled') === true){
+					// Recommend Count
+					const text2 = letterboxd.helpers.createElement('p', {
+						class: 'display-rating sens-text'
+					});
+					text2.innerText = "♥ " + recommendCount.toLocaleString();
+					textSpan.append(text2);
+				}
 
 				container.append(textSpan);
 				section.append(container);
@@ -4877,6 +4909,12 @@
 				if (this.data['mpa-enabled'] == null) this.set('mpa-enabled', true);
 				if (this.data['mojo-link-enabled'] == null) this.set('mojo-link-enabled', true);
 				if (this.data['wiki-link-enabled'] == null) this.set('wiki-link-enabled', true);
+				if (this.data['tomato-critic-enabled'] == null) this.data['tomato-critic-enabled'] = true;
+				if (this.data['tomato-audience-enabled'] == null) this.data['tomato-audience-enabled'] = true;
+				if (this.data['metacritic-critic-enabled'] == null) this.data['metacritic-critic-enabled'] = true;
+				if (this.data['metacritic-users-enabled'] == null) this.data['metacritic-users-enabled'] = true;
+				if (this.data['metacritic-mustsee-enabled'] == null) this.data['metacritic-mustsee-enabled'] = true;
+				if (this.data['sens-favorites-enabled'] == null) this.data['sens-favorites-enabled'] = true;
 				
 			},
 			get(key) {
