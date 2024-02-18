@@ -633,19 +633,20 @@
 				// Convert to 10-point scale
 				if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating") != null){
 					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
-					
-					// Convert main rating
-					var score = section.querySelector(".average-rating .display-rating");
-					score.innerText = (parseFloat(score.innerText) * 2).toFixed(1).toString();
 
 					// Convert tooltip
 					var tooltip = score.getAttribute("data-original-title");
 
 					var regex = new RegExp(/Weighted average of ([1-5]{1}.[0-9]{1,2})/);
 					var oldScore = tooltip.match(regex)[1];
-					var newScore = (parseFloat(oldScore) * 2).toFixed(2).toString() + "/10";
+					var newScore = (parseFloat(oldScore) * 2);
+					var tooltipScore = newScore.toFixed(2).toString() + "/10";
 
-					score.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
+					score.setAttribute("data-original-title", tooltip.replace(oldScore,tooltipScore));
+					
+					// Convert main rating
+					var score = section.querySelector(".average-rating .display-rating");
+					score.innerText = newScore.toFixed(1).toString();
 
 					// Convert the histogram graph
 					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
