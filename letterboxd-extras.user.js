@@ -552,18 +552,22 @@
 
 					var fansLink = section.querySelector("a.all-link.more-link");
 					var score = section.querySelector(".average-rating .display-rating");
+					var count = 0;
 					if (score != null){
 						// Grab count and link from score element
 						var regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]ratings)/);
-						if (this.isMobile){
-							var count = score.getAttribute("title").match(regex)[1];
-						}else{
-							var count = score.getAttribute("data-original-title").match(regex)[1];
+
+						if (score.hasAttribute("data-original-title")){
+							count = score.getAttribute("data-original-title").match(regex)[1];
+						}else if (score.hasAttribute("title")){
+							count = score.getAttribute("title").match(regex)[1];
 						}
+						count = letterboxd.helpers.cleanNumber(count);
+						count = parseInt(count);
+						
 						var ratingsUrl = score.getAttribute("href");
 					}else{
 						// Collect the rating count by tallying the bar graph
-						var count = 0;
 						var ratingsUrl = "";
 						regex = new RegExp(/^([0-9,.]+)\b/);
 						var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
@@ -573,26 +577,32 @@
 							}else{
 								var bar = histogramBars[i].querySelector("a");
 							}
-							if (this.isMobile){
-								tooltip = bar.getAttribute("title");
-							}else{
-								tooltip = bar.getAttribute("data-original-title");
-							}
-							var regexMatch = tooltip.match(regex);
-							if (regexMatch != null && regexMatch.length > 1){
-								count += parseInt(letterboxd.helpers.cleanNumber(regexMatch[1]));
+
+							var tooltip = "";
+							if (bar.hasAttribute("data-original-title")){
+								tooltip = bar.getAttribute("data-original-title").match(regex)[1];
+							}else if (bar.hasAttribute("title")){
+								tooltip = bar.getAttribute("title").match(regex)[1];
 							}
 
-							if (ratingsUrl == ""){
-								ratingsUrl = bar.getAttribute("href");
-								if (ratingsUrl != null){
-									ratingsUrl = ratingsUrl.substring(0, ratingsUrl.indexOf("/rated"));
-								}else{
-									ratingsUrl = "";
+							if (tooltip != ""){
+								var regexMatch = tooltip.match(regex);
+								if (regexMatch != null && regexMatch.length > 1){
+									count += parseInt(letterboxd.helpers.cleanNumber(regexMatch[1]));
+								}
+
+								if (ratingsUrl == ""){
+									ratingsUrl = bar.getAttribute("href");
+									if (ratingsUrl != null){
+										ratingsUrl = ratingsUrl.substring(0, ratingsUrl.indexOf("/rated"));
+									}else{
+										ratingsUrl = "";
+									}
 								}
 							}
 						}
 					}
+					count = count.toLocaleString();
 
 					if (letterboxd.storage.get('replace-fans') === "replace" && fansLink != null){
 						// Replace the existing fans text with ratings
