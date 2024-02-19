@@ -267,7 +267,6 @@
 		.meta-score-details:not(.mobile-details-text){
 			width: 180px;
 			margin-left: 5px;
-			margin-bottom: 10px;
 		}
 		.meta-score-details:not(.extras-mobile) span span{
 			font-size: 8px;
@@ -3912,8 +3911,11 @@
 				// Add the liked/notliked bars
 				const chartSpan = letterboxd.helpers.createElement('span', {
 					class: 'rt-score-details',
-					style: 'display: none; width: 140px; margin-left: 5px; margin-bottom: 10px;'
+					style: 'display: none; width: 140px; margin-left: 5px;'
 				});
+				if ((type.includes("critic") && letterboxd.storage.get('tomato-audience-enabled') === true) || isMobile){
+					chartSpan.style['margin-bottom'] = '10px';
+				}
 				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings), isMobile));
 				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings), isMobile));
 				
@@ -4086,6 +4088,9 @@
 					class: 'meta-score-details ' + mobileClass,
 					style: 'display: none'
 				});
+				if ((isMobile) || (type == "critic" && letterboxd.storage.get('metacritic-users-enabled') === true) || (type == "user" && letterboxd.storage.get('metacritic-mustsee-enabled') === true && mustSee)){
+					chartSpan.style['margin-bottom'] = '10px';
+				}
 				chartSpan.append(letterboxd.helpers.createMetaBarCount("Positive", data.positive, data.highest, letterboxd.helpers.determineMetaColour(100,false)));
 				chartSpan.append(letterboxd.helpers.createMetaBarCount("Mixed", data.mixed, data.highest, letterboxd.helpers.determineMetaColour(50,false)));
 				chartSpan.append(letterboxd.helpers.createMetaBarCount("Negative",data.negative, data.highest, letterboxd.helpers.determineMetaColour(0,false)));
