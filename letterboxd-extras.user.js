@@ -268,6 +268,9 @@
 			width: 180px;
 			margin-left: 5px;
 		}
+		.meta-score-details:not(.mobile-details-text).short{
+			width: 140px;
+		}
 		.meta-score-details:not(.extras-mobile) span span{
 			font-size: 8px;
 		}
@@ -4088,6 +4091,9 @@
 					class: 'meta-score-details ' + mobileClass,
 					style: 'display: none'
 				});
+				if (type == "critic" && letterboxd.storage.get('metacritic-mustsee-enabled') === true && mustSee){
+					chartSpan.className += ' short';
+				}
 				if ((isMobile) || (type == "critic" && letterboxd.storage.get('metacritic-users-enabled') === true) || (type == "user" && letterboxd.storage.get('metacritic-mustsee-enabled') === true && mustSee)){
 					chartSpan.style['margin-bottom'] = '10px';
 				}
@@ -4117,7 +4123,7 @@
 			createMetaBarCount(type, count, total, color){
 				// Span that holds it all
 				const span = letterboxd.helpers.createElement('span', {
-					style: 'display: block; width: 160px;'
+					style: 'display: block; width: 150px;'
 				});
 				// Text label
 				const label = letterboxd.helpers.createElement('span', {
@@ -5096,6 +5102,26 @@ function toggleDetails(event, letterboxd){
 			element.style.display = "none";
 		}		
 	});
+
+	if (event.target.className.includes('meta-show-details')){
+		var mustSee = document.querySelector('.meta-must-see');
+		var userScore = document.querySelector('.meta-score-user');
+		var detailsText = document.querySelector('.meta-score-details.mobile-details-text');
+		if (mustSee != null && userScore != null){
+			userScore = userScore.parentNode;
+			
+			if (event.target.innerText.includes("SHOW")){
+				if (detailsText != null){
+					detailsText.before(mustSee);
+				}else{
+					userScore.before(mustSee);
+				}
+			}else{
+				userScore.after(mustSee);
+			}
+
+		}
+	}
 
 	if (event.target.innerText.includes("SHOW")){
 		event.target.innerText = "HIDE DETAILS";
