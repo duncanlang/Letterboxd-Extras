@@ -4999,17 +4999,16 @@ function ShowTwipsy(event){
 		return;
 	}
 
-	//if (document.querySelector('.twipsy.fade.above.in')){
-	if (document.querySelector('.twipsy-extra-out')){
-		//var temp = document.querySelector('.twipsy.fade.above.in');
-		var temp = document.querySelector('.twipsy-extra-out');
+    // To account for the tenet easter egg
+    var body = htmlEl.querySelector('body');
+
+	if (body.querySelector('.twipsy-extra-out')){
+		var temp = body.querySelector('.twipsy-extra-out');
 		temp.parentNode.removeChild(temp);
 	}
 
 	const twipsy = document.createElement('div');
 	twipsy.className = 'twipsy above twipsy-extra';
-
-	//twipsy.style = 'display: block; top: 824.4px; left: 1268.5px';
 
 	const arrow = document.createElement('div');
 	arrow.className = 'twipsy-arrow';
@@ -5021,11 +5020,11 @@ function ShowTwipsy(event){
 	inner.innerText = this.getAttribute("data-original-title");
 	twipsy.append(inner);
 
-	$("body").prepend(twipsy);
+	body.prepend(twipsy);
 
 	var rect = getOffset(this);
 	var top = rect.top - twipsy.clientHeight;
-	var left = rect.left - (twipsy.clientWidth / 2) + (this.offsetWidth / 2); //(this.clientWidth / 2 );
+	var left = rect.left - (twipsy.clientWidth / 2) + (this.offsetWidth / 2);
 
 	twipsy.style = 'display:block; top: ' + top.toString() + 'px; left: ' + left.toString() + 'px;';
 
