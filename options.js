@@ -38,20 +38,13 @@ function set() {
             switch (typeof (options[key])) {
                 case ('boolean'):
                     element.checked = options[key];
-
-                    if (element.getAttribute("subid") != null){
-                        var target = document.querySelector("#" + element.getAttribute("subid"));
-                        if (element.checked){
-                            target.className = target.className.replace("disabled","");
-                        }else{
-                            target.className += " disabled";
-                        }
-                    }
                     break;
                 case ('string'):
                     element.value = options[key];
                     break;
             }
+            checkSubIDToDisable(element);
+
             if (element.getAttribute("permission") != null){
                 checkPermission(element);
             }
@@ -77,6 +70,17 @@ async function checkPermission(element){
     }
 }
 
+function checkSubIDToDisable(element){
+    if (element.getAttribute("subid") != null){
+        var target = document.querySelector("#" + element.getAttribute("subid"));
+        if (element.checked){
+            target.className = target.className.replace("disabled","");
+        }else{
+            target.className += " disabled";
+        }
+    }
+}
+
 
 // On change, save
 document.addEventListener('change', event => {
@@ -87,20 +91,12 @@ async function changeSetting(event) {
     switch (event.target.type) {
         case ('checkbox'):
             options[event.target.id] = event.target.checked;
-
-            if (event.target.getAttribute("subid") != null){
-                var target = document.querySelector("#" + event.target.getAttribute("subid"));
-                if (event.target.checked){
-                    target.className = target.className.replace("disabled","");
-                }else{
-                    target.className += " disabled";
-                }
-            }
             break;
         default:
             options[event.target.id] = event.target.value;
             break;
     }
+    checkSubIDToDisable(event.target);
 
     save();
     
@@ -118,6 +114,7 @@ async function changeSetting(event) {
             browser.permissions.remove(permissionsToRequest);
             checkPermission(event.target); // this will hide the "missing permission" if it's showing
         }
+        checkSubIDToDisable(event.target);
     }
 }
 

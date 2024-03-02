@@ -188,7 +188,7 @@
 		}
 		.rt-button{
 			display: inline;
-			font-size: 9px;
+			font-size: 10px;
 			width: 48%;
 			text-align: center;
 			color: #9ab;
@@ -198,8 +198,17 @@
 			padding-left: 3px;
 			padding-right: 3px;
 		}
+		.rt-button.critic-all, .rt-button.audience-all{
+			border-top-right-radius: 0px;
+			border-bottom-right-radius: 0px;
+		}
+		.rt-button.critic-top, .rt-button.audience-verified{
+			border-top-left-radius: 0px;
+			border-bottom-left-radius: 0px;
+		}
 		.rt-button.selected{
 			color: #def;
+			background-color: #456
 		}
 		.rt-button:not(.selected):not(.disabled):hover{
 			color: #def;
@@ -271,11 +280,16 @@
 		.meta-score-details:not(.mobile-details-text).short{
 			width: 140px;
 		}
-		.meta-score-details:not(.extras-mobile) span span{
-			font-size: 8px;
-		}
-		.meta-score-details.extras-mobile span span{
+		.meta-bar-label{
 			font-size: 9px;
+			display: inline-block;
+			width: 40px;
+		}
+		.meta-bar-value{
+			font-size: 10px;
+			display: inline-block;
+			width: 25px;
+			margin-left: 5px;
 		}
 		.meta-bar{
 			display: inline-block;
@@ -647,34 +661,44 @@
 					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
 
 					// Convert tooltip
-					var tooltip = score.getAttribute("data-original-title");
+					var tooltipAttribute = "";
+					if (score.hasAttribute("data-original-title")){
+						tooltipAttribute = "data-original-title";
+					}else if (score.hasAttribute("title")){
+						tooltipAttribute = "title";
+					}
 
-					var regex = new RegExp(/Weighted average of ([1-5]{1}.[0-9]{1,2})/);
-					var oldScore = tooltip.match(regex)[1];
-					var newScore = (parseFloat(oldScore) * 2);
-					var tooltipScore = newScore.toFixed(2).toString() + "/10";
+					if (tooltipAttribute != ""){
+						var tooltip = score.getAttribute(tooltipAttribute);
 
-					score.setAttribute("data-original-title", tooltip.replace(oldScore,tooltipScore));
-					
-					// Convert main rating
-					var score = section.querySelector(".average-rating .display-rating");
-					score.innerText = newScore.toFixed(1).toString();
+						// Convert tooltip rating
+						var regex = new RegExp(/Weighted average of ([1-5]{1}.[0-9]{1,2})/);
+						var oldScore = tooltip.match(regex)[1];
+						var newScore = (parseFloat(oldScore) * 2);
+						var tooltipScore = newScore.toFixed(2).toString() + "/10";
 
-					// Convert the histogram graph
-					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
-					var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
-					for (var i = 0; i < histogramBars.length; i++){
-						if (histogramBars[i].getAttribute("data-original-title") != null){
-							var bar = histogramBars[i];
-						}else{
-							var bar = histogramBars[i].querySelector("a");
+						score.setAttribute(tooltipAttribute, tooltip.replace(oldScore,tooltipScore));
+						
+						// Convert main rating
+						var score = section.querySelector(".average-rating .display-rating");
+						score.innerText = newScore.toFixed(1).toString();
+
+						// Convert the histogram graph
+						regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
+						var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
+						for (var i = 0; i < histogramBars.length; i++){
+							if (histogramBars[i].getAttribute(tooltipAttribute) != null){
+								var bar = histogramBars[i];
+							}else{
+								var bar = histogramBars[i].querySelector("a");
+							}
+							tooltip = bar.getAttribute(tooltipAttribute);
+
+							oldScore = tooltip.match(regex)[1];
+							newScore = (i + 1).toString() + "/10";
+
+							bar.setAttribute(tooltipAttribute, tooltip.replace(oldScore,newScore));
 						}
-						tooltip = bar.getAttribute("data-original-title");
-
-						oldScore = tooltip.match(regex)[1];
-						newScore = (i + 1).toString() + "/10";
-
-						bar.setAttribute("data-original-title", tooltip.replace(oldScore,newScore));
 					}
 
 					this.scoreConverted = true;
@@ -4137,7 +4161,7 @@
 				});
 				// Text label
 				const label = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; width: 40px;'
+					class: 'meta-bar-label'
 				});
 				label.innerText = type;
 				span.append(label);
@@ -4163,7 +4187,7 @@
 
 				// Text that shows the num of ratings
 				const countText = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; font-size: 9px; width: 25px; margin-left: 5px;'
+					class: 'meta-bar-value'
 				});
 				countText.innerText = count.toLocaleString();
 				span.append(countText);
