@@ -267,7 +267,6 @@
 		.show-details:hover{
 			cursor: pointer;
 		}
-
 		.mobile-details-text{
 			width: 100% !important;
 			font-size: 10px;
@@ -477,7 +476,7 @@
 			},
 
 			// Rotten Tomatoes
-			tomatoData: {state: 0, data: null, raw: null, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
+			tomatoData: {state: 0, data: null, raw: null, found: false, hideDetailButton: false, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null},
 
 			// Metacritic
 			metaData: {state: 0, data: null, raw: null, mustSee: false, critic: {rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}, user:  {rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0}},
@@ -1531,70 +1530,15 @@
 				this.tomatoData.audienceAll = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
 				this.tomatoData.audienceVerified = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
 
-				// The Same for both Movies and TV now
-				var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#scoreDetails').innerHTML);
-				// Critic All
-				if (scoredetails.modal.tomatometerScoreAll.value != null){
-					this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
-					this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
-					this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
-				}
-				if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
-					this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
-					this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
-					this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
-				}
-				// Critic Top
-				if (scoredetails.modal.tomatometerScoreTop.value != null){
-					this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
-					this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
-					this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
+				// Collect the score details from the data
+				this.collectTomatoScore();
 
-					var score = scoredetails.modal.tomatometerScoreTop.value;
-					var state = scoredetails.modal.tomatometerScoreTop.state;
-					if (score < 60 && state.includes("fresh")){
-						this.tomatoData.criticTop.state = "rotten";
-					}else if(score >= 60 && state == "rotten"){
-						this.tomatoData.criticTop.state = "fresh";
-					}
-				}
-				if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
-					this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
-					this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
-					this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
-				}
-				
-				// Audience All	
-				if (scoredetails.modal.audienceScoreAll.value != null){
-					this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
-					this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
-					this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
-				}
-				if (scoredetails.modal.audienceScoreAll.ratingCount != null){
-					this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
-					this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
-					this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
-					// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-					this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
-				}
+				// Return if not found or the rating counts are 0
+				if (this.tomatoData.found == false) return;
 
-				// Audience Verified
-				if (scoredetails.modal.audienceScoreVerified.value != null){
-					this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
-					this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
-					this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
+				if (this.tomatoData.hideDetailButton == true && this.isMobile){
+					this.tomatoData.hideDetailButton = false;
 				}
-				if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
-					this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
-					this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
-					this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
-					
-					// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-					this.tomatoData.audienceVerified.num_ratings = (scoredetails.modal.audienceScoreVerified.likedCount + scoredetails.modal.audienceScoreVerified.notLikedCount).toString();
-				}
-
-				// Return if no scores what so ever
-				if (this.tomatoData.audienceAll.num_ratings == 0 && this.tomatoData.criticAll.num_ratings == 0) return;
 
 				// Now display all this on the page
 				//***************************************************************
@@ -1616,14 +1560,16 @@
 				});
 				heading.append(logo);	
 
-				// Add the Show Details button			
-				const showDetails = letterboxd.helpers.createElement('a', {
-					class: 'all-link more-link show-details rt-show-details',
-					['target']: 'rt-score-details'
-				});
-				showDetails.innerText = "Show Details";
-				section.append(showDetails);
-
+				// Add the Show Details button
+				if (this.tomatoData.hideDetailButton == false){
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details rt-show-details',
+						['target']: 'rt-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+	
+				}
 				// CRITIC SCORE /  TOMATOMETER
 				//************************************************************
 				var criticAdded = false;
@@ -1721,12 +1667,15 @@
 				
 				// Add click for Show details button
 				//************************************************************
-				$(".rt-show-details").on('click', function(event){
-					toggleDetails(event, letterboxd);
-				});
-				if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show')){
-					$(".rt-show-details").click();
+				if (this.tomatoData.hideDetailButton == false){
+					$(".rt-show-details").on('click', function(event){
+						toggleDetails(event, letterboxd);
+					});
+					if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show')){
+						$(".rt-show-details").click();
+					}
 				}
+				
 				
 				// Add the Events for the hover
 				//************************************************************
@@ -1735,6 +1684,120 @@
 
 
 				this.rtAdded = true;
+			},
+
+			collectTomatoScore(){
+				this.tomatoData.found = true;
+				
+				// Differs for Movies and TV
+				if (this.tomatoData.data.querySelector('#scoreDetails') != null){
+					// MOVIES
+					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#scoreDetails').innerHTML);
+					
+					// Critic All
+					if (scoredetails.modal.tomatometerScoreAll.value != null){
+						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
+						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
+						this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
+					}
+					if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
+						this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
+						this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
+						this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
+					}
+					// Critic Top
+					if (scoredetails.modal.tomatometerScoreTop.value != null){
+						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
+						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
+						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
+					}
+					if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
+						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
+						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
+						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
+					}
+					
+					// Audience All	
+					if (scoredetails.modal.audienceScoreAll.value != null){
+						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
+						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
+						this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
+					}
+					if (scoredetails.modal.audienceScoreAll.ratingCount != null){
+						this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
+						this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
+						this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
+						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+						this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
+					}
+
+					// Audience Verified
+					if (scoredetails.modal.audienceScoreVerified.value != null){
+						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
+						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
+						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
+					}
+					if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
+						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
+						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
+						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
+						
+						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
+						this.tomatoData.audienceVerified.num_ratings = (scoredetails.modal.audienceScoreVerified.likedCount + scoredetails.modal.audienceScoreVerified.notLikedCount).toString();
+					}
+
+					// Set false if no rating counts
+					if (this.tomatoData.audienceAll.num_ratings == 0 && this.tomatoData.criticAll.num_ratings == 0){
+						this.tomatoData.found = false;
+					}
+
+				}else if (this.tomatoData.data.querySelector('#media-scorecard-json') != null){
+					// TV - new site has much less data
+					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#media-scorecard-json').innerHTML);
+					
+					// Critic All
+					if (scoredetails.criticsScore != null && scoredetails.criticsScore.ratingCount != null){
+						this.tomatoData.criticAll.percent 					= scoredetails.criticsScore.scorePercent;
+						this.tomatoData.criticAll.state 					= scoredetails.criticsScore.sentiment;
+						this.tomatoData.criticAll.num_ratings 				= scoredetails.criticsScore.ratingCount.toString();
+						var certified										= scoredetails.criticsScore.certified;
+
+						if (certified){
+							this.tomatoData.criticAll.state = "certified-fresh";
+						}else if (this.tomatoData.criticAll.state == "POSITIVE"){
+							this.tomatoData.criticAll.state = "fresh";
+						}else if (this.tomatoData.criticAll.state == "NEGATIVE"){
+							this.tomatoData.criticAll.state = "rotten";
+						}
+					}
+					
+					// Audience All	
+					if (scoredetails.audienceScore != null && scoredetails.audienceScore.ratingCount != null){
+						this.tomatoData.audienceAll.percent 				= scoredetails.audienceScore.scorePercent;
+						this.tomatoData.audienceAll.state 					= scoredetails.audienceScore.sentiment;
+						this.tomatoData.audienceAll.num_ratings 			= scoredetails.audienceScore.ratingCount.toString();
+						
+						if (this.tomatoData.audienceAll.state == "POSITIVE"){
+							this.tomatoData.audienceAll.state = "upright";
+						}else if (this.tomatoData.audienceAll.state == "NEGATIVE"){
+							this.tomatoData.audienceAll.state = "spilled";
+						}
+					}
+					// Set this so we know not to add the show details button as don't have any details to show
+					this.tomatoData.hideDetailButton = true;
+
+				}else{
+					// No json found
+					this.tomatoData.found = false;
+					return;
+				}
+
+				// Correct Top Critic state, if needed
+				if (this.tomatoData.criticTop.score < 60 && this.tomatoData.criticTop.state.includes("fresh")){
+					this.tomatoData.criticTop.state = "rotten";
+				}else if(this.tomatoData.criticTop.score >= 60 && this.tomatoData.criticTop.state == "rotten"){
+					this.tomatoData.criticTop.state = "fresh";
+				}
 			},
 
 			addMeta(){				
@@ -3919,7 +3982,7 @@
 				}				
 				// The element that is the score itself
 				var hover = 'Average of ' + data.rating + '/' + scoreTotal + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' rating';
-				if (data.percent == "--")
+				if (data.percent == "--" || data.rating == "")
 					hover = data.num_ratings + " " + display + " rating";
 				else
 					data.percent += "%";
@@ -3946,17 +4009,19 @@
 				scoreDiv.append(score);
 
 				// Add the liked/notliked bars
-				const chartSpan = letterboxd.helpers.createElement('span', {
-					class: 'rt-score-details',
-					style: 'display: none; width: 140px; margin-left: 5px;'
-				});
-				if ((type.includes("critic") && letterboxd.storage.get('tomato-audience-enabled') === true) || isMobile){
-					chartSpan.style['margin-bottom'] = '10px';
+				if (data.likedCount + data.notLikedCount > 0){
+					const chartSpan = letterboxd.helpers.createElement('span', {
+						class: 'rt-score-details',
+						style: 'display: none; width: 140px; margin-left: 5px;'
+					});
+					if ((type.includes("critic") && letterboxd.storage.get('tomato-audience-enabled') === true) || isMobile){
+						chartSpan.style['margin-bottom'] = '10px';
+					}
+					chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings), isMobile));
+					chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings), isMobile));
+					
+					scoreDiv.append(chartSpan);
 				}
-				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings), isMobile));
-				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings), isMobile));
-				
-				scoreDiv.append(chartSpan);
 
 				// Add the tooltip as text for mobile
 				if (isMobile){
