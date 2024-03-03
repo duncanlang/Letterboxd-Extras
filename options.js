@@ -108,6 +108,7 @@ async function load() {
                         break;
                 }
             }
+            checkSubIDToDisable(element);
         });
     });
 }
