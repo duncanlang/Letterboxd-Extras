@@ -17,6 +17,7 @@ document.addEventListener('change', event => {
                 } else {
                     event.target.checked = false;
                 }
+                checkSubIDToDisable(event.target);
             });
         } else {
             // Remove the permission
@@ -29,6 +30,7 @@ document.addEventListener('change', event => {
                 } else {
                     event.target.checked = true;
                 }
+                checkSubIDToDisable(event.target);
             });
         }
     } else {
@@ -40,6 +42,7 @@ document.addEventListener('change', event => {
                 options[event.target.id] = event.target.value;
                 break;
         }
+        checkSubIDToDisable(event.target);
 
         save();
     }
@@ -47,6 +50,17 @@ document.addEventListener('change', event => {
 // Save:
 function save() {
     chrome.storage.sync.set({ options });
+}
+
+function checkSubIDToDisable(element){
+    if (element.getAttribute("subid") != null){
+        var target = document.querySelector("#" + element.getAttribute("subid"));
+        if (element.checked){
+            target.className = target.className.replace("disabled","");
+        }else{
+            target.className += " disabled";
+        }
+    }
 }
 
 
@@ -73,6 +87,12 @@ async function load() {
         if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
         if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
         if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
+        if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
+        if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
+        if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = true;
+        if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
+        if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
+        if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
 
         // Set the settings
         var elements = document.querySelectorAll('.setting');
