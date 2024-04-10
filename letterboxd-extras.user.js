@@ -2778,6 +2778,19 @@
 					this.ratingAdded = true;
 					return;
 				}
+
+				if(letterboxd.storage.get('mpa-convert') === true){
+					switch(this.mpaaRating){
+						case "GP":
+						case "M":
+						case "M/PG":
+							this.mpaaRating = "PG";
+							break;
+						case "X":
+							this.mpaaRating = "NC-17";
+							break;
+					}
+				}
 				
 				if (this.isMobile){
 					const year = document.querySelector('.details .releaseyear .bullet');
