@@ -593,9 +593,12 @@
 
 							var tooltip = "";
 							if (bar.hasAttribute("data-original-title")){
-								tooltip = bar.getAttribute("data-original-title").match(regex)[1];
+								tooltip = bar.getAttribute("data-original-title");
 							}else if (bar.hasAttribute("title")){
-								tooltip = bar.getAttribute("title").match(regex)[1];
+								tooltip = bar.getAttribute("title");
+							}
+							if (tooltip.match(regex)){
+								tooltip = tooltip.match(regex)[1];
 							}
 
 							if (tooltip != ""){
@@ -2587,6 +2590,9 @@
 					// Save the report button then remove the old text, then re-add
 					var report = footer.querySelector('.block-flag-wrapper');
 					report.style['margin-left'] = '5px';
+
+					// Save badges (adult)
+					var badges = footer.querySelectorAll('.badge');
 					
 					footer.innerText = "";
 					footer.prepend(report);
@@ -2606,7 +2612,12 @@
 						durationSpan.innerText = duration[0];
 						durationSpan.setAttribute('data-original-title',format);
 						footer.prepend(durationSpan);
-					}
+					}					
+					
+					badges.forEach(badge => {
+						badge.style['margin-right'] = '10px';
+						footer.prepend(badge);
+					});
 					
 					// Append the new div
 					footer.append(text);
