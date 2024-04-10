@@ -46,7 +46,8 @@
 	"optional_permissions": [
 		"https://apollo.senscritique.com/*",
 		"https://api.mubi.com/*",
-		"https://*.filmaffinity.com/*"
+		"https://*.filmaffinity.com/*",
+		"https://www.theyshootpictures.com/*"
 	],
 
 	"content_scripts": [

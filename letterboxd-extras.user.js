@@ -502,6 +502,9 @@
 			// SensCritique
 			sensCritique: {state: 0, id: null, url: null, data: null},
 
+			// They Shoot Pictures ranking
+			tspdt: {state: 0, data: null, raw: null, found: false, ranking: null},
+
 			linksAdded: [],
 			
 			rtAdded: false,
@@ -556,6 +559,10 @@
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
+					}
+					if (this.letterboxdNativeTitle != null){
+						this.letterboxdNativeTitle = this.letterboxdNativeTitle.replace('‘','');
+						this.letterboxdNativeTitle = this.letterboxdNativeTitle.replace('’','');
 					}
 				}
 
@@ -1211,6 +1218,11 @@
 					this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
 				} else {
 					this.ratingsSuffix = ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10'];
+				}
+
+				// Add 'They Shoot Pictures, Don't They' ranking
+				if (this.letterboxdTitle != null && this.tspdt.state == 0 && document.querySelector('.film-stats .stat.filmstat-watches')){
+					this.initTSPDT();
 				}
 
 				// Stop
@@ -3426,7 +3438,7 @@
 				//************************************************************
 				$(".tooltip.display-rating.-highlight.sens-score").on("mouseover", ShowTwipsy);
 				$(".tooltip.display-rating.-highlight.sens-score").on("mouseout", HideTwipsy);
-			},
+			},	
 
 			appendRating(rating, className){
 				var order = [
@@ -3488,6 +3500,71 @@
 
 				// Third
 				sidebar.append(rating);
+			},
+
+			initTSPDT(){
+				var url = "https://www.theyshootpictures.com/gf1000_all1000films.htm";
+				this.tspdt.state = 1;
+				letterboxd.helpers.getOMDbData(url).then((value) => {
+					this.tspdt.raw = value;
+					this.tspdt.data = letterboxd.helpers.parseHTML(value);
+
+					var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
+					if (list != null && list.length >= 2){
+						list = list[1].innerText;
+					}
+
+					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + this.letterboxdTitle.toUpperCase() + ")");
+					if (this.letterboxdNativeTitle != null){
+						var regex2 = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + this.letterboxdNativeTitle.toUpperCase() + ")");
+					}
+
+					if (list.match(regex)){
+						this.tspdt.found = true;
+						this.tspdt.ranking = list.match(regex)[1];
+					}else if (regex2 != null && list.match(regex2)){
+						this.tspdt.found = true;
+						this.tspdt.ranking = list.match(regex2)[1];
+					}
+
+					if (this.tspdt.found){
+						this.addTSPDT();
+					}
+					
+					this.tspdt.state = 2;
+				});
+			},
+
+			addTSPDT(){
+				if (document.querySelector('.tspdt-ranking')) return;
+
+				if (!document.querySelector('.film-stats')) return;
+
+				// Lets add it to the page
+				//***************************************************************
+				// create the li
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'stat tspdt-ranking extras-ranking'
+				});
+				document.querySelector('.film-stats').append(li);
+				
+				const a = letterboxd.helpers.createElement('a', {
+					class: 'has-icon icon-top250 icon-16 tooltip tooltip-extra'
+				});	
+				li.append(a);
+				a.innerText = this.tspdt.ranking;
+				a.setAttribute('data-original-title','№' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" top 1000");
+
+				const iconSpan = letterboxd.helpers.createElement('span', {
+					class: 'icon'
+				});
+				a.append(iconSpan);
+				
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+
 			}
 		},
 
