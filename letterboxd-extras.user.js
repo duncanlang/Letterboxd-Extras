@@ -3600,6 +3600,7 @@
 						this.wiki = value.results.bindings[0];
 						
 						this.addWikiData();
+						this.addIMDbButton();
 						if (letterboxd.storage.get('wiki-link-enabled') === true){
 							this.addWikiButton();
 						}
@@ -3660,6 +3661,8 @@
 					var yearsActive = new Date(this.wiki.Years_Start.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					if (this.wiki.Years_End != null && this.wiki.Years_End.value != null){
 						yearsActive += "–" + new Date(this.wiki.Years_End.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
+					}else if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9){
+						yearsActive += "–" + new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					}else{
 						yearsActive += "–present";
 					}
@@ -3697,8 +3700,8 @@
 				// Add to page
 				//*****************************************
 				if (empty == false){
-					if (document.querySelector('.js-tmdb-person-bio') != null){
-						document.querySelector('.js-tmdb-person-bio').before(table);
+					if (document.querySelector('.bio') != null){
+						document.querySelector('.bio').before(table);
 					}else if (document.querySelector('.avatar.person-image') != null){
 						document.querySelector('.avatar.person-image').after(table);
 					}
@@ -3724,7 +3727,28 @@
 				button.innerText = "WIKI";
 	
 				// Add to Page
-				document.querySelector('.micro-button').after(button);
+				document.querySelector('.micro-button:NOT(.imdb-button)').after(button);
+			},
+
+			addIMDbButton(){
+				if (document.querySelector('.imdb-button')) return;
+
+				if (this.wiki.IMDb_ID != null && this.wiki.IMDb_ID.value != null){
+					var url = this.wiki.IMDb_ID.value;
+				}else{
+					return;
+				}
+				url = "https://www.imdb.com/name/" + url;
+
+				// Create Button Element
+				var button = letterboxd.helpers.createElement('a', {
+					class: 'micro-button imdb-button',
+					href: url
+				});
+				button.innerText = "IMDB";
+	
+				// Add to Page
+				document.querySelector('.micro-button').before(button);
 			}
 
 		},
@@ -4770,7 +4794,7 @@
 					"  }\n" +
 					"}";
 				}else if (queryType == "PERSON"){
-						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End  WHERE {\n" +
+						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"  {\n" +
 						"    SELECT DISTINCT ?item WHERE {\n" +
@@ -4784,6 +4808,7 @@
 						"    ?item wdt:P1477 ?BirthName.\n" +
 						"    FILTER(LANG(?BirthName) = \"en\") .\n" +
 						"  }\n" +
+						"  OPTIONAL { ?item wdt:P345 ?IMDb_ID. }\n" +
 						"  OPTIONAL { \n" +
 						"    ?item p:P569 ?BirthEntry.\n" +
 						"    ?BirthEntry ps:P569 ?Date_Of_Birth.\n" +
