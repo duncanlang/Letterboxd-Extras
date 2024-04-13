@@ -3559,10 +3559,12 @@
 				}
 
 				// Get the TMDB id and call wikidata 
-				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.js-tmdb-person-bio') != null){
+				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.bio') != null){
 					// Loop and find TMDB
-					const links = document.querySelector('.js-tmdb-person-bio');
-					this.tmdbID = links.getAttribute('data-tmdb-id');
+					const body = document.querySelector('body');
+					if (body.hasAttribute('data-tmdb-id')){
+						this.tmdbID = body.getAttribute('data-tmdb-id');
+					}
 
 					this.callWikiData();
 				}
@@ -3573,8 +3575,14 @@
 
 			getName(){
 				var nameElement = document.querySelector('h1.title-1');
+				var name = nameElement.innerText;
+				
+				if (name.includes('\n')){
+					var startIndex = name.indexOf('\n') + 1;
+					name = name.substring(startIndex);
+				}
 
-				this.letterboxdName = nameElement.textContent;
+				this.letterboxdName = name;
 			},
 
 			callWikiData(){
