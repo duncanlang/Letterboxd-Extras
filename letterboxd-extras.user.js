@@ -359,6 +359,7 @@
 			padding-left: 5px;
 			padding-right: 5px;
 			font-size: 95%;
+			margin-top: 9px;
 		}
 		.extras-table .extras-header{
 			width: 40%;
@@ -593,9 +594,12 @@
 
 							var tooltip = "";
 							if (bar.hasAttribute("data-original-title")){
-								tooltip = bar.getAttribute("data-original-title").match(regex)[1];
+								tooltip = bar.getAttribute("data-original-title");
 							}else if (bar.hasAttribute("title")){
-								tooltip = bar.getAttribute("title").match(regex)[1];
+								tooltip = bar.getAttribute("title");
+							}
+							if (tooltip.match(regex)){
+								tooltip = tooltip.match(regex)[1];
 							}
 
 							if (tooltip != ""){
@@ -862,7 +866,12 @@
 								// Add Rating
 								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
 									this.mpaaRating = this.wiki.MPAA_film_ratingLabel.value;
-									this.addRating();	
+
+									if (this.ratingAdded){
+										this.replaceMPARating();
+									}else{
+										this.addRating();
+									}
 								}
 
 								// Get US Title and attempt Cinemascore
@@ -2599,6 +2608,9 @@
 					// Save the report button then remove the old text, then re-add
 					var report = footer.querySelector('.block-flag-wrapper');
 					report.style['margin-left'] = '5px';
+
+					// Save badges (adult)
+					var badges = footer.querySelectorAll('.badge');
 					
 					footer.innerText = "";
 					footer.prepend(report);
@@ -2618,7 +2630,12 @@
 						durationSpan.innerText = duration[0];
 						durationSpan.setAttribute('data-original-title',format);
 						footer.prepend(durationSpan);
-					}
+					}					
+					
+					badges.forEach(badge => {
+						badge.style['margin-right'] = '10px';
+						footer.prepend(badge);
+					});
 					
 					// Append the new div
 					footer.append(text);
@@ -2705,7 +2722,8 @@
 						if (header == "Budget"){
 							this.mojoData.budget = data;
 						}else if (header == "MPAA"){
-							this.mpaaRating = data;
+							if (this.mpaaRating == null)
+								this.mpaaRating = data;
 						}else if (header == "Earliest Release Date" && data.includes("Domestic")){
 							this.filmDate.date = data.split("\n")[0];
 							this.filmDate.date = this.filmDate.date.replace(",","");
@@ -2779,6 +2797,9 @@
 					this.ratingAdded = true;
 					return;
 				}
+
+				// Adjust the rating if needed
+				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
 				
 				if (this.isMobile){
 					const year = document.querySelector('.details .releaseyear .bullet');
@@ -2810,6 +2831,28 @@
 				}
 
 				this.ratingAdded = true;
+
+			},
+
+			replaceMPARating(){
+				if (document.querySelector('.extras-rating') == null) return;
+				if (this.mpaaRating == null) return;
+				if (this.mpaaRating == "") return;
+				// The MPA rating might already be added from another source, but we want to replace it with the rating from WikiData
+				
+				// Adjust the rating if needed
+				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
+
+				var rating = null;
+				if (this.isMobile){
+					rating = document.querySelector('.extras-rating');
+				}else{
+					rating = document.querySelector('.extras-rating p');
+				}
+
+				if (rating != null){
+					rating.innerText = this.mpaaRating;
+				}
 
 			},
 
@@ -3534,6 +3577,7 @@
 
 		person: {
 			running: false,
+			isMobile: null,
 
 			tmdbID: null,
 			wiki: null,
@@ -3552,10 +3596,12 @@
 				}
 
 				// Get the TMDB id and call wikidata 
-				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.js-tmdb-person-bio') != null){
+				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.bio') != null){
 					// Loop and find TMDB
-					const links = document.querySelector('.js-tmdb-person-bio');
-					this.tmdbID = links.getAttribute('data-tmdb-id');
+					const body = document.querySelector('body');
+					if (body.hasAttribute('data-tmdb-id')){
+						this.tmdbID = body.getAttribute('data-tmdb-id');
+					}
 
 					this.callWikiData();
 				}
@@ -3566,8 +3612,26 @@
 
 			getName(){
 				var nameElement = document.querySelector('h1.title-1');
+				var name = nameElement.innerText;
+				
+				if (name.includes('\n')){
+					var startIndex = name.indexOf('\n') + 1;
+					name = name.substring(startIndex);
+				}
+				
+				// Determine mobile
+				if (this.isMobile == null){
+					if (document.querySelector("html")){
+						var htmlEl = document.querySelector("html");
+						if (htmlEl.getAttribute("class").includes("no-mobile")){
+							this.isMobile = false;
+						}else{
+							this.isMobile = true;
+						}
+					}
+				}
 
-				this.letterboxdName = nameElement.textContent;
+				this.letterboxdName = name;
 			},
 
 			callWikiData(){
@@ -3585,6 +3649,7 @@
 						this.wiki = value.results.bindings[0];
 						
 						this.addWikiData();
+						this.addIMDbButton();
 						if (letterboxd.storage.get('wiki-link-enabled') === true){
 							this.addWikiButton();
 						}
@@ -3645,6 +3710,8 @@
 					var yearsActive = new Date(this.wiki.Years_Start.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					if (this.wiki.Years_End != null && this.wiki.Years_End.value != null){
 						yearsActive += "–" + new Date(this.wiki.Years_End.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
+					}else if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9){
+						yearsActive += "–" + new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					}else{
 						yearsActive += "–present";
 					}
@@ -3655,7 +3722,11 @@
 				// Create Table
 				//*****************************************
 				const table = document.createElement("table");
-				table.setAttribute('class','extras-table');
+				if (this.isMobile){
+					table.setAttribute('class','extras-table mobile');
+				}else{
+					table.setAttribute('class','extras-table');
+				}
 				var empty = true;
 
 				if (birth != null){
@@ -3682,10 +3753,16 @@
 				// Add to page
 				//*****************************************
 				if (empty == false){
-					if (document.querySelector('.js-tmdb-person-bio') != null){
-						document.querySelector('.js-tmdb-person-bio').before(table);
-					}else if (document.querySelector('.avatar.person-image') != null){
-						document.querySelector('.avatar.person-image').after(table);
+					if (this.isMobile){
+						if (document.querySelector('.progress-panel') != null){
+							document.querySelector('.progress-panel').before(table);
+						}
+					}else{
+						if (document.querySelector('.bio') != null){
+							document.querySelector('.bio').before(table);
+						}else if (document.querySelector('.avatar.person-image') != null){
+							document.querySelector('.avatar.person-image').after(table);
+						}
 					}
 				}
 			},
@@ -3709,7 +3786,28 @@
 				button.innerText = "WIKI";
 	
 				// Add to Page
-				document.querySelector('.micro-button').after(button);
+				document.querySelector('.micro-button:NOT(.imdb-button)').after(button);
+			},
+
+			addIMDbButton(){
+				if (document.querySelector('.imdb-button')) return;
+
+				if (this.wiki.IMDb_ID != null && this.wiki.IMDb_ID.value != null){
+					var url = this.wiki.IMDb_ID.value;
+				}else{
+					return;
+				}
+				url = "https://www.imdb.com/name/" + url;
+
+				// Create Button Element
+				var button = letterboxd.helpers.createElement('a', {
+					class: 'micro-button imdb-button',
+					href: url
+				});
+				button.innerText = "IMDB";
+	
+				// Add to Page
+				document.querySelector('.micro-button').before(button);
 			}
 
 		},
@@ -4471,6 +4569,23 @@
 				return value;
 			},
 
+			convertMPARating(rating){
+				if(letterboxd.storage.get('mpa-convert') === true){
+					switch(rating){
+						case "GP":
+						case "M":
+						case "M/PG":
+							rating = "PG";
+							break;
+						case "X":
+							rating = "NC-17";
+							break;
+					}
+				}
+
+				return rating;
+			},
+
 			getSensSearchQuery(type, title){
 				var query = `
 				query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
@@ -4622,7 +4737,7 @@
 					"  }\n" +
 					"}";
 				}else if (queryType == "PERSON"){
-						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End  WHERE {\n" +
+						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"  {\n" +
 						"    SELECT DISTINCT ?item WHERE {\n" +
@@ -4636,6 +4751,7 @@
 						"    ?item wdt:P1477 ?BirthName.\n" +
 						"    FILTER(LANG(?BirthName) = \"en\") .\n" +
 						"  }\n" +
+						"  OPTIONAL { ?item wdt:P345 ?IMDb_ID. }\n" +
 						"  OPTIONAL { \n" +
 						"    ?item p:P569 ?BirthEntry.\n" +
 						"    ?BirthEntry ps:P569 ?Date_Of_Birth.\n" +
