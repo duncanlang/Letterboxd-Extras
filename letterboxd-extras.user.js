@@ -872,7 +872,12 @@
 								// Add Rating
 								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
 									this.mpaaRating = this.wiki.MPAA_film_ratingLabel.value;
-									this.addRating();	
+
+									if (this.ratingAdded){
+										this.replaceMPARating();
+									}else{
+										this.addRating();
+									}
 								}
 
 								// Get US Title and attempt Cinemascore
@@ -2705,7 +2710,8 @@
 						if (header == "Budget"){
 							this.mojoData.budget = data;
 						}else if (header == "MPAA"){
-							this.mpaaRating = data;
+							if (this.mpaaRating == null)
+								this.mpaaRating = data;
 						}else if (header == "Earliest Release Date" && data.includes("Domestic")){
 							this.filmDate.date = data.split("\n")[0];
 							this.filmDate.date = this.filmDate.date.replace(",","");
@@ -2823,6 +2829,26 @@
 				}
 
 				this.ratingAdded = true;
+
+			},
+
+			replaceMPARating(){
+				if (document.querySelector('.extras-rating') == null) return;
+				if (this.mpaaRating == null) return;
+				if (this.mpaaRating == "") return;
+
+				// The MPA rating might already be added from another source, but we want to replace it with the rating from WikiData
+
+				var rating = null;
+				if (this.isMobile){
+					rating = document.querySelector('.extras-rating');
+				}else{
+					rating = document.querySelector('.extras-rating p');
+				}
+
+				if (rating != null){
+					rating.innerText = this.mpaaRating;
+				}
 
 			},
 
