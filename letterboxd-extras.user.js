@@ -359,6 +359,7 @@
 			padding-left: 5px;
 			padding-right: 5px;
 			font-size: 95%;
+			margin-top: 9px;
 		}
 		.extras-table .extras-header{
 			width: 40%;
@@ -3541,6 +3542,7 @@
 
 		person: {
 			running: false,
+			isMobile: null,
 
 			tmdbID: null,
 			wiki: null,
@@ -3580,6 +3582,18 @@
 				if (name.includes('\n')){
 					var startIndex = name.indexOf('\n') + 1;
 					name = name.substring(startIndex);
+				}
+				
+				// Determine mobile
+				if (this.isMobile == null){
+					if (document.querySelector("html")){
+						var htmlEl = document.querySelector("html");
+						if (htmlEl.getAttribute("class").includes("no-mobile")){
+							this.isMobile = false;
+						}else{
+							this.isMobile = true;
+						}
+					}
 				}
 
 				this.letterboxdName = name;
@@ -3673,7 +3687,11 @@
 				// Create Table
 				//*****************************************
 				const table = document.createElement("table");
-				table.setAttribute('class','extras-table');
+				if (this.isMobile){
+					table.setAttribute('class','extras-table mobile');
+				}else{
+					table.setAttribute('class','extras-table');
+				}
 				var empty = true;
 
 				if (birth != null){
@@ -3700,10 +3718,16 @@
 				// Add to page
 				//*****************************************
 				if (empty == false){
-					if (document.querySelector('.bio') != null){
-						document.querySelector('.bio').before(table);
-					}else if (document.querySelector('.avatar.person-image') != null){
-						document.querySelector('.avatar.person-image').after(table);
+					if (this.isMobile){
+						if (document.querySelector('.progress-panel') != null){
+							document.querySelector('.progress-panel').before(table);
+						}
+					}else{
+						if (document.querySelector('.bio') != null){
+							document.querySelector('.bio').before(table);
+						}else if (document.querySelector('.avatar.person-image') != null){
+							document.querySelector('.avatar.person-image').after(table);
+						}
 					}
 				}
 			},
