@@ -2786,18 +2786,8 @@
 					return;
 				}
 
-				if(letterboxd.storage.get('mpa-convert') === true){
-					switch(this.mpaaRating){
-						case "GP":
-						case "M":
-						case "M/PG":
-							this.mpaaRating = "PG";
-							break;
-						case "X":
-							this.mpaaRating = "NC-17";
-							break;
-					}
-				}
+				// Adjust the rating if needed
+				this.mpaaRating = letterboxd.helpers.adjustMPARating(this.mpaaRating);
 				
 				if (this.isMobile){
 					const year = document.querySelector('.details .releaseyear .bullet');
@@ -2836,8 +2826,10 @@
 				if (document.querySelector('.extras-rating') == null) return;
 				if (this.mpaaRating == null) return;
 				if (this.mpaaRating == "") return;
-
 				// The MPA rating might already be added from another source, but we want to replace it with the rating from WikiData
+				
+				// Adjust the rating if needed
+				this.mpaaRating = letterboxd.helpers.adjustMPARating(this.mpaaRating);
 
 				var rating = null;
 				if (this.isMobile){
@@ -4788,6 +4780,23 @@
 				value = value.replaceAll('$','');
 
 				return value;
+			},
+
+			convertMPARating(rating){
+				if(letterboxd.storage.get('mpa-convert') === true){
+					switch(rating){
+						case "GP":
+						case "M":
+						case "M/PG":
+							rating = "PG";
+							break;
+						case "X":
+							rating = "NC-17";
+							break;
+					}
+				}
+
+				return rating;
 			},
 			
 			getWikiDataQuery(id, idType, queryType, lang){
