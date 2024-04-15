@@ -2787,7 +2787,7 @@
 				}
 
 				// Adjust the rating if needed
-				this.mpaaRating = letterboxd.helpers.adjustMPARating(this.mpaaRating);
+				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
 				
 				if (this.isMobile){
 					const year = document.querySelector('.details .releaseyear .bullet');
@@ -2829,7 +2829,7 @@
 				// The MPA rating might already be added from another source, but we want to replace it with the rating from WikiData
 				
 				// Adjust the rating if needed
-				this.mpaaRating = letterboxd.helpers.adjustMPARating(this.mpaaRating);
+				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
 
 				var rating = null;
 				if (this.isMobile){
