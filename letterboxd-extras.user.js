@@ -1534,16 +1534,22 @@
 
 				// Lets grab all the potentially useful information first 
 				//***************************************************************
-				this.tomatoData.criticAll = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
-				this.tomatoData.criticTop = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
-				this.tomatoData.audienceAll = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
-				this.tomatoData.audienceVerified = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
+				this.tomatoData.criticAll = {type: "CRITIC", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
+				this.tomatoData.criticTop = {type: "CRITIC", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
+				this.tomatoData.audienceAll = {type: "AUDIENCE", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
+				this.tomatoData.audienceVerified = {type: "AUDIENCE", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
 
-				// Collect the score details from the data
-				this.collectTomatoScore();
+				if (this.tomatoData.data.querySelector('#media-scorecard-json') != null){
+					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#media-scorecard-json').innerHTML);
+					this.collectTomatoScore(this.tomatoData.criticTop, scoredetails.overlay.criticsTop);
+					this.collectTomatoScore(this.tomatoData.criticAll, scoredetails.overlay.criticsAll);
+					this.collectTomatoScore(this.tomatoData.audienceVerified, scoredetails.overlay.audienceVerified);
+					this.collectTomatoScore(this.tomatoData.audienceAll, scoredetails.overlay.audienceAll);
+				}else{
+					// Not found, return
+					return;
+				}
 
-				// Return if not found or the rating counts are 0
-				if (this.tomatoData.found == false) return;
 
 				if (this.tomatoData.hideDetailButton == true && this.isMobile){
 					this.tomatoData.hideDetailButton = false;
@@ -1695,117 +1701,29 @@
 				this.rtAdded = true;
 			},
 
-			collectTomatoScore(){
-				this.tomatoData.found = true;
-				
-				// Differs for Movies and TV
-				if (this.tomatoData.data.querySelector('#scoreDetails') != null){
-					// MOVIES
-					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#scoreDetails').innerHTML);
-					
-					// Critic All
-					if (scoredetails.modal.tomatometerScoreAll.value != null){
-						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
-						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
-						this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
-					}
-					if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
-						this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
-						this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
-						this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
-					}
-					// Critic Top
-					if (scoredetails.modal.tomatometerScoreTop.value != null){
-						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
-						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
-						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
-					}
-					if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
-						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
-						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
-						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
-					}
-					
-					// Audience All	
-					if (scoredetails.modal.audienceScoreAll.value != null){
-						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
-						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
-						this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
-					}
-					if (scoredetails.modal.audienceScoreAll.ratingCount != null){
-						this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
-						this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
-						this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
-					}
+			collectTomatoScore(data, scoredetails){
 
-					// Audience Verified
-					if (scoredetails.modal.audienceScoreVerified.value != null){
-						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
-						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
-						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
-					}
-					if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
-						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
-						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
-						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
-						
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceVerified.num_ratings = (scoredetails.modal.audienceScoreVerified.likedCount + scoredetails.modal.audienceScoreVerified.notLikedCount).toString();
-					}
+				if (scoredetails != null && scoredetails.score != null){
+					data.percent 		= scoredetails.score;
+					data.state 			= scoredetails.sentiment;
+					data.likedCount		= scoredetails.likedCount;
+					data.notLikedCount	= scoredetails.notLikedCount;
+					data.num_ratings 	= data.likedCount + data.notLikedCount;
 
-					// Set false if no rating counts
-					if (this.tomatoData.audienceAll.num_ratings == 0 && this.tomatoData.criticAll.num_ratings == 0){
-						this.tomatoData.found = false;
+					data.url			= scoredetails.scoreLinkUrl;
+					data.rating			= scoredetails.averageRating
+
+					if (scoredetails.certified != null && scoredetails.certified == true){
+						data.state = "certified-fresh";
+					}else if (data.state == "POSITIVE" && data.type == "CRITIC"){
+						data.state = "fresh";
+					}else if (data.state == "NEGATIVE" && data.type == "CRITIC"){
+						data.state = "rotten";
+					}else if (data.state == "POSITIVE"){
+						data.state = "upright";
+					}else if (data.state == "NEGATIVE"){
+						data.state = "spilled";
 					}
-
-				}else if (this.tomatoData.data.querySelector('#media-scorecard-json') != null){
-					// TV - new site has much less data
-					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#media-scorecard-json').innerHTML);
-					
-					// Critic All
-					if (scoredetails.criticsScore != null && scoredetails.criticsScore.ratingCount != null){
-						this.tomatoData.criticAll.percent 					= scoredetails.criticsScore.scorePercent;
-						this.tomatoData.criticAll.state 					= scoredetails.criticsScore.sentiment;
-						this.tomatoData.criticAll.num_ratings 				= scoredetails.criticsScore.ratingCount.toString();
-						var certified										= scoredetails.criticsScore.certified;
-
-						if (certified){
-							this.tomatoData.criticAll.state = "certified-fresh";
-						}else if (this.tomatoData.criticAll.state == "POSITIVE"){
-							this.tomatoData.criticAll.state = "fresh";
-						}else if (this.tomatoData.criticAll.state == "NEGATIVE"){
-							this.tomatoData.criticAll.state = "rotten";
-						}
-					}
-					
-					// Audience All	
-					if (scoredetails.audienceScore != null && scoredetails.audienceScore.ratingCount != null){
-						this.tomatoData.audienceAll.percent 				= scoredetails.audienceScore.scorePercent;
-						this.tomatoData.audienceAll.state 					= scoredetails.audienceScore.sentiment;
-						this.tomatoData.audienceAll.num_ratings 			= scoredetails.audienceScore.ratingCount.toString();
-						
-						if (this.tomatoData.audienceAll.state == "POSITIVE"){
-							this.tomatoData.audienceAll.state = "upright";
-						}else if (this.tomatoData.audienceAll.state == "NEGATIVE"){
-							this.tomatoData.audienceAll.state = "spilled";
-						}
-					}
-					// Set this so we know not to add the show details button as don't have any details to show
-					this.tomatoData.hideDetailButton = true;
-
-				}else{
-					// No json found
-					this.tomatoData.found = false;
-					return;
-				}
-
-				// Correct Top Critic state, if needed
-				if (this.tomatoData.criticTop.score < 60 && this.tomatoData.criticTop.state.includes("fresh")){
-					this.tomatoData.criticTop.state = "rotten";
-				}else if(this.tomatoData.criticTop.score >= 60 && this.tomatoData.criticTop.state == "rotten"){
-					this.tomatoData.criticTop.state = "fresh";
 				}
 			},
 
