@@ -418,6 +418,14 @@
 			width: 95%;
 			text-align: center;
 		}
+
+		.extras-rating:NOT(.extras-rating-mobile){
+			margin-left: 2px;
+			margin-right: 3px;
+		}
+		.extras-rating-mobile{
+			margin-right: 3px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -540,7 +548,7 @@
 				}
 
 				// Get year and title
-				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".number"))) && this.letterboxdYear == null){
+				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".metablock .releaseyear"))) && this.letterboxdYear == null){
 					if (this.isMobile){
 						this.letterboxdYear = document.querySelector(".film-header-lockup .details .releaseyear a").innerText;
 						this.letterboxdTitle = document.querySelector(".film-header-lockup .details .headline-1").innerText;
@@ -550,8 +558,8 @@
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
 					}else{
-						this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
+						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
+						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
 	
 						var nativeTitle = document.querySelector('#featured-film-header p em')
 						if (nativeTitle != null){
@@ -2558,7 +2566,7 @@
 			addDurationMobile(){
 				if (document.querySelector(".extras-duration")) return
 
-				const durationElement = document.querySelector(".trailerandduration");
+				const durationElement = document.querySelector(".trailerdurationgroup .duration");
 
 				if (durationElement != null){
 					var regex = new RegExp(/([0-9.,]+)(.+)(mins|min)/);
@@ -2569,20 +2577,16 @@
 					var hours = Math.floor(totalMinutes / 60);
 					var format = hours + "h " + minutes + "m";
 
-					const newDuration = letterboxd.helpers.createElement('p', {
-						class: 'extras-duration',
-						style: 'margin-bottom: 0px;'
-					});
-					newDuration.innerText = "(" + format + ")";
+					durationElement.innerText += " (" + format + ")";
 
-					durationElement.append(newDuration);
+					durationElement.className += " extras-duration";
 
 				}
 				this.durationAdded == true;
 			},
 
 			addDate(date){
-				const year = document.querySelector('.number');
+				const year = document.querySelector('.metablock .releaseyear');
 
 				if (year != null){
 					year.setAttribute("data-original-title", date);
@@ -2708,29 +2712,23 @@
 				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
 				
 				if (this.isMobile){
-					const year = document.querySelector('.details .releaseyear .bullet');
+					const intro = document.querySelector('.details .credits .introduction');
 
 					const rating = letterboxd.helpers.createElement('span', {
-						class: 'extras-rating'
+						class: 'introduction extras-rating extras-rating-mobile'
 					});
-					rating.innerText = " " + this.mpaaRating;
-					year.after(rating);
-					
-					const bullet = letterboxd.helpers.createElement('span', {
-						class: 'bullet'
-					});
-					bullet.innerText = " · ";
-					rating.after(bullet);
+					rating.innerText = this.mpaaRating;
+					intro.before(rating);
 
 				}else{
-					const year = document.querySelector('.number');
+					const year = document.querySelector('.metablock .releaseyear');
 	
-					const small = letterboxd.helpers.createElement('small', {
-						class: 'number extras-rating'
+					const small = letterboxd.helpers.createElement('span', {
+						class: 'extras-rating'
 					});
 					year.after(small);
 					
-					const p = letterboxd.helpers.createElement('p', {
+					const p = letterboxd.helpers.createElement('span', {
 					});
 					p.innerText = this.mpaaRating;
 					small.append(p);
