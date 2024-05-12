@@ -359,6 +359,7 @@
 			padding-left: 5px;
 			padding-right: 5px;
 			font-size: 95%;
+			margin-top: 9px;
 		}
 		.extras-table .extras-header{
 			width: 40%;
@@ -416,6 +417,14 @@
 			margin-top: 10px;
 			width: 95%;
 			text-align: center;
+		}
+
+		.extras-rating:NOT(.extras-rating-mobile){
+			margin-left: 2px;
+			margin-right: 3px;
+		}
+		.extras-rating-mobile{
+			margin-right: 3px;
 		}
 	`);
 	/* eslint-enable */
@@ -542,7 +551,7 @@
 				}
 
 				// Get year and title
-				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".number"))) && this.letterboxdYear == null){
+				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".metablock .releaseyear"))) && this.letterboxdYear == null){
 					if (this.isMobile){
 						this.letterboxdYear = document.querySelector(".film-header-lockup .details .releaseyear a").innerText;
 						this.letterboxdTitle = document.querySelector(".film-header-lockup .details .headline-1").innerText;
@@ -552,8 +561,8 @@
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
 					}else{
-						this.letterboxdYear = document.querySelectorAll(".number a")[0].innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.js-widont.prettify").innerText;
+						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
+						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
 	
 						var nativeTitle = document.querySelector('#featured-film-header p em')
 						if (nativeTitle != null){
@@ -600,9 +609,12 @@
 
 							var tooltip = "";
 							if (bar.hasAttribute("data-original-title")){
-								tooltip = bar.getAttribute("data-original-title").match(regex)[1];
+								tooltip = bar.getAttribute("data-original-title");
 							}else if (bar.hasAttribute("title")){
-								tooltip = bar.getAttribute("title").match(regex)[1];
+								tooltip = bar.getAttribute("title");
+							}
+							if (tooltip.match(regex)){
+								tooltip = tooltip.match(regex)[1];
 							}
 
 							if (tooltip != ""){
@@ -875,7 +887,12 @@
 								// Add Rating
 								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null){
 									this.mpaaRating = this.wiki.MPAA_film_ratingLabel.value;
-									this.addRating();	
+
+									if (this.ratingAdded){
+										this.replaceMPARating();
+									}else{
+										this.addRating();
+									}
 								}
 
 								// Get US Title and attempt Cinemascore
@@ -1537,16 +1554,22 @@
 
 				// Lets grab all the potentially useful information first 
 				//***************************************************************
-				this.tomatoData.criticAll = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
-				this.tomatoData.criticTop = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
-				this.tomatoData.audienceAll = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
-				this.tomatoData.audienceVerified = {percent: "--", state: "", rating: "", num_ratings: "0", likedCount: "0", notLikedCount: "0"};
+				this.tomatoData.criticAll = {type: "CRITIC", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
+				this.tomatoData.criticTop = {type: "CRITIC", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
+				this.tomatoData.audienceAll = {type: "AUDIENCE", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
+				this.tomatoData.audienceVerified = {type: "AUDIENCE", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: ""};
 
-				// Collect the score details from the data
-				this.collectTomatoScore();
+				if (this.tomatoData.data.querySelector('#media-scorecard-json') != null){
+					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#media-scorecard-json').innerHTML);
+					this.collectTomatoScore(this.tomatoData.criticTop, scoredetails.overlay.criticsTop);
+					this.collectTomatoScore(this.tomatoData.criticAll, scoredetails.overlay.criticsAll);
+					this.collectTomatoScore(this.tomatoData.audienceVerified, scoredetails.overlay.audienceVerified);
+					this.collectTomatoScore(this.tomatoData.audienceAll, scoredetails.overlay.audienceAll);
+				}else{
+					// Not found, return
+					return;
+				}
 
-				// Return if not found or the rating counts are 0
-				if (this.tomatoData.found == false) return;
 
 				if (this.tomatoData.hideDetailButton == true && this.isMobile){
 					this.tomatoData.hideDetailButton = false;
@@ -1698,117 +1721,29 @@
 				this.rtAdded = true;
 			},
 
-			collectTomatoScore(){
-				this.tomatoData.found = true;
-				
-				// Differs for Movies and TV
-				if (this.tomatoData.data.querySelector('#scoreDetails') != null){
-					// MOVIES
-					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#scoreDetails').innerHTML);
-					
-					// Critic All
-					if (scoredetails.modal.tomatometerScoreAll.value != null){
-						this.tomatoData.criticAll.percent 					= scoredetails.modal.tomatometerScoreAll.value.toString();
-						this.tomatoData.criticAll.state 					= scoredetails.modal.tomatometerScoreAll.state;
-						this.tomatoData.criticAll.rating 					= scoredetails.modal.tomatometerScoreAll.averageRating;
-					}
-					if (scoredetails.modal.tomatometerScoreAll.ratingCount != null){
-						this.tomatoData.criticAll.num_ratings 				= scoredetails.modal.tomatometerScoreAll.ratingCount.toString();
-						this.tomatoData.criticAll.likedCount 				= scoredetails.modal.tomatometerScoreAll.likedCount.toString();
-						this.tomatoData.criticAll.notLikedCount 			= scoredetails.modal.tomatometerScoreAll.notLikedCount.toString();
-					}
-					// Critic Top
-					if (scoredetails.modal.tomatometerScoreTop.value != null){
-						this.tomatoData.criticTop.percent 				= scoredetails.modal.tomatometerScoreTop.value.toString();
-						this.tomatoData.criticTop.state 				= scoredetails.modal.tomatometerScoreTop.state;
-						this.tomatoData.criticTop.rating 				= scoredetails.modal.tomatometerScoreTop.averageRating;
-					}
-					if (scoredetails.modal.tomatometerScoreTop.ratingCount != null){
-						this.tomatoData.criticTop.num_ratings 			= scoredetails.modal.tomatometerScoreTop.ratingCount.toString();
-						this.tomatoData.criticTop.likedCount 			= scoredetails.modal.tomatometerScoreTop.likedCount.toString();
-						this.tomatoData.criticTop.notLikedCount 		= scoredetails.modal.tomatometerScoreTop.notLikedCount.toString();
-					}
-					
-					// Audience All	
-					if (scoredetails.modal.audienceScoreAll.value != null){
-						this.tomatoData.audienceAll.percent 				= scoredetails.modal.audienceScoreAll.value.toString();
-						this.tomatoData.audienceAll.state 					= scoredetails.modal.audienceScoreAll.state;
-						this.tomatoData.audienceAll.rating 					= scoredetails.modal.audienceScoreAll.averageRating;
-					}
-					if (scoredetails.modal.audienceScoreAll.ratingCount != null){
-						this.tomatoData.audienceAll.num_ratings 			= scoredetails.modal.audienceScoreAll.ratingCount.toString();
-						this.tomatoData.audienceAll.likedCount 				= scoredetails.modal.audienceScoreAll.likedCount.toString();
-						this.tomatoData.audienceAll.notLikedCount 			= scoredetails.modal.audienceScoreAll.notLikedCount.toString();
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceAll.num_ratings = (scoredetails.modal.audienceScoreAll.likedCount + scoredetails.modal.audienceScoreAll.notLikedCount).toString();
-					}
+			collectTomatoScore(data, scoredetails){
 
-					// Audience Verified
-					if (scoredetails.modal.audienceScoreVerified.value != null){
-						this.tomatoData.audienceVerified.percent 		= scoredetails.modal.audienceScoreVerified.value.toString();
-						this.tomatoData.audienceVerified.state 			= scoredetails.modal.audienceScoreVerified.state;
-						this.tomatoData.audienceVerified.rating 		= scoredetails.modal.audienceScoreVerified.averageRating;
-					}
-					if (scoredetails.modal.audienceScoreVerified.ratingCount != null){
-						this.tomatoData.audienceVerified.num_ratings 	= scoredetails.modal.audienceScoreVerified.ratingCount.toString();
-						this.tomatoData.audienceVerified.likedCount 	= scoredetails.modal.audienceScoreVerified.likedCount.toString();
-						this.tomatoData.audienceVerified.notLikedCount 	= scoredetails.modal.audienceScoreVerified.notLikedCount.toString();
-						
-						// Sometimes, the audience ratings are odd, so lets just combine the liked/notliked as that seems more accurate
-						this.tomatoData.audienceVerified.num_ratings = (scoredetails.modal.audienceScoreVerified.likedCount + scoredetails.modal.audienceScoreVerified.notLikedCount).toString();
-					}
+				if (scoredetails != null && scoredetails.score != null){
+					data.percent 		= scoredetails.score;
+					data.state 			= scoredetails.sentiment;
+					data.likedCount		= scoredetails.likedCount;
+					data.notLikedCount	= scoredetails.notLikedCount;
+					data.num_ratings 	= data.likedCount + data.notLikedCount;
 
-					// Set false if no rating counts
-					if (this.tomatoData.audienceAll.num_ratings == 0 && this.tomatoData.criticAll.num_ratings == 0){
-						this.tomatoData.found = false;
+					data.url			= scoredetails.scoreLinkUrl;
+					data.rating			= scoredetails.averageRating
+
+					if (scoredetails.certified != null && scoredetails.certified == true){
+						data.state = "certified-fresh";
+					}else if (data.state == "POSITIVE" && data.type == "CRITIC"){
+						data.state = "fresh";
+					}else if (data.state == "NEGATIVE" && data.type == "CRITIC"){
+						data.state = "rotten";
+					}else if (data.state == "POSITIVE"){
+						data.state = "upright";
+					}else if (data.state == "NEGATIVE"){
+						data.state = "spilled";
 					}
-
-				}else if (this.tomatoData.data.querySelector('#media-scorecard-json') != null){
-					// TV - new site has much less data
-					var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#media-scorecard-json').innerHTML);
-					
-					// Critic All
-					if (scoredetails.criticsScore != null && scoredetails.criticsScore.ratingCount != null){
-						this.tomatoData.criticAll.percent 					= scoredetails.criticsScore.scorePercent;
-						this.tomatoData.criticAll.state 					= scoredetails.criticsScore.sentiment;
-						this.tomatoData.criticAll.num_ratings 				= scoredetails.criticsScore.ratingCount.toString();
-						var certified										= scoredetails.criticsScore.certified;
-
-						if (certified){
-							this.tomatoData.criticAll.state = "certified-fresh";
-						}else if (this.tomatoData.criticAll.state == "POSITIVE"){
-							this.tomatoData.criticAll.state = "fresh";
-						}else if (this.tomatoData.criticAll.state == "NEGATIVE"){
-							this.tomatoData.criticAll.state = "rotten";
-						}
-					}
-					
-					// Audience All	
-					if (scoredetails.audienceScore != null && scoredetails.audienceScore.ratingCount != null){
-						this.tomatoData.audienceAll.percent 				= scoredetails.audienceScore.scorePercent;
-						this.tomatoData.audienceAll.state 					= scoredetails.audienceScore.sentiment;
-						this.tomatoData.audienceAll.num_ratings 			= scoredetails.audienceScore.ratingCount.toString();
-						
-						if (this.tomatoData.audienceAll.state == "POSITIVE"){
-							this.tomatoData.audienceAll.state = "upright";
-						}else if (this.tomatoData.audienceAll.state == "NEGATIVE"){
-							this.tomatoData.audienceAll.state = "spilled";
-						}
-					}
-					// Set this so we know not to add the show details button as don't have any details to show
-					this.tomatoData.hideDetailButton = true;
-
-				}else{
-					// No json found
-					this.tomatoData.found = false;
-					return;
-				}
-
-				// Correct Top Critic state, if needed
-				if (this.tomatoData.criticTop.score < 60 && this.tomatoData.criticTop.state.includes("fresh")){
-					this.tomatoData.criticTop.state = "rotten";
-				}else if(this.tomatoData.criticTop.score >= 60 && this.tomatoData.criticTop.state == "rotten"){
-					this.tomatoData.criticTop.state = "fresh";
 				}
 			},
 
@@ -2599,6 +2534,9 @@
 					// Save the report button then remove the old text, then re-add
 					var report = footer.querySelector('.block-flag-wrapper');
 					report.style['margin-left'] = '5px';
+
+					// Save badges (adult)
+					var badges = footer.querySelectorAll('.badge');
 					
 					footer.innerText = "";
 					footer.prepend(report);
@@ -2618,7 +2556,12 @@
 						durationSpan.innerText = duration[0];
 						durationSpan.setAttribute('data-original-title',format);
 						footer.prepend(durationSpan);
-					}
+					}					
+					
+					badges.forEach(badge => {
+						badge.style['margin-right'] = '10px';
+						footer.prepend(badge);
+					});
 					
 					// Append the new div
 					footer.append(text);
@@ -2635,7 +2578,7 @@
 			addDurationMobile(){
 				if (document.querySelector(".extras-duration")) return
 
-				const durationElement = document.querySelector(".trailerandduration");
+				const durationElement = document.querySelector(".trailerdurationgroup .duration");
 
 				if (durationElement != null){
 					var regex = new RegExp(/([0-9.,]+)(.+)(mins|min)/);
@@ -2646,20 +2589,16 @@
 					var hours = Math.floor(totalMinutes / 60);
 					var format = hours + "h " + minutes + "m";
 
-					const newDuration = letterboxd.helpers.createElement('p', {
-						class: 'extras-duration',
-						style: 'margin-bottom: 0px;'
-					});
-					newDuration.innerText = "(" + format + ")";
+					durationElement.innerText += " (" + format + ")";
 
-					durationElement.append(newDuration);
+					durationElement.className += " extras-duration";
 
 				}
 				this.durationAdded == true;
 			},
 
 			addDate(date){
-				const year = document.querySelector('.number');
+				const year = document.querySelector('.metablock .releaseyear');
 
 				if (year != null){
 					year.setAttribute("data-original-title", date);
@@ -2705,7 +2644,8 @@
 						if (header == "Budget"){
 							this.mojoData.budget = data;
 						}else if (header == "MPAA"){
-							this.mpaaRating = data;
+							if (this.mpaaRating == null)
+								this.mpaaRating = data;
 						}else if (header == "Earliest Release Date" && data.includes("Domestic")){
 							this.filmDate.date = data.split("\n")[0];
 							this.filmDate.date = this.filmDate.date.replace(",","");
@@ -2779,37 +2719,56 @@
 					this.ratingAdded = true;
 					return;
 				}
+
+				// Adjust the rating if needed
+				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
 				
 				if (this.isMobile){
-					const year = document.querySelector('.details .releaseyear .bullet');
+					const intro = document.querySelector('.details .credits .introduction');
 
 					const rating = letterboxd.helpers.createElement('span', {
-						class: 'extras-rating'
+						class: 'introduction extras-rating extras-rating-mobile'
 					});
-					rating.innerText = " " + this.mpaaRating;
-					year.after(rating);
-					
-					const bullet = letterboxd.helpers.createElement('span', {
-						class: 'bullet'
-					});
-					bullet.innerText = " · ";
-					rating.after(bullet);
+					rating.innerText = this.mpaaRating;
+					intro.before(rating);
 
 				}else{
-					const year = document.querySelector('.number');
+					const year = document.querySelector('.metablock .releaseyear');
 	
-					const small = letterboxd.helpers.createElement('small', {
-						class: 'number extras-rating'
+					const small = letterboxd.helpers.createElement('span', {
+						class: 'extras-rating'
 					});
 					year.after(small);
 					
-					const p = letterboxd.helpers.createElement('p', {
+					const p = letterboxd.helpers.createElement('span', {
 					});
 					p.innerText = this.mpaaRating;
 					small.append(p);
 				}
 
 				this.ratingAdded = true;
+
+			},
+
+			replaceMPARating(){
+				if (document.querySelector('.extras-rating') == null) return;
+				if (this.mpaaRating == null) return;
+				if (this.mpaaRating == "") return;
+				// The MPA rating might already be added from another source, but we want to replace it with the rating from WikiData
+				
+				// Adjust the rating if needed
+				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
+
+				var rating = null;
+				if (this.isMobile){
+					rating = document.querySelector('.extras-rating');
+				}else{
+					rating = document.querySelector('.extras-rating p');
+				}
+
+				if (rating != null){
+					rating.innerText = this.mpaaRating;
+				}
 
 			},
 
@@ -3594,6 +3553,7 @@
 
 		person: {
 			running: false,
+			isMobile: null,
 
 			tmdbID: null,
 			wiki: null,
@@ -3612,10 +3572,12 @@
 				}
 
 				// Get the TMDB id and call wikidata 
-				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.js-tmdb-person-bio') != null){
+				if (this.letterboxdName != null && this.tmdbID == null && document.querySelector('.bio') != null){
 					// Loop and find TMDB
-					const links = document.querySelector('.js-tmdb-person-bio');
-					this.tmdbID = links.getAttribute('data-tmdb-id');
+					const body = document.querySelector('body');
+					if (body.hasAttribute('data-tmdb-id')){
+						this.tmdbID = body.getAttribute('data-tmdb-id');
+					}
 
 					this.callWikiData();
 				}
@@ -3626,8 +3588,26 @@
 
 			getName(){
 				var nameElement = document.querySelector('h1.title-1');
+				var name = nameElement.innerText;
+				
+				if (name.includes('\n')){
+					var startIndex = name.indexOf('\n') + 1;
+					name = name.substring(startIndex);
+				}
+				
+				// Determine mobile
+				if (this.isMobile == null){
+					if (document.querySelector("html")){
+						var htmlEl = document.querySelector("html");
+						if (htmlEl.getAttribute("class").includes("no-mobile")){
+							this.isMobile = false;
+						}else{
+							this.isMobile = true;
+						}
+					}
+				}
 
-				this.letterboxdName = nameElement.textContent;
+				this.letterboxdName = name;
 			},
 
 			callWikiData(){
@@ -3645,6 +3625,7 @@
 						this.wiki = value.results.bindings[0];
 						
 						this.addWikiData();
+						this.addIMDbButton();
 						if (letterboxd.storage.get('wiki-link-enabled') === true){
 							this.addWikiButton();
 						}
@@ -3705,6 +3686,8 @@
 					var yearsActive = new Date(this.wiki.Years_Start.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					if (this.wiki.Years_End != null && this.wiki.Years_End.value != null){
 						yearsActive += "–" + new Date(this.wiki.Years_End.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
+					}else if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9){
+						yearsActive += "–" + new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					}else{
 						yearsActive += "–present";
 					}
@@ -3715,7 +3698,11 @@
 				// Create Table
 				//*****************************************
 				const table = document.createElement("table");
-				table.setAttribute('class','extras-table');
+				if (this.isMobile){
+					table.setAttribute('class','extras-table mobile');
+				}else{
+					table.setAttribute('class','extras-table');
+				}
 				var empty = true;
 
 				if (birth != null){
@@ -3742,10 +3729,16 @@
 				// Add to page
 				//*****************************************
 				if (empty == false){
-					if (document.querySelector('.js-tmdb-person-bio') != null){
-						document.querySelector('.js-tmdb-person-bio').before(table);
-					}else if (document.querySelector('.avatar.person-image') != null){
-						document.querySelector('.avatar.person-image').after(table);
+					if (this.isMobile){
+						if (document.querySelector('.progress-panel') != null){
+							document.querySelector('.progress-panel').before(table);
+						}
+					}else{
+						if (document.querySelector('.bio') != null){
+							document.querySelector('.bio').before(table);
+						}else if (document.querySelector('.avatar.person-image') != null){
+							document.querySelector('.avatar.person-image').after(table);
+						}
 					}
 				}
 			},
@@ -3769,7 +3762,28 @@
 				button.innerText = "WIKI";
 	
 				// Add to Page
-				document.querySelector('.micro-button').after(button);
+				document.querySelector('.micro-button:NOT(.imdb-button)').after(button);
+			},
+
+			addIMDbButton(){
+				if (document.querySelector('.imdb-button')) return;
+
+				if (this.wiki.IMDb_ID != null && this.wiki.IMDb_ID.value != null){
+					var url = this.wiki.IMDb_ID.value;
+				}else{
+					return;
+				}
+				url = "https://www.imdb.com/name/" + url;
+
+				// Create Button Element
+				var button = letterboxd.helpers.createElement('a', {
+					class: 'micro-button imdb-button',
+					href: url
+				});
+				button.innerText = "IMDB";
+	
+				// Add to Page
+				document.querySelector('.micro-button').before(button);
 			}
 
 		},
@@ -4760,6 +4774,23 @@
 
 				return value;
 			},
+
+			convertMPARating(rating){
+				if(letterboxd.storage.get('mpa-convert') === true){
+					switch(rating){
+						case "GP":
+						case "M":
+						case "M/PG":
+							rating = "PG";
+							break;
+						case "X":
+							rating = "NC-17";
+							break;
+					}
+				}
+
+				return rating;
+			},
 			
 			getWikiDataQuery(id, idType, queryType, lang){
 				/* WikiData Date Precision values:
@@ -4815,7 +4846,7 @@
 					"  }\n" +
 					"}";
 				}else if (queryType == "PERSON"){
-						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End  WHERE {\n" +
+						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"  {\n" +
 						"    SELECT DISTINCT ?item WHERE {\n" +
@@ -4829,6 +4860,7 @@
 						"    ?item wdt:P1477 ?BirthName.\n" +
 						"    FILTER(LANG(?BirthName) = \"en\") .\n" +
 						"  }\n" +
+						"  OPTIONAL { ?item wdt:P345 ?IMDb_ID. }\n" +
 						"  OPTIONAL { \n" +
 						"    ?item p:P569 ?BirthEntry.\n" +
 						"    ?BirthEntry ps:P569 ?Date_Of_Birth.\n" +
