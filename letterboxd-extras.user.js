@@ -3485,7 +3485,8 @@
 						nativeTitle = "|" + this.letterboxdNativeTitle.toUpperCase();
 
 					// Regex match
-					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + ") \\(");
+					// TODO - for some reason, this regex matches on the movie https://letterboxd.com/film/los-olvidados-2014/ when the same regex doesn't on regexr.com
+					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + ") \\(.+, " + this.letterboxdYear + ",.+\\)");
 					if (list.match(regex)){
 						this.tspdt.found = true;
 						this.tspdt.ranking = list.match(regex)[1];
@@ -3526,8 +3527,8 @@
 				
 				// Add the hover events
 				//*****************************************************************
-				$(".extras-ranking").on("mouseover", ShowTwipsy);
-				$(".extras-ranking").on("mouseout", HideTwipsy);
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
 
 			}
 		},
