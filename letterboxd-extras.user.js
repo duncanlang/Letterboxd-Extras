@@ -445,6 +445,7 @@
 			letterboxdTitle: null,
 			letterboxdNativeTitle: null,
 			letterboxdDirectors: [],
+			letterboxdDirectorsAlt: [],
 			linksMoved: false,
 			scoreConverted: false,
 			fansConverted: false,
@@ -724,9 +725,10 @@
 
 				// Get directors and producers
 				if (document.querySelector("#tab-crew")){
-					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
-					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
-					this.letterboxdDirectors = this.letterboxdDirectors.concat(producers);
+					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText);
+					this.letterboxdDirectorsAlt = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+					this.letterboxdDirectorsAlt = this.letterboxdDirectorsAlt.concat(producers);
 				}
 
 				// Add Cinema Score
@@ -1238,8 +1240,18 @@
 				}
 
 				// Add 'They Shoot Pictures, Don't They' ranking
-				if (this.letterboxdTitle != null && this.tspdt.state == 0 && document.querySelector('.film-stats .stat.filmstat-watches')){
-					this.initTSPDT();
+				if (this.letterboxdTitle != null && this.tspdt.state < 3 && document.querySelector('.film-stats .stat.filmstat-watches')){
+					// this.tspdt.state:
+					// 0 = no call made
+					// 1 = call made, not yet returned
+					// 2 = call returned and data stored
+					// 3 = data verified
+					if (this.tspdt.state == 0){
+						this.initTSPDT();
+					}
+					if (this.tspdt.state == 2 && this.wikiData.state == 2){
+						this.verifyTSPDT();
+					}
 				}
 
 				// Stop
@@ -2070,7 +2082,7 @@
 								for (var k = 0; k < films[i].directors.length; k++){
 									// Director name to lowercase and removed diacritics
 									var director = films[i].directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-									if (this.letterboxdDirectors.includes(director)){
+									if (this.letterboxdDirectorsAlt.includes(director)){
 										// Check to see if film is within 5 years
 										var score = Math.abs((parseInt(this.letterboxdYear)) - films[i].year)
 										if (score < 5){
@@ -3233,7 +3245,7 @@
 							for (var k = 0; k < directors.length; k++){
 								// Director name to lowercase and removed diacritics
 								var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-								if (this.letterboxdDirectors.includes(director)){
+								if (this.letterboxdDirectorsAlt.includes(director)){
 									result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
 									break;
 								}
@@ -3462,42 +3474,72 @@
 			},
 
 			initTSPDT(){
+				// Make the call now and save the data for later
 				var url = "https://www.theyshootpictures.com/gf1000_all1000films.htm";
 				this.tspdt.state = 1;
 				letterboxd.helpers.getOMDbData(url).then((value) => {
 					this.tspdt.raw = value;
 					this.tspdt.data = letterboxd.helpers.parseHTML(value);
-
-					// Get list from page
-					var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
-					if (list != null && list.length >= 2){
-						list = list[1].innerText;
-					}
-					console.log(list);
-
-					// Make changes to the title to account for differences between letterboxd tspdt
-					var title = this.letterboxdTitle.toUpperCase();
-					title = title.replaceAll(",",",*"); // To account for JEANNE DIELMAN
-					title = title.replaceAll(":",":*"); // To account for THE GODFATHER PART II
-					title = title.replaceAll("’","[’|']"); // To account for L'ATALANTE
-
-					var nativeTitle = "";
-					if (this.letterboxdNativeTitle != null)
-						nativeTitle = "|" + this.letterboxdNativeTitle.toUpperCase();
-
-					// Regex match
-					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + ") \\([A-Za-z \u0300-\u036f\u00C0-\u00FF ]+, " + this.letterboxdYear + ",.+\\)");
-					if (list.match(regex)){
-						this.tspdt.found = true;
-						this.tspdt.ranking = list.match(regex)[1];
-					}
-
-					if (this.tspdt.found){
-						this.addTSPDT();
-					}
 					
 					this.tspdt.state = 2;
 				});
+			},
+
+			verifyTSPDT(){
+				// Now that the data has been collected from TSPDT and WikiData, verify
+				this.tspdt.state = 3;
+				console.log("verifyTSPDT");
+
+				// Get list from page
+				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
+				if (list != null && list.length >= 2){
+					list = list[1].innerText;
+				}
+
+				// Make changes to the title to account for differences between letterboxd tspdt
+				var title = this.letterboxdTitle.toUpperCase();
+				title = title.replaceAll(",",",*"); // To account for JEANNE DIELMAN
+				title = title.replaceAll(":",":*"); // To account for THE GODFATHER PART II
+				title = title.replaceAll("’","(’|')"); // To account for L'ATALANTE
+				title = title.replaceAll("(","\\("); // To account for HISTOIRE(S) DU CINÉMA
+				title = title.replaceAll(")","\\)"); // To account for HISTOIRE(S) DU CINÉMA
+				title = title.replaceAll(" AND","( &| AND)") // To account for THE GLEANERS & I 
+				title = title.replaceAll("?","\\?") // To account for WHERE IS THE FRIEND'S HOUSE?
+				title = title.replaceAll(/PART I\b/g,"(PART I|PART 1)") // To account for IVAN THE TERRIBLE, PART 1
+				title = title.replaceAll(/PART II\b/g,"(PART II|PART 2)") // To account for IVAN THE TERRIBLE, PART 2
+
+				var nativeTitle = "";
+				if (this.letterboxdNativeTitle != null){
+					nativeTitle = "|" + this.letterboxdNativeTitle.toUpperCase();
+					nativeTitle = nativeTitle.replaceAll("?","\\?")
+					nativeTitle = nativeTitle.replaceAll("(","\\("); // To account for SAUVE QUI PEUT (LA VIE)
+					nativeTitle = nativeTitle.replaceAll(")","\\)"); // To account for SAUVE QUI PEUT (LA VIE)
+				}
+
+				var altTitle = "";
+				if (this.wikiData.Alt_Title != null && this.letterboxdTitle != this.wikiData.Alt_Title && this.letterboxdNativeTitle != this.wikiData.Alt_Title){
+					altTitle = "|" + this.wikiData.Alt_Title.toUpperCase();
+					altTitle = altTitle.replaceAll("?","\\?")
+					altTitle = altTitle.replaceAll(/PART I\b/g,"(PART I|PART 1)") // To account for IVAN THE TERRIBLE, PART 1
+					altTitle = altTitle.replaceAll(/PART II\b/g,"(PART II|PART 2)") // To account for IVAN THE TERRIBLE, PART 2
+				}
+
+				var nfdTitle = "";
+				if (title.match(new RegExp("[A-Za-zÀ-ÖØ-öø-ÿ]"))){
+					nfdTitle = "|" + title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '')
+				}
+
+				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
+				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + ") (\\(" + this.letterboxdDirectors[0] + ",|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+				if (list.match(regex)){
+					this.tspdt.found = true;
+					this.tspdt.ranking = list.match(regex)[1];
+				}
+
+				if (this.tspdt.found){
+					this.addTSPDT();
+				}
+				
 			},
 
 			addTSPDT(){
@@ -3518,7 +3560,7 @@
 				});	
 				li.append(a);
 				a.innerText = this.tspdt.ranking;
-				a.setAttribute('data-original-title','№' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" top 1000");
+				a.setAttribute('data-original-title','№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000");
 				a.setAttribute('href','https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/');
 
 				const iconSpan = letterboxd.helpers.createElement('span', {
