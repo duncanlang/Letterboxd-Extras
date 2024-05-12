@@ -3468,22 +3468,27 @@
 					this.tspdt.raw = value;
 					this.tspdt.data = letterboxd.helpers.parseHTML(value);
 
+					// Get list from page
 					var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
 					if (list != null && list.length >= 2){
 						list = list[1].innerText;
 					}
 
-					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + this.letterboxdTitle.toUpperCase() + ")");
-					if (this.letterboxdNativeTitle != null){
-						var regex2 = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + this.letterboxdNativeTitle.toUpperCase() + ")");
-					}
+					// Make changes to the title to account for differences between letterboxd tspdt
+					var title = this.letterboxdTitle.toUpperCase();
+					title = title.replaceAll(",",",*"); // To account for JEANNE DIELMAN
+					title = title.replaceAll(":",":*"); // To account for THE GODFATHER PART II
+					title = title.replaceAll("’","[’|']"); // To account for L'ATALANTE
 
+					var nativeTitle = "";
+					if (this.letterboxdNativeTitle != null)
+						nativeTitle = "|" + this.letterboxdNativeTitle.toUpperCase();
+
+					// Regex match
+					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + ") \\(");
 					if (list.match(regex)){
 						this.tspdt.found = true;
 						this.tspdt.ranking = list.match(regex)[1];
-					}else if (regex2 != null && list.match(regex2)){
-						this.tspdt.found = true;
-						this.tspdt.ranking = list.match(regex2)[1];
 					}
 
 					if (this.tspdt.found){
@@ -3521,8 +3526,8 @@
 				
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				$(".extras-ranking").on("mouseover", ShowTwipsy);
+				$(".extras-ranking").on("mouseout", HideTwipsy);
 
 			}
 		},
@@ -5238,15 +5243,12 @@ function HideTwipsy(event){
 	}
 }
 
-function getOffset( el ) {
-    var _x = 0;
-    var _y = 0;
-    while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
-        _x += el.offsetLeft - el.scrollLeft;
-        _y += el.offsetTop - el.scrollTop;
-        el = el.offsetParent;
-    }
-    return { top: _y, left: _x };
+function getOffset(el) {
+	const rect = el.getBoundingClientRect();
+	return {
+	  left: rect.left + window.scrollX,
+	  top: rect.top + window.scrollY
+	};
 }
 
 function changeTomatoScore(event){
