@@ -3473,6 +3473,7 @@
 					if (list != null && list.length >= 2){
 						list = list[1].innerText;
 					}
+					console.log(list);
 
 					// Make changes to the title to account for differences between letterboxd tspdt
 					var title = this.letterboxdTitle.toUpperCase();
@@ -3485,8 +3486,7 @@
 						nativeTitle = "|" + this.letterboxdNativeTitle.toUpperCase();
 
 					// Regex match
-					// TODO - for some reason, this regex matches on the movie https://letterboxd.com/film/los-olvidados-2014/ when the same regex doesn't on regexr.com
-					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + ") \\(.+, " + this.letterboxdYear + ",.+\\)");
+					var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + ") \\([A-Za-z \u0300-\u036f\u00C0-\u00FF ]+, " + this.letterboxdYear + ",.+\\)");
 					if (list.match(regex)){
 						this.tspdt.found = true;
 						this.tspdt.ranking = list.match(regex)[1];
@@ -3519,6 +3519,7 @@
 				li.append(a);
 				a.innerText = this.tspdt.ranking;
 				a.setAttribute('data-original-title','№' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" top 1000");
+				a.setAttribute('href','https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/');
 
 				const iconSpan = letterboxd.helpers.createElement('span', {
 					class: 'icon'
