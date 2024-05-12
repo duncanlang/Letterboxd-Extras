@@ -556,7 +556,7 @@
 						this.letterboxdYear = document.querySelector(".film-header-lockup .details .releaseyear a").innerText;
 						this.letterboxdTitle = document.querySelector(".film-header-lockup .details .headline-1").innerText;
 
-						var nativeTitle = document.querySelector('.details .originalname')
+						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
@@ -564,7 +564,7 @@
 						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
 						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
 	
-						var nativeTitle = document.querySelector('#featured-film-header p em')
+						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
