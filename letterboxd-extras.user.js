@@ -1240,7 +1240,7 @@
 				}
 
 				// Add 'They Shoot Pictures, Don't They' ranking
-				if (this.letterboxdTitle != null && this.tspdt.state < 3 && document.querySelector('.film-stats .stat.filmstat-watches')){
+				if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3 && document.querySelector('.film-stats .stat.filmstat-watches')){
 					// this.tspdt.state:
 					// 0 = no call made
 					// 1 = call made, not yet returned
@@ -3525,8 +3525,8 @@
 				}
 
 				var nfdTitle = "";
-				if (title.match(new RegExp("[A-Za-zÀ-ÖØ-öø-ÿ]"))){
-					nfdTitle = "|" + title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '')
+				if (title.match(new RegExp("[À-ÖØ-öø-ÿ]"))){
+					nfdTitle = "|" + title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '') // To account for EL
 				}
 
 				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
@@ -3539,7 +3539,6 @@
 				if (this.tspdt.found){
 					this.addTSPDT();
 				}
-				
 			},
 
 			addTSPDT(){
@@ -3556,12 +3555,12 @@
 				document.querySelector('.film-stats').append(li);
 				
 				const a = letterboxd.helpers.createElement('a', {
-					class: 'has-icon icon-top250 icon-16 tooltip tooltip-extra'
+					class: 'has-icon icon-top250 icon-16 tooltip tooltip-extra',
+					href: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/'
 				});	
 				li.append(a);
 				a.innerText = this.tspdt.ranking;
 				a.setAttribute('data-original-title','№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000");
-				a.setAttribute('href','https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/');
 
 				const iconSpan = letterboxd.helpers.createElement('span', {
 					class: 'icon'
