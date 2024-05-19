@@ -88,14 +88,14 @@
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff {
-			background-position-x: left;
-			background-position-y: top;
-			background-repeat: no-repeat;
-			background-attachment: scroll;
-			background-size: contain;
-			background-origin: padding-box;
-			background-clip: border-box;
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon{
+			background-position-x: left !important;
+			background-position-y: top !important;
+			background-repeat: no-repeat !important;
+			background-attachment: scroll !important;
+			background-size: contain !important;
+			background-origin: padding-box !important;
+			background-clip: border-box !important;
 			width: 16px;
 			height: 16px;
 			display: inline-block;
@@ -425,6 +425,13 @@
 		}
 		.extras-rating-mobile{
 			margin-right: 3px;
+		}
+
+		.bfi-ranking a .icon{
+			height: 18px !important;
+			width: 18px !important;
+			top: -1px !important;
+			pointer-events: none;
 		}
 	`);
 	/* eslint-enable */
@@ -3655,12 +3662,17 @@
 				
 				const a = letterboxd.helpers.createElement('a', {
 					class: 'has-icon icon-16 tooltip tooltip-extra',
-					style: 'padding-left: 0px',
 					href: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/'
 				});	
 				li.append(a);
-				a.innerText = "🎥 " + this.bfi.ranking;
+				a.innerText = this.bfi.ranking;
 				a.setAttribute('data-original-title','№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250");
+				
+				const span = letterboxd.helpers.createElement('span', {
+					class: 'icon',
+					style: 'background: url(https://www.bfi.org.uk/dist/server/0207614d447715c2d2b9257bdd5e68b4.svg)'
+				});	
+				a.append(span);
 
 				// Add to page
 				this.appendRanking(li, 'bfi-ranking');
