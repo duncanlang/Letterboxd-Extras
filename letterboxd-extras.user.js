@@ -987,60 +987,61 @@
 										this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
 										this.al.id = this.wiki.Anilist_ID.value;
 
-									var url = 'https://graphql.anilist.co';
-									var query = `
-									query ($id: Int) {
-										Media(id: $id, type: ANIME) {
-										  averageScore
-										  meanScore
-										  popularity
-										  stats {
-											scoreDistribution {
-											  score
-											  amount
-											}
-										  }
-										  siteUrl
-										}
-									  }
-									`;
-									var variables = {
-										id: this.al.id
-									};
-									var options = {
-										method: 'POST',
-										headers: {
-											'Content-Type': 'application/json',
-											'Accept': 'application/json'
-										},
-										body: JSON.stringify({
-											query: query,
-											variables: variables
-										})
-									};
-
-									if (this.al.data == null && this.al.state < 1){
-										try{
-											this.al.state = 1;
-											chrome.runtime.sendMessage({name: "GETALDATA2", url: url, options: options}, (value) => {
-												var al = value.response;
-												if (al != ""){
-													this.al.data = al.data.Media;
-
-													if (this.al.data != null){
-														this.al.url = this.al.data.siteUrl;
-														this.addLink(this.al.data.siteUrl);
-	
-														this.al.state = 2;
-														this.addAL();
-													}else{
-														this.al.state = 3;
-													}
+										var url = 'https://graphql.anilist.co';
+										var query = `
+										query ($id: Int) {
+											Media(id: $id, type: ANIME) {
+											averageScore
+											meanScore
+											popularity
+											stats {
+												scoreDistribution {
+												score
+												amount
 												}
-											});
-										}catch{
-											console.error("Unable to parse AniList URL");
-											this.al.state = 3;
+											}
+											siteUrl
+											}
+										}
+										`;
+										var variables = {
+											id: this.al.id
+										};
+										var options = {
+											method: 'POST',
+											headers: {
+												'Content-Type': 'application/json',
+												'Accept': 'application/json'
+											},
+											body: JSON.stringify({
+												query: query,
+												variables: variables
+											})
+										};
+
+										if (this.al.data == null && this.al.state < 1){
+											try{
+												this.al.state = 1;
+												chrome.runtime.sendMessage({name: "GETALDATA2", url: url, options: options}, (value) => {
+													var al = value.response;
+													if (al != ""){
+														this.al.data = al.data.Media;
+
+														if (this.al.data != null){
+															this.al.url = this.al.data.siteUrl;
+															this.addLink(this.al.data.siteUrl);
+		
+															this.al.state = 2;
+															this.addAL();
+														}else{
+															this.al.state = 3;
+														}
+													}
+												});
+											}catch{
+												console.error("Unable to parse AniList URL");
+												this.al.state = 3;
+											}
 										}
 									}
 								}
