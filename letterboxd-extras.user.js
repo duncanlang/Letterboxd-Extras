@@ -7,7 +7,6 @@
 // @author       Duncan Lang
 // @match        https://letterboxd.com/*
 // @connect      https://www.imdb.com
-// @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @run-at       document-start
 // ==/UserScript==
@@ -197,6 +196,9 @@
 			padding: 1px;
 			padding-left: 3px;
 			padding-right: 3px;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* Standard syntax */
 		}
 		.rt-button.critic-all, .rt-button.audience-all{
 			border-top-right-radius: 0px;
@@ -548,12 +550,12 @@
 				}
 
 				// Get year and title
-				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".metablock .releaseyear"))) && this.letterboxdYear == null){
+				if ((document.querySelector(".filmtitle")) && this.letterboxdYear == null){
 					if (this.isMobile){
-						this.letterboxdYear = document.querySelector(".film-header-lockup .details .releaseyear a").innerText;
-						this.letterboxdTitle = document.querySelector(".film-header-lockup .details .headline-1").innerText;
+						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
+						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
 
-						var nativeTitle = document.querySelector('.details .originalname')
+						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
@@ -561,7 +563,7 @@
 						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
 						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
 	
-						var nativeTitle = document.querySelector('#featured-film-header p em')
+						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
@@ -723,7 +725,7 @@
 				}
 
 				// Add Cinema Score
-				if (this.cinemascore.data == null && document.querySelector(".headline-1.js-widont.prettify") && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null){
+				if (this.cinemascore.data == null && this.letterboxdTitle != null && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null){
 					this.initCinema(null);
 				}
 
@@ -892,30 +894,6 @@
 								// Get and add Metacritic
 								if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null && letterboxd.storage.get('metacritic-enabled') === true){
 									this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
-									this.addLink(this.wikiData.metaURL);
-
-									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
-										try{
-											this.metaData.state = 1;
-											chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.metaURL}, (value) => {
-												var meta = value.response;
-												if (meta != ""){
-													this.metaData.raw = meta;
-													this.metaData.data = letterboxd.helpers.parseHTML(meta);
-													this.wikiData.metaURL = value.url;
-
-													this.addMeta();
-													this.metaData.state = 2;
-												}
-											});
-										}catch{
-											console.log("Unable to parse Metacritic URL");
-											this.metaAdded = true; // so it doesn't keep calling
-											this.metaData.state = 3;
-										}
-									}
-								}else if (this.metaData.state < 1){
-									this.metaData.state = 3;
 								}
 
 								// Get and add Rotten Tomatoes
@@ -997,7 +975,7 @@
 												}
 											});
 										}catch{
-											console.log("Unable to parse MAL URL");
+											console.error("Unable to parse MAL URL");
 											this.mal.state = 3;
 										}
 									}
@@ -1005,8 +983,9 @@
 
 								// Get AniList data
 								if (this.wiki != null && this.wiki.Anilist_ID != null && this.wiki.Anilist_ID.value != null && letterboxd.storage.get('al-enabled') === true){
-									this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
-									this.al.id = this.wiki.Anilist_ID.value;
+									if (this.al.data == null && this.al.state < 1){
+										this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
+										this.al.id = this.wiki.Anilist_ID.value;
 
 									var url = 'https://graphql.anilist.co';
 									var query = `
@@ -1060,7 +1039,7 @@
 												}
 											});
 										}catch{
-											console.log("Unable to parse AniList URL");
+											console.error("Unable to parse AniList URL");
 											this.al.state = 3;
 										}
 									}
@@ -1151,6 +1130,34 @@
 					}
 				}
 
+				// Add Metacritic
+				if (this.wikiData.metaURL != "" && this.wikiData.state == 2 && letterboxd.storage.get('metacritic-enabled') === true){
+					this.addLink(this.wikiData.metaURL);
+
+					if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
+						try{
+							this.metaData.state = 1;
+							chrome.runtime.sendMessage({name: "GETDATA", url: this.wikiData.metaURL}, (value) => {
+								var meta = value.response;
+								if (meta != ""){
+									this.metaData.raw = meta;
+									this.metaData.data = letterboxd.helpers.parseHTML(meta);
+									this.wikiData.metaURL = value.url;
+
+									this.addMeta();
+									this.metaData.state = 2;
+								}
+							});
+						}catch{
+							console.error("Unable to parse Metacritic URL");
+							this.metaAdded = true; // so it doesn't keep calling
+							this.metaData.state = 3;
+						}
+					}
+				}else if (this.metaData.state < 1 && this.wikiData.state == 2){
+					this.metaData.state = 3;
+				}
+
 				// Add Mubi
 				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2 && this.mubiData.state < 1){
 					if (this.wikiData.Mubi_ID != null && this.wikiData.Mubi_ID != ""){
@@ -1182,7 +1189,7 @@
 								this.addSensCritique();
 							}
 						});
-					}else{
+					}else if (this.letterboxdTitle != null){
 						// No ID from Wikidata, search using the API instead
 						this.searchSensCritique();
 					}
@@ -1535,7 +1542,7 @@
 								}
 							});
 						}catch{
-							console.log("Unable to parse Rotten Tomatoes URL");
+							console.error("Unable to parse Rotten Tomatoes URL");
 							this.rtAdded = true; // so it doesn't keep calling
 							this.tomatoData.state = 3;
 						}
@@ -2035,7 +2042,7 @@
 								}
 							});
 						}catch{
-							console.log("Unable to parse MUBI URL");
+							console.error("Unable to parse MUBI URL");
 							this.mubiData.state = 3;
 						}
 					}else if (this.mubiData.state < 1){
@@ -2095,7 +2102,7 @@
 						}
 					});
 				}catch{
-					console.log("Unable to parse MUBI search URL");
+					console.error("Unable to parse MUBI search URL");
 					this.mubiData.state = 3;
 				}
 			},
@@ -2264,7 +2271,7 @@
 								}
 							});
 						}catch{
-							console.log("Unable to parse FilmAffinity URL");
+							console.error("Unable to parse FilmAffinity URL");
 							this.filmaffData.state = 3;
 						}
 					}else if (this.filmaffData.state < 1){
@@ -3729,6 +3736,137 @@
 		},
 
 		helpers: {
+			async getData(link, method, headers, body) {
+				if (letterboxd.storage.get('console-log') === true)
+					console.log("Letterboxd-extras | Calling: " + link);
+
+				try {
+					// Fetch options
+					var options = {method: method, url: link}
+					if (headers != null)
+						options.headers = headers;
+					if (body != null)
+						options.body = body;
+
+					// Make call
+					const response = await fetch(link, options);
+
+					// Return value
+					const value = await response.text();
+					return {response: value, url: response.url};
+				} catch (error) {
+					console.error("Error:", error);
+				}
+				
+				return null;
+			},
+
+			getMubiHeaders(){
+				var headers = {'content-type': 'application/json',
+								accept: 'application/json',
+								'client_country': 'US',
+								'client': 'web'
+							};
+				return headers;
+			},
+
+			getAniListQuery(){
+				var query =  `
+					query ($id: Int!) {
+						Media(id: $id, type: ANIME) {
+							averageScore
+							meanScore
+							popularity
+							stats {
+								scoreDistribution {
+								score
+								amount
+								}
+							}
+							siteUrl
+							}
+					}
+				`;
+				return query;
+			},
+
+			getSensSearchQuery(){
+				var query = `
+					query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
+						results(query: $query, filters: $filters) {
+							hits(page: $page, sortBy: $sortBy) {
+								sortedBy
+								page {
+									from
+									pageNumber
+									total
+									totalPages
+									__typename
+								}
+								items {
+									... on ResultHit {
+									id
+									product {
+										title
+										rating
+										dateRelease
+										dateReleaseOriginal
+										dateReleaseUS
+										stats {
+											ratingCount
+											recommendCount
+										}
+										directors {
+											name
+											person_id
+											url
+										}
+										creators {
+											name
+											person_id
+											url
+										}
+										producers {
+											name
+											person_id
+											url
+										}
+										url
+									}
+									fields {
+										title
+										url
+										year
+									}
+									}
+								}
+							}
+						}
+					}
+				`;
+				return query;
+			},
+
+			getSensFilmQuery(){
+				var query =  `
+					query ($id: Int!) {
+						product(id: $id) {
+							title
+							rating
+							dateRelease
+							dateReleaseOriginal
+							dateReleaseUS
+							stats {
+								ratingCount
+								recommendCount
+							}
+							url
+						}
+					}
+				`;
+				return query;
+			},
+
 			createElement(tag, attrs, styles) {
 				const element = document.createElement(tag);
 				for (const aKey in attrs) {
@@ -4436,7 +4574,7 @@
 				var output = "";
 
 				if (title == null || title == ""){
-					title = document.querySelector(".headline-1.js-widont.prettify").innerText;
+					title = letterboxd.overview.letterboxdTitle;
 				}
 				// Get the Movie Title and clean it up a bit
 				if (title.startsWith('The ')){
