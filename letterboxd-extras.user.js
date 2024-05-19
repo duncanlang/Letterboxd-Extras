@@ -547,10 +547,10 @@
 				}
 
 				// Get year and title
-				if (((this.isMobile && document.querySelector(".film-header-lockup .details")) || (this.isMobile == false && document.querySelector(".metablock .releaseyear"))) && this.letterboxdYear == null){
+				if ((document.querySelector(".filmtitle")) && this.letterboxdYear == null){
 					if (this.isMobile){
-						this.letterboxdYear = document.querySelector(".film-header-lockup .details .releaseyear a").innerText;
-						this.letterboxdTitle = document.querySelector(".film-header-lockup .details .headline-1").innerText;
+						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
+						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
 
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
@@ -898,30 +898,6 @@
 								// Get and add Metacritic
 								if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null && letterboxd.storage.get('metacritic-enabled') === true){
 									this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
-									this.addLink(this.wikiData.metaURL);
-
-									if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
-										try{
-											this.metaData.state = 1;
-											letterboxd.helpers.getData(this.wikiData.metaURL, "GET", null, null).then((value) =>{
-												var meta = value.response;
-												if (meta != ""){
-													this.metaData.raw = meta;
-													this.metaData.data = letterboxd.helpers.parseHTML(meta);
-													this.wikiData.metaURL = value.url;
-
-													this.addMeta();
-													this.metaData.state = 2;
-												}
-											});
-										}catch{
-											console.log("Unable to parse Metacritic URL");
-											this.metaAdded = true; // so it doesn't keep calling
-											this.metaData.state = 3;
-										}
-									}
-								}else if (this.metaData.state < 1){
-									this.metaData.state = 3;
 								}
 
 								// Get and add Rotten Tomatoes
@@ -1003,7 +979,7 @@
 												}
 											});
 										}catch{
-											console.log("Unable to parse MAL URL");
+											console.error("Unable to parse MAL URL");
 											this.mal.state = 3;
 										}
 									}
@@ -1053,7 +1029,7 @@
 												}
 											});
 										}catch{
-											console.log("Unable to parse AniList URL");
+											console.error("Unable to parse AniList URL");
 											this.al.state = 3;
 										}
 									}
@@ -1145,6 +1121,34 @@
 					}
 				}
 
+				// Add Metacritic
+				if (this.wikiData.metaURL != "" && this.wikiData.state == 2 && letterboxd.storage.get('metacritic-enabled') === true){
+					this.addLink(this.wikiData.metaURL);
+
+					if (this.metaData.data == null && this.metaAdded == false && this.metaData.state < 1){
+						try{
+							this.metaData.state = 1;
+							letterboxd.helpers.getData(this.wikiData.metaURL, "GET", null, null).then((value) =>{
+								var meta = value.response;
+								if (meta != ""){
+									this.metaData.raw = meta;
+									this.metaData.data = letterboxd.helpers.parseHTML(meta);
+									this.wikiData.metaURL = value.url;
+
+									this.addMeta();
+									this.metaData.state = 2;
+								}
+							});
+						}catch{
+							console.error("Unable to parse Metacritic URL");
+							this.metaAdded = true; // so it doesn't keep calling
+							this.metaData.state = 3;
+						}
+					}
+				}else if (this.metaData.state < 1 && this.wikiData.state == 2){
+					this.metaData.state = 3;
+				}
+
 				// Add Mubi
 				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2 && this.mubiData.state < 1){
 					if (this.wikiData.Mubi_ID != null && this.wikiData.Mubi_ID != ""){
@@ -1185,7 +1189,7 @@
 								this.addSensCritique();
 							}
 						});
-					}else{
+					}else if (this.letterboxdTitle != null){
 						// No ID from Wikidata, search using the API instead
 						this.searchSensCritique();
 					}
@@ -1538,7 +1542,7 @@
 								}
 							});
 						}catch{
-							console.log("Unable to parse Rotten Tomatoes URL");
+							console.error("Unable to parse Rotten Tomatoes URL");
 							this.rtAdded = true; // so it doesn't keep calling
 							this.tomatoData.state = 3;
 						}
@@ -2038,7 +2042,7 @@
 								}
 							});
 						}catch{
-							console.log("Unable to parse MUBI URL");
+							console.error("Unable to parse MUBI URL");
 							this.mubiData.state = 3;
 						}
 					}else if (this.mubiData.state < 1){
@@ -2098,7 +2102,7 @@
 						}
 					});
 				}catch{
-					console.log("Unable to parse MUBI search URL");
+					console.error("Unable to parse MUBI search URL");
 					this.mubiData.state = 3;
 				}
 			},
@@ -2267,7 +2271,7 @@
 								}
 							});
 						}catch{
-							console.log("Unable to parse FilmAffinity URL");
+							console.error("Unable to parse FilmAffinity URL");
 							this.filmaffData.state = 3;
 						}
 					}else if (this.filmaffData.state < 1){
