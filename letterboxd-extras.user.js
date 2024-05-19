@@ -520,7 +520,7 @@
 			sensCritique: {state: 0, id: null, url: null, data: null},
 
 			// They Shoot Pictures ranking
-			tspdt: {state: 0, data: null, raw: null, found: false, ranking: null},
+			tspdt: {state: 0, data: null, raw: null, found: false, ranking: null, listURL: null},
 
 			// BFI Sight and Sound
 			bfi: {state: 0, data: null, raw: null, found: false, ranking: null},
@@ -1259,8 +1259,9 @@
 					// 3 = data verified
 					if (this.tspdt.state == 0){
 						this.initTSPDT();
+						this.getTSPDTList();
 					}
-					if (this.tspdt.state == 2 && this.wikiData.state == 2){
+					if (this.tspdt.state == 2 && this.wikiData.state == 2 && this.tspdt.listURL != null){
 						this.verifyTSPDT();
 					}
 				}
@@ -3510,6 +3511,35 @@
 				});
 			},
 
+			getTSPDTList(){
+				// Get the letterboxd list from the page
+				var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
+				letterboxd.helpers.getOMDbData(url).then((value) => {
+					const data = letterboxd.helpers.parseHTML(value);
+					var list = data.querySelectorAll('#stacks_in_9823 span');
+
+					var listURL = "";
+					for (var i = 0; i < list.length; i++){
+						// Get URL
+						var a = list[i].querySelector('a');
+						if (a != null && a.hasAttribute('href') && a.getAttribute('href').includes('letterboxd.com/')){
+							listURL = a.getAttribute('href');
+						}
+						// Verify the URL is for the correct letterboxd list
+						var em = list[i].querySelector('em');
+						if (em != null && listURL != "" && em.innerText == '1,000 Greatest Films'){
+							this.tspdt.listURL = listURL;
+							break;
+						}
+					}
+
+					// Set backup URL just in case
+					if (this.tspdt.listURL == null){
+						this.tspdt.listURL = "https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/"
+					}
+				});
+			},
+
 			verifyTSPDT(){
 				// Now that the data has been collected from TSPDT and WikiData, verify
 				this.tspdt.state = 3;
@@ -3580,7 +3610,7 @@
 				const a = letterboxd.helpers.createElement('a', {
 					class: 'has-icon icon-16 tooltip tooltip-extra',
 					style: 'padding-left: 0px',
-					href: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/'
+					href: this.tspdt.listURL
 				});	
 				li.append(a);
 				a.innerText = "🎥 " + this.tspdt.ranking;
@@ -3609,7 +3639,7 @@
 			},
 
 			verifyBFI(){
-				// Now that the data has been collected from TSPDT and WikiData, verify
+				// Now that the data has been collected from BFI and WikiData, verify
 				this.bfi.state = 3;
 
 				// Get list from page
@@ -3617,32 +3647,53 @@
 				list = JSON.parse(list);
 				list = list.componentState.results;
 
-				// TOOD - find way to match https://letterboxd.com/film/the-cloud-capped-star/ (Meghe Dhaka Tara)
-
-				// Make changes to the title to account for differences between letterboxd BFI
+				// Make changes to the title to account for differences between letterboxd and BFI
 				var title = this.letterboxdTitle.toUpperCase(); // Make uppercase to account for difference capitalization (Histoire(s) du cinéma)
+				title = title.replaceAll("’","'") // To account for Where Is the Friend's House? and L'Atalante
+				var titles = [
+					title
+				];
 
-				var nativeTitle = "";
 				if (this.letterboxdNativeTitle != null){
-					nativeTitle = this.letterboxdNativeTitle.toUpperCase();
-				}
-
-				var altTitle = "";
-				if (this.wikiData.Alt_Title != null && this.letterboxdTitle != this.wikiData.Alt_Title && this.letterboxdNativeTitle != this.wikiData.Alt_Title){
-					altTitle = this.wikiData.Alt_Title.toUpperCase();
-				}
-
-				var nfdTitle = "";
-				if (title.match(new RegExp("[À-ÖØ-öø-ÿ]"))){
-					nfdTitle = title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '')
+					var nativeTitle = this.letterboxdNativeTitle.toUpperCase();
+					titles.push(nativeTitle);
 				}
 				
-				const result = list.filter((x) => (x.film.name.toUpperCase() == title || x.film.name.toUpperCase() == nativeTitle || x.film.name.toUpperCase() == altTitle || x.film.name.toUpperCase() == nfdTitle) && (x.film.year == this.letterboxdYear || x.film.credits.director == this.letterboxdDirectors[0]));
+				if (this.letterboxdTitle.includes("’")){
+					titles.push(this.letterboxdTitle.toUpperCase().replaceAll('’',"' ")); // To account for L' eclisse
+				}
+				if (this.letterboxdTitle.includes("'")){
+					titles.push(this.letterboxdTitle.toUpperCase().replaceAll("'","' ")); // To account for L' eclisse
+				}
+
+				if (this.wikiData.Alt_Title != null && this.letterboxdTitle != this.wikiData.Alt_Title && this.letterboxdNativeTitle != this.wikiData.Alt_Title){
+					var altTitle = this.wikiData.Alt_Title.toUpperCase();
+					titles.push(altTitle);
+				}
+
+				if (title.match(new RegExp("[À-ÖØ-öø-ÿ]"))){
+					var nfdTitle = title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '')
+					titles.push(nfdTitle);
+				}
+				
+				// Add alternate titles from LB to array
+				var altTitleList = document.querySelector('div.text-indentedlist p') // To account for Dream of Light/The Quince Tree Sun
+				if (altTitleList != null){
+					altTitleList = altTitleList.innerText.toUpperCase();
+					altTitleList = altTitleList.split(', ');
+					titles = titles.concat(altTitleList);
+				}
+
+				const bfiYear = letterboxd.helpers.getBFIYear(this.letterboxdTitle, this.letterboxdYear);
+				
+				// Match film to BFI list
+				const result = list.filter((x) => (titles.includes(x.film.name.toUpperCase().trim()) || titles.includes(x.film.name.toUpperCase().trim().replaceAll(',',''))) && (x.film.year == bfiYear || x.film.credits.director == this.letterboxdDirectors[0]));
 				if (result.length > 0){
 					this.bfi.found = true;
 					this.bfi.ranking = result[0].rank;
 				}
 
+				// If found, add
 				if (this.bfi.found){
 					this.addBFI();
 				}
@@ -3662,7 +3713,7 @@
 				
 				const a = letterboxd.helpers.createElement('a', {
 					class: 'has-icon icon-16 tooltip tooltip-extra',
-					href: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/'
+					href: 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/'
 				});	
 				li.append(a);
 				a.innerText = this.bfi.ranking;
@@ -4955,6 +5006,16 @@
 						output = title;
 						break;
 				}
+				return output;
+			},
+
+			getBFIYear(title, year){
+				var output = year;
+
+				if (title == "The Ascent" && year == "1977"){
+					output = "1976";
+				}
+
 				return output;
 			},
 
