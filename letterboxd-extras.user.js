@@ -196,6 +196,9 @@
 			padding: 1px;
 			padding-left: 3px;
 			padding-right: 3px;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* Standard syntax */
 		}
 		.rt-button.critic-all, .rt-button.audience-all{
 			border-top-right-radius: 0px;
