@@ -3549,23 +3549,26 @@
 				// Lets add it to the page
 				//***************************************************************
 				// create the li
+				const ul = letterboxd.helpers.createElement('ul', {
+					class: 'film-stats extras-stats'
+				});
+				document.querySelector('.film-stats').after(ul);
+
+				// create the li
 				const li = letterboxd.helpers.createElement('li', {
 					class: 'stat tspdt-ranking extras-ranking'
 				});
-				document.querySelector('.film-stats').append(li);
+				ul.append(li);
+				//document.querySelector('.film-stats').append(li);
 				
 				const a = letterboxd.helpers.createElement('a', {
-					class: 'has-icon icon-top250 icon-16 tooltip tooltip-extra',
+					class: 'has-icon icon-16 tooltip tooltip-extra',
+					style: 'padding-left: 0px',
 					href: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/'
 				});	
 				li.append(a);
-				a.innerText = this.tspdt.ranking;
+				a.innerText = "🎥 " + this.tspdt.ranking;
 				a.setAttribute('data-original-title','№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000");
-
-				const iconSpan = letterboxd.helpers.createElement('span', {
-					class: 'icon'
-				});
-				a.append(iconSpan);
 				
 				// Add the hover events
 				//*****************************************************************
