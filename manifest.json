@@ -47,7 +47,8 @@
 		"https://apollo.senscritique.com/*",
 		"https://api.mubi.com/*",
 		"https://*.filmaffinity.com/*",
-		"https://www.theyshootpictures.com/*"
+		"https://www.theyshootpictures.com/*",
+		"https://www.bfi.org.uk/*"
 	],
 
 	"content_scripts": [

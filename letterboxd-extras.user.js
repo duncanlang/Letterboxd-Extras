@@ -515,6 +515,10 @@
 			// They Shoot Pictures ranking
 			tspdt: {state: 0, data: null, raw: null, found: false, ranking: null},
 
+			// BFI Sight and Sound
+			bfi: {state: 0, data: null, raw: null, found: false, ranking: null},
+
+
 			linksAdded: [],
 			
 			rtAdded: false,
@@ -1251,6 +1255,20 @@
 					}
 					if (this.tspdt.state == 2 && this.wikiData.state == 2){
 						this.verifyTSPDT();
+					}
+				}
+				// Add 'BFI Sight and Sound' ranking
+				if (letterboxd.storage.get('bfi-enabled') === true && this.letterboxdTitle != null && this.bfi.state < 3 && document.querySelector('.film-stats .stat.filmstat-watches')){
+					// this.bfi.state:
+					// 0 = no call made
+					// 1 = call made, not yet returned
+					// 2 = call returned and data stored
+					// 3 = data verified
+					if (this.bfi.state == 0){
+						this.initBFI();
+					}
+					if (this.bfi.state == 2 && this.wikiData.state == 2){
+						this.verifyBFI();
 					}
 				}
 
@@ -3488,7 +3506,6 @@
 			verifyTSPDT(){
 				// Now that the data has been collected from TSPDT and WikiData, verify
 				this.tspdt.state = 3;
-				console.log("verifyTSPDT");
 
 				// Get list from page
 				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
@@ -3549,17 +3566,9 @@
 				// Lets add it to the page
 				//***************************************************************
 				// create the li
-				const ul = letterboxd.helpers.createElement('ul', {
-					class: 'film-stats extras-stats'
-				});
-				document.querySelector('.film-stats').after(ul);
-
-				// create the li
 				const li = letterboxd.helpers.createElement('li', {
 					class: 'stat tspdt-ranking extras-ranking'
 				});
-				ul.append(li);
-				//document.querySelector('.film-stats').append(li);
 				
 				const a = letterboxd.helpers.createElement('a', {
 					class: 'has-icon icon-16 tooltip tooltip-extra',
@@ -3569,12 +3578,138 @@
 				li.append(a);
 				a.innerText = "🎥 " + this.tspdt.ranking;
 				a.setAttribute('data-original-title','№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000");
+
+				// Add to page
+				this.appendRanking(li, 'tspdt-ranking');
 				
 				// Add the hover events
 				//*****************************************************************
 				$(".tooltip-extra").on("mouseover", ShowTwipsy);
 				$(".tooltip-extra").on("mouseout", HideTwipsy);
 
+			},
+
+			initBFI(){
+				// Make the call now and save the data for later
+				var url = "https://www.bfi.org.uk/sight-and-sound/greatest-films-all-time";
+				this.bfi.state = 1;
+				letterboxd.helpers.getOMDbData(url).then((value) => {
+					this.bfi.raw = value;
+					this.bfi.data = letterboxd.helpers.parseHTML(value);
+					
+					this.bfi.state = 2;
+				});
+			},
+
+			verifyBFI(){
+				// Now that the data has been collected from TSPDT and WikiData, verify
+				this.bfi.state = 3;
+
+				// Get list from page
+				var list = letterboxd.helpers.getTextBetween(this.bfi.raw, "var initialPageState = ", "</script>");
+				list = JSON.parse(list);
+				list = list.componentState.results;
+
+				// TOOD - find way to match https://letterboxd.com/film/the-cloud-capped-star/ (Meghe Dhaka Tara)
+
+				// Make changes to the title to account for differences between letterboxd BFI
+				var title = this.letterboxdTitle.toUpperCase(); // Make uppercase to account for difference capitalization (Histoire(s) du cinéma)
+
+				var nativeTitle = "";
+				if (this.letterboxdNativeTitle != null){
+					nativeTitle = this.letterboxdNativeTitle.toUpperCase();
+				}
+
+				var altTitle = "";
+				if (this.wikiData.Alt_Title != null && this.letterboxdTitle != this.wikiData.Alt_Title && this.letterboxdNativeTitle != this.wikiData.Alt_Title){
+					altTitle = this.wikiData.Alt_Title.toUpperCase();
+				}
+
+				var nfdTitle = "";
+				if (title.match(new RegExp("[À-ÖØ-öø-ÿ]"))){
+					nfdTitle = title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '')
+				}
+				
+				const result = list.filter((x) => (x.film.name.toUpperCase() == title || x.film.name.toUpperCase() == nativeTitle || x.film.name.toUpperCase() == altTitle || x.film.name.toUpperCase() == nfdTitle) && (x.film.year == this.letterboxdYear || x.film.credits.director == this.letterboxdDirectors[0]));
+				if (result.length > 0){
+					this.bfi.found = true;
+					this.bfi.ranking = result[0].rank;
+				}
+
+				if (this.bfi.found){
+					this.addBFI();
+				}
+			},
+			
+			addBFI(){
+				if (document.querySelector('.bfi-ranking')) return;
+
+				if (!document.querySelector('.film-stats')) return;
+
+				// Lets add it to the page
+				//***************************************************************
+				// create the li
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'stat bfi-ranking extras-ranking'
+				});
+				
+				const a = letterboxd.helpers.createElement('a', {
+					class: 'has-icon icon-16 tooltip tooltip-extra',
+					style: 'padding-left: 0px',
+					href: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/'
+				});	
+				li.append(a);
+				a.innerText = "🎥 " + this.bfi.ranking;
+				a.setAttribute('data-original-title','№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250");
+
+				// Add to page
+				this.appendRanking(li, 'bfi-ranking');
+				
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+
+			},
+
+			appendRanking(ranking, className){
+				// Create the ul element if needed
+				var extrasStats = document.querySelector('.extras-stats')
+				if (extrasStats == null){
+					extrasStats = letterboxd.helpers.createElement('ul', {
+						class: 'film-stats extras-stats'
+					});
+					document.querySelector('.film-stats').after(extrasStats);
+				}
+				
+				// Order of rankings
+				var order = [
+					'.tspdt-ranking',
+					'.bfi-ranking'
+				];
+
+				var index = order.indexOf('.' + className);
+
+				// First
+				for (var i = index + 1; i < order.length; i++){
+					var temp = extrasStats.querySelector(order[i]);
+					if (temp != null){
+						temp.before(ranking);
+						return;
+					}
+				}
+
+				// Second
+				for (var i = index - 1; i >= 0; i--){
+					var temp = extrasStats.querySelector(order[i]);
+					if (temp != null){
+						temp.after(ranking);
+						return;
+					}
+				}
+
+				// Third
+				extrasStats.append(ranking);
 			}
 		},
 
