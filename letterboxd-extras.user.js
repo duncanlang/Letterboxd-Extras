@@ -4741,7 +4741,7 @@
 						"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
 						"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P19 ?Entry.\n" +
 						"    ?Entry ps:P19 ?BirthCity.  \n" +
 						"    ?BirthCity wdt:P31/wdt:P279* ?locationType.\n" +
@@ -4755,7 +4755,7 @@
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P19 ?Entry.\n" +
 						"    ?Entry ps:P19 ?BirthTemp.  \n" +
 						"    ?BirthTemp wdt:P131 ?BirthCity.\n" +
@@ -4770,7 +4770,7 @@
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P20 ?Entry2.\n" +
 						"    ?Entry2 ps:P20 ?DeathCity.\n" +
 						"    ?DeathCity wdt:P31/wdt:P279* ?locationType3.\n" +
@@ -4784,7 +4784,7 @@
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P20 ?Entry2.\n" +
 						"    ?Entry2 ps:P20 ?DeathTemp.  \n" +
 						"    ?DeathTemp wdt:P131 ?DeathCity.\n" +
