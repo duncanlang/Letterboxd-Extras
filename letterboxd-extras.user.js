@@ -1259,7 +1259,7 @@
 					// 3 = data verified
 					if (this.tspdt.state == 0){
 						this.initTSPDT();
-						this.getTSPDTList();
+						this.getTSPDTListURL();
 					}
 					if (this.tspdt.state == 2 && this.wikiData.state == 2 && this.tspdt.listURL != null){
 						this.verifyTSPDT();
@@ -3511,7 +3511,7 @@
 				});
 			},
 
-			getTSPDTList(){
+			getTSPDTListURL(){
 				// Get the letterboxd list from the page
 				var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
 				letterboxd.helpers.getOMDbData(url).then((value) => {
