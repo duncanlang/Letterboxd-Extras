@@ -1250,33 +1250,36 @@
 					this.ratingsSuffix = ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10'];
 				}
 
-				// Add 'They Shoot Pictures, Don't They' ranking
-				if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3 && document.querySelector('.film-stats .stat.filmstat-watches')){
-					// this.tspdt.state:
-					// 0 = no call made
-					// 1 = call made, not yet returned
-					// 2 = call returned and data stored
-					// 3 = data verified
-					if (this.tspdt.state == 0){
-						this.initTSPDT();
-						this.getTSPDTListURL();
+				// Add addtional rankings 
+				if ((this.isMobile && document.querySelector('.text-footer')) || (this.isMobile == false && document.querySelector('.film-stats .stat.filmstat-watches'))){
+					// Add 'They Shoot Pictures, Don't They' ranking
+					if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3){
+						// this.tspdt.state:
+						// 0 = no call made
+						// 1 = call made, not yet returned
+						// 2 = call returned and data stored
+						// 3 = data verified
+						if (this.tspdt.state == 0){
+							this.initTSPDT();
+							this.getTSPDTListURL();
+						}
+						if (this.tspdt.state == 2 && this.wikiData.state == 2 && this.tspdt.listURL != null){
+							this.verifyTSPDT();
+						}
 					}
-					if (this.tspdt.state == 2 && this.wikiData.state == 2 && this.tspdt.listURL != null){
-						this.verifyTSPDT();
-					}
-				}
-				// Add 'BFI Sight and Sound' ranking
-				if (letterboxd.storage.get('bfi-enabled') === true && this.letterboxdTitle != null && this.bfi.state < 3 && document.querySelector('.film-stats .stat.filmstat-watches')){
-					// this.bfi.state:
-					// 0 = no call made
-					// 1 = call made, not yet returned
-					// 2 = call returned and data stored
-					// 3 = data verified
-					if (this.bfi.state == 0){
-						this.initBFI();
-					}
-					if (this.bfi.state == 2 && this.wikiData.state == 2){
-						this.verifyBFI();
+					// Add 'BFI Sight and Sound' ranking
+					if (letterboxd.storage.get('bfi-enabled') === true && this.letterboxdTitle != null && this.bfi.state < 3){
+						// this.bfi.state:
+						// 0 = no call made
+						// 1 = call made, not yet returned
+						// 2 = call returned and data stored
+						// 3 = data verified
+						if (this.bfi.state == 0){
+							this.initBFI();
+						}
+						if (this.bfi.state == 2 && this.wikiData.state == 2){
+							this.verifyBFI();
+						}
 					}
 				}
 
@@ -3598,7 +3601,11 @@
 			addTSPDT(){
 				if (document.querySelector('.tspdt-ranking')) return;
 
-				if (!document.querySelector('.film-stats')) return;
+				if (this.isMobile){
+					if (!document.querySelector('.text-footer')) return;
+				}else{
+					if (!document.querySelector('.film-stats')) return;
+				}
 
 				// Lets add it to the page
 				//***************************************************************
@@ -3702,7 +3709,11 @@
 			addBFI(){
 				if (document.querySelector('.bfi-ranking')) return;
 
-				if (!document.querySelector('.film-stats')) return;
+				if (this.isMobile){
+					if (!document.querySelector('.text-footer')) return;
+				}else{
+					if (!document.querySelector('.film-stats')) return;
+				}
 
 				// Lets add it to the page
 				//***************************************************************
@@ -3742,7 +3753,11 @@
 					extrasStats = letterboxd.helpers.createElement('ul', {
 						class: 'film-stats extras-stats'
 					});
-					document.querySelector('.film-stats').after(extrasStats);
+					if (this.isMobile){
+						document.querySelector('.text-footer').after(extrasStats);
+					}else{
+						document.querySelector('.film-stats').after(extrasStats);
+					}
 				}
 				
 				// Order of rankings
