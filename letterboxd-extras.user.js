@@ -443,6 +443,16 @@
 		.extras-ranking-mobile li a{
 			font-size: 18px;
 		}
+		.film-stats-show-details{
+			font-size: 10px;
+			text-align: left;
+			margin-left: 2px;
+			margin-top: 10px;
+		}
+		.mobile-ranking-details{
+			font-size: 10px;
+			margin-left: 15px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -3672,7 +3682,23 @@
 				});	
 				li.append(a);
 				a.innerText = "🎥 " + this.tspdt.ranking;
-				a.setAttribute('data-original-title','№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000");
+				var tooltip = '№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000"
+				a.setAttribute('data-original-title',tooltip);
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mobile-ranking-details',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					li.append(detailsSpan);
+				}
 
 				// Add to page
 				this.appendRanking(li, 'tspdt-ranking');
@@ -3784,13 +3810,29 @@
 				});	
 				li.append(a);
 				a.innerText = this.bfi.ranking;
-				a.setAttribute('data-original-title','№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250");
+				var tooltip = '№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250";
+				a.setAttribute('data-original-title',tooltip);
 				
 				const span = letterboxd.helpers.createElement('span', {
 					class: 'icon',
 					style: 'background: url(https://www.bfi.org.uk/dist/server/0207614d447715c2d2b9257bdd5e68b4.svg)'
 				});	
 				a.append(span);
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mobile-ranking-details',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					li.append(detailsSpan);
+				}
 
 				// Add to page
 				this.appendRanking(li, 'bfi-ranking');
@@ -3810,8 +3852,21 @@
 						class: 'film-stats extras-stats'
 					});
 					if (this.isMobile){
+						// Add to page
 						extrasStats.className += ' extras-ranking-mobile';
 						document.querySelector('.sidebar').after(extrasStats);
+						// Add the Show Details button			
+						const showDetails = letterboxd.helpers.createElement('a', {
+							class: 'film-stats-show-details',
+							style: 'display: inline-block',
+							['target']: 'mobile-ranking-details'
+						});
+						showDetails.innerText = "SHOW DETAILS";
+						extrasStats.after(showDetails);
+						// Add the hover events
+						$(".film-stats-show-details").on('click', function(event){
+							toggleDetails(event, letterboxd);
+						});
 					}else{
 						document.querySelector('.film-stats').after(extrasStats);
 					}
