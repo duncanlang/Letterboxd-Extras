@@ -435,6 +435,14 @@
 			top: -1px !important;
 			pointer-events: none;
 		}
+		.extras-ranking-mobile{
+			margin-left: -5px !important;
+			margin-top: 25px !important;
+			text-align: left !important;
+		}
+		.extras-ranking-mobile li a{
+			font-size: 18px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -1273,7 +1281,7 @@
 				}
 
 				// Add addtional rankings 
-				if ((this.isMobile && document.querySelector('.text-footer')) || (this.isMobile == false && document.querySelector('.film-stats .stat.filmstat-watches'))){
+				if ((this.isMobile && document.querySelector('.sidebar')) || (this.isMobile == false && document.querySelector('.film-stats .stat.filmstat-watches'))){
 					// Add 'They Shoot Pictures, Don't They' ranking
 					if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3){
 						// this.tspdt.state:
@@ -3546,9 +3554,9 @@
 				// Make the call now and save the data for later
 				var url = "https://www.theyshootpictures.com/gf1000_all1000films.htm";
 				this.tspdt.state = 1;
-				letterboxd.helpers.getOMDbData(url).then((value) => {
-					this.tspdt.raw = value;
-					this.tspdt.data = letterboxd.helpers.parseHTML(value);
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					this.tspdt.raw = value.response;
+					this.tspdt.data = letterboxd.helpers.parseHTML(this.tspdt.raw);
 					
 					this.tspdt.state = 2;
 				});
@@ -3557,8 +3565,8 @@
 			getTSPDTListURL(){
 				// Get the letterboxd list from the page
 				var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
-				letterboxd.helpers.getOMDbData(url).then((value) => {
-					const data = letterboxd.helpers.parseHTML(value);
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					const data = letterboxd.helpers.parseHTML(value.response);
 					var list = data.querySelectorAll('#stacks_in_9823 span');
 
 					var listURL = "";
@@ -3591,6 +3599,9 @@
 				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
 				if (list != null && list.length >= 2){
 					list = list[1].innerText;
+				}else{
+					console.error("Error while processing TSPDT");
+					return;
 				}
 
 				// Make changes to the title to account for differences between letterboxd tspdt
@@ -3642,7 +3653,7 @@
 				if (document.querySelector('.tspdt-ranking')) return;
 
 				if (this.isMobile){
-					if (!document.querySelector('.text-footer')) return;
+					if (!document.querySelector('.sidebar')) return;
 				}else{
 					if (!document.querySelector('.film-stats')) return;
 				}
@@ -3677,8 +3688,8 @@
 				// Make the call now and save the data for later
 				var url = "https://www.bfi.org.uk/sight-and-sound/greatest-films-all-time";
 				this.bfi.state = 1;
-				letterboxd.helpers.getOMDbData(url).then((value) => {
-					this.bfi.raw = value;
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					this.bfi.raw = value.response;
 					this.bfi.data = letterboxd.helpers.parseHTML(value);
 					
 					this.bfi.state = 2;
@@ -3690,9 +3701,14 @@
 				this.bfi.state = 3;
 
 				// Get list from page
-				var list = letterboxd.helpers.getTextBetween(this.bfi.raw, "var initialPageState = ", "</script>");
-				list = JSON.parse(list);
-				list = list.componentState.results;
+				if (this.bfi.raw.includes("var initialPageState = ")){
+					var list = letterboxd.helpers.getTextBetween(this.bfi.raw, "var initialPageState = ", "</script>");
+					list = JSON.parse(list);
+					list = list.componentState.results;
+				}else{
+					console.error("Error while processing BFI");
+					return;
+				}
 
 				// Make changes to the title to account for differences between letterboxd and BFI
 				var title = this.letterboxdTitle.toUpperCase(); // Make uppercase to account for difference capitalization (Histoire(s) du cinéma)
@@ -3750,7 +3766,7 @@
 				if (document.querySelector('.bfi-ranking')) return;
 
 				if (this.isMobile){
-					if (!document.querySelector('.text-footer')) return;
+					if (!document.querySelector('.sidebar')) return;
 				}else{
 					if (!document.querySelector('.film-stats')) return;
 				}
@@ -3794,7 +3810,8 @@
 						class: 'film-stats extras-stats'
 					});
 					if (this.isMobile){
-						document.querySelector('.text-footer').after(extrasStats);
+						extrasStats.className += ' extras-ranking-mobile';
+						document.querySelector('.sidebar').after(extrasStats);
 					}else{
 						document.querySelector('.film-stats').after(extrasStats);
 					}
