@@ -543,7 +543,7 @@
 			tspdt: {state: 0, data: null, raw: null, found: false, ranking: null, listURL: null},
 
 			// BFI Sight and Sound
-			bfi: {state: 0, data: null, raw: null, found: false, ranking: null},
+			bfi: {state: 0, data: null, raw: null, found: false, ranking: null, listIndex: null},
 
 
 			linksAdded: [],
@@ -3659,17 +3659,32 @@
 					shortTitle = "|" + title.substring(0, title.indexOf(':'));
 				}
 
+				var altTitle2 = "";
+				var altTitleList = document.querySelector('div.text-indentedlist p') // To account for Dream of Light/The Quince Tree Sun
+				if (altTitleList != null){
+					altTitleList = altTitleList.innerText.toUpperCase();
+					altTitleList = altTitleList.split(', ');
+					if (altTitleList.length > 0){
+						altTitle2 = altTitleList[0];
+						altTitle2 = altTitle2.replaceAll("\n","");
+						altTitle2 = altTitle2.replaceAll("\t","");
+						
+						altTitle2 = "|" + altTitle2;
+					}
+				}
+
+
 				var director = this.letterboxdDirectors[0];
 				director = director.replaceAll(".","\\.") // To account for F. W. Murnau
 
 				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
-				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + ") (\\(" + director + ",|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ") (\\(" + director + ",|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
 				if (list.match(regex)){
 					this.tspdt.found = true;
 					this.tspdt.ranking = list.match(regex)[1];
 				}
 				// Alternate match - looser with the title, stricter with requiring BOTH director and year - to account for THE MAN WITH A MOVIE CAMERA
-				regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  .+(" + title + nativeTitle + altTitle + nfdTitle + shortTitle + ") (\\(" + director + ", " + this.letterboxdYear + ",.+\\))");
+				regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  .*(" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 +").* (\\(" + director + ", " + this.letterboxdYear + ",.+\\))");
 				if (list.match(regex)){
 					this.tspdt.found = true;
 					this.tspdt.ranking = list.match(regex)[1];
@@ -3695,11 +3710,18 @@
 				const li = letterboxd.helpers.createElement('li', {
 					class: 'stat tspdt-ranking extras-ranking'
 				});
+
+				// Determine list page number
+				var url = this.tspdt.listURL;
+				var page = Math.ceil(this.tspdt.ranking / 100);
+				if (page > 1){
+					url += 'page/' + page + '/';
+				}
 				
 				const a = letterboxd.helpers.createElement('a', {
 					class: 'has-icon icon-16 tooltip tooltip-extra',
 					style: 'padding-left: 0px',
-					href: this.tspdt.listURL
+					href: url
 				});	
 				li.append(a);
 				a.innerText = "🎥 " + this.tspdt.ranking;
@@ -3812,6 +3834,9 @@
 				if (result.length > 0){
 					this.bfi.found = true;
 					this.bfi.ranking = result[0].rank;
+
+					var tiedCount = list.filter((x) => (x.rank == result[0].rank)).length;
+					this.bfi.listIndex = list.length - list.indexOf(result[0]) + tiedCount;
 				}
 
 				// If found, add
@@ -3835,10 +3860,17 @@
 				const li = letterboxd.helpers.createElement('li', {
 					class: 'stat bfi-ranking extras-ranking'
 				});
+
+				// Determine list page number
+				var url = 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/';
+				var page = Math.ceil(this.bfi.listIndex / 100);
+				if (page > 1){
+					url += 'page/' + page + '/';
+				}
 				
 				const a = letterboxd.helpers.createElement('a', {
 					class: 'has-icon icon-16 tooltip tooltip-extra',
-					href: 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/'
+					href: url
 				});	
 				li.append(a);
 				a.innerText = this.bfi.ranking;
