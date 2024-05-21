@@ -3608,7 +3608,8 @@
 				// Get list from page
 				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
 				if (list != null && list.length >= 2){
-					list = list[1].innerText;
+					list = list[1].innerHTML;
+					list = list.replaceAll('<br>','\n');
 				}else{
 					console.error("Error while processing TSPDT");
 					return;
@@ -3623,6 +3624,9 @@
 				title = title.replaceAll(")","\\)"); // To account for HISTOIRE(S) DU CINÉMA
 				title = title.replaceAll(" AND","( &| AND)") // To account for THE GLEANERS & I 
 				title = title.replaceAll("?","\\?") // To account for WHERE IS THE FRIEND'S HOUSE?
+				title = title.replaceAll(".","\\.") // To account for MADAME DE...
+				title = title.replaceAll("…","\\.\\.\\.") // To account for MADAME DE...
+				title = title.replaceAll("\\.\\.\\.\\.","…\\.") // To account for IF...
 				title = title.replaceAll(/PART I\b/g,"(PART I|PART 1)") // To account for IVAN THE TERRIBLE, PART 1
 				title = title.replaceAll(/PART II\b/g,"(PART II|PART 2)") // To account for IVAN THE TERRIBLE, PART 2
 
@@ -3632,6 +3636,8 @@
 					nativeTitle = nativeTitle.replaceAll("?","\\?")
 					nativeTitle = nativeTitle.replaceAll("(","\\("); // To account for SAUVE QUI PEUT (LA VIE)
 					nativeTitle = nativeTitle.replaceAll(")","\\)"); // To account for SAUVE QUI PEUT (LA VIE)
+					nativeTitle = nativeTitle.replaceAll(".","\\.") // To account for MADAME DE...
+					nativeTitle = nativeTitle.replaceAll("…","\\.\\.\\.") // To account for MADAME DE...
 				}
 
 				var altTitle = "";
@@ -3640,6 +3646,7 @@
 					altTitle = altTitle.replaceAll("?","\\?")
 					altTitle = altTitle.replaceAll(/PART I\b/g,"(PART I|PART 1)") // To account for IVAN THE TERRIBLE, PART 1
 					altTitle = altTitle.replaceAll(/PART II\b/g,"(PART II|PART 2)") // To account for IVAN THE TERRIBLE, PART 2
+					altTitle = altTitle.replaceAll(".","\\.") // To account for IF...
 				}
 
 				var nfdTitle = "";
@@ -3647,8 +3654,22 @@
 					nfdTitle = "|" + title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '') // To account for EL
 				}
 
+				var shortTitle = "";
+				if (title.includes(':')){
+					shortTitle = "|" + title.substring(0, title.indexOf(':'));
+				}
+
+				var director = this.letterboxdDirectors[0];
+				director = director.replaceAll(".","\\.") // To account for F. W. Murnau
+
 				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
-				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + ") (\\(" + this.letterboxdDirectors[0] + ",|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + ") (\\(" + director + ",|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+				if (list.match(regex)){
+					this.tspdt.found = true;
+					this.tspdt.ranking = list.match(regex)[1];
+				}
+				// Alternate match - looser with the title, stricter with requiring BOTH director and year - to account for THE MAN WITH A MOVIE CAMERA
+				regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  .+(" + title + nativeTitle + altTitle + nfdTitle + shortTitle + ") (\\(" + director + ", " + this.letterboxdYear + ",.+\\))");
 				if (list.match(regex)){
 					this.tspdt.found = true;
 					this.tspdt.ranking = list.match(regex)[1];
@@ -3743,9 +3764,20 @@
 					title
 				];
 
+				if (title.includes(',')){
+					titles.push(title.replaceAll(',',''));
+				}
+				if (title.includes('…')){
+					titles.push(title.replaceAll('…','...')); // To account for Madame de…
+				}
+
 				if (this.letterboxdNativeTitle != null){
 					var nativeTitle = this.letterboxdNativeTitle.toUpperCase();
 					titles.push(nativeTitle);
+
+					if (nativeTitle.includes('…')){
+						titles.push(nativeTitle.replaceAll('…','...')); // To account for Madame de…
+					}
 				}
 				
 				if (this.letterboxdTitle.includes("’")){
