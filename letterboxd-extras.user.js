@@ -3835,8 +3835,7 @@
 					this.bfi.found = true;
 					this.bfi.ranking = result[0].rank;
 
-					var tiedCount = list.filter((x) => (x.rank == result[0].rank)).length;
-					this.bfi.listIndex = list.length - list.indexOf(result[0]) + tiedCount;
+					this.bfi.listIndex = list.length - list.indexOf(result[0]);
 				}
 
 				// If found, add
@@ -3864,6 +3863,9 @@
 				// Determine list page number
 				var url = 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/';
 				var page = Math.ceil(this.bfi.listIndex / 100);
+				if (this.bfi.ranking == "196"){
+					page = letterboxd.helpers.getBFIListPage(this.bfi.ranking, this.letterboxdTitle, this.letterboxdYear);
+				}
 				if (page > 1){
 					url += 'page/' + page + '/';
 				}
@@ -5109,6 +5111,27 @@
 					output = "1976";
 				}
 
+				return output;
+			},
+
+			getBFIListPage(rank, movieTitle, movieYear){
+				// The movies which are tied are in difference positions on the BFI site and the LB list for some reason
+				// Ugly, but let's just correct the page number manually
+				var output = "";
+				if (rank == "196"){
+					switch(movieTitle){
+						case "Paisan":
+						case "The Headless Woman":
+						case "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb":
+						case "L'Eclisse":
+						case "Wavelength":
+							output = "2";
+							break;
+						default:
+							output = "3";
+							break;
+					}
+				}
 				return output;
 			},
 
