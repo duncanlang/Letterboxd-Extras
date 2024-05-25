@@ -3672,13 +3672,21 @@
 						altTitle2 = "|" + altTitle2;
 					}
 				}
+				if (title.includes('COLOR')){
+					altTitle2 += "|" + title.replaceAll('COLOR','COLOUR'); // To account for The Color of Pomegranates
+				}
+				altTitle2 += letterboxd.helpers.getTSPDTAltTitles(this.letterboxdTitle, this.letterboxdYear);
 
 
 				var director = this.letterboxdDirectors[0];
 				director = director.replaceAll(".","\\.") // To account for F. W. Murnau
+				if (this.letterboxdDirectors.length >= 2){
+					director += "|" + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[1]; // TO account for  SINGIN' IN THE RAIN Stanley Donen & Gene Kelly
+					director += "|" + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[0];
+				}
 
 				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
-				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ") (\\(" + director + ",|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ") (\\((" + director + "),|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
 				if (list.match(regex)){
 					this.tspdt.found = true;
 					this.tspdt.ranking = list.match(regex)[1];
@@ -3792,6 +3800,9 @@
 				if (title.includes('…')){
 					titles.push(title.replaceAll('…','...')); // To account for Madame de…
 				}
+				if (title.includes('COLOR')){
+					titles.push(title.replaceAll('COLOR','COLOUR')); // To account for The Color of Pomegranates
+				}
 
 				if (this.letterboxdNativeTitle != null){
 					var nativeTitle = this.letterboxdNativeTitle.toUpperCase();
@@ -3828,9 +3839,28 @@
 				}
 
 				const bfiYear = letterboxd.helpers.getBFIYear(this.letterboxdTitle, this.letterboxdYear);
+
+				var directors = [this.letterboxdDirectors[0]];
+				// Add co-directors, in both orders
+				if (this.letterboxdDirectors.length >= 2){
+					directors.push(this.letterboxdDirectors[0] + ", " + this.letterboxdDirectors[1]);
+					directors.push(this.letterboxdDirectors[1] + ", " + this.letterboxdDirectors[0]); // To account for Singin' in the Rain
+				}
+				// If the director has a middle name, add alt with shortened middle name
+				if ((this.letterboxdDirectors[0].split(" ").length - 1) == 2){
+					var regex = new RegExp("[A-Za-z]+ ([A-Za-z]{2,}) [A-Za-z]+");
+					if (this.letterboxdDirectors[0].match(regex)){
+						var middle = this.letterboxdDirectors[0].match(regex)[1];
+						var newMiddle = middle.substring(0,2) + ".";
+						directors.push(this.letterboxdDirectors[0].replace(middle, newMiddle)); // To account for The Passion of Joan of Arc
+					}
+				}
 				
 				// Match film to BFI list
-				const result = list.filter((x) => (titles.includes(x.film.name.toUpperCase().trim()) || titles.includes(x.film.name.toUpperCase().trim().replaceAll(',',''))) && (x.film.year == bfiYear || x.film.credits.director == this.letterboxdDirectors[0]));
+				const result = list.filter((x) => 
+					(titles.includes(x.film.name.toUpperCase().trim()) || titles.includes(x.film.name.toUpperCase().trim().replaceAll(',',''))) &&
+					(x.film.year == bfiYear || directors.includes(x.film.credits.director)));
+
 				if (result.length > 0){
 					this.bfi.found = true;
 					this.bfi.ranking = result[0].rank;
@@ -5104,11 +5134,28 @@
 				return output;
 			},
 
+			getTSPDTAltTitles(title, year){
+				var output = "";
+
+				if (title == "Harlan County U.S.A." && year == "1976"){
+					output = "Harlan County, U.S.A.";
+				}
+
+				output = output.replaceAll('.','\\.');
+				if (output != "")
+					output = "|" + output.toUpperCase();
+				
+				return output;
+			},
+
 			getBFIYear(title, year){
 				var output = year;
 
 				if (title == "The Ascent" && year == "1977"){
 					output = "1976";
+				}
+				else if (title == "The Color of Pomegranates" && year == "1969"){
+					output = "1968";
 				}
 
 				return output;
