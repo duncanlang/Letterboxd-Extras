@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
-	"version": "3.12.2",
+	"version": "3.13.0",
 	"minimum_chrome_version": "88",
 	
 	"action": {
@@ -44,7 +44,9 @@
 	"optional_host_permissions": [
 		"https://api.mubi.com/*",
 		"https://apollo.senscritique.com/*",
-		"https://*.filmaffinity.com/*"
+		"https://*.filmaffinity.com/*",
+		"https://www.theyshootpictures.com/*",
+		"https://www.bfi.org.uk/*"
 	],
 
 	"background": {

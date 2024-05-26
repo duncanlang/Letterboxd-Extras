@@ -87,14 +87,14 @@
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff {
-			background-position-x: left;
-			background-position-y: top;
-			background-repeat: no-repeat;
-			background-attachment: scroll;
-			background-size: contain;
-			background-origin: padding-box;
-			background-clip: border-box;
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon{
+			background-position-x: left !important;
+			background-position-y: top !important;
+			background-repeat: no-repeat !important;
+			background-attachment: scroll !important;
+			background-size: contain !important;
+			background-origin: padding-box !important;
+			background-clip: border-box !important;
 			width: 16px;
 			height: 16px;
 			display: inline-block;
@@ -428,6 +428,31 @@
 		.extras-rating-mobile{
 			margin-right: 3px;
 		}
+
+		.bfi-ranking a .icon{
+			height: 18px !important;
+			width: 18px !important;
+			top: -1px !important;
+			pointer-events: none;
+		}
+		.extras-ranking-mobile{
+			margin-left: -5px !important;
+			margin-top: 25px !important;
+			text-align: left !important;
+		}
+		.extras-ranking-mobile li a{
+			font-size: 18px;
+		}
+		.film-stats-show-details{
+			font-size: 10px;
+			text-align: left;
+			margin-left: 2px;
+			margin-top: 10px;
+		}
+		.mobile-ranking-details{
+			font-size: 10px;
+			margin-left: 15px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -447,6 +472,7 @@
 			letterboxdTitle: null,
 			letterboxdNativeTitle: null,
 			letterboxdDirectors: [],
+			letterboxdDirectorsAlt: [],
 			linksMoved: false,
 			scoreConverted: false,
 			fansConverted: false,
@@ -513,6 +539,13 @@
 			// SensCritique
 			sensCritique: {state: 0, id: null, url: null, data: null},
 
+			// They Shoot Pictures ranking
+			tspdt: {state: 0, data: null, raw: null, found: false, ranking: null, listURL: null},
+
+			// BFI Sight and Sound
+			bfi: {state: 0, data: null, raw: null, found: false, ranking: null, listIndex: null},
+
+
 			linksAdded: [],
 			
 			rtAdded: false,
@@ -567,6 +600,10 @@
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
+					}
+					if (this.letterboxdNativeTitle != null){
+						this.letterboxdNativeTitle = this.letterboxdNativeTitle.replace('‘','');
+						this.letterboxdNativeTitle = this.letterboxdNativeTitle.replace('’','');
 					}
 				}
 
@@ -719,9 +756,10 @@
 
 				// Get directors and producers
 				if (document.querySelector("#tab-crew")){
-					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
-					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
-					this.letterboxdDirectors = this.letterboxdDirectors.concat(producers);
+					this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText);
+					this.letterboxdDirectorsAlt = Array.from(document.querySelectorAll('#tab-crew [href*="/director/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+					var producers = Array.from(document.querySelectorAll('#tab-crew [href*="/producer/"]')).map(x => x.innerText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+					this.letterboxdDirectorsAlt = this.letterboxdDirectorsAlt.concat(producers);
 				}
 
 				// Add Cinema Score
@@ -1248,6 +1286,39 @@
 					this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
 				} else {
 					this.ratingsSuffix = ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10'];
+				}
+
+				// Add addtional rankings 
+				if ((this.isMobile && document.querySelector('.sidebar')) || (this.isMobile == false && document.querySelector('.film-stats .stat.filmstat-watches'))){
+					// Add 'They Shoot Pictures, Don't They' ranking
+					if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3 && this.letterboxdDirectors.length > 0){
+						// this.tspdt.state:
+						// 0 = no call made
+						// 1 = call made, not yet returned
+						// 2 = call returned and data stored
+						// 3 = data verified
+						if (this.tspdt.state == 0){
+							this.initTSPDT();
+							this.getTSPDTListURL();
+						}
+						if (this.tspdt.state == 2 && this.wikiData.state == 2 && this.tspdt.listURL != null){
+							this.verifyTSPDT();
+						}
+					}
+					// Add 'BFI Sight and Sound' ranking
+					if (letterboxd.storage.get('bfi-enabled') === true && this.letterboxdTitle != null && this.bfi.state < 3 && this.letterboxdDirectors.length > 0){
+						// this.bfi.state:
+						// 0 = no call made
+						// 1 = call made, not yet returned
+						// 2 = call returned and data stored
+						// 3 = data verified
+						if (this.bfi.state == 0){
+							this.initBFI();
+						}
+						if (this.bfi.state == 2 && this.wikiData.state == 2){
+							this.verifyBFI();
+						}
+					}
 				}
 
 				// Stop
@@ -2078,7 +2149,7 @@
 								for (var k = 0; k < films[i].directors.length; k++){
 									// Director name to lowercase and removed diacritics
 									var director = films[i].directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-									if (this.letterboxdDirectors.includes(director)){
+									if (this.letterboxdDirectorsAlt.includes(director)){
 										// Check to see if film is within 5 years
 										var score = Math.abs((parseInt(this.letterboxdYear)) - films[i].year)
 										if (score < 5){
@@ -3246,7 +3317,7 @@
 							for (var k = 0; k < directors.length; k++){
 								// Director name to lowercase and removed diacritics
 								var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-								if (this.letterboxdDirectors.includes(director)){
+								if (this.letterboxdDirectorsAlt.includes(director)){
 									result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
 									break;
 								}
@@ -3410,7 +3481,7 @@
 				//************************************************************
 				$(".tooltip.display-rating.-highlight.sens-score").on("mouseover", ShowTwipsy);
 				$(".tooltip.display-rating.-highlight.sens-score").on("mouseout", HideTwipsy);
-			},
+			},	
 
 			appendRating(rating, className){
 				var order = [
@@ -3472,6 +3543,467 @@
 
 				// Third
 				sidebar.append(rating);
+			},
+
+			initTSPDT(){
+				// Make the call now and save the data for later
+				var url = "https://www.theyshootpictures.com/gf1000_all1000films.htm";
+				this.tspdt.state = 1;
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					this.tspdt.raw = value.response;
+					this.tspdt.data = letterboxd.helpers.parseHTML(this.tspdt.raw);
+					
+					this.tspdt.state = 2;
+				});
+			},
+
+			getTSPDTListURL(){
+				// Get the letterboxd list from the page
+				var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					const data = letterboxd.helpers.parseHTML(value.response);
+					var list = data.querySelectorAll('#stacks_in_9823 span');
+
+					var listURL = "";
+					for (var i = 0; i < list.length; i++){
+						// Get URL
+						var a = list[i].querySelector('a');
+						if (a != null && a.hasAttribute('href') && a.getAttribute('href').includes('letterboxd.com/')){
+							listURL = a.getAttribute('href');
+						}
+						// Verify the URL is for the correct letterboxd list
+						var em = list[i].querySelector('em');
+						if (em != null && listURL != "" && em.innerText == '1,000 Greatest Films'){
+							this.tspdt.listURL = listURL;
+							break;
+						}
+					}
+
+					// Set backup URL just in case
+					if (this.tspdt.listURL == null){
+						this.tspdt.listURL = "https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/"
+					}
+				});
+			},
+
+			verifyTSPDT(){
+				// Now that the data has been collected from TSPDT and WikiData, verify
+				this.tspdt.state = 3;
+
+				// Get list from page
+				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
+				if (list != null && list.length >= 2){
+					list = list[1].innerHTML;
+					list = list.replaceAll('<br>','\n');
+					list = list.replaceAll('&amp;','&');
+				}else{
+					console.error("Error while processing TSPDT");
+					return;
+				}
+
+				// Make changes to the title to account for differences between letterboxd tspdt
+				var title = this.letterboxdTitle.toUpperCase();
+				title = title.replaceAll(",",",*"); // To account for JEANNE DIELMAN
+				title = title.replaceAll(":",":*"); // To account for THE GODFATHER PART II
+				title = title.replaceAll("’","(’|')"); // To account for L'ATALANTE
+				title = title.replaceAll("(","\\("); // To account for HISTOIRE(S) DU CINÉMA
+				title = title.replaceAll(")","\\)"); // To account for HISTOIRE(S) DU CINÉMA
+				title = title.replaceAll(" AND","( &| AND)") // To account for THE GLEANERS & I 
+				title = title.replaceAll("?","\\?") // To account for WHERE IS THE FRIEND'S HOUSE?
+				title = title.replaceAll(".","\\.") // To account for MADAME DE...
+				title = title.replaceAll("…","\\.\\.\\.") // To account for MADAME DE...
+				title = title.replaceAll("\\.\\.\\.\\.","…\\.") // To account for IF...
+				title = title.replaceAll(/PART I\b/g,"(PART I|PART 1)") // To account for IVAN THE TERRIBLE, PART 1
+				title = title.replaceAll(/PART II\b/g,"(PART II|PART 2)") // To account for IVAN THE TERRIBLE, PART 2
+
+				var nativeTitle = "";
+				if (this.letterboxdNativeTitle != null){
+					nativeTitle = "|" + this.letterboxdNativeTitle.toUpperCase();
+					nativeTitle = nativeTitle.replaceAll("?","\\?")
+					nativeTitle = nativeTitle.replaceAll("(","\\("); // To account for SAUVE QUI PEUT (LA VIE)
+					nativeTitle = nativeTitle.replaceAll(")","\\)"); // To account for SAUVE QUI PEUT (LA VIE)
+					nativeTitle = nativeTitle.replaceAll(".","\\.") // To account for MADAME DE...
+					nativeTitle = nativeTitle.replaceAll("…","\\.\\.\\.") // To account for MADAME DE...
+				}
+
+				var altTitle = "";
+				if (this.wikiData.Alt_Title != null && this.letterboxdTitle != this.wikiData.Alt_Title && this.letterboxdNativeTitle != this.wikiData.Alt_Title){
+					altTitle = "|" + this.wikiData.Alt_Title.toUpperCase();
+					altTitle = altTitle.replaceAll("?","\\?")
+					altTitle = altTitle.replaceAll(/PART I\b/g,"(PART I|PART 1)") // To account for IVAN THE TERRIBLE, PART 1
+					altTitle = altTitle.replaceAll(/PART II\b/g,"(PART II|PART 2)") // To account for IVAN THE TERRIBLE, PART 2
+					altTitle = altTitle.replaceAll(".","\\.") // To account for IF...
+				}
+
+				var nfdTitle = "";
+				if (title.match(new RegExp("[À-ÖØ-öø-ÿ]"))){
+					nfdTitle = "|" + title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '') // To account for EL
+				}
+
+				var shortTitle = "";
+				if (title.includes(':')){
+					shortTitle = "|" + title.substring(0, title.indexOf(':'));
+				}
+
+				var altTitle2 = "";
+				var altTitleList = document.querySelector('div.text-indentedlist p') // To account for Dream of Light/The Quince Tree Sun
+				if (altTitleList != null){
+					altTitleList = altTitleList.innerText.toUpperCase();
+					altTitleList = altTitleList.split(', ');
+					if (altTitleList.length > 0){
+						altTitle2 = altTitleList[0];
+						altTitle2 = altTitle2.replaceAll("\n","");
+						altTitle2 = altTitle2.replaceAll("\t","");
+						
+						altTitle2 = "|" + altTitle2;
+					}
+				}
+				if (title.includes('COLOR')){
+					altTitle2 += "|" + title.replaceAll('COLOR','COLOUR'); // To account for The Color of Pomegranates
+				}
+				altTitle2 += letterboxd.helpers.getTSPDTAltTitles(this.letterboxdTitle, this.letterboxdYear);
+				
+				// Add alternate titles from LB
+				var altTitleList = document.querySelector('div.text-indentedlist p') // To account for Dream of Light/The Quince Tree Sun
+				if (altTitleList != null){
+					altTitleList = altTitleList.innerText.toUpperCase();
+					altTitleList = altTitleList.split(', ');
+					altTitleList.forEach(x =>{
+						x = x.toUpperCase();
+						x = x.replaceAll('\n','');
+						x = x.replaceAll('.','\\.');
+						x = x.replaceAll('?','\\.');
+						altTitle2 += "|" + x;
+					});
+				}
+
+
+				var director = this.letterboxdDirectors[0];
+				director = director.replaceAll(".","\\.") // To account for F. W. Murnau
+				if (this.letterboxdDirectors.length == 2){
+					director += "|" + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[1]; // TO account for SINGIN' IN THE RAIN Stanley Donen & Gene Kelly
+					director += "|" + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[0];
+				}
+				else if (this.letterboxdDirectors.length == 3){
+					director += "|" + this.letterboxdDirectors[0] + ", " + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[2]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[0] + ", " + this.letterboxdDirectors[2] + " & " + this.letterboxdDirectors[1]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[1] + ", " + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[2]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[1] + ", " + this.letterboxdDirectors[2] + " & " + this.letterboxdDirectors[0]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[2] + ", " + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[1]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[2] + ", " + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[0]; // TO account for Airplane!
+				}
+
+				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
+				var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ") (\\((" + director + "),|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+				if (list.match(regex)){
+					this.tspdt.found = true;
+					this.tspdt.ranking = list.match(regex)[1];
+				}
+				// Alternate match - looser with the title, stricter with requiring BOTH director and year - to account for THE MAN WITH A MOVIE CAMERA
+				regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  .*(" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 +").* (\\(" + director + ", " + this.letterboxdYear + ",.+\\))");
+				if (list.match(regex)){
+					this.tspdt.found = true;
+					this.tspdt.ranking = list.match(regex)[1];
+				}
+
+				if (this.tspdt.found){
+					this.addTSPDT();
+				}
+			},
+
+			addTSPDT(){
+				if (document.querySelector('.tspdt-ranking')) return;
+
+				if (this.isMobile){
+					if (!document.querySelector('.sidebar')) return;
+				}else{
+					if (!document.querySelector('.film-stats')) return;
+				}
+
+				// Lets add it to the page
+				//***************************************************************
+				// create the li
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'stat tspdt-ranking extras-ranking'
+				});
+
+				// Determine list page number
+				var url = this.tspdt.listURL;
+				var page = Math.ceil(this.tspdt.ranking / 100);
+				if (page > 1){
+					url += 'page/' + page + '/';
+				}
+				
+				const a = letterboxd.helpers.createElement('a', {
+					class: 'has-icon icon-16 tooltip tooltip-extra',
+					style: 'padding-left: 0px',
+					href: url
+				});	
+				li.append(a);
+				a.innerText = "🎥 " + this.tspdt.ranking;
+				var tooltip = '№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000"
+				a.setAttribute('data-original-title',tooltip);
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mobile-ranking-details',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					li.append(detailsSpan);
+				}
+
+				// Add to page
+				this.appendRanking(li, 'tspdt-ranking');
+				
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+
+			},
+
+			initBFI(){
+				// Make the call now and save the data for later
+				var url = "https://www.bfi.org.uk/sight-and-sound/greatest-films-all-time";
+				this.bfi.state = 1;
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					this.bfi.raw = value.response;
+					this.bfi.data = letterboxd.helpers.parseHTML(value);
+					
+					this.bfi.state = 2;
+				});
+			},
+
+			verifyBFI(){
+				// Now that the data has been collected from BFI and WikiData, verify
+				this.bfi.state = 3;
+
+				// Get list from page
+				if (this.bfi.raw.includes("var initialPageState = ")){
+					var list = letterboxd.helpers.getTextBetween(this.bfi.raw, "var initialPageState = ", "</script>");
+					list = JSON.parse(list);
+					list = list.componentState.results;
+				}else{
+					console.error("Error while processing BFI");
+					return;
+				}
+
+				// Make changes to the title to account for differences between letterboxd and BFI
+				var title = this.letterboxdTitle.toUpperCase(); // Make uppercase to account for difference capitalization (Histoire(s) du cinéma)
+				title = title.replaceAll("’","'") // To account for Where Is the Friend's House? and L'Atalante
+				var titles = [
+					title
+				];
+
+				if (title.includes(',')){
+					titles.push(title.replaceAll(',',''));
+				}
+				if (title.includes('…')){
+					titles.push(title.replaceAll('…','...')); // To account for Madame de…
+				}
+				if (title.includes('COLOR')){
+					titles.push(title.replaceAll('COLOR','COLOUR')); // To account for The Color of Pomegranates
+				}
+
+				if (this.letterboxdNativeTitle != null){
+					var nativeTitle = this.letterboxdNativeTitle.toUpperCase();
+					titles.push(nativeTitle);
+
+					if (nativeTitle.includes('…')){
+						titles.push(nativeTitle.replaceAll('…','...')); // To account for Madame de…
+					}
+				}
+				
+				if (this.letterboxdTitle.includes("’")){
+					titles.push(this.letterboxdTitle.toUpperCase().replaceAll('’',"' ")); // To account for L' eclisse
+				}
+				if (this.letterboxdTitle.includes("'")){
+					titles.push(this.letterboxdTitle.toUpperCase().replaceAll("'","' ")); // To account for L' eclisse
+				}
+
+				if (this.wikiData.Alt_Title != null && this.letterboxdTitle != this.wikiData.Alt_Title && this.letterboxdNativeTitle != this.wikiData.Alt_Title){
+					var altTitle = this.wikiData.Alt_Title.toUpperCase();
+					titles.push(altTitle);
+				}
+
+				if (title.match(new RegExp("[À-ÖØ-öø-ÿ]"))){
+					var nfdTitle = title.normalize('NFKD').replace(/[^\w\s.-_\/]/g, '')
+					titles.push(nfdTitle);
+				}
+				
+				// Add alternate titles from LB to array
+				var altTitleList = document.querySelector('div.text-indentedlist p') // To account for Dream of Light/The Quince Tree Sun
+				if (altTitleList != null){
+					altTitleList = altTitleList.innerText.toUpperCase();
+					altTitleList = altTitleList.split(', ');
+					titles = titles.concat(altTitleList);
+				}
+
+				const bfiYear = letterboxd.helpers.getBFIYear(this.letterboxdTitle, this.letterboxdYear);
+
+				var directors = [this.letterboxdDirectors[0]];
+				// Add co-directors, in both orders
+				if (this.letterboxdDirectors.length >= 2){
+					directors.push(this.letterboxdDirectors[0] + ", " + this.letterboxdDirectors[1]);
+					directors.push(this.letterboxdDirectors[1] + ", " + this.letterboxdDirectors[0]); // To account for Singin' in the Rain
+				}
+				// If the director has a middle name, add alt with shortened middle name
+				if ((this.letterboxdDirectors[0].split(" ").length - 1) == 2){
+					var regex = new RegExp("[A-Za-z]+ ([A-Za-z]{2,}) [A-Za-z]+");
+					if (this.letterboxdDirectors[0].match(regex)){
+						var middle = this.letterboxdDirectors[0].match(regex)[1];
+						var newMiddle = middle.substring(0,2) + ".";
+						directors.push(this.letterboxdDirectors[0].replace(middle, newMiddle)); // To account for The Passion of Joan of Arc
+					}
+				}
+				
+				// Match film to BFI list
+				const result = list.filter((x) => 
+					(titles.includes(x.film.name.toUpperCase().trim()) || titles.includes(x.film.name.toUpperCase().trim().replaceAll(',',''))) &&
+					(x.film.year == bfiYear || directors.includes(x.film.credits.director)));
+
+				if (result.length > 0){
+					this.bfi.found = true;
+					this.bfi.ranking = result[0].rank;
+
+					this.bfi.listIndex = list.length - list.indexOf(result[0]);
+				}
+
+				// If found, add
+				if (this.bfi.found){
+					this.addBFI();
+				}
+			},
+			
+			addBFI(){
+				if (document.querySelector('.bfi-ranking')) return;
+
+				if (this.isMobile){
+					if (!document.querySelector('.sidebar')) return;
+				}else{
+					if (!document.querySelector('.film-stats')) return;
+				}
+
+				// Lets add it to the page
+				//***************************************************************
+				// create the li
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'stat bfi-ranking extras-ranking'
+				});
+
+				// Determine list page number
+				var url = 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/';
+				var page = Math.ceil(this.bfi.listIndex / 100);
+				if (this.bfi.ranking == "196"){
+					page = letterboxd.helpers.getBFIListPage(this.bfi.ranking, this.letterboxdTitle, this.letterboxdYear);
+				}
+				if (page > 1){
+					url += 'page/' + page + '/';
+				}
+				
+				const a = letterboxd.helpers.createElement('a', {
+					class: 'has-icon icon-16 tooltip tooltip-extra',
+					href: url
+				});	
+				li.append(a);
+				a.innerText = this.bfi.ranking;
+				var tooltip = '№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250";
+				a.setAttribute('data-original-title',tooltip);
+				
+				const span = letterboxd.helpers.createElement('span', {
+					class: 'icon',
+					style: 'background: url(https://www.bfi.org.uk/dist/server/0207614d447715c2d2b9257bdd5e68b4.svg)'
+				});	
+				a.append(span);
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mobile-ranking-details',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					li.append(detailsSpan);
+				}
+
+				// Add to page
+				this.appendRanking(li, 'bfi-ranking');
+				
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+
+			},
+
+			appendRanking(ranking, className){
+				// Create the ul element if needed
+				var extrasStats = document.querySelector('.extras-stats')
+				if (extrasStats == null){
+					extrasStats = letterboxd.helpers.createElement('ul', {
+						class: 'film-stats extras-stats'
+					});
+					if (this.isMobile){
+						// Add to page
+						extrasStats.className += ' extras-ranking-mobile';
+						document.querySelector('.sidebar').after(extrasStats);
+						// Add the Show Details button			
+						const showDetails = letterboxd.helpers.createElement('a', {
+							class: 'film-stats-show-details',
+							style: 'display: inline-block',
+							['target']: 'mobile-ranking-details'
+						});
+						showDetails.innerText = "SHOW DETAILS";
+						extrasStats.after(showDetails);
+						// Add the hover events
+						$(".film-stats-show-details").on('click', function(event){
+							toggleDetails(event, letterboxd);
+						});
+					}else{
+						document.querySelector('.film-stats').after(extrasStats);
+					}
+				}
+				
+				// Order of rankings
+				var order = [
+					'.tspdt-ranking',
+					'.bfi-ranking'
+				];
+
+				var index = order.indexOf('.' + className);
+
+				// First
+				for (var i = index + 1; i < order.length; i++){
+					var temp = extrasStats.querySelector(order[i]);
+					if (temp != null){
+						temp.before(ranking);
+						return;
+					}
+				}
+
+				// Second
+				for (var i = index - 1; i >= 0; i--){
+					var temp = extrasStats.querySelector(order[i]);
+					if (temp != null){
+						temp.after(ranking);
+						return;
+					}
+				}
+
+				// Third
+				extrasStats.append(ranking);
 			}
 		},
 
@@ -4609,6 +5141,57 @@
 				return output;
 			},
 
+			getTSPDTAltTitles(title, year){
+				var output = "";
+
+				if (title == "Harlan County U.S.A." && year == "1976"){
+					output = "Harlan County, U.S.A.";
+				}
+				else if (title == "Dont Look Back" && year == "1967"){
+					output = "Don't Look Back";
+				}
+
+				output = output.replaceAll('.','\\.');
+				if (output != "")
+					output = "|" + output.toUpperCase();
+
+				return output;
+			},
+
+			getBFIYear(title, year){
+				var output = year;
+
+				if (title == "The Ascent" && year == "1977"){
+					output = "1976";
+				}
+				else if (title == "The Color of Pomegranates" && year == "1969"){
+					output = "1968";
+				}
+
+				return output;
+			},
+
+			getBFIListPage(rank, movieTitle, movieYear){
+				// The movies which are tied are in difference positions on the BFI site and the LB list for some reason
+				// Ugly, but let's just correct the page number manually
+				var output = "";
+				if (rank == "196"){
+					switch(movieTitle){
+						case "Paisan":
+						case "The Headless Woman":
+						case "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb":
+						case "L'Eclisse":
+						case "Wavelength":
+							output = "2";
+							break;
+						default:
+							output = "3";
+							break;
+					}
+				}
+				return output;
+			},
+
 			cleanupInnerText(value){
 				var out = value.replaceAll("\n","");
 				out = out.trim();
@@ -4822,7 +5405,7 @@
 						"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
 						"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P19 ?Entry.\n" +
 						"    ?Entry ps:P19 ?BirthCity.  \n" +
 						"    ?BirthCity wdt:P31/wdt:P279* ?locationType.\n" +
@@ -4836,7 +5419,7 @@
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P19 ?Entry.\n" +
 						"    ?Entry ps:P19 ?BirthTemp.  \n" +
 						"    ?BirthTemp wdt:P131 ?BirthCity.\n" +
@@ -4851,7 +5434,7 @@
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P20 ?Entry2.\n" +
 						"    ?Entry2 ps:P20 ?DeathCity.\n" +
 						"    ?DeathCity wdt:P31/wdt:P279* ?locationType3.\n" +
@@ -4865,7 +5448,7 @@
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213}\n" +
+						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
 						"    ?item p:P20 ?Entry2.\n" +
 						"    ?Entry2 ps:P20 ?DeathTemp.  \n" +
 						"    ?DeathTemp wdt:P131 ?DeathCity.\n" +
@@ -5192,15 +5775,12 @@ function HideTwipsy(event){
 	}
 }
 
-function getOffset( el ) {
-    var _x = 0;
-    var _y = 0;
-    while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
-        _x += el.offsetLeft - el.scrollLeft;
-        _y += el.offsetTop - el.scrollTop;
-        el = el.offsetParent;
-    }
-    return { top: _y, left: _x };
+function getOffset(el) {
+	const rect = el.getBoundingClientRect();
+	return {
+	  left: rect.left + window.scrollX,
+	  top: rect.top + window.scrollY
+	};
 }
 
 function changeTomatoScore(event){
