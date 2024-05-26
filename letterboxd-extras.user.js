@@ -1650,7 +1650,9 @@
 					// Not found, return
 					return;
 				}
-
+				
+				// Return if no scores what so ever
+				if (this.tomatoData.criticAll.num_ratings == 0 && this.tomatoData.audienceAll.num_ratings == 0) return;
 
 				if (this.tomatoData.hideDetailButton == true && this.isMobile){
 					this.tomatoData.hideDetailButton = false;
