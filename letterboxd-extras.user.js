@@ -3610,6 +3610,7 @@
 				if (list != null && list.length >= 2){
 					list = list[1].innerHTML;
 					list = list.replaceAll('<br>','\n');
+					list = list.replaceAll('&amp;','&');
 				}else{
 					console.error("Error while processing TSPDT");
 					return;
@@ -3676,13 +3677,35 @@
 					altTitle2 += "|" + title.replaceAll('COLOR','COLOUR'); // To account for The Color of Pomegranates
 				}
 				altTitle2 += letterboxd.helpers.getTSPDTAltTitles(this.letterboxdTitle, this.letterboxdYear);
+				
+				// Add alternate titles from LB
+				var altTitleList = document.querySelector('div.text-indentedlist p') // To account for Dream of Light/The Quince Tree Sun
+				if (altTitleList != null){
+					altTitleList = altTitleList.innerText.toUpperCase();
+					altTitleList = altTitleList.split(', ');
+					altTitleList.forEach(x =>{
+						x = x.toUpperCase();
+						x = x.replaceAll('\n','');
+						x = x.replaceAll('.','\\.');
+						x = x.replaceAll('?','\\.');
+						altTitle2 += "|" + x;
+					});
+				}
 
 
 				var director = this.letterboxdDirectors[0];
 				director = director.replaceAll(".","\\.") // To account for F. W. Murnau
-				if (this.letterboxdDirectors.length >= 2){
-					director += "|" + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[1]; // TO account for  SINGIN' IN THE RAIN Stanley Donen & Gene Kelly
+				if (this.letterboxdDirectors.length == 2){
+					director += "|" + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[1]; // TO account for SINGIN' IN THE RAIN Stanley Donen & Gene Kelly
 					director += "|" + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[0];
+				}
+				else if (this.letterboxdDirectors.length == 3){
+					director += "|" + this.letterboxdDirectors[0] + ", " + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[2]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[0] + ", " + this.letterboxdDirectors[2] + " & " + this.letterboxdDirectors[1]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[1] + ", " + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[2]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[1] + ", " + this.letterboxdDirectors[2] + " & " + this.letterboxdDirectors[0]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[2] + ", " + this.letterboxdDirectors[0] + " & " + this.letterboxdDirectors[1]; // TO account for Airplane!
+					director += "|" + this.letterboxdDirectors[2] + ", " + this.letterboxdDirectors[1] + " & " + this.letterboxdDirectors[0]; // TO account for Airplane!
 				}
 
 				// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
@@ -5140,11 +5163,14 @@
 				if (title == "Harlan County U.S.A." && year == "1976"){
 					output = "Harlan County, U.S.A.";
 				}
+				else if (title == "Dont Look Back" && year == "1967"){
+					output = "Don't Look Back";
+				}
 
 				output = output.replaceAll('.','\\.');
 				if (output != "")
 					output = "|" + output.toUpperCase();
-				
+
 				return output;
 			},
 
