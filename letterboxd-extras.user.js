@@ -1293,7 +1293,7 @@
 				// Add addtional rankings 
 				if ((this.isMobile && document.querySelector('.sidebar')) || (this.isMobile == false && document.querySelector('.film-stats .stat.filmstat-watches'))){
 					// Add 'They Shoot Pictures, Don't They' ranking
-					if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3){
+					if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3 && this.letterboxdDirectors.length > 0){
 						// this.tspdt.state:
 						// 0 = no call made
 						// 1 = call made, not yet returned
@@ -1308,7 +1308,7 @@
 						}
 					}
 					// Add 'BFI Sight and Sound' ranking
-					if (letterboxd.storage.get('bfi-enabled') === true && this.letterboxdTitle != null && this.bfi.state < 3){
+					if (letterboxd.storage.get('bfi-enabled') === true && this.letterboxdTitle != null && this.bfi.state < 3 && this.letterboxdDirectors.length > 0){
 						// this.bfi.state:
 						// 0 = no call made
 						// 1 = call made, not yet returned
