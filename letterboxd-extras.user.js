@@ -3549,7 +3549,7 @@
 				// Make the call now and save the data for later
 				var url = "https://www.theyshootpictures.com/gf1000_all1000films.htm";
 				this.tspdt.state = 1;
-				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+				chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 					this.tspdt.raw = value.response;
 					this.tspdt.data = letterboxd.helpers.parseHTML(this.tspdt.raw);
 					
@@ -3560,7 +3560,7 @@
 			getTSPDTListURL(){
 				// Get the letterboxd list from the page
 				var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
-				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+				chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 					const data = letterboxd.helpers.parseHTML(value.response);
 					var list = data.querySelectorAll('#stacks_in_9823 span');
 
@@ -3773,7 +3773,7 @@
 				// Make the call now and save the data for later
 				var url = "https://www.bfi.org.uk/sight-and-sound/greatest-films-all-time";
 				this.bfi.state = 1;
-				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+				chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 					this.bfi.raw = value.response;
 					this.bfi.data = letterboxd.helpers.parseHTML(value);
 					
