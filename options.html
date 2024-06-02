@@ -207,6 +207,28 @@
         </div>
     </div>
     <div>
+        <h3>SIMKL</h3>
+        <div>
+            <label for="simkl-enabled">Display SIMKL:</label>
+            <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="simkl-permissions" class="request-permission" permissionTarget="simkl-enabled" value="Request Permission"/>
+        </div>
+    </div>
+    <div>
+        <h3>AlloCiné</h3>
+        <div>
+            <label for="allocine-enabled">Display AlloCiné:</label>
+            <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="allocine-permissions" class="request-permission" permissionTarget="allocine-enabled" value="Request Permission"/>
+        </div>
+    </div>
+    <div>
         <h3>CinemaScore</h3>
         <div>
             <label for="cinema-enabled">Display CinemaScore:</label>
