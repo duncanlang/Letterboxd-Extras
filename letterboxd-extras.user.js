@@ -101,6 +101,15 @@
 			margin-right: 5px;
 			opacity: 100%;
 		}
+		.logo-allocine{
+			background-position: -396px -0px;
+			background-repeat: no-repeat;
+			display: inline-block;
+			width: 120px;
+			height: 34px;
+			transform-origin: top left;
+			transform: scale(.6);
+		}
 		.icon-tomato {
 			background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg");
 		}
@@ -135,7 +144,7 @@
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -172,6 +181,10 @@
 			color: #3db4f2;
 			filter: brightness(0) saturate(100%) invert(67%) sepia(28%) saturate(3210%) hue-rotate(171deg) brightness(97%) contrast(95%);
 		}
+		.rating-star-allocine{
+			color: #fecc00;
+			filter: brightness(0) saturate(100%) invert(81%) sepia(51%) saturate(1681%) hue-rotate(357deg) brightness(98%) contrast(107%);;
+		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
 			-webkit-transition: opacity 0.25s ease-out;
@@ -200,11 +213,11 @@
 			-ms-user-select: none; /* IE 10 and IE 11 */
 			user-select: none; /* Standard syntax */
 		}
-		.rt-button.critic-all, .rt-button.audience-all{
+		.rt-button.critic-all, .rt-button.audience-all, .rt-button.allo-user{
 			border-top-right-radius: 0px;
 			border-bottom-right-radius: 0px;
 		}
-		.rt-button.critic-top, .rt-button.audience-verified{
+		.rt-button.critic-top, .rt-button.audience-verified, .rt-button.allo-critic{
 			border-top-left-radius: 0px;
 			border-bottom-left-radius: 0px;
 		}
@@ -230,6 +243,20 @@
 			height: 17px;
 			line-height: 18px;
 			margin-top: 4px;
+		}
+		.allo-buttons{
+			display: block;
+			margin-bottom: 5px;
+		}
+		.rt-button.allo-user, .rt-button.allo-critic{
+			display: inline-block;
+			width: 46%;
+			margin-right: 0px;
+		}
+		.allo-critic-stars{
+			display: inline-block;
+			width: 64px;
+			height: 16px;
 		}
 		.rt-bar{
 			display: inline-block;
@@ -456,6 +483,12 @@
 		.logo-simkl{
 			width: 50px;
 		}
+		.allocine-ratings .average-rating{
+			top: -8px !important;
+		}
+		.extras-allo-star::before, .extras-allo-star::after{
+			content: "\e066";
+		}
 	`);
 	/* eslint-enable */
 
@@ -549,7 +582,7 @@
 			bfi: {state: 0, data: null, raw: null, found: false, ranking: null, listIndex: null},
 
 			// Allocine
-			allocine: {state: 0, data: null, url: null, urlUser: null, urlCritic: null, rating: null, num_ratings: 0, num_reviews: 0, highest: 0, votes: new Array(5), percents: new Array(5)},
+			allocine: {state: 0, user: {data: null, raw: null, rating: null, num_ratings: 0, num_reviews: 0, highest: 0, votes: new Array(6), percents: new Array(6)}, critic: {data: null, raw: null, rating: null, num_ratings: 0}, url: null, urlUser: null, urlCritic: null},
 
 			// Douban
 			douban: {state: 0, data: null, url: null, rating: null, num_ratings: 0},
@@ -1336,7 +1369,7 @@
 							this.searchAllocine();
 						}
 					}
-					if (this.allocine.state == 2 && this.allocine.data != null){
+					if (this.allocine.state == 1 && this.allocine.user.data != null && this.allocine.critic.data != null){
 						// Add to page
 						this.addAllocine();
 					}
@@ -4182,7 +4215,7 @@
 				
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight simkl-score'
+					class: 'tooltip tooltip-extra display-rating -highlight simkl-score'
 				});
 				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
 				
@@ -4246,10 +4279,10 @@
 					toggleDetails(event, letterboxd);
 				});
 
-				// Add Hover events
-				//************************************************************
-				$(".tooltip.display-rating.-highlight.simkl-score").on("mouseover", ShowTwipsy);
-				$(".tooltip.display-rating.-highlight.simkl-score").on("mouseout", HideTwipsy);
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
 			},
 
 			initAllocine(id, type){
@@ -4267,14 +4300,26 @@
 					this.allocine.urlUser = "https://www.allocine.fr/series/ficheserie-" + id + "/critiques/";
 					this.allocine.urlCritic = "https://www.allocine.fr/series/ficheserie-" + id + "/critiques/presse/";
 				}
-				var url = this.allocine.urlUser;
 
-				// Make Call
-				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
-					this.allocine.raw = value.response;
-					this.allocine.data = letterboxd.helpers.parseHTML(value.response);
+				// Make Calls
+				letterboxd.helpers.getData(this.allocine.urlUser, "GET", null, null).then((value) => {
+					try{
+						this.allocine.user.raw = value.response;
+						this.allocine.user.data = letterboxd.helpers.parseHTML(value.response);
+					}catch(error){
+						console.error(error);
+						this.allocine.state = 3; // Error
+					}
 					
-					this.allocine.state = 2;
+				});
+				letterboxd.helpers.getData(this.allocine.urlCritic, "GET", null, null).then((value) => {
+					try{
+						this.allocine.critic.raw = value.response;
+						this.allocine.critic.data = letterboxd.helpers.parseHTML(value.response);
+					}catch(error){
+						console.error(error);
+						this.allocine.state = 3; // Error
+					}
 				});
 			},
 
@@ -4287,34 +4332,35 @@
 
 				if (!document.querySelector('.sidebar')) return;
 
-				this.allocine.state = 3;
+				this.allocine.state = 2;
 				
 				// Collect Date from the AlloCine page
 				//***************************************************************
+				// Get User ratings
 				// Rating
-				if (this.allocine.data.querySelector(".big-note .note")){
-					this.allocine.rating = this.allocine.data.querySelector(".big-note .note").innerText;
-					this.allocine.rating = Number(this.allocine.rating.replace(",","."));
+				if (this.allocine.user.data.querySelector(".big-note .note")){
+					this.allocine.user.rating = this.allocine.user.data.querySelector(".big-note .note").innerText;
+					this.allocine.user.rating = Number(this.allocine.user.rating.replace(",","."));
 				}
 				// Rating Count
-				if (this.allocine.data.querySelector(".big-note .user-note-count")){
-					this.allocine.num_ratings = this.allocine.data.querySelector(".big-note .user-note-count").innerText;
+				if (this.allocine.user.data.querySelector(".big-note .user-note-count")){
+					this.allocine.user.num_ratings = this.allocine.user.data.querySelector(".big-note .user-note-count").innerText;
 					var regex = new RegExp("([0-9]+) notes*");
-					if (this.allocine.num_ratings.match(regex)){
-						this.allocine.num_ratings = Number(this.allocine.num_ratings.match(regex)[1]);
+					if (this.allocine.user.num_ratings.match(regex)){
+						this.allocine.user.num_ratings = Number(this.allocine.user.num_ratings.match(regex)[1]);
 					}
 				}
 				// Review Count
-				if (this.allocine.data.querySelector(".reviews-users-by-note .titlebar-title")){
-					this.allocine.num_reviews = this.allocine.data.querySelector(".reviews-users-by-note .titlebar-title").innerText;
-					var regex = new RegExp("([0-9]+) critique");
-					if (this.allocine.num_reviews.match(regex)){
-						this.allocine.num_reviews = Number(this.allocine.num_reviews.match(regex)[1]);
+				if (this.allocine.user.data.querySelector(".reviews-users-by-note .titlebar-title")){
+					this.allocine.user.num_reviews = this.allocine.user.data.querySelector(".reviews-users-by-note .titlebar-title").innerText;
+					var regex = new RegExp("([0-9 ]+) critique");
+					if (this.allocine.user.num_reviews.match(regex)){
+						this.allocine.user.num_reviews = Number(letterboxd.helpers.cleanNumber(this.allocine.user.num_reviews.match(regex)[1]));
 					}
 				}
 				// Review breakdown
-				if (this.allocine.data.querySelector(".reviews-users-by-note .item")){
-					var histogramData = this.allocine.data.querySelectorAll(".reviews-users-by-note .item");
+				if (this.allocine.user.data.querySelector(".reviews-users-by-note .item")){
+					var histogramData = this.allocine.user.data.querySelectorAll(".reviews-users-by-note .item");
 					for (var i = 0; i < histogramData.length; i++){
 						// Get the votes
 						var votes = histogramData[i].querySelector(".item-unit .nb").innerText;
@@ -4323,92 +4369,105 @@
 							votes = Number(votes.match(regex)[1]);
 						}
 						// Get the percent
-						var percent = ((votes / this.allocine.num_reviews) * 100).toFixed(1);
+						var percent = ((votes / this.allocine.user.num_reviews) * 100).toFixed(1);
 
 						// Add to arrays
-						this.allocine.votes[i] = votes;
-						this.allocine.percents[i] = percent;
+						this.allocine.user.votes[i] = votes;
+						this.allocine.user.percents[i] = percent;
 
 						// Set highest
-						if (this.allocine.highest < votes)
-							this.allocine.highest = votes;
+						if (this.allocine.user.highest < votes)
+							this.allocine.user.highest = votes;
 					}
 
-					this.allocine.votes.reverse();
-					this.allocine.percents.reverse();
+					this.allocine.user.votes.reverse();
+					this.allocine.user.percents.reverse();
 				}
 
+				// Get critic ratings
+				// Rating
+				if (this.allocine.critic.data.querySelector(".big-note .note")){
+					this.allocine.critic.rating = this.allocine.critic.data.querySelector(".big-note .note").innerText;
+					this.allocine.critic.rating = Number(this.allocine.critic.rating.replace(",","."));
+				}else{
+					this.allocine.critic.rating = 0;
+				}
+				// Rating Count
+				if (this.allocine.critic.data.querySelector(".big-note .user-note-count")){
+					this.allocine.critic.num_ratings = this.allocine.critic.data.querySelector(".big-note .user-note-count").innerText;
+					var regex = new RegExp("([0-9]+) titre");
+					if (this.allocine.critic.num_ratings.match(regex)){
+						this.allocine.critic.num_ratings = Number(this.allocine.critic.num_ratings.match(regex)[1]);
+					}
+				}
+
+
 				// Do not display if there is no score or ratings
-				if (this.allocine.rating == null && this.allocine.num_ratings == 0) return;
+				if (this.allocine.user.rating == null && this.allocine.user.num_ratings == 0) return;
 
 				// Add to Letterboxd
 				//***************************************************************
 				// Add the section to the page
 				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart allocine-ratings ratings-extras'
+					class: 'section ratings-histogram-chart allocine-ratings ratings-extras extras-chart'
 				});				
 
 				// Add the Header
 				const heading = letterboxd.helpers.createElement('h2', {
 					class: 'section-heading section-heading-extras',
-					style: 'height: 13px;'
+					style: 'height: 15px !important; margin-bottom: 0px !important;'
 				});
 				section.append(heading);
 
-				const headerTitle = letterboxd.helpers.createElement('a', {
-					href: this.allocine.url
+				const logo = letterboxd.helpers.createElement('a', {
+					class: 'logo-allocine',
+					href: this.allocine.url,
+					style: 'background-image: url("https://assets.allocine.fr/skin/img/allocine/sprite.a961a077.png");'
 				});
-				headerTitle.innerText = "AlloCine"
-				heading.append(headerTitle);
+				heading.append(logo);
 				
+				// Add the Show Details button
+				/*
+				if (this.tomatoData.hideDetailButton == false){
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details allocine-show-details',
+						['target']: 'allocine-critic-score'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
+				*/
+				
+				// Add the div to hold the toggle buttons
+				// Div to hold buttons
+				const buttonDiv = letterboxd.helpers.createElement('div', {
+					class: 'allo-buttons',
+					style: 'display: block;'
+				});
+				section.append(buttonDiv);
+
+				buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
+				buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
+			
 				// Score
 				//***************************************************************
-				section.append(letterboxd.helpers.createHistogramScore(letterboxd, "allocine", this.allocine.rating, this.allocine.num_reviews, this.allocine.urlUser, this.isMobile));
-				section.append(letterboxd.helpers.createHistogramGraph(letterboxd, "allocine", this.allocine.url, this.allocine.num_reviews, this.allocine.votes, this.allocine.percents, this.allocine.highest));
-
-				/*
-				const container = letterboxd.helpers.createElement('span', {}, {
-					['display']: 'block',
-					['margin-bottom']: '10px'
+				// User score - user rt-score-div so I can reuse changeTomatoScore
+				const userSpan = letterboxd.helpers.createElement('span', {
+					class: 'allocine-user-score rt-score-div',
+					style: 'position: relative; display: block; height: 44px;'
 				});
-				section.append(container);
+				userSpan.append(letterboxd.helpers.createHistogramScore(letterboxd, "allocine", this.allocine.user.rating, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
+				userSpan.append(letterboxd.helpers.createHistogramGraph(letterboxd, "allocine", this.allocine.urlUser, this.allocine.user.num_reviews, this.allocine.user.votes, this.allocine.user.percents, this.allocine.user.highest));
+				section.append(userSpan);
 
-				// The span that holds the score
-				const span = letterboxd.helpers.createElement('div', {}, {
-					['display']: 'inline-block',
-					['width']: 'auto'
+				// Critic score
+				const criticSpan = letterboxd.helpers.createElement('span', {
+					class: 'allocine-critic-score rt-score-div',
+					style: 'position: relative; display: block; height: 44px; display:none;'
 				});
-				
-				// The element that is the score itself
-				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight allocine-score'
-				});
-				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
-				
-				var score = this.allocine.rating.toLocaleString();
-				var num_ratings = this.allocine.num_ratings.toLocaleString();
-				var num_reviews = this.allocine.num_reviews.toLocaleString();
-				var totalScore = "/5";
-
-				// Add the hoverover text and href
-				var tooltip = 'No score available';
-				if (this.allocine.num_ratings > 0 && this.allocine.rating == null){
-					tooltip = num_ratings + ' rating';
-					if (this.allocine.num_ratings > 1) tooltip += "s";
-					score = "N/A";
-
-				}else if (this.allocine.num_ratings > 0){
-					tooltip = "Average of " + score + totalScore + " based on " + num_ratings + ' ratings and ' + num_reviews + ' reviews';
-				}else{
-					score = "N/A";
-				}
-				text.setAttribute('data-original-title', tooltip);
-				text.setAttribute('href', this.allocine.urlUser);
-				text.innerText = score;
-				span.append(text);
-				
-				container.append(span);
-				*/
+				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, this.allocine.urlCritic, this.isMobile));
+				criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+				section.append(criticSpan);
 
 				// Add the tooltip as text for mobile
 				if (this.isMobile){
@@ -4431,14 +4490,19 @@
 				
 				//Add click for Show details button
 				//************************************************************
+				/*
 				$(".allocine-show-details").on('click', function(event){
 					toggleDetails(event, letterboxd);
 				});
-
-				// Add Hover events
+				*/
+				// Add click event for score buttons
 				//************************************************************
-				$(".tooltip.display-rating.-highlight.allocine-score").on("mouseover", ShowTwipsy);
-				$(".tooltip.display-rating.-highlight.allocine-score").on("mouseout", HideTwipsy);
+				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
 			},
 
 			initDouban(){
@@ -5296,6 +5360,7 @@
 				});
 				
 				var convertRatings = (letterboxd.storage.get('convert-ratings') === "5");
+				var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
 				var suffix = "/10";
 				var tooltip = "";
 				if (rating != "N/A"){
@@ -5310,7 +5375,13 @@
 					} else if (type == "al"){
 						suffix = "/100";
 					} else if (type == "allocine"){
-						suffix = "/5";
+						if (convert10Point){
+							rating = (Number(rating) * 2).toFixed(1);
+							suffix = "/10";
+						}else{
+							rating = Number(rating).toFixed(1);
+							suffix = "/5";
+						}
 					} else {
 						rating = Number(rating).toFixed(1);
 						suffix = "/10";
@@ -5339,22 +5410,34 @@
 
 				return scoreSpan;
 			},
+			
 
 			createHistogramGraph(letterboxd, type, url, count, votes, percents, highest){
 				// Add the bars for the rating
+				if (votes.length == 10){
+					var histogramType = "rating-histogram-exploded"
+				}else{
+					var histogramType = "rating-histogram-condensed"
+				}
 				const histogram = letterboxd.helpers.createElement('div', {
-					class: 'rating-histogram clear rating-histogram-exploded rating-histogram-extras'
+					class: 'rating-histogram clear ' + histogramType + ' rating-histogram-extras'
 				});
 				const ul = letterboxd.helpers.createElement('ul', {
 				});
 				histogram.append(ul);
 
+				var width = 15;
+				if (votes.length == 6){
+					width = 26;
+				}else if (votes.length == 5){
+					width = 35;
+				}
 				// Loop for each bar
 				for (var ii = 0; ii < votes.length; ii++){	
-					var left = (ii * 16).toString() + "px;";
+					var left = (ii * (width + 1)).toString() + "px;";
 					const il = letterboxd.helpers.createElement('li', {
 						class: 'rating-histogram-bar',
-						style: 'width: 15px; left: ' + left
+						style: 'width: ' + width + 'px; left: ' + left
 					});
 					ul.append(il);
 
@@ -5370,21 +5453,31 @@
 						var percentage = percents[ii];
 					}
 
+					// Determine rating type (rating vs review)
+					var ratingType = "ratings";
+					if (type == "allocine"){
+						ratingType = "reviews";
+					}
+
 					// Determine Suffixes
 					var ratingSuffix = letterboxd.overview.ratingsSuffix;
 					if (type == "al" && letterboxd.storage.get('convert-ratings') === false){
 						ratingSuffix = ['10/100', '20/100', '30/100', '40/100', '50/100', '60/100', '70/100', '80/100', '90/100', '100/100'];
+					}else if (type == "allocine"){
+						ratingSuffix = ['0-★', '★', '★★', '★★★', '★★★★', '★★★★★'];
 					}
 
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip ' + type + ' tooltip-extra',
-						['data-original-title']: voteCount.toLocaleString() + " " + ratingSuffix[ii] + ' ratings (' + percentage.toString() + '%)'
+						['data-original-title']: voteCount.toLocaleString() + " " + ratingSuffix[ii] + ' ' + ratingType + ' (' + percentage.toString() + '%)'
 					});
 					il.append(a);
 					
 					// IMDb reviews link
 					if (type == "imdb"){
 						a.href = url.replace('/ratings','') + '/reviews?ratingFilter=' + (ii + 1).toString();
+					}else if (type == "allocine"){
+						a.href = url + "star-" + ii;
 					}
 
 					var max = 44.0;
@@ -5437,6 +5530,94 @@
 				ul.after(span5Star);
 
 				return histogram;
+			},
+			
+			createAllocineCriticScore(letterboxd, type, rating, count, url, isMobile){
+				// The span that holds the score
+				const scoreSpan = letterboxd.helpers.createElement('span', {
+					class: 'allocine-critic',
+					style: 'display: inline-block; margin-right: 5px;'
+				});
+				
+				var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
+				var suffix = "/10";
+				var tooltip = "";
+				if (rating != "N/A"){
+					// Convert the score if needed
+					if (convert10Point){
+						rating = (Number(rating) * 2).toFixed(1);
+						suffix = "/10";
+					}else{
+						suffix = "/5";
+					}					
+					// Create tooltip text
+					tooltip = 'Weighted average of ' + rating + suffix + ' based on ' + count.toLocaleString() + ' ratings'
+				}
+
+				// The element that is the score itself
+				const scoreElement = letterboxd.helpers.createElement('a', {
+					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
+					style: 'line-height: 28px;',
+					href: url,
+					['data-original-title']: tooltip
+				});
+
+				if (rating == "N/A"){
+					scoreElement.innerText = "N/A";
+				} else {
+					scoreElement.innerText = rating.toFixed(1);
+				}
+				
+				scoreSpan.append(scoreElement);
+
+				return scoreSpan;
+			},
+
+			createAllocineStars(rating){
+				var holder = letterboxd.helpers.createElement('div', {
+					class: 'allo-critic-stars'
+				});
+
+				// Star back
+				const span5Starback = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-10 rating-star-allocine-critic',
+					style: 'position: absolute;'
+				});
+				span5Starback.innerText = "★★★★★";
+				holder.append(span5Starback);
+
+				// Star front
+				// determine width
+				var totalWidth = 64;
+				var starWidth = 12;
+				var betweenWidth = 1;
+				var width = (starWidth * Math.floor(rating)) + Math.floor(rating) * betweenWidth;
+				if(rating > Math.floor(rating)){
+					width += starWidth/2;
+				}
+				//width = totalWidth - width;
+
+				const span5Starfront = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-10 rating-star-allocine',
+					style: 'position: absolute; width:' + width + 'px;'
+				});
+				span5Starfront.innerText = "★★★★★";
+				holder.append(span5Starfront);
+
+				/*
+				for (var i = 0; i < 5; i++){
+					var star = letterboxd.helpers.createElement('div', {
+						class: 'extras-allo-star'
+					});
+					holder.append(star);
+				}
+				*/
+
+				return holder;
+			},
+
+			roundHalf(num){
+				return Math.round(num*2)/2;
 			},
 
 			getTextBetween(text, start, end){
@@ -5645,6 +5826,7 @@
 				value = value.replaceAll('.','');
 				value = value.replaceAll(' ','');
 				value = value.replaceAll('$','');
+				value = value.replaceAll(' ','');
 
 				return value;
 			},
@@ -6129,7 +6311,7 @@ function changeTomatoScore(event){
 	var parent = event.target.parentNode.parentNode;
 	// Grab the target score div and then the other non-target score div
 	var targetNode = parent.querySelector('.rt-score-div' + target);
-	var otherNode = parent.querySelector('div.rt-score-div:not(' + target + ')');
+	var otherNode = parent.querySelector('.rt-score-div:not(' + target + ')');
 
 	// Hide the current visible score, display the current hidden score
 	otherNode.style.display = 'none';
