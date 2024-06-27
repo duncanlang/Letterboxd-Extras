@@ -24,6 +24,8 @@ async function load() {
     if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
     if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
     if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
+    if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
+    if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
     set();
 }
 
