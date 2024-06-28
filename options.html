@@ -237,11 +237,20 @@
                 <input type="checkbox" id="allocine-critic-enabled" />
             </div>
             <div>
-                <label for="allocine-default-view">Default ratings view:</label>
-                <select id="allocine-default-view">
-                    <option value="user">User</option>
-                    <option value="critic">Critic</option>
+                <label for="allocine-style">Display Style:</label>
+                <select id="allocine-style" subid="allo-view-div" subidvalue="histogram">
+                    <option value="histogram">Histogram Graph</option>
+                    <option value="ratings">Side-by-side Ratings</option>
                 </select>
+            </div>
+            <div id="allo-view-div">
+                <div>
+                    <label for="allocine-default-view">Default ratings view:</label>
+                    <select id="allocine-default-view">
+                        <option value="user">User</option>
+                        <option value="critic">Critic</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>

@@ -75,10 +75,20 @@ async function checkPermission(element){
 function checkSubIDToDisable(element){
     if (element.getAttribute("subid") != null){
         var target = document.querySelector("#" + element.getAttribute("subid"));
-        if (element.checked){
-            target.className = target.className.replace("disabled","");
+        var targetValue = element.getAttribute("subidvalue");
+
+        if (targetValue != null){
+            if (element.value == targetValue){
+                target.className = target.className.replace("disabled","");
+            }else{
+                target.className += " disabled";
+            }
         }else{
-            target.className += " disabled";
+            if (element.checked){
+                target.className = target.className.replace("disabled","");
+            }else{
+                target.className += " disabled";
+            }
         }
     }
 }
