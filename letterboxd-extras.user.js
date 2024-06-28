@@ -494,7 +494,7 @@
 			margin-right: 10px;
 			margin-top: 5px;
 			padding: 4px;
-			border: gray 1px solid;
+			border: #4c4c4c 1px solid;
 			border-radius: .625rem;
 		}
 		.allocine-label{
