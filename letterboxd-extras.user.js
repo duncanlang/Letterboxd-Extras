@@ -5662,6 +5662,8 @@
 				span5Starback.innerText = "★★★★★";
 				holder.append(span5Starback);
 
+				rating = letterboxd.helpers.roundHalf(rating);
+
 				// Star front
 				// determine width
 				var totalWidth = 64;
