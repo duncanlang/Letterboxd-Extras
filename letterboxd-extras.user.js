@@ -483,6 +483,19 @@
 		.logo-simkl{
 			width: 50px;
 		}
+		.simkl-box{
+			border: rgb(89 88 86/37%) 1px solid;
+			border-radius: 6px;
+			padding: 5px;
+			margin-top: 3px;
+			cursor: pointer;
+		}
+		.simkl-box:hover{
+			background-color: rgba(255,255,255,.1);
+		}
+		.simkl-box span, .simkl-box p{
+    		pointer-events:none;
+		}
 		.allocine-ratings .average-rating{
 			top: -8px !important;
 		}
@@ -4179,9 +4192,17 @@
 				
 				// Collect Date from the SIMKL API
 				//***************************************************************
-				this.simkl.rating = this.simkl.data.simkl.rating;
-				this.simkl.num_ratings = this.simkl.data.simkl.votes;
-				this.simkl.url = this.simkl.data.link;
+				if (this.simkl.data != null){
+					if (this.simkl.data.simkl != null && this.simkl.data.simkl.rating != null){
+						this.simkl.rating = this.simkl.data.simkl.rating;
+					}
+					if (this.simkl.data.simkl != null && this.simkl.data.simkl.votes != null){
+						this.simkl.num_ratings = this.simkl.data.simkl.votes;
+					}
+					if (this.simkl.data.link != null){
+						this.simkl.url = this.simkl.data.link;
+					}
+				}
 
 				// Do not display if there is no score or ratings
 				if (this.simkl.rating == null && this.simkl.num_ratings == 0) return;
@@ -4200,12 +4221,6 @@
 				});
 				section.append(heading);
 
-				//const headerTitle = letterboxd.helpers.createElement('a', {
-				//	href: this.simkl.url
-				//});
-				//headerTitle.innerText = "SIMKL"
-				//heading.append(headerTitle);
-
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-simkl",
 					href: this.simkl.url,
@@ -4221,25 +4236,14 @@
 				});
 				section.append(container);
 
-				// The span that holds the score
-				const span = letterboxd.helpers.createElement('div', {}, {
-					['display']: 'inline-block',
-					['width']: 'auto'
-				});
-				
-				// The element that is the score itself
-				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip tooltip-extra display-rating -highlight simkl-score'
-				});
-				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
-				
+				// Setup Score and Tooltip
 				var score = this.simkl.rating;
 				var totalScore = "/10";				
 				if (letterboxd.storage.get('convert-ratings') === "5"){
 					totalScore = "/5";
 					score = (score / 2).toFixed(1);
 				}
-				score = score.toLocaleString();
+				score = score.toFixed(1).toLocaleString();
 				var num_ratings = this.simkl.num_ratings.toLocaleString();
 
 				// Add the hoverover text and href
@@ -4254,8 +4258,22 @@
 				}else{
 					score = "N/A";
 				}
-				text.setAttribute('data-original-title', tooltip);
-				text.setAttribute('href', this.simkl.url);
+
+				// The span that holds the score
+				const span = letterboxd.helpers.createElement('a', {
+					class: "simkl-box tooltip tooltip-extra",
+					['href']: this.simkl.url,
+					['data-original-title']: tooltip
+				}, {
+					['display']: 'inline-block',
+					['width']: 'auto'
+				});
+				
+				// The element that is the score itself
+				const text = letterboxd.helpers.createElement('span', {
+					class: 'display-rating -highlight simkl-score'
+				});
+				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
 				text.innerText = score;
 				span.append(text);
 				
