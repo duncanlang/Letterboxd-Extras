@@ -209,6 +209,54 @@
         </div>
     </div>
     <div>
+        <h3>Simkl</h3>
+        <div>
+            <label for="simkl-enabled">Display Simkl:</label>
+            <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="simkl-permissions" class="request-permission" permissionTarget="simkl-enabled" value="Request Permission"/>
+        </div>
+    </div>
+    <div>
+        <h3>AlloCiné</h3>
+        <div>
+            <label for="allocine-enabled">Display AlloCiné:</label>
+            <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" subid="allo-div" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="allocine-permissions" class="request-permission" permissionTarget="allocine-enabled" value="Request Permission"/>
+        </div>
+        <div id="allo-div" class="disabled">
+            <div>
+                <label for="allocine-users-enabled">Display user ratings:</label>
+                <input type="checkbox" id="allocine-users-enabled" />
+            </div>
+            <div>
+                <label for="allocine-critic-enabled">Display critic ratings:</label>
+                <input type="checkbox" id="allocine-critic-enabled" />
+            </div>
+            <div>
+                <label for="allocine-style">Display Style:</label>
+                <select id="allocine-style" subid="allo-view-div" subidvalue="histogram">
+                    <option value="histogram">Histogram Graph</option>
+                    <option value="ratings">Side-by-side Ratings</option>
+                </select>
+            </div>
+            <div id="allo-view-div">
+                <div>
+                    <label for="allocine-default-view">Default ratings view:</label>
+                    <select id="allocine-default-view">
+                        <option value="user">User</option>
+                        <option value="critic">Critic</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
         <h3>CinemaScore</h3>
         <div>
             <label for="cinema-enabled">Display CinemaScore:</label>

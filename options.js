@@ -55,10 +55,20 @@ function save() {
 function checkSubIDToDisable(element){
     if (element.getAttribute("subid") != null){
         var target = document.querySelector("#" + element.getAttribute("subid"));
-        if (element.checked){
-            target.className = target.className.replace("disabled","");
+        var targetValue = element.getAttribute("subidvalue");
+
+        if (targetValue != null){
+            if (element.value == targetValue){
+                target.className = target.className.replace("disabled","");
+            }else{
+                target.className += " disabled";
+            }
         }else{
-            target.className += " disabled";
+            if (element.checked){
+                target.className = target.className.replace("disabled","");
+            }else{
+                target.className += " disabled";
+            }
         }
     }
 }
@@ -93,6 +103,8 @@ async function load() {
         if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
         if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
         if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
+        if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
+        if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
 
         // Set the settings
         var elements = document.querySelectorAll('.setting');

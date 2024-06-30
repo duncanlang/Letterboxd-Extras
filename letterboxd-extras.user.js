@@ -87,7 +87,7 @@
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon{
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl{
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -100,6 +100,15 @@
 			display: inline-block;
 			margin-right: 5px;
 			opacity: 100%;
+		}
+		.logo-allocine{
+			background-position: -396px -0px;
+			background-repeat: no-repeat;
+			display: inline-block;
+			width: 120px;
+			height: 34px;
+			transform-origin: top left;
+			transform: scale(.6);
 		}
 		.icon-tomato {
 			background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg");
@@ -135,7 +144,7 @@
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -172,6 +181,10 @@
 			color: #3db4f2;
 			filter: brightness(0) saturate(100%) invert(67%) sepia(28%) saturate(3210%) hue-rotate(171deg) brightness(97%) contrast(95%);
 		}
+		.rating-star-allocine{
+			color: #fecc00;
+			filter: brightness(0) saturate(100%) invert(81%) sepia(51%) saturate(1681%) hue-rotate(357deg) brightness(98%) contrast(107%);;
+		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
 			-webkit-transition: opacity 0.25s ease-out;
@@ -200,11 +213,11 @@
 			-ms-user-select: none; /* IE 10 and IE 11 */
 			user-select: none; /* Standard syntax */
 		}
-		.rt-button.critic-all, .rt-button.audience-all{
+		.rt-button.critic-all, .rt-button.audience-all, .rt-button.allo-user{
 			border-top-right-radius: 0px;
 			border-bottom-right-radius: 0px;
 		}
-		.rt-button.critic-top, .rt-button.audience-verified{
+		.rt-button.critic-top, .rt-button.audience-verified, .rt-button.allo-critic{
 			border-top-left-radius: 0px;
 			border-bottom-left-radius: 0px;
 		}
@@ -230,6 +243,26 @@
 			height: 17px;
 			line-height: 18px;
 			margin-top: 4px;
+		}
+		.allo-buttons{
+			display: block;
+			margin-bottom: 5px;
+		}
+		.rt-button.allo-user, .rt-button.allo-critic{
+			display: inline-block;
+			width: 46%;
+			margin-right: 0px;
+		}
+		.rt-button.allo-user.extras-mobile, .rt-button.allo-critic.extras-mobile{
+			font-size: 11px;
+			height: 17px;
+			line-height: 18px;
+			margin-top: 4px;
+		}
+		.allo-critic-stars{
+			display: inline-block;
+			width: 64px;
+			height: 16px;
 		}
 		.rt-bar{
 			display: inline-block;
@@ -372,7 +405,7 @@
 		.extras-table td{
 			padding-bottom: 10px;
 		}
-		.mubi-score{
+		.mubi-score,.simkl-score{
 			color: #FFF;
 			font-size: 18px;
 		}
@@ -452,6 +485,44 @@
 		.mobile-ranking-details{
 			font-size: 10px;
 			margin-left: 15px;
+		}
+		.logo-simkl{
+			width: 50px;
+		}
+		.simkl-box{
+			border: rgb(89 88 86/37%) 1px solid;
+			border-radius: 6px;
+			padding: 7px;
+			padding-left: 12px;
+			padding-right: 12px;
+			margin-top: 3px;
+			cursor: pointer;
+		}
+		.simkl-box:hover{
+			background-color: rgba(255,255,255,.1);
+		}
+		.simkl-box span, .simkl-box p{
+    		pointer-events:none;
+		}
+		.allocine-ratings .average-rating{
+			top: -8px !important;
+		}
+		.extras-allo-star::before, .extras-allo-star::after{
+			content: "\e066";
+		}
+		.allocine-ratings-style{
+			display: inline-block;
+			margin-right: 10px;
+			margin-top: 5px;
+			padding: 4px;
+			border: #4c4c4c 1px solid;
+			border-radius: .625rem;
+		}
+		.allocine-label{
+			width: 100%;
+			display: block;
+			text-align: center; 
+			font-size: 10px;
 		}
 	`);
 	/* eslint-enable */
@@ -544,6 +615,15 @@
 
 			// BFI Sight and Sound
 			bfi: {state: 0, data: null, raw: null, found: false, ranking: null, listIndex: null},
+
+			// Allocine
+			allocine: {state: 0, user: {data: null, raw: null, rating: null, num_ratings: 0, num_reviews: 0, highest: 0, votes: new Array(6), percents: new Array(6)}, critic: {data: null, raw: null, rating: null, num_ratings: 0}, url: null, urlUser: null, urlCritic: null},
+
+			// Douban
+			douban: {state: 0, data: null, url: null, rating: null, num_ratings: 0},
+
+			// SIMKL
+			simkl: {state: 0, data: null, url: null, rating: null, num_ratings: 0},
 
 
 			linksAdded: [],
@@ -956,6 +1036,19 @@
 								if (this.wiki != null && this.wiki.SensCritique_ID != null && this.wiki.SensCritique_ID.value != null ){										
 									this.wikiData.SensCritique_ID = this.wiki.SensCritique_ID.value;
 								}
+								
+								// Get the Allocine ID to use for later
+								if (this.wiki != null && this.wiki.Allocine_Film_ID != null && this.wiki.Allocine_Film_ID.value != null ){										
+									this.wikiData.Allocine_Film_ID = this.wiki.Allocine_Film_ID.value;
+								}
+								if (this.wiki != null && this.wiki.Allocine_TV_ID != null && this.wiki.Allocine_TV_ID.value != null ){										
+									this.wikiData.Allocine_TV_ID = this.wiki.Allocine_TV_ID.value;
+								}
+								
+								// Get the Douban ID to use for later
+								if (this.wiki != null && this.wiki.Douban_ID != null && this.wiki.Douban_ID.value != null ){										
+									this.wikiData.Douban_ID = this.wiki.Douban_ID.value;
+								}
 
 								// Get and add FilmAffinity
 								if (letterboxd.storage.get('filmaff-enabled') === true){
@@ -1279,6 +1372,39 @@
 					if (this.metaData.state == 3 && this.imdbData.meta != null && letterboxd.storage.get("metacritic-enabled") === true){
 						this.metaData.state = 2;
 						this.addMeta();
+					}
+				}
+
+				// Add SIMKL
+				if (letterboxd.storage.get('simkl-enabled') === true && this.simkl.state < 3 && (this.imdbID != "" || this.tmdbID != "")){
+					if (this.simkl.state == 0){
+						// Make call
+						this.initSIMKL();
+					}
+					if (this.simkl.state == 2 && this.simkl.data != null){
+						// Add to page
+						this.addSIMKL();
+						this.addLink(this.simkl.url);
+					}
+				}
+
+				// Add Allocine
+				if (letterboxd.storage.get('allocine-enabled') === true && this.allocine.state < 3 && this.wikiData.state == 2){
+					if (this.allocine.state == 0){
+						if (this.wikiData.Allocine_Film_ID != null){
+							// Already have ID from Wikidata
+							this.initAllocine(this.wikiData.Allocine_Film_ID, "FILM");
+						}else if (this.wikiData.Allocine_TV_ID != null){
+							// Already have ID from Wikidata
+							this.initAllocine(this.wikiData.Allocine_TV_ID, "TV");
+						}else{
+							// No ID found in Wikidata
+							this.allocine.state = 3;
+						}
+					}
+					if (this.allocine.state == 1 && this.allocine.user.data != null && this.allocine.critic.data != null){
+						// Add to page
+						this.addAllocine();
 					}
 				}
 
@@ -2523,6 +2649,12 @@
 					}else if (url.includes("wikipedia")){
 						text = "WIKI";
 						className = "wiki-button";
+					}else if (url.includes("simkl")){
+						text = "SIMKL";
+						className = "simkl-button";
+					}else if (url.includes("allocine")){
+						text = "ALLO";
+						className = "allo-button";
 					}
 
 					if (document.querySelector('.' + className)){
@@ -2547,6 +2679,8 @@
 						'.sens-button',
 						'.mubi-button',
 						'.filmaff-button',
+						'.simkl-button',
+						'.allo-button',
 						'.mal-button',
 						'.al-button',
 						'.anidb-button',
@@ -3490,11 +3624,13 @@
 					'.imdb-ratings',
 					'.mal-ratings',
 					'.al-ratings',
+					'.allocine-ratings',
 					'.tomato-ratings',
 					'.meta-ratings',
 					'.sens-ratings',
 					'.mubi-ratings',
 					'.filmaff-ratings',
+					'.simkl-ratings',
 					'.anidb-ratings',
 					'.cinemascore'
 				];
@@ -4006,6 +4142,513 @@
 
 				// Third
 				extrasStats.append(ranking);
+			},
+
+			initSIMKL(){
+				// Call the SIMKL API
+				this.simkl.state = 1;
+				
+				// Configure URL
+				var url = "https://api.simkl.com/ratings";
+				if (this.imdbID != ""){
+					url += "?imdb=" + this.imdbID;
+				}
+				if (this.tmdbID != ""){
+					url += "?tmdb=" + this.tmdbID;
+				}
+				if (this.tmdbTV){
+					url += "?type=show";
+				}
+				var regex = new RegExp("letterboxd.com\\/film\\/(.+)\\/");
+				var letterboxdUrl = window.location.href;
+				if (letterboxdUrl.match(regex)){
+					letterboxdUrl = letterboxdUrl.match(regex)[1];
+					url += "?letterboxd=" + letterboxdUrl;
+				}
+				url += "?fields=rank,simkl";
+
+				// Make Call
+				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+					this.simkl.raw = value.response;
+					this.simkl.data = JSON.parse(value.response);
+					
+					this.simkl.state = 2;
+				});
+			},
+
+			addSIMKL(){
+				if (document.querySelector('.simkl-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+
+				this.simkl.state = 3;
+				
+				// Collect Date from the SIMKL API
+				//***************************************************************
+				if (this.simkl.data != null){
+					if (this.simkl.data.simkl != null && this.simkl.data.simkl.rating != null){
+						this.simkl.rating = this.simkl.data.simkl.rating;
+					}
+					if (this.simkl.data.simkl != null && this.simkl.data.simkl.votes != null){
+						this.simkl.num_ratings = this.simkl.data.simkl.votes;
+					}
+					if (this.simkl.data.link != null){
+						this.simkl.url = this.simkl.data.link;
+					}
+				}
+
+				// Do not display if there is no score or ratings
+				if (this.simkl.rating == null && this.simkl.num_ratings == 0) return;
+
+				// Add to Letterboxd
+				//***************************************************************
+				// Add the section to the page
+				const section = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart simkl-ratings ratings-extras'
+				});				
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading section-heading-extras',
+					style: 'height: 13px;'
+				});
+				section.append(heading);
+
+				const logoHolder = letterboxd.helpers.createElement('a', {
+					class: "logo-simkl",
+					href: this.simkl.url,
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/simkl-logo.png") + '");'
+				});
+				heading.append(logoHolder);
+				
+				if (this.isMobile){
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details simkl-show-details',
+						['target']: 'simkl-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
+				
+				// Score
+				//***************************************************************
+				const container = letterboxd.helpers.createElement('span', {}, {
+					['display']: 'block',
+					['margin-bottom']: '10px'
+				});
+				section.append(container);
+
+				// Setup Score and Tooltip
+				var score = this.simkl.rating;
+				var totalScore = "/10";				
+				if (letterboxd.storage.get('convert-ratings') === "5"){
+					totalScore = "/5";
+					score = (score / 2).toFixed(1);
+				}
+				score = score.toFixed(1).toLocaleString();
+				var num_ratings = this.simkl.num_ratings.toLocaleString();
+
+				// Add the hoverover text and href
+				var tooltip = 'No score available';
+				if (this.simkl.num_ratings > 0 && this.simkl.rating == null){
+					tooltip = num_ratings + ' rating';
+					if (this.simkl.num_ratings > 1) tooltip += "s";
+					score = "N/A";
+
+				}else if (this.simkl.num_ratings > 0){
+					tooltip = "Average of " + score.toLocaleString() + totalScore + " based on " + num_ratings + ' ratings';
+				}else{
+					score = "N/A";
+				}
+
+				// The span that holds the score
+				const span = letterboxd.helpers.createElement('a', {
+					class: "simkl-box tooltip tooltip-extra",
+					['href']: this.simkl.url,
+					['data-original-title']: tooltip
+				}, {
+					['display']: 'inline-block',
+					['width']: 'auto'
+				});
+				
+				// The element that is the score itself
+				const text = letterboxd.helpers.createElement('span', {
+					class: 'display-rating -highlight simkl-score'
+				});
+				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
+				text.innerText = score;
+				span.append(text);
+				
+				// Add the element /10 or /5 depending on score
+				const scoreTotal = letterboxd.helpers.createElement('p', {
+					style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
+				});
+				scoreTotal.innerText = totalScore;
+				span.append(scoreTotal);
+
+				container.append(span);
+
+				// Add the tooltip as text for mobile
+				if (this.isMobile){
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'simkl-score-details mobile-details-text',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+					
+					section.append(detailsSpan);
+				}
+
+				// APPEND to the sidebar
+				//************************************************************
+				this.appendRating(section, 'simkl-ratings');
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".simkl-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
+
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+			},
+
+			initAllocine(id, type){
+				// Call the Allocine page
+				this.allocine.state = 1;
+				
+				// Configure URL
+				if (type == "FILM"){
+					this.allocine.url = "https://www.allocine.fr/film/fichefilm_gen_cfilm=" + id + ".html";
+					this.allocine.urlUser = "https://www.allocine.fr/film/fichefilm-" + id + "/critiques/spectateurs/";
+					this.allocine.urlCritic = "https://www.allocine.fr/film/fichefilm-" + id + "/critiques/presse/";
+					
+				}else{
+					this.allocine.url = "https://www.allocine.fr/series/ficheserie_gen_cserie=" + id + ".html";
+					this.allocine.urlUser = "https://www.allocine.fr/series/ficheserie-" + id + "/critiques/";
+					this.allocine.urlCritic = "https://www.allocine.fr/series/ficheserie-" + id + "/critiques/presse/";
+				}
+
+				// Make Calls
+				letterboxd.helpers.getData(this.allocine.urlUser, "GET", null, null).then((value) => {
+					try{
+						this.allocine.user.raw = value.response;
+						this.allocine.user.data = letterboxd.helpers.parseHTML(value.response);
+					}catch(error){
+						console.error(error);
+						this.allocine.state = 3; // Error
+					}
+					
+				});
+				letterboxd.helpers.getData(this.allocine.urlCritic, "GET", null, null).then((value) => {
+					try{
+						this.allocine.critic.raw = value.response;
+						this.allocine.critic.data = letterboxd.helpers.parseHTML(value.response);
+					}catch(error){
+						console.error(error);
+						this.allocine.state = 3; // Error
+					}
+				});
+			},
+
+			addAllocine(){
+				if (document.querySelector('.allocine-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+
+				this.allocine.state = 2;
+
+				this.addLink(this.allocine.url);
+				
+				// Collect Date from the AlloCine page
+				//***************************************************************
+				// Get User ratings
+				// Rating
+				if (this.allocine.user.data.querySelector(".big-note .note")){
+					this.allocine.user.rating = this.allocine.user.data.querySelector(".big-note .note").innerText;
+					this.allocine.user.rating = Number(this.allocine.user.rating.replace(",","."));
+				}
+				// Rating Count
+				if (this.allocine.user.data.querySelector(".big-note .user-note-count")){
+					this.allocine.user.num_ratings = this.allocine.user.data.querySelector(".big-note .user-note-count").innerText;
+					var regex = new RegExp("([0-9]+) notes*");
+					if (this.allocine.user.num_ratings.match(regex)){
+						this.allocine.user.num_ratings = Number(this.allocine.user.num_ratings.match(regex)[1]);
+					}
+				}
+				// Review Count
+				if (this.allocine.user.data.querySelector(".reviews-users-by-note .titlebar-title")){
+					this.allocine.user.num_reviews = this.allocine.user.data.querySelector(".reviews-users-by-note .titlebar-title").innerText;
+					var regex = new RegExp("([0-9 ]+) critique");
+					if (this.allocine.user.num_reviews.match(regex)){
+						this.allocine.user.num_reviews = Number(letterboxd.helpers.cleanNumber(this.allocine.user.num_reviews.match(regex)[1]));
+					}
+				}
+				// Review breakdown
+				if (this.allocine.user.data.querySelector(".reviews-users-by-note .item")){
+					var histogramData = this.allocine.user.data.querySelectorAll(".reviews-users-by-note .item");
+					for (var i = 0; i < histogramData.length; i++){
+						// Get the votes
+						var votes = histogramData[i].querySelector(".item-unit .nb").innerText;
+						var regex = new RegExp("([0-9]+) critique");
+						if (votes.match(regex)){
+							votes = Number(votes.match(regex)[1]);
+						}
+						// Get the percent
+						var percent = ((votes / this.allocine.user.num_reviews) * 100).toFixed(1);
+
+						// Add to arrays
+						this.allocine.user.votes[i] = votes;
+						this.allocine.user.percents[i] = percent;
+
+						// Set highest
+						if (this.allocine.user.highest < votes)
+							this.allocine.user.highest = votes;
+					}
+
+					this.allocine.user.votes.reverse();
+					this.allocine.user.percents.reverse();
+				}
+
+				// Get critic ratings
+				// Rating
+				if (this.allocine.critic.data.querySelector(".big-note .note")){
+					this.allocine.critic.rating = this.allocine.critic.data.querySelector(".big-note .note").innerText;
+					this.allocine.critic.rating = Number(this.allocine.critic.rating.replace(",","."));
+				}else{
+					this.allocine.critic.rating = 0;
+				}
+				// Rating Count
+				if (this.allocine.critic.data.querySelector(".big-note .user-note-count")){
+					this.allocine.critic.num_ratings = this.allocine.critic.data.querySelector(".big-note .user-note-count").innerText;
+					var regex = new RegExp("([0-9]+) titre");
+					if (this.allocine.critic.num_ratings.match(regex)){
+						this.allocine.critic.num_ratings = Number(this.allocine.critic.num_ratings.match(regex)[1]);
+					}
+				}
+
+
+				// Do not display if there is no score or ratings
+				if (this.allocine.user.rating == null && this.allocine.user.num_ratings == 0) return;
+
+				// Add to Letterboxd
+				//***************************************************************
+				// Add the section to the page
+				const section = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart allocine-ratings ratings-extras extras-chart'
+				});				
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading section-heading-extras',
+					style: 'height: 15px !important; margin-bottom: 0px !important;'
+				});
+				section.append(heading);
+
+				const logo = letterboxd.helpers.createElement('a', {
+					class: 'logo-allocine',
+					href: this.allocine.url,
+					style: 'background-image: url("https://assets.allocine.fr/skin/img/allocine/sprite.a961a077.png");'
+				});
+				heading.append(logo);
+				
+				// Add the Show Details button
+				if (this.isMobile){
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details allocine-show-details',
+						['target']: 'allocine-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
+
+				// Create the Scores
+				//***************************************************************
+				if (letterboxd.storage.get('allocine-style') === "ratings"){
+					// Ratings without graph
+					//***************************************************************
+					// Critic score
+					const criticSpan = letterboxd.helpers.createElement('span', {
+						class: 'allocine-critic-score allocine-ratings-style',
+						style: 'position: relative; height: 60px;'
+					});
+					
+					const criticLabel = letterboxd.helpers.createElement('span', {
+						class: 'allocine-label'
+					});
+					criticLabel.innerText = "Critics";
+					criticSpan.append(criticLabel);
+
+					criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
+					criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+					section.append(criticSpan);
+					
+					// User score
+					const userSpan = letterboxd.helpers.createElement('span', {
+						class: 'allocine-user-score allocine-ratings-style',
+						style: 'position: relative; height: 60px;'
+					});
+					
+					const userLabel = letterboxd.helpers.createElement('span', {
+						class: 'allocine-label'
+					});
+					userLabel.innerText = "Users";
+					userSpan.append(userLabel);
+
+					userSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.user.rating, this.allocine.user.num_ratings, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
+					userSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.user.rating));
+					section.append(userSpan);
+					
+					// Add the tooltip as text for mobile
+					if (this.isMobile){
+						// Critic Rating Tooltip
+						var criticScore = section.querySelector(".allocine-critic-score .allocine-critic .tooltip");
+						if (criticScore != null){
+							var tooltip = criticScore.getAttribute('data-original-title');
+
+							const criticDetailsSpan = letterboxd.helpers.createElement('span', {
+								class: 'allocine-score-details mobile-details-text',
+								style: 'display:none'
+							});
+
+							const criticDetailsText = letterboxd.helpers.createElement('p', {
+							});
+							criticDetailsText.innerText = tooltip;
+							criticDetailsSpan.append(criticDetailsText);
+							
+							section.append(criticDetailsSpan);
+						}
+
+						// User Rating Tooltip
+						var userScore = section.querySelector(".allocine-user-score .allocine-critic .tooltip");
+						if (userScore != null){
+							var tooltip = userScore.getAttribute('data-original-title');
+	
+							const userDetailsSpan = letterboxd.helpers.createElement('span', {
+								class: 'allocine-score-details mobile-details-text',
+								style: 'display:none'
+							});
+	
+							const userDetailsText = letterboxd.helpers.createElement('p', {
+							});
+							userDetailsText.innerText = tooltip;
+							userDetailsSpan.append(userDetailsText);
+							
+							section.append(userDetailsSpan);
+						}
+					}
+
+				}else{
+					// Histogram Graph
+					//***************************************************************
+
+					// Add the div to hold the toggle buttons
+					// Div to hold buttons
+					if (letterboxd.storage.get('allocine-users-enabled') === true && letterboxd.storage.get('allocine-critic-enabled') === true){
+						const buttonDiv = letterboxd.helpers.createElement('div', {
+							class: 'allo-buttons',
+							style: 'display: block;'
+						});
+						section.append(buttonDiv);
+	
+						buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
+						buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
+					}
+				
+					// User score - user rt-score-div so I can reuse changeTomatoScore
+					if (letterboxd.storage.get('allocine-users-enabled') === true){
+						const userSpan = letterboxd.helpers.createElement('span', {
+							class: 'allocine-user-score rt-score-div',
+							style: 'position: relative; display: block;'
+						});
+						userSpan.append(letterboxd.helpers.createHistogramScore(letterboxd, "allocine", this.allocine.user.rating, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
+						userSpan.append(letterboxd.helpers.createHistogramGraph(letterboxd, "allocine", this.allocine.urlUser, this.allocine.user.num_reviews, this.allocine.user.votes, this.allocine.user.percents, this.allocine.user.highest));
+						section.append(userSpan);
+					}
+	
+					// Critic score
+					if (letterboxd.storage.get('allocine-critic-enabled') === true){
+						const criticSpan = letterboxd.helpers.createElement('span', {
+							class: 'allocine-critic-score rt-score-div',
+							style: 'position: relative; display: block; height: 44px; display:none;'
+						});
+						criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
+						criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+						section.append(criticSpan);
+					}
+					
+					// Add the tooltip as text for mobile
+					if (this.isMobile){
+						// User Rating Tooltip
+						var userScore = section.querySelector(".allocine-user-score .average-rating .tooltip");
+						if (userScore != null){
+							var tooltip = userScore.getAttribute('data-original-title');
+	
+							const userDetailsSpan = letterboxd.helpers.createElement('span', {
+								class: 'allocine-score-details mobile-details-text',
+								style: 'display:none'
+							});
+	
+							const userDetailsText = letterboxd.helpers.createElement('p', {
+							});
+							userDetailsText.innerText = tooltip;
+							userDetailsSpan.append(userDetailsText);
+							
+							section.querySelector(".allocine-user-score").append(userDetailsSpan);
+						}
+
+						// Critic Rating Tooltip
+						var criticScore = section.querySelector(".allocine-critic-score .allocine-critic .tooltip");
+						if (criticScore != null){
+							var tooltip = criticScore.getAttribute('data-original-title');
+
+							const criticDetailsSpan = letterboxd.helpers.createElement('span', {
+								class: 'allocine-score-details mobile-details-text',
+								style: 'display:none'
+							});
+
+							const criticDetailsText = letterboxd.helpers.createElement('p', {
+							});
+							criticDetailsText.innerText = tooltip;
+							criticDetailsSpan.append(criticDetailsText);
+							
+							section.querySelector(".allocine-critic-score").append(criticDetailsSpan);
+						}
+					}
+				}
+
+				// APPEND to the sidebar
+				//************************************************************
+				this.appendRating(section, 'allocine-ratings');
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".allocine-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
+
+				// Add click event for score buttons
+				//************************************************************
+				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+				if (this.allocine.critic.rating != 0 && letterboxd.storage.get('allocine-default-view') === 'critic'){
+					$(".rt-button.allo-critic").click();
+				}
+
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+			},
+
+			initDouban(){
+				// TODO
 			}
 		},
 
@@ -4858,6 +5501,7 @@
 				});
 				
 				var convertRatings = (letterboxd.storage.get('convert-ratings') === "5");
+				var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
 				var suffix = "/10";
 				var tooltip = "";
 				if (rating != "N/A"){
@@ -4871,6 +5515,14 @@
 						suffix = "";
 					} else if (type == "al"){
 						suffix = "/100";
+					} else if (type == "allocine"){
+						if (convert10Point){
+							rating = (Number(rating) * 2).toFixed(1);
+							suffix = "/10";
+						}else{
+							rating = Number(rating).toFixed(1);
+							suffix = "/5";
+						}
 					} else {
 						rating = Number(rating).toFixed(1);
 						suffix = "/10";
@@ -4899,22 +5551,34 @@
 
 				return scoreSpan;
 			},
+			
 
 			createHistogramGraph(letterboxd, type, url, count, votes, percents, highest){
 				// Add the bars for the rating
+				if (votes.length == 10){
+					var histogramType = "rating-histogram-exploded"
+				}else{
+					var histogramType = "rating-histogram-condensed"
+				}
 				const histogram = letterboxd.helpers.createElement('div', {
-					class: 'rating-histogram clear rating-histogram-exploded rating-histogram-extras'
+					class: 'rating-histogram clear ' + histogramType + ' rating-histogram-extras'
 				});
 				const ul = letterboxd.helpers.createElement('ul', {
 				});
 				histogram.append(ul);
 
+				var width = 15;
+				if (votes.length == 6){
+					width = 26;
+				}else if (votes.length == 5){
+					width = 35;
+				}
 				// Loop for each bar
-				for (var ii = 0; ii < 10; ii++){	
-					var left = (ii * 16).toString() + "px;";
+				for (var ii = 0; ii < votes.length; ii++){	
+					var left = (ii * (width + 1)).toString() + "px;";
 					const il = letterboxd.helpers.createElement('li', {
 						class: 'rating-histogram-bar',
-						style: 'width: 15px; left: ' + left
+						style: 'width: ' + width + 'px; left: ' + left
 					});
 					ul.append(il);
 
@@ -4930,21 +5594,31 @@
 						var percentage = percents[ii];
 					}
 
+					// Determine rating type (rating vs review)
+					var ratingType = "ratings";
+					if (type == "allocine"){
+						ratingType = "reviews";
+					}
+
 					// Determine Suffixes
 					var ratingSuffix = letterboxd.overview.ratingsSuffix;
 					if (type == "al" && letterboxd.storage.get('convert-ratings') === false){
 						ratingSuffix = ['10/100', '20/100', '30/100', '40/100', '50/100', '60/100', '70/100', '80/100', '90/100', '100/100'];
+					}else if (type == "allocine"){
+						ratingSuffix = ['0-★', '★', '★★', '★★★', '★★★★', '★★★★★'];
 					}
 
 					const a = letterboxd.helpers.createElement('a', {
 						class: 'ir tooltip ' + type + ' tooltip-extra',
-						['data-original-title']: voteCount.toLocaleString() + " " + ratingSuffix[ii] + ' ratings (' + percentage.toString() + '%)'
+						['data-original-title']: voteCount.toLocaleString() + " " + ratingSuffix[ii] + ' ' + ratingType + ' (' + percentage.toString() + '%)'
 					});
 					il.append(a);
 					
 					// IMDb reviews link
 					if (type == "imdb"){
 						a.href = url.replace('/ratings','') + '/reviews?ratingFilter=' + (ii + 1).toString();
+					}else if (type == "allocine"){
+						a.href = url + "star-" + ii;
 					}
 
 					var max = 44.0;
@@ -4997,6 +5671,101 @@
 				ul.after(span5Star);
 
 				return histogram;
+			},
+			
+			createAllocineCriticScore(letterboxd, type, rating, count, reviewCount, url, isMobile){
+				// The span that holds the score
+				var style = "display: inline-block; margin-right: 5px;";
+				if (type == "ratings-style"){
+					style = "display: block;"
+				}
+
+				const scoreSpan = letterboxd.helpers.createElement('span', {
+					class: 'allocine-critic',
+					style: style
+				});
+				
+				var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
+				var suffix = "/10";
+				var tooltip = "";
+				if (rating == "0"){
+					tooltip = "0 ratings"; 
+				}else{
+					// Convert the score if needed
+					if (convert10Point){
+						rating = (Number(rating) * 2).toFixed(1);
+						suffix = "/10";
+					}else{
+						suffix = "/5";
+					}					
+					// Create tooltip text
+					tooltip = 'Weighted average of ' + rating + suffix + ' based on ' + count.toLocaleString() + ' ratings'
+					if (reviewCount != null)
+						tooltip += " (" + reviewCount.toLocaleString() + " reviews)";
+				}
+
+				// The element that is the score itself
+				style = 'line-height: 25px;';
+				if (type == "ratings-style"){
+					style = 'line-height: 28px; width: 100%; margin-left: 0px !important;';
+				}
+
+				const scoreElement = letterboxd.helpers.createElement('a', {
+					class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
+					style: style,
+					href: url,
+					['data-original-title']: tooltip
+				});
+
+				if (rating == "0"){
+					scoreElement.innerText = "--";
+				} else {
+					scoreElement.innerText = rating.toFixed(1);
+				}
+				
+				scoreSpan.append(scoreElement);
+
+				return scoreSpan;
+			},
+
+			createAllocineStars(rating){
+				var holder = letterboxd.helpers.createElement('div', {
+					class: 'allo-critic-stars'
+				});
+
+				// Star back
+				const span5Starback = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-10 rating-star-allocine-critic',
+					style: 'position: absolute;'
+				});
+				span5Starback.innerText = "★★★★★";
+				holder.append(span5Starback);
+
+				rating = letterboxd.helpers.roundHalf(rating);
+
+				// Star front
+				// determine width
+				var totalWidth = 64;
+				var starWidth = 12;
+				var betweenWidth = 1;
+				var width = (starWidth * Math.floor(rating)) + Math.floor(rating) * betweenWidth;
+				if(rating > Math.floor(rating)){
+					width += starWidth/2;
+				}
+				//width = totalWidth - width;
+
+				const span5Starfront = letterboxd.helpers.createElement('span', {
+					class: 'rating rated-10 rating-star-allocine',
+					style: 'position: absolute; width:' + width + 'px;'
+				});
+				span5Starfront.innerText = "★★★★★";
+				holder.append(span5Starfront);
+
+				return holder;
+			},
+
+			roundHalf(num){
+				return Math.round(num*2)/2;
 			},
 
 			getTextBetween(text, start, end){
@@ -5205,6 +5974,7 @@
 				value = value.replaceAll('.','');
 				value = value.replaceAll(' ','');
 				value = value.replaceAll('$','');
+				value = value.replaceAll(' ','');
 
 				return value;
 			},
@@ -5478,7 +6248,7 @@
 						"}\n" +
 						"";
 				}else{
-					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"  {\n" +
 					"    SELECT DISTINCT ?item WHERE {\n" +
@@ -5495,6 +6265,9 @@
 					"  OPTIONAL { ?item wdt:P7299 ?Mubi_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P480 ?FilmAffinity_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P10100 ?SensCritique_ID. }\n" +
+					"  OPTIONAL { ?item wdt:P1265 ?Allocine_Film_ID }\n" +
+					"  OPTIONAL { ?item wdt:P1267 ?Allocine_TV_ID }\n" +
+					"  OPTIONAL { ?item wdt:P4529 ?Douban_ID }\n" +
 					"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 					"  OPTIONAL {\n" +
@@ -5667,6 +6440,8 @@
 					if (this.options['metacritic-users-enabled'] == null) this.set('metacritic-users-enabled', true);
 					if (this.options['metacritic-mustsee-enabled'] == null) this.set('metacritic-mustsee-enabled', true);
 					if (this.options['sens-favorites-enabled'] == null) this.set('sens-favorites-enabled', true);
+					if (this.options['allocine-critic-enabled'] == null) this.set('allocine-critic-enabled', true);
+					if (this.options['allocine-users-enabled'] == null) this.set('allocine-users-enabled', true);
 				});
 
 				
@@ -5791,7 +6566,7 @@ function changeTomatoScore(event){
 	var parent = event.target.parentNode.parentNode;
 	// Grab the target score div and then the other non-target score div
 	var targetNode = parent.querySelector('.rt-score-div' + target);
-	var otherNode = parent.querySelector('div.rt-score-div:not(' + target + ')');
+	var otherNode = parent.querySelector('.rt-score-div:not(' + target + ')');
 
 	// Hide the current visible score, display the current hidden score
 	otherNode.style.display = 'none';
