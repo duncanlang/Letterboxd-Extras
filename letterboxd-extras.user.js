@@ -2615,6 +2615,10 @@
 			},
 
 			addLink(url){
+				if (url == null || url == ""){
+					return;
+				}
+
 				// Check if already added
 				if (!this.linksAdded.includes(url)){
 					this.linksAdded.push(url);
