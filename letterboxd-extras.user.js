@@ -1410,6 +1410,24 @@
 					}
 				}
 
+				// Add Douban
+				if (letterboxd.storage.get('douban-enabled') === true && this.douban.state == 0 && this.wikiData.Douban_ID != null){
+					this.douban.state = 1;
+					var url = "https://movie.douban.com/subject/" + this.wikiData.Douban_ID + "/";
+					// Make Call
+					letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+						this.douban.raw = value.response;
+						this.douban.data = letterboxd.helpers.parseHTML(value.response);
+						this.douban.url = value.url;
+						
+						if (this.douban.data != null){
+							// Add to page
+							this.addDouban();
+							this.addLink(this.douban.url);
+						}
+					});
+				}
+
 				if (letterboxd.storage.get('convert-ratings') === "5"){
 					this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
 				} else {
@@ -2657,6 +2675,9 @@
 					}else if (url.includes("allocine")){
 						text = "ALLO";
 						className = "allo-button";
+					}else if (url.includes("douban")){
+						text = "DOUBAN";
+						className = "douban-button";
 					}
 
 					if (document.querySelector('.' + className)){
@@ -2686,6 +2707,7 @@
 						'.mal-button',
 						'.al-button',
 						'.anidb-button',
+						'.douban-button',
 						'.mojo-button',
 						'.wiki-button'
 					];
@@ -3645,6 +3667,7 @@
 					'.sens-ratings',
 					'.mubi-ratings',
 					'.filmaff-ratings',
+					'.douban-ratings',
 					'.simkl-ratings',
 					'.anidb-ratings',
 					'.cinemascore'
@@ -4663,7 +4686,89 @@
 			},
 
 			initDouban(){
-				// TODO
+			},
+
+			addDouban(){
+				if (document.querySelector('.douban-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+
+				this.douban.state = 3;
+
+				this.addLink(this.douban.url);
+				
+				// Collect Date from the Douban page
+				//***************************************************************
+				this.douban.rating = 0;
+				this.douban.num_ratings = 0;
+
+				const ratingElement = this.douban.data.querySelector('.rating_num');
+				if (ratingElement != null){
+					this.douban.rating = Number(ratingElement.innerText);
+				}
+				const ratingCountElement = this.douban.data.querySelector('.rating_people span');
+				if (ratingCountElement != null){
+					this.douban.num_ratings = Number(ratingCountElement.innerText);
+				}
+
+				// Return if there is nothing found
+				if (this.douban.rating == 0 && this.douban.num_ratings == 0) return;
+
+				// Add to Letterboxd
+				//***************************************************************
+				// Add the section to the page
+				const section = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart douban-ratings ratings-extras extras-chart'
+				});				
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading section-heading-extras',
+					style: 'height: 13px;'
+				});
+				section.append(heading);
+				const headerTitle = letterboxd.helpers.createElement('a', {
+					href: this.douban.url
+				});
+				headerTitle.innerText = "Douban"
+				heading.append(headerTitle);
+				
+				// Add the Show Details button
+				if (this.isMobile){
+					const showDetails = letterboxd.helpers.createElement('a', {
+						class: 'all-link more-link show-details douban-show-details',
+						['target']: 'allodoubancine-score-details'
+					});
+					showDetails.innerText = "Show Details";
+					section.append(showDetails);
+				}
+
+				// Create the Scores
+				//***************************************************************
+				const scoreSpan = letterboxd.helpers.createElement('span', {
+					class: 'douban-user-score',
+					style: 'position: relative;'
+				});
+
+				scoreSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.douban.rating, this.douban.num_ratings, null, this.douban.url, this.isMobile));
+				section.append(scoreSpan);
+
+
+				// APPEND to the sidebar
+				//************************************************************
+				this.appendRating(section, 'douban-ratings');
+				
+				//Add click for Show details button
+				//************************************************************
+				$(".souban-show-details").on('click', function(event){
+					toggleDetails(event, letterboxd);
+				});
+
+				// Add the hover events
+				//*****************************************************************
+				$(".tooltip-extra").on("mouseover", ShowTwipsy);
+				$(".tooltip-extra").on("mouseout", HideTwipsy);
+
 			}
 		},
 

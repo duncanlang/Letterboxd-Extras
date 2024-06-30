@@ -255,6 +255,17 @@
         </div>
     </div>
     <div>
+        <h3>Douban</h3>
+        <div>
+            <label for="douban-enabled">Display Douban:</label>
+            <input type="checkbox" id="douban-enabled" permission="https://*.douban.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="douban-permissions" class="request-permission" permissionTarget="douban-enabled" value="Request Permission"/>
+        </div>
+    </div>
+    <div>
         <h3>CinemaScore</h3>
         <div>
             <label for="cinema-enabled">Display CinemaScore:</label>
