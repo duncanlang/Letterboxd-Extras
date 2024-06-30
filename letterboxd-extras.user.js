@@ -4479,36 +4479,40 @@
 					// Ratings without graph
 					//***************************************************************
 					// Critic score
-					const criticSpan = letterboxd.helpers.createElement('span', {
-						class: 'allocine-critic-score allocine-ratings-style',
-						style: 'position: relative; height: 60px;'
-					});
-					
-					const criticLabel = letterboxd.helpers.createElement('span', {
-						class: 'allocine-label'
-					});
-					criticLabel.innerText = "Critics";
-					criticSpan.append(criticLabel);
+					if (letterboxd.storage.get('allocine-critic-enabled') === true){
+						const criticSpan = letterboxd.helpers.createElement('span', {
+							class: 'allocine-critic-score allocine-ratings-style',
+							style: 'position: relative; height: 60px;'
+						});
+						
+						const criticLabel = letterboxd.helpers.createElement('span', {
+							class: 'allocine-label'
+						});
+						criticLabel.innerText = "Critics";
+						criticSpan.append(criticLabel);
 
-					criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
-					criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
-					section.append(criticSpan);
+						criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
+						criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+						section.append(criticSpan);
+					}
 					
 					// User score
-					const userSpan = letterboxd.helpers.createElement('span', {
-						class: 'allocine-user-score allocine-ratings-style',
-						style: 'position: relative; height: 60px;'
-					});
-					
-					const userLabel = letterboxd.helpers.createElement('span', {
-						class: 'allocine-label'
-					});
-					userLabel.innerText = "Users";
-					userSpan.append(userLabel);
+					if (letterboxd.storage.get('allocine-users-enabled') === true){
+						const userSpan = letterboxd.helpers.createElement('span', {
+							class: 'allocine-user-score allocine-ratings-style',
+							style: 'position: relative; height: 60px;'
+						});
+						
+						const userLabel = letterboxd.helpers.createElement('span', {
+							class: 'allocine-label'
+						});
+						userLabel.innerText = "Users";
+						userSpan.append(userLabel);
 
-					userSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.user.rating, this.allocine.user.num_ratings, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
-					userSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.user.rating));
-					section.append(userSpan);
+						userSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.user.rating, this.allocine.user.num_ratings, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
+						userSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.user.rating));
+						section.append(userSpan);
+					}
 					
 					// Add the tooltip as text for mobile
 					if (this.isMobile){
@@ -4555,38 +4559,39 @@
 
 					// Add the div to hold the toggle buttons
 					// Div to hold buttons
-					if (letterboxd.storage.get('allocine-users-enabled') === true && letterboxd.storage.get('allocine-critic-enabled') === true){
-						const buttonDiv = letterboxd.helpers.createElement('div', {
-							class: 'allo-buttons',
-							style: 'display: block;'
-						});
-						section.append(buttonDiv);
-	
-						buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
-						buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
+					const buttonDiv = letterboxd.helpers.createElement('div', {
+						class: 'allo-buttons',
+						style: 'display: block;'
+					});
+					section.append(buttonDiv);
+
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
+					if (letterboxd.storage.get('allocine-users-enabled') != true || letterboxd.storage.get('allocine-critic-enabled') != true){
+						buttonDiv.style['display'] = "none";
 					}
 				
 					// User score - user rt-score-div so I can reuse changeTomatoScore
-					if (letterboxd.storage.get('allocine-users-enabled') === true){
-						const userSpan = letterboxd.helpers.createElement('span', {
-							class: 'allocine-user-score rt-score-div',
-							style: 'position: relative; display: block;'
-						});
-						userSpan.append(letterboxd.helpers.createHistogramScore(letterboxd, "allocine", this.allocine.user.rating, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
-						userSpan.append(letterboxd.helpers.createHistogramGraph(letterboxd, "allocine", this.allocine.urlUser, this.allocine.user.num_reviews, this.allocine.user.votes, this.allocine.user.percents, this.allocine.user.highest));
-						section.append(userSpan);
+					const userSpan = letterboxd.helpers.createElement('span', {
+						class: 'allocine-user-score rt-score-div',
+						style: 'position: relative; display: block;'
+					});
+					userSpan.append(letterboxd.helpers.createHistogramScore(letterboxd, "allocine", this.allocine.user.rating, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
+					userSpan.append(letterboxd.helpers.createHistogramGraph(letterboxd, "allocine", this.allocine.urlUser, this.allocine.user.num_reviews, this.allocine.user.votes, this.allocine.user.percents, this.allocine.user.highest));
+					section.append(userSpan);
+
+					if (letterboxd.storage.get('allocine-critic-enabled') === false){
+						userSpan.querySelector('.rating-histogram').style['margin-top'] = '15px';
 					}
 	
 					// Critic score
-					if (letterboxd.storage.get('allocine-critic-enabled') === true){
-						const criticSpan = letterboxd.helpers.createElement('span', {
-							class: 'allocine-critic-score rt-score-div',
-							style: 'position: relative; display: block; height: 44px; display:none;'
-						});
-						criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
-						criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
-						section.append(criticSpan);
-					}
+					const criticSpan = letterboxd.helpers.createElement('span', {
+						class: 'allocine-critic-score rt-score-div',
+						style: 'position: relative; display: block; height: 44px; display:none;'
+					});
+					criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
+					criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+					section.append(criticSpan);
 					
 					// Add the tooltip as text for mobile
 					if (this.isMobile){
@@ -4640,9 +4645,11 @@
 
 				// Add click event for score buttons
 				//************************************************************
-				$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
-				if (this.allocine.critic.rating != 0 && letterboxd.storage.get('allocine-default-view') === 'critic'){
-					$(".rt-button.allo-critic").click();
+				if (letterboxd.storage.get('allocine-style') === "histogram" && letterboxd.storage.get('allocine-critic-enabled') === true){
+					$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+					if (this.allocine.critic.rating != 0 && (letterboxd.storage.get('allocine-default-view') === 'critic' || letterboxd.storage.get('allocine-users-enabled') != true)){
+						$(".rt-button.allo-critic").click();
+					}
 				}
 
 				// Add the hover events
