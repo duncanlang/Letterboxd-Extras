@@ -4168,7 +4168,7 @@
 				url += "?fields=rank,simkl";
 
 				// Make Call
-				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
+				chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 					this.simkl.raw = value.response;
 					this.simkl.data = JSON.parse(value.response);
 					
@@ -4217,7 +4217,7 @@
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-simkl",
 					href: this.simkl.url,
-					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/simkl-logo.png") + '");'
+					style: 'position: absolute; background-image: url("' + chrome.runtime.getURL("images/simkl-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 				
@@ -4337,7 +4337,7 @@
 				}
 
 				// Make Calls
-				letterboxd.helpers.getData(this.allocine.urlUser, "GET", null, null).then((value) => {
+				chrome.runtime.sendMessage({name: "GETDATA", url: this.allocine.urlUser}, (value) => {
 					try{
 						this.allocine.user.raw = value.response;
 						this.allocine.user.data = letterboxd.helpers.parseHTML(value.response);
@@ -4347,7 +4347,7 @@
 					}
 					
 				});
-				letterboxd.helpers.getData(this.allocine.urlCritic, "GET", null, null).then((value) => {
+				chrome.runtime.sendMessage({name: "GETDATA", url: this.allocine.urlCritic}, (value) => {
 					try{
 						this.allocine.critic.raw = value.response;
 						this.allocine.critic.data = letterboxd.helpers.parseHTML(value.response);

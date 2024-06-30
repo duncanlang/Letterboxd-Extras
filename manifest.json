@@ -67,7 +67,7 @@
 	
 	"web_accessible_resources": [
 		{
-		  "resources": [ "images/mal-logo.png", "images/sens-logo.png"],
+		  "resources": [ "images/mal-logo.png", "images/sens-logo.png", "images/simkl-logo.png"],
 		  "matches": [ "https://letterboxd.com/*" ],
 		  "use_dynamic_url": true
 		}
