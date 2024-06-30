@@ -492,7 +492,9 @@
 		.simkl-box{
 			border: rgb(89 88 86/37%) 1px solid;
 			border-radius: 6px;
-			padding: 5px;
+			padding: 7px;
+			padding-left: 12px;
+			padding-right: 12px;
 			margin-top: 3px;
 			cursor: pointer;
 		}
@@ -1398,8 +1400,8 @@
 							// Already have ID from Wikidata
 							this.initAllocine(this.wikiData.Allocine_TV_ID, "TV");
 						}else{
-							// Don't have ID, make basic search
-							this.searchAllocine();
+							// No ID found in Wikidata
+							this.allocine.state = 3;
 						}
 					}
 					if (this.allocine.state == 1 && this.allocine.user.data != null && this.allocine.critic.data != null){
@@ -4371,10 +4373,6 @@
 				});
 			},
 
-			searchAllocine(){
-				// TODO
-			},
-
 			addAllocine(){
 				if (document.querySelector('.allocine-ratings')) return;
 
@@ -5706,7 +5704,9 @@
 				var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
 				var suffix = "/10";
 				var tooltip = "";
-				if (rating != "N/A"){
+				if (rating == "0"){
+					tooltip = "0 ratings"; 
+				}else{
 					// Convert the score if needed
 					if (convert10Point){
 						rating = (Number(rating) * 2).toFixed(1);
@@ -5733,8 +5733,8 @@
 					['data-original-title']: tooltip
 				});
 
-				if (rating == "N/A"){
-					scoreElement.innerText = "N/A";
+				if (rating == "0"){
+					scoreElement.innerText = "--";
 				} else {
 					scoreElement.innerText = rating.toFixed(1);
 				}
