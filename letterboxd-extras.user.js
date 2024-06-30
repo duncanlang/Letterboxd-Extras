@@ -4248,7 +4248,7 @@
 				var totalScore = "/10";				
 				if (letterboxd.storage.get('convert-ratings') === "5"){
 					totalScore = "/5";
-					score = (score / 2).toFixed(1);
+					score = (score / 2);
 				}
 				score = score.toFixed(1).toLocaleString();
 				var num_ratings = this.simkl.num_ratings.toLocaleString();
@@ -4440,7 +4440,7 @@
 
 
 				// Do not display if there is no score or ratings
-				if (this.allocine.user.rating == null && this.allocine.user.num_ratings == 0) return;
+				if (this.allocine.user.num_ratings == 0 && this.allocine.critic.num_ratings == 0) return;
 
 				// Add to Letterboxd
 				//***************************************************************
@@ -5692,12 +5692,12 @@
 				var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
 				var suffix = "/10";
 				var tooltip = "";
-				if (rating == "0"){
+				if (rating == 0){
 					tooltip = "0 ratings"; 
 				}else{
 					// Convert the score if needed
 					if (convert10Point){
-						rating = (Number(rating) * 2).toFixed(1);
+						rating = Number(rating) * 2;
 						suffix = "/10";
 					}else{
 						suffix = "/5";
