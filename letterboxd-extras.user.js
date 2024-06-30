@@ -833,6 +833,8 @@
 					}
 
 					this.scoreConverted = true;
+				}else if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') != "10"){
+					this.scoreConverted = true;
 				}
 				
 				// Add Tooltip as details text for letterboxd rating
