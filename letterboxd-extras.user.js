@@ -833,12 +833,12 @@
 					}
 
 					this.scoreConverted = true;
-				}else if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') != "10"){
+				}else if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') != "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null){
 					this.scoreConverted = true;
 				}
 				
 				// Add Tooltip as details text for letterboxd rating
-				if (this.showDetailsAdded == false && this.scoreConverted == true && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null){
+				if (this.showDetailsAdded == false && (this.scoreConverted == true ) && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null){
 					if (letterboxd.storage.get('tooltip-show-details') === true){
 						var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
 						var histogram = section.querySelector('div');
