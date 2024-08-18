@@ -58,6 +58,11 @@
 			"matches": [ "https://letterboxd.com/*" ],
 			"js": [ "polyfill.js", "letterboxd-extras.user.js", "jquery-3.6.0.min.js" ],
 			"run_at": "document_start"
-		}
+		},
+        {
+            "matches": [ "https://www.google.com/search*" ],
+            "js": [ "google2letterboxd.js" ],
+            "run_at": "document_end"
+        }
 	]
 }
