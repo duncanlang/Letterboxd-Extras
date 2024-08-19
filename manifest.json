@@ -28,6 +28,10 @@
 		"storage"
 	],
 
+	"optional_permissions":[
+		"scripting"
+	],
+
 	"host_permissions": [
 		"https://www.imdb.com/*",
 		"https://letterboxd.com/*",
@@ -49,8 +53,7 @@
 		"https://www.bfi.org.uk/*",
 		"https://www.allocine.fr/*",
 		"https://api.simkl.com/*",
-		"https://www.google.com/search*",
-		"scripting"
+		"https://www.google.com/search*"
 	],
 
 	"background": {

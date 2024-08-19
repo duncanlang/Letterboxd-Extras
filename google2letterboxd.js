@@ -27,21 +27,17 @@ if (imdbElement && !letterboxdElement) {
     imdbLink.parentElement.appendChild(letterboxdLink);
 
     // Fetch the Letterboxd page and extract the rating
-    fetch(letterboxdUrl)
-        .then(response => response.text())
-        .then(text => {
-            // Use regex to find the ratingValue
-            const ratingMatch = text.match(/"ratingValue"\s*:\s*(\d+(\.\d+)?)/);
-            if (ratingMatch) {
-                const rating = parseFloat(ratingMatch[1]);
-                span1.textContent = `${rating.toFixed(1)}/5`;
-            } else if (/IMDB ID not found/i.test(text)) {
-                letterboxdLink.remove();
-            } else {
-                console.error('Letterboxd rating not found.');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching Letterboxd page:', error);
-        });
+    chrome.runtime.sendMessage({name: "GETDATA", url: letterboxdUrl}, (value) => {
+        var text = value.response;
+        // Use regex to find the ratingValue
+        const ratingMatch = text.match(/"ratingValue"\s*:\s*(\d+(\.\d+)?)/);
+        if (ratingMatch) {
+            const rating = parseFloat(ratingMatch[1]);
+            span1.textContent = `${rating.toFixed(1)}/5`;
+        } else if (/IMDB ID not found/i.test(text)) {
+            letterboxdLink.remove();
+        } else {
+            console.error('Letterboxd rating not found.');
+        }
+    });
 }

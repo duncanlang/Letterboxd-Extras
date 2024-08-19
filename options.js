@@ -18,13 +18,7 @@ document.addEventListener('change', event => {
                     save();
 
                     if (event.target.getAttribute('contentScript') != null){
-                        const response = registerContentScript(event.target);
-
-                        if (response != true){
-                            event.target.checked = false;
-                            options[event.target.id] = event.target.checked;
-                            save();
-                        }
+                        registerContentScript(event.target);
                     }
                 } else {
                     event.target.checked = false;
@@ -90,6 +84,8 @@ async function registerContentScript(target){
     var js = target.getAttribute('contentScript');
     var match = target.getAttribute('permission');
 
+    var failed = false;
+
     if (target.checked){
         // Register
         const script = {
@@ -99,21 +95,27 @@ async function registerContentScript(target){
         };
 
         try {
-            await browser.scripting.registerContentScripts([script]);
+            await chrome.scripting.registerContentScripts([script]);
         } catch (err) {
             console.error(`failed to register content scripts: ${err}`);
-            return false;
+            failed = true;
         }
     }else{
         // Unregister
         try {
-            await browser.scripting.unregisterContentScripts({
+            await chrome.scripting.unregisterContentScripts({
                 ids: [id],
             });
         } catch (err) {
             console.error(`failed to unregister content scripts: ${err}`);
-            return false;
+            failed = true
         }  
+    }
+    
+    if (failed){
+        target.checked = false;
+        options[target.id] = target.checked;
+        save();
     }
 
     return true;
