@@ -114,6 +114,10 @@ async function changeSetting(event) {
     
     if (event.target.getAttribute("permission") != null){
         let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
+        if (event.target.getAttribute("permissionBrowser") != null){
+            permissionsToRequest = { origins: [event.target.getAttribute("permission")], permissions: [event.target.getAttribute("permissionBrowser")] };
+        }
+
         if (event.target.checked == true){
             const response = await browser.permissions.request(permissionsToRequest);
 
@@ -127,6 +131,16 @@ async function changeSetting(event) {
             checkPermission(event.target); // this will hide the "missing permission" if it's showing
         }
         checkSubIDToDisable(event.target);
+
+        if (event.target.getAttribute('contentScript') != null){
+            const response = await registerContentScript(event.target);
+
+            if (response != true){
+                event.target.checked = false;
+                options[event.target.id] = event.target.checked;
+                save();
+            }
+        }
     }
 }
 
@@ -151,6 +165,40 @@ async function requestPermission(event){
             event.target.parentNode.setAttribute("style","display:none;");
         }
     }
+}
+
+async function registerContentScript(target){
+    var id = target.getAttribute('contentScriptID');
+    var js = target.getAttribute('contentScript');
+    var match = target.getAttribute('permission');
+
+    if (target.checked){
+        // Register
+        const script = {
+            id: id,
+            js: [js],
+            matches: [match],
+        };
+
+        try {
+            await browser.scripting.registerContentScripts([script]);
+        } catch (err) {
+            console.error(`failed to register content scripts: ${err}`);
+            return false;
+        }
+    }else{
+        // Unregister
+        try {
+            await browser.scripting.unregisterContentScripts({
+                ids: [id],
+            });
+        } catch (err) {
+            console.error(`failed to unregister content scripts: ${err}`);
+            return false;
+        }  
+    }
+
+    return true;
 }
 
 // On load, load
