@@ -3,17 +3,29 @@ var options = {};
 
 // On change, save
 document.addEventListener('change', event => {
-    var permission = event.target.getAttribute('permission');
+    var permission = { origins: [event.target.getAttribute('permission')] };
+    if (event.target.getAttribute("permissionBrowser") != null){
+        permission = { origins: [event.target.getAttribute("permission")], permissions: [event.target.getAttribute("permissionBrowser")] };
+    }
+
     if (permission != null && permission != "") {
         if (event.target.checked == true) {
             // Request the permission
-            chrome.permissions.request({
-                origins: [permission]
-            }, (granted) => {
+            chrome.permissions.request(permission, (granted) => {
                 if (granted) {
                     options[event.target.id] = event.target.checked;
 
                     save();
+
+                    if (event.target.getAttribute('contentScript') != null){
+                        const response = registerContentScript(event.target);
+
+                        if (response != true){
+                            event.target.checked = false;
+                            options[event.target.id] = event.target.checked;
+                            save();
+                        }
+                    }
                 } else {
                     event.target.checked = false;
                 }
@@ -71,6 +83,40 @@ function checkSubIDToDisable(element){
             }
         }
     }
+}
+
+async function registerContentScript(target){
+    var id = target.getAttribute('contentScriptID');
+    var js = target.getAttribute('contentScript');
+    var match = target.getAttribute('permission');
+
+    if (target.checked){
+        // Register
+        const script = {
+            id: id,
+            js: [js],
+            matches: [match],
+        };
+
+        try {
+            await browser.scripting.registerContentScripts([script]);
+        } catch (err) {
+            console.error(`failed to register content scripts: ${err}`);
+            return false;
+        }
+    }else{
+        // Unregister
+        try {
+            await browser.scripting.unregisterContentScripts({
+                ids: [id],
+            });
+        } catch (err) {
+            console.error(`failed to unregister content scripts: ${err}`);
+            return false;
+        }  
+    }
+
+    return true;
 }
 
 

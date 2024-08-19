@@ -351,6 +351,16 @@
     <hr width="100%">
 
     <div>
+        <h3>Google Search</h3>
+        <div>
+            <label for="google">Always display Letterboxd score on Google searches:</label>
+            <input type="checkbox" id="google" permission="https://www.google.com/search*" permissionBrowser="scripting" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" />
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <div>
         <h3>Debug</h3>
         <div>
             <label for="console-log">Log calls in console:</label>
