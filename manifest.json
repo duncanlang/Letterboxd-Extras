@@ -61,5 +61,10 @@
 			"js": [ "polyfill.js", "letterboxd-extras.user.js", "jquery-3.6.0.min.js" ],
 			"run_at": "document_start"
 		}
-	]
+	],
+
+	"background": {
+		"scripts": ["background.js"],
+		"persistent": false
+	}
 }
