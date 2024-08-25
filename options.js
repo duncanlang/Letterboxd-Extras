@@ -3,12 +3,13 @@ var options = {};
 
 // On change, save
 document.addEventListener('change', event => {
-    var permission = { origins: [event.target.getAttribute('permission')] };
-    if (event.target.getAttribute("permissionBrowser") != null){
-        permission = { origins: [event.target.getAttribute("permission")], permissions: [event.target.getAttribute("permissionBrowser")] };
-    }
+    var permission = event.target.getAttribute('permission');
 
     if (permission != null && permission != "") {
+        var permission = { origins: [permission] };
+        if (event.target.getAttribute("permissionBrowser") != null){
+            permission = { origins: [permission], permissions: [event.target.getAttribute("permissionBrowser")] };
+        }
         if (event.target.checked == true) {
             // Request the permission
             chrome.permissions.request(permission, (granted) => {
@@ -27,9 +28,7 @@ document.addEventListener('change', event => {
             });
         } else {
             // Remove the permission
-            chrome.permissions.remove({
-                origins: [permission]
-            }, (removed) => {
+            chrome.permissions.remove(permission, (removed) => {
                 if (removed) {
                     options[event.target.id] = event.target.checked;
                     save();

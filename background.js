@@ -126,18 +126,20 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
 
     return true;
 });
+
 async function registerContentScripts() {
-    await browser.storage.local.get().then(async function (storedSettings) {
+    await chrome.storage.sync.get('options', async (data) => {
+        var storedSettings = data.options; 
         if (storedSettings["google"] === true){
             const script = {
                 id: 'google2letterboxd',
                 js: ['google2letterboxd.js'],
                 matches: ['https://www.google.com/search*'],
             };
-            await browser.scripting.registerContentScripts([script]).catch(console.error);
+            await chrome.scripting.registerContentScripts([script]).catch(console.error);
         }
     });
 }
 
-browser.runtime.onStartup.addListener(registerContentScripts); 
-browser.runtime.onInstalled.addListener(registerContentScripts);
+chrome.runtime.onStartup.addListener(registerContentScripts); 
+chrome.runtime.onInstalled.addListener(registerContentScripts);
