@@ -96,6 +96,12 @@ async function google2letterboxd(){
                     console.error('Error fetching Letterboxd page:', error)
                 })
 
+        }else if (options['convert-ratings'] != null && options['convert-ratings'] === "10"){
+            const spans = letterboxdElement.parentElement.querySelectorAll('span')
+            const span1 = Array.from(spans).find(span => span.textContent.includes('/5'))
+
+            var rating = parseFloat(span1.textContent.split('/')[0]);
+            span1.textContent = `${(rating*2).toFixed(1)}/10`
         }
     })
 }
