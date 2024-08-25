@@ -40,7 +40,8 @@
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
 		"https://graphql.anilist.co/*",
-		"storage"
+		"storage",
+		"scripting"
 	],
 
 	"optional_permissions": [
@@ -51,8 +52,7 @@
 		"https://www.bfi.org.uk/*",
 		"https://www.allocine.fr/*",
 		"https://api.simkl.com/*",
-		"https://www.google.com/search*",
-		"scripting"
+		"https://www.google.com/search*"
 	],
 
 	"content_scripts": [

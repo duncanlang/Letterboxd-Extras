@@ -55,10 +55,30 @@ function set() {
 }
 
 async function checkPermission(element){
+    // Check for Permissions
     let permissionsToRequest = { origins: [element.getAttribute("permission")] };
-    const response = await browser.permissions.contains(permissionsToRequest);
+    var response = await browser.permissions.contains(permissionsToRequest);
 
     var div = element.parentNode.parentNode.querySelector(".div-request-permission");
+    if (div != null){
+        if (response == true && element.checked == true){
+            // Permission exists and setting is enabled
+            div.setAttribute("style","display:none;");
+        }else if(response == false && element.checked == true){
+            // Permission does NOT exist and setting is enabled
+            div.setAttribute("style","display:block;");
+        }else{
+            div.setAttribute("style","display:none;");
+        }
+    }
+    
+    // Check for content scripts
+    let id = element.getAttribute("contentScriptID");
+    let scripts = await browser.scripting.getRegisteredContentScripts();
+    scripts = scripts.map((script) => script.id);
+    response = (scripts.includes(id));
+
+    div = element.parentNode.parentNode.querySelector(".div-request-contentscript");
     if (div != null){
         if (response == true && element.checked == true){
             // Permission exists and setting is enabled
@@ -149,7 +169,12 @@ document.addEventListener('click', event => {
     if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-permission" && event.target.getAttribute("permissionTarget") != null){
         requestPermission(event);
     }
+    if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-contentscript" && event.target.getAttribute("permissionTarget") != null){
+        var target = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
+        registerContentScript(target);
+    }
 });
+
 async function requestPermission(event){
     // Get the element that has the permission
     var permissionTarget = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
@@ -185,6 +210,11 @@ async function registerContentScript(target){
         } catch (err) {
             console.error(`failed to register content scripts: ${err}`);
             return false;
+        }
+        
+        var request = target.parentNode.parentNode.querySelector('.div-request-contentscript');
+        if (request != null){
+            request.setAttribute("style","display:none;");
         }
     }else{
         // Unregister

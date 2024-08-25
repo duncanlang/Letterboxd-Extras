@@ -66,8 +66,11 @@
             margin-bottom: 10px;
         }
         
-        .div-request-permission{
+        .div-request-permission, .div-request-contentscript{
             display: none;
+        }
+        .div-request-permission label, .div-request-contentscript label{
+            font-size: 15px;
         }
 
         .disabled{
@@ -352,7 +355,15 @@
         <h3>Google Search</h3>
         <div>
             <label for="google">Always display Letterboxd score on Google searches:</label>
-            <input type="checkbox" id="google" permission="https://www.google.com/search*" permissionBrowser="scripting" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" />
+            <input type="checkbox" id="google" permission="https://www.google.com/search*" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="google" class="request-permission" permissionTarget="google" value="Request Permission"/>
+        </div>
+        <div class="div-request-contentscript">
+            <label style="color: red;">! Missing Content Script !</label>
+            <input type="button" id="google" class="request-contentscript" permissionTarget="google" value="Request Content Script"/>
         </div>
     </div>
 
