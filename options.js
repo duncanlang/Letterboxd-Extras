@@ -8,7 +8,7 @@ document.addEventListener('change', event => {
     if (permission != null && permission != "") {
         var permission = { origins: [permission] };
         if (event.target.getAttribute("permissionBrowser") != null){
-            permission = { origins: [permission], permissions: [event.target.getAttribute("permissionBrowser")] };
+            permission = { origins: [event.target.getAttribute('permission')], permissions: [event.target.getAttribute("permissionBrowser")] };
         }
         if (event.target.checked == true) {
             // Request the permission
@@ -32,10 +32,6 @@ document.addEventListener('change', event => {
                 if (removed) {
                     options[event.target.id] = event.target.checked;
                     save();
-                    
-                    if (event.target.getAttribute('contentScript') != null){
-                        registerContentScript(event.target);
-                    }
                 } else {
                     event.target.checked = true;
                 }
@@ -98,7 +94,11 @@ async function registerContentScript(target){
         };
 
         try {
-            await chrome.scripting.registerContentScripts([script]);
+            const scripts = await chrome.scripting.getRegisteredContentScripts();
+            const scriptIds = scripts.map(script => script.id);
+            if (!scriptIds.includes(id)){
+                await chrome.scripting.registerContentScripts([script]);
+            }
         } catch (err) {
             console.error(`failed to register content scripts: ${err}`);
             failed = true;

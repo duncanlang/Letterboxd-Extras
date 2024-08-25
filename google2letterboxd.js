@@ -3,7 +3,7 @@ google2letterboxd();
 
 async function google2letterboxd(){
     // Get storage
-    var options = await chrome.storage.sync.get('options', (data) => {
+    chrome.storage.sync.get('options', (data) => {
         var options = {};
         Object.assign(options, data.options);
         if (options["convert-ratings"] === true){

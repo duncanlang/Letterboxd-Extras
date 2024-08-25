@@ -130,7 +130,7 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
 async function registerContentScripts() {
     await chrome.storage.sync.get('options', async (data) => {
         var storedSettings = data.options; 
-        if (storedSettings["google"] === true){
+        if (storedSettings != null && storedSettings.hasOwnProperty("google") && storedSettings["google"] === true){
             const script = {
                 id: 'google2letterboxd',
                 js: ['google2letterboxd.js'],
