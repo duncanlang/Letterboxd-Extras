@@ -32,6 +32,10 @@ document.addEventListener('change', event => {
                 if (removed) {
                     options[event.target.id] = event.target.checked;
                     save();
+                    
+                    if (event.target.getAttribute('contentScript') != null){
+                        registerContentScript(event.target);
+                    }
                 } else {
                     event.target.checked = true;
                 }
