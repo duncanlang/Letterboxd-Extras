@@ -25,10 +25,7 @@
 	},
 
 	"permissions": [
-		"storage"
-	],
-
-	"optional_permissions":[
+		"storage",
 		"scripting"
 	],
 

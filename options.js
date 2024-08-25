@@ -78,6 +78,76 @@ function checkSubIDToDisable(element){
     }
 }
 
+async function checkPermission(element){
+    // Check for Permissions
+    let permissionsToRequest = { origins: [element.getAttribute("permission")] };
+    var response = await browser.permissions.contains(permissionsToRequest);
+
+    var div = element.parentNode.parentNode.querySelector(".div-request-permission");
+    if (div != null){
+        if (response == true && element.checked == true){
+            // Permission exists and setting is enabled
+            div.setAttribute("style","display:none;");
+        }else if(response == false && element.checked == true){
+            // Permission does NOT exist and setting is enabled
+            div.setAttribute("style","display:block;");
+        }else{
+            div.setAttribute("style","display:none;");
+        }
+        checkSubIDToDisable(event.target);
+
+        save();
+    }
+    
+    // Check for content scripts
+    let id = element.getAttribute("contentScriptID");
+    let scripts = await browser.scripting.getRegisteredContentScripts();
+    scripts = scripts.map((script) => script.id);
+    response = (scripts.includes(id));
+
+    div = element.parentNode.parentNode.querySelector(".div-request-contentscript");
+    if (div != null){
+        if (response == true && element.checked == true){
+            // Permission exists and setting is enabled
+            div.setAttribute("style","display:none;");
+        }else if(response == false && element.checked == true){
+            // Permission does NOT exist and setting is enabled
+            div.setAttribute("style","display:block;");
+        }else{
+            div.setAttribute("style","display:none;");
+        }
+    }
+}
+
+
+// Request permission if missing
+document.addEventListener('click', event => {
+    if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-permission" && event.target.getAttribute("permissionTarget") != null){
+        requestPermission(event);
+    }
+    if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-contentscript" && event.target.getAttribute("permissionTarget") != null){
+        var target = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
+        registerContentScript(target);
+    }
+});
+
+async function requestPermission(event){
+    // Get the element that has the permission
+    var permissionTarget = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
+    // Make sure it has the permission
+    if (permissionTarget.getAttribute("permission") != null){
+        // Get the permission from the element that has it
+        var permission = permissionTarget.getAttribute("permission");
+        let permissionsToRequest = { origins: [permission] };
+
+        // Request the permission
+        const response = await browser.permissions.request(permissionsToRequest);
+        if (response == true){
+            event.target.parentNode.setAttribute("style","display:none;");
+        }
+    }
+}
+
 async function registerContentScript(target){
     var id = target.getAttribute('contentScriptID');
     var js = target.getAttribute('contentScript');
@@ -102,6 +172,11 @@ async function registerContentScript(target){
         } catch (err) {
             console.error(`failed to register content scripts: ${err}`);
             failed = true;
+        }
+        
+        var request = target.parentNode.parentNode.querySelector('.div-request-contentscript');
+        if (request != null){
+            request.setAttribute("style","display:none;");
         }
     }else{
         // Unregister
