@@ -4047,7 +4047,7 @@
 				
 				const span = letterboxd.helpers.createElement('span', {
 					class: 'icon',
-					style: 'background: url(https://www.bfi.org.uk/dist/server/0207614d447715c2d2b9257bdd5e68b4.svg)'
+					style: 'background: url(' + browser.runtime.getURL('/images/bfi-logo.svg') + ')'
 				});	
 				a.append(span);
 
