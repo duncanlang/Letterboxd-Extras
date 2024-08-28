@@ -1,14 +1,6 @@
 var options;
 
-// Load from storage
-async function load() {
-    options = await browser.storage.local.get().then(function (storedSettings) {
-        if (storedSettings["convert-ratings"] === true) {
-            storedSettings["convert-ratings"] = "5";
-        }
-        return storedSettings;
-    });
-    // Init default settings
+function initDefaultSettings(){
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
     if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
@@ -26,6 +18,40 @@ async function load() {
     if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
     if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
     if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
+
+    if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
+    if (options['critic-default'] == null) options['critic-default'] = "all";
+    if (options['audience-default'] == null) options['audience-default'] = "all";
+    if (options['meta-default-view'] == null) options['meta-default-view'] = "hide";
+    if (options['senscritique-enabled'] == null) options['senscritique-enabled'] = false;
+    if (options['mubi-enabled'] == null) options['mubi-enabled'] = false;
+    if (options['filmaff-enabled'] == null) options['filmaff-enabled'] = false;
+    if (options['simkl-enabled'] == null) options['simkl-enabled'] = false;
+    if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
+    if (options['allocine-default-view'] == null) options['allocine-default-view'] = "user";
+    if (options['search-redirect'] == null) options['search-redirect'] = false;
+    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = false;
+    if (options['bfi-enabled'] == null) options['bfi-enabled'] = false;
+    if (options['convert-ratings'] == null) options['convert-ratings'] = "false";
+    if (options['mpa-convert'] == null) options['mpa-convert'] = false;
+    if (options['open-same-tab'] == null) options['open-same-tab'] = false;
+    if (options['replace-fans'] == null) options['replace-fans'] = "false";
+    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
+    if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
+    if (options['google'] == null) options['google'] = false;
+}
+
+// Load from storage
+async function load() {
+    options = await browser.storage.local.get().then(function (storedSettings) {
+        if (storedSettings["convert-ratings"] === true) {
+            storedSettings["convert-ratings"] = "5";
+        }
+        return storedSettings;
+    });
+    // Init default settings
+    initDefaultSettings();
+
     set();
 }
 
@@ -185,6 +211,9 @@ document.addEventListener('click', event => {
         case "import":
             importSettings();
             break;
+        case "reset":
+            resetSettings();
+            break;
     }
 });
 
@@ -304,28 +333,118 @@ async function importSettings() {
 
     // Get file and read the contents
     const selectedFile = importPicker.files[0];
-    var reader = new FileReader();
-    reader.readAsText(selectedFile, 'UTF-8');
-    reader.onload = readerEvent => {
-        var content = readerEvent.target.result;        
-        const json = JSON.parse(content);
+    const content = await readFileAsText(selectedFile);
+    
+    var json;
+    var error = "";
+    try {
+        json = JSON.parse(content);
+    } catch(err) {
+        error = "File is not valid JSON."
+    }
 
-        // TODO validate json is valid json
-        // TODO validate file contents
-        // TODO validate version (cannot be newer version than current)
+    if (json != null){
+        // Validate file contents
+        if (json.timeStamp == null || json.version == null || json.settings == null){
+            error = "File is not a valid Letterboxd Extras backup."
+        }
+        if (json.version != null && versionCompare(json.version, browser.runtime.getManifest().version, {lexicographical: false, zeroExtend: true}) > 0){
+            error = "Backup is from a newer version (" + json.version + ") than the current add-on (" + browser.runtime.getManifest().version + "). Please update before importing settings."
+        }
+    }
 
-        // Read timestamp from file
-        const date = (new Date(json.timeStamp)).toLocaleDateString(window.navigator.language);
+    if (error != ""){
+        window.alert("Invalid file: " + error + "\n\nThe import could not be completed");
+        return;
+    }
 
-        // Confirmation Popup
-        if (!window.confirm("Your settings will be overwritten with data backed up on " + date + ".\n\nOverwrite all settings with data from file?")) {
-            return;
+    // Read timestamp from file
+    const date = (new Date(json.timeStamp)).toLocaleDateString(window.navigator.language);
+
+    // Confirmation Popup
+    if (!window.confirm("Your settings will be overwritten with data backed up on " + date + ".\n\nOverwrite all settings with data from file?")) {
+        return;
+    }
+
+    options = json.settings;
+    set();
+    save();
+
+    window.alert("Your settings have been restored from file")
+}
+
+async function resetSettings(){
+    // Confirmation Popup
+    if (!window.confirm("Your settings will be reset.\n\nReset all settings to default?")) {
+        return;
+    }
+
+    options = {};
+    initDefaultSettings();
+    save();
+    set();
+}
+
+async function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            resolve(e.target.result); // Resolve the promise with file content
+        };
+        
+        reader.onerror = function(e) {
+            reject(e); // Reject the promise if an error occurs
+        };
+        
+        reader.readAsText(file);
+    });
+}
+
+// https://gist.github.com/TheDistantSea/8021359
+function versionCompare(v1, v2, options) {
+    var lexicographical = options && options.lexicographical,
+        zeroExtend = options && options.zeroExtend,
+        v1parts = v1.split('.'),
+        v2parts = v2.split('.');
+
+    function isValidPart(x) {
+        return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x);
+    }
+
+    if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
+        return NaN;
+    }
+
+    if (zeroExtend) {
+        while (v1parts.length < v2parts.length) v1parts.push("0");
+        while (v2parts.length < v1parts.length) v2parts.push("0");
+    }
+
+    if (!lexicographical) {
+        v1parts = v1parts.map(Number);
+        v2parts = v2parts.map(Number);
+    }
+
+    for (var i = 0; i < v1parts.length; ++i) {
+        if (v2parts.length == i) {
+            return 1;
         }
 
-        // TODO, request all permissions?
-
-        options = json.settings;
-        set();
-        save();
+        if (v1parts[i] == v2parts[i]) {
+            continue;
+        }
+        else if (v1parts[i] > v2parts[i]) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
     }
+
+    if (v1parts.length != v2parts.length) {
+        return -1;
+    }
+
+    return 0;
 }
