@@ -4032,7 +4032,7 @@
 				
 				const span = letterboxd.helpers.createElement('span', {
 					class: 'icon',
-					style: 'background: url(' + browser.runtime.getURL('/images/bfi-logo.svg') + ')'
+					style: 'background: url(' + chrome.runtime.getURL('/images/bfi-logo.svg') + ')'
 				});	
 				a.append(span);
 
@@ -5009,7 +5009,7 @@
 				}else{
 					image = 'images/tomato-audience-no-score.svg';
 				}
-				image = browser.runtime.getURL(image);
+				image = chrome.runtime.getURL(image);
 
 				const imageSpan = letterboxd.helpers.createElement('span', {
 					class: 'icon-popcorn',

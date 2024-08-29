@@ -125,6 +125,23 @@ function checkSubIDToDisable(element) {
     }
 }
 
+async function requestPermission(event) {
+    // Get the element that has the permission
+    var permissionTarget = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
+    // Make sure it has the permission
+    if (permissionTarget.getAttribute("permission") != null) {
+        // Get the permission from the element that has it
+        var permission = permissionTarget.getAttribute("permission");
+        let permissionsToRequest = { origins: [permission] };
+
+        // Request the permission
+        const response = await chrome.permissions.request(permissionsToRequest);
+        if (response == true) {
+            event.target.parentNode.setAttribute("style", "display:none;");
+        }
+    }
+}
+
 async function registerContentScript(target){
     var id = target.getAttribute('contentScriptID');
     var js = target.getAttribute('contentScript');
@@ -193,25 +210,94 @@ async function load() {
 
         // Init default settings
         initDefaultSettings();
-
         // Set the settings
-        var elements = document.querySelectorAll('.setting');
-        elements.forEach(element => {
-            var key = element.id;
-            if (options.hasOwnProperty(key) && options[key] != "") {
-                switch (element.type) {
-                    case ('checkbox'):
-                        element.checked = options[key];
-                        break;
-                    default:
-                        element.value = options[key];
-                        break;
-                }
-            }
-            checkSubIDToDisable(element);
-        });
+        set();
     });
 }
+
+function set(){
+    // Set the settings
+    var elements = document.querySelectorAll('.setting');
+    elements.forEach(element => {
+        var key = element.id;
+        if (options.hasOwnProperty(key) && options[key] != "") {
+            switch (element.type) {
+                case ('checkbox'):
+                    element.checked = options[key];
+                    break;
+                default:
+                    element.value = options[key];
+                    break;
+            }
+
+            if (element.getAttribute("permission") != null) {
+                checkPermission(element);
+            }
+        }
+        checkSubIDToDisable(element);
+    });
+}
+
+async function checkPermission(element) {
+    // Check for Permissions
+    let permissionsToRequest = { origins: [element.getAttribute("permission")] };
+    var response = await chrome.permissions.contains(permissionsToRequest);
+
+    var div = element.parentNode.parentNode.querySelector(".div-request-permission");
+    if (div != null) {
+        if (response == true && element.checked == true) {
+            // Permission exists and setting is enabled
+            div.setAttribute("style", "display:none;");
+        } else if (response == false && element.checked == true) {
+            // Permission does NOT exist and setting is enabled
+            div.setAttribute("style", "display:block;");
+        } else {
+            div.setAttribute("style", "display:none;");
+        }
+    }
+
+    // Check for content scripts
+    let id = element.getAttribute("contentScriptID");
+    let scripts = await chrome.scripting.getRegisteredContentScripts();
+    scripts = scripts.map((script) => script.id);
+    response = (scripts.includes(id));
+
+    div = element.parentNode.parentNode.querySelector(".div-request-contentscript");
+    if (div != null) {
+        if (response == true && element.checked == true) {
+            // Permission exists and setting is enabled
+            div.setAttribute("style", "display:none;");
+        } else if (response == false && element.checked == true) {
+            // Permission does NOT exist and setting is enabled
+            div.setAttribute("style", "display:block;");
+        } else {
+            div.setAttribute("style", "display:none;");
+        }
+    }
+}
+
+// Request permission if missing
+document.addEventListener('click', event => {
+    if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-permission" && event.target.getAttribute("permissionTarget") != null) {
+        requestPermission(event);
+    }
+    if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-contentscript" && event.target.getAttribute("permissionTarget") != null) {
+        var target = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
+        registerContentScript(target);
+    }
+
+    switch (event.target.id) {
+        case "export":
+            exportSettings();
+            break;
+        case "import":
+            importSettings();
+            break;
+        case "reset":
+            resetSettings();
+            break;
+    }
+});
 
 function validateImportButton() {
     const importPicker = document.querySelector("#importpicker");
