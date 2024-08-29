@@ -39,9 +39,21 @@
         h3,
         label,
         p,
-        a {
+        a,
+        input#export,
+        input#import,
+        input#reset {
             margin-left: 15px;
             margin-right: 15px;
+        }
+
+        input#export,
+        input#import{
+            margin-top: 5px;
+        }
+        
+        input#reset {
+            margin-top: 25px;
         }
 
         p {
@@ -361,11 +373,27 @@
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
-            <input type="button" id="google" class="request-permission" permissionTarget="google" value="Request Permission"/>
+            <input type="button" id="google-permissions" class="request-permission" permissionTarget="google" value="Request Permission"/>
         </div>
         <div class="div-request-contentscript">
             <label style="color: red;">! Missing Content Script !</label>
-            <input type="button" id="google" class="request-contentscript" permissionTarget="google" value="Request Content Script"/>
+            <input type="button" id="google-contentscripts" class="request-contentscript" permissionTarget="google" value="Request Content Script"/>
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <div>
+        <h3>Import/Export Settings</h3>
+        <div>
+            <input type="button" id="export" value="Export to File" />
+        </div>
+        <div>
+            <input type="button" id="import" value="Import from File" />
+            <input type="file" accept="application/json" id="importpicker">
+        </div>
+        <div>
+            <input type="button" id="reset" value="Reset settings to default" />
         </div>
     </div>
 

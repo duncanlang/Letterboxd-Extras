@@ -1967,8 +1967,10 @@
 					data.url			= scoredetails.scoreLinkUrl;
 					data.rating			= scoredetails.averageRating
 
-					if (scoredetails.certified != null && scoredetails.certified == true){
+					if (scoredetails.certified != null && scoredetails.certified == true && data.type == "CRITIC"){
 						data.state = "certified-fresh";
+					}else if (scoredetails.certified != null && scoredetails.certified == true && data.type == "AUDIENCE"){
+						data.state = "verified-hot";
 					}else if (data.state == "POSITIVE" && data.type == "CRITIC"){
 						data.state = "fresh";
 					}else if (data.state == "NEGATIVE" && data.type == "CRITIC"){
@@ -4030,7 +4032,7 @@
 				
 				const span = letterboxd.helpers.createElement('span', {
 					class: 'icon',
-					style: 'background: url(https://www.bfi.org.uk/dist/server/0207614d447715c2d2b9257bdd5e68b4.svg)'
+					style: 'background: url(' + browser.runtime.getURL('/images/bfi-logo.svg') + ')'
 				});	
 				a.append(span);
 
@@ -4989,22 +4991,25 @@
 					scoreDiv.className += " disabled";
 				}
 				
-				var image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
+				var image = 'images/tomato-critic-no-score.svg';
 				if (data.state == "certified-fresh"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/certified_fresh.75211285dbb.svg';
+					image = 'images/tomato-critic-certified-fresh.svg';
+				}else if (data.state == "verified-hot"){
+					image = 'images/tomato-audience-verified-hot.svg';
 				}else if (data.state == "fresh"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-fresh.149b5e8adc3.svg';
+					image = 'images/tomato-critic-fresh.svg';
 				}else if (data.state == "rotten"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-rotten.f1ef4f02ce3.svg';
+					image = 'images/tomato-critic-rotten.svg';
 				}else if (data.state == "upright"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-fresh.6c24d79faaf.svg';
+					image = 'images/tomato-audience-hot.svg';
 				}else if (data.state == "spilled"){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-rotten.f419e4046b7.svg';
+					image = 'images/tomato-audience-stale.svg';
 				}else if(type.includes("critic")){
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg';
+					image = 'images/tomato-critic-no-score.svg';
 				}else{
-					image = 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg';
+					image = 'images/tomato-audience-no-score.svg';
 				}
+				image = browser.runtime.getURL(image);
 
 				const imageSpan = letterboxd.helpers.createElement('span', {
 					class: 'icon-popcorn',
