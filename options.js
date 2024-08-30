@@ -220,7 +220,7 @@ function set(){
     var elements = document.querySelectorAll('.setting');
     elements.forEach(element => {
         var key = element.id;
-        if (options.hasOwnProperty(key) && options[key] != "") {
+        if (options.hasOwnProperty(key)) {
             switch (element.type) {
                 case ('checkbox'):
                     element.checked = options[key];
@@ -309,10 +309,7 @@ function validateImportButton() {
 async function exportSettings() {
     // Create JSON
     var settings = await chrome.storage.sync.get().then(function (storedSettings) {
-        if (storedSettings["convert-ratings"] === true) {
-            storedSettings["convert-ratings"] = "5";
-        }
-        return storedSettings;
+        return storedSettings.options;
     });
 
     const userdata = {
