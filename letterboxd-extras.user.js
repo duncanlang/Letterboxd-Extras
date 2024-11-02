@@ -524,6 +524,9 @@
 			text-align: center; 
 			font-size: 10px;
 		}
+		.extras-lost-film{
+			display: none !important;
+		}
 	`);
 	/* eslint-enable */
 
@@ -4622,6 +4625,9 @@
 			wiki: null,
 			letterboxdName: null,
 
+			lostFilms: null,
+			lost: false,
+
 			stopRunning() {
 				this.running = false;
 			},
@@ -4643,6 +4649,11 @@
 					}
 
 					this.callWikiData();
+				}
+
+				// Call WikiData for lost films
+				if (document.querySelector('.poster-grid') != null && this.lost == false){
+					this.callWikiDataLostFilms();
 				}
 
 				// Stop
@@ -4848,6 +4859,29 @@
 	
 				// Add to Page
 				document.querySelector('.micro-button').before(button);
+			},
+
+			callWikiDataLostFilms(){
+				this.lost = true;
+				var queryString = letterboxd.helpers.getWikiDataQuery('', '', 'LOSTFILMS', '');
+
+				// Call WikiData
+				letterboxd.helpers.getData(queryString, "GET", null, null).then((value) =>{
+					value = JSON.parse(value.response);
+					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+						this.lostFilms = value.results.bindings.map(binding => binding.letterboxdID.value);
+
+						const films = document.querySelectorAll('div.poster-grid ul li');
+						
+						films.forEach(film => {
+							var filmID = film.querySelector('div').getAttribute('data-film-slug');
+							if (this.lostFilms.includes(filmID)){
+								film.className += ' extras-lost-film';
+								console.log(filmID);
+							}
+						});
+					}
+				});
 			}
 
 		},
@@ -6110,6 +6144,11 @@
 						"  }\n" +
 						"}\n" +
 						"";
+				}else if (queryType == "LOSTFILMS"){
+					var sparqlQuery = "SELECT ?letterboxdID WHERE {\n" +
+					"  ?item wdt:P12020 wd:Q122238711;\n" +
+					"        wdt:P6127 ?letterboxdID.\n" +
+					"}";
 				}else{
 					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
