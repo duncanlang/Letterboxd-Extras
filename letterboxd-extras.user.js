@@ -4625,8 +4625,7 @@
 			wiki: null,
 			letterboxdName: null,
 
-			lostFilms: null,
-			lost: false,
+			lostFilms: { state: 0, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0 },
 
 			stopRunning() {
 				this.running = false;
@@ -4652,8 +4651,10 @@
 				}
 
 				// Call WikiData for lost films
-				if (document.querySelector('.poster-grid') != null && this.lost == false){
-					this.callWikiDataLostFilms();
+				if (document.querySelector('.poster-grid') != null){
+					if (this.lostFilms.state == 0){
+						this.callWikiDataLostFilms();
+					}
 				}
 
 				// Stop
@@ -4869,19 +4870,40 @@
 				letterboxd.helpers.getData(queryString, "GET", null, null).then((value) =>{
 					value = JSON.parse(value.response);
 					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
-						this.lostFilms = value.results.bindings.map(binding => binding.letterboxdID.value);
+						this.lostFilms.list = value.results.bindings.map(binding => binding.letterboxdID.value);
+						this.lostFilms.state = 1;
 
-						const films = document.querySelectorAll('div.poster-grid ul li');
-						
-						films.forEach(film => {
-							var filmID = film.querySelector('div').getAttribute('data-film-slug');
-							if (this.lostFilms.includes(filmID)){
-								film.className += ' extras-lost-film';
-								console.log(filmID);
-							}
-						});
+						this.updateLostFilms();
 					}
 				});
+			},
+
+			updateLostFilms(){
+				this.lostFilms.state = 2;
+				this.lostFilms.lostFilmCount = 0;
+				this.lostFilms.visibleCount = 0;
+
+				// Check and set hidden
+				const films = document.querySelectorAll('div.poster-grid ul li');
+				for (var i = 0; i < films.length; i++){
+					var film = films[i];
+					var filmID = film.querySelector('div').getAttribute('data-film-slug');
+
+					if (this.lostFilms.list.includes(filmID)){
+						film.className += ' extras-lost-film';
+						this.lostFilms.lostFilmCount++;
+					}else{
+						this.lostFilms.visibleCount++;
+						if (film.className.includes('film-watched'))
+							this.lostFilms.watchedCount++;
+					}
+				}
+
+				// Update progress panel
+				if (document.querySelector('.sidebar .actions .progress-panel') != null){
+					var progressCount = document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count');
+					var temp = "";
+				}
 			}
 
 		},
