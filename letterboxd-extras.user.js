@@ -4655,6 +4655,9 @@
 					if (this.lostFilms.state == 0){
 						this.callWikiDataLostFilms();
 					}
+					if (this.lostFilms.state == 2 && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count .js-progress-count') != null && document.querySelector('.poster-grid ul li div div a span span span span.ajax-initialising') == null){
+						this.updateLostFilms();
+					}
 				}
 
 				// Stop
@@ -4863,7 +4866,7 @@
 			},
 
 			callWikiDataLostFilms(){
-				this.lost = true;
+				this.lostFilms.state = 1;
 				var queryString = letterboxd.helpers.getWikiDataQuery('', '', 'LOSTFILMS', '');
 
 				// Call WikiData
@@ -4871,15 +4874,13 @@
 					value = JSON.parse(value.response);
 					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 						this.lostFilms.list = value.results.bindings.map(binding => binding.letterboxdID.value);
-						this.lostFilms.state = 1;
-
-						this.updateLostFilms();
+						this.lostFilms.state = 2;
 					}
 				});
 			},
 
 			updateLostFilms(){
-				this.lostFilms.state = 2;
+				this.lostFilms.state = 3;
 				this.lostFilms.lostFilmCount = 0;
 				this.lostFilms.visibleCount = 0;
 
@@ -4899,10 +4900,28 @@
 					}
 				}
 
+				console.log("here");
+
 				// Update progress panel
 				if (document.querySelector('.sidebar .actions .progress-panel') != null){
-					var progressCount = document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count');
-					var temp = "";
+					var progressCounter = document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter');
+					var progressCount = progressCounter.querySelector('.progress-count');
+					var jsProgress = progressCount.querySelector('.js-progress-count');
+					// Update the watched count
+					jsProgress.innerText = this.lostFilms.watchedCount;
+					// Remove it from the span, then clear the span
+					progressCount.remove(jsProgress);
+					progressCount.innerText = "";
+					// Re-add the progress to the span
+					progressCount.innerText += " of " + this.lostFilms.visibleCount;
+					progressCount.prepend(jsProgress);
+					// Add the count to the counter, for some reason it doesn't appear without this
+					progressCounter.append(progressCount);
+
+					// Update the percentage
+					var progressPercent = document.querySelector('.sidebar .actions .progress-panel .progress-status p .progress-percentage');
+					var percentage = Math.round(this.lostFilms.watchedCount / this.lostFilms.visibleCount * 100);
+					progressPercent.innerText = percentage;
 				}
 			}
 
