@@ -524,8 +524,18 @@
 			text-align: center; 
 			font-size: 10px;
 		}
+
 		.extras-lost-film{
 			display: none !important;
+		}
+		.extras-lost-filter span{
+			cursor: pointer;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* Standard syntax */
+		}
+		.extras-lost-filter span i {
+    		pointer-events:none;
 		}
 	`);
 	/* eslint-enable */
@@ -4625,7 +4635,7 @@
 			wiki: null,
 			letterboxdName: null,
 
-			lostFilms: { state: 0, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0 },
+			lostFilms: { state: 0, filterAdded: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0 },
 
 			stopRunning() {
 				this.running = false;
@@ -4648,6 +4658,12 @@
 					}
 
 					this.callWikiData();
+				}
+
+				// Add the filter
+				if (this.lostFilms.filterAdded == false && document.querySelector('.js-film-filters') != null){
+					this.lostFilms.filterAdded == true
+					this.addLostFilmFilter();
 				}
 
 				// Call WikiData for lost films
@@ -4709,6 +4725,42 @@
 							this.addWikiButton();
 						}
 					}
+				});
+			}, 
+
+			addLostFilmFilter(){
+				// Check if already added?
+				if (document.querySelector('.extras-lost-filter') != null){
+					return;
+				}
+
+				// Set selected
+				var className = '';
+				if (letterboxd.storage.get('hide-lost-films') === true){
+					className = ' smenu-subselected';
+				}
+
+				// Create filter element
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'extras-lost-filter divider-line -inset' + className
+				});
+				const a = letterboxd.helpers.createElement('span', {
+					class: 'item'
+				});
+				li.append(a);
+				a.innerText = "Hide lost films"
+				const i = letterboxd.helpers.createElement('i', {
+					class: 'ir s icon'
+				});
+				a.prepend(i);
+
+				// Add to page
+				const unreleasedFilter = document.querySelector('.js-film-filters ul');
+				unreleasedFilter.append(li);
+				
+				// Add click event
+				$(".extras-lost-filter span").on('click', function(event){
+					toggleLostFilms(event, letterboxd);
 				});
 			},
 
@@ -6596,4 +6648,18 @@ function toggleAllRatings(event, letterboxd){
 		element.style.display = "none";
 		event.target.innerText = "Show more ratings";
 	}
+}
+
+function toggleLostFilms(event, letterboxd){
+	var filter = event.target.parentNode;
+	var enabled = false; // hide is true
+	
+	if (filter.className.includes('smenu-subselected')){
+		filter.className = filter.className.replace(' smenu-subselected', '');
+	}else{
+		filter.className += ' smenu-subselected';
+		enabled = true;
+	}
+
+	letterboxd.storage.set('hide-lost-films', enabled);
 }
