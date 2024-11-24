@@ -4635,7 +4635,7 @@
 			wiki: null,
 			letterboxdName: null,
 
-			lostFilms: { state: 0, filterAdded: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0 },
+			lostFilms: { state: 0, filterAdded: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0, totalCount: 0 },
 
 			stopRunning() {
 				this.running = false;
@@ -4736,7 +4736,7 @@
 
 				// Set selected
 				var className = '';
-				if (letterboxd.storage.get('hide-lost-films') === true){
+				if (letterboxd.storage.get('hide-lost-films') === "hide"){
 					className = ' smenu-subselected';
 				}
 
@@ -4921,20 +4921,38 @@
 				this.lostFilms.state = 1;
 				var queryString = letterboxd.helpers.getWikiDataQuery('', '', 'LOSTFILMS', '');
 
-				// Call WikiData
-				letterboxd.helpers.getData(queryString, "GET", null, null).then((value) =>{
-					value = JSON.parse(value.response);
-					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
-						this.lostFilms.list = value.results.bindings.map(binding => binding.letterboxdID.value);
-						this.lostFilms.state = 2;
-					}
-				});
+				// Check for cached list in the browser storage
+				let timestamp = letterboxd.storage.get('lost-films-timestamp');
+				let now = new Date();
+				const oneDay = 60 * 60 * 24 * 1000
+				if (timestamp == null ||(now - timestamp) > oneDay){
+					// Get new list - Call WikiData
+					letterboxd.helpers.getData(queryString, "GET", null, null).then((value) =>{
+						value = JSON.parse(value.response);
+						if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+							this.lostFilms.list = value.results.bindings.map(binding => binding.letterboxdID.value);
+							this.lostFilms.state = 2;
+
+							// Save list to browser storage
+							letterboxd.storage.set('lost-films', this.lostFilms.list);
+							letterboxd.storage.set('lost-films-timestamp', new Date());
+						}
+					});
+				}else{
+					// Use cached list in the browser storage
+					this.lostFilms.list = letterboxd.storage.get('lost-films');
+					this.lostFilms.state = 2;
+				}
+
 			},
 
 			updateLostFilms(){
 				this.lostFilms.state = 3;
 				this.lostFilms.lostFilmCount = 0;
 				this.lostFilms.visibleCount = 0;
+				this.lostFilms.totalCount = 0;
+
+				var hide = letterboxd.storage.get('hide-lost-films');
 
 				// Check and set hidden
 				const films = document.querySelectorAll('div.poster-grid ul li');
@@ -4942,23 +4960,35 @@
 					var film = films[i];
 					var filmID = film.querySelector('div').getAttribute('data-film-slug');
 
-					if (this.lostFilms.list.includes(filmID)){
+					if (this.lostFilms.list.includes(filmID) && hide == "hide"){
 						film.className += ' extras-lost-film';
 						this.lostFilms.lostFilmCount++;
 					}else{
 						this.lostFilms.visibleCount++;
 						if (film.className.includes('film-watched'))
 							this.lostFilms.watchedCount++;
-					}
-				}
 
-				console.log("here");
+						if (film.className.includes('extras-lost-film'))
+							film.className = film.className.replace(' extras-lost-film', '');
+					}
+					this.lostFilms.totalCount++;
+				}
 
 				// Update progress panel
 				if (document.querySelector('.sidebar .actions .progress-panel') != null){
 					var progressCounter = document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter');
 					var progressCount = progressCounter.querySelector('.progress-count');
 					var jsProgress = progressCount.querySelector('.js-progress-count');
+
+					// Get the original total
+					var originalTotal = "";
+					var regex = new RegExp(/\/ (\d+)/);
+					if (progressCounter.innerText.match(regex) != null){
+						originalTotal = progressCounter.innerText.match(regex)[1];
+					}else{
+						originalTotal = this.lostFilms.totalCount;
+					}
+
 					// Update the watched count
 					jsProgress.innerText = this.lostFilms.watchedCount;
 					// Remove it from the span, then clear the span
@@ -4967,8 +4997,11 @@
 					// Re-add the progress to the span
 					progressCount.innerText += " of " + this.lostFilms.visibleCount;
 					progressCount.prepend(jsProgress);
-					// Add the count to the counter, for some reason it doesn't appear without this
-					progressCounter.append(progressCount);
+					// Add the count to the counter
+					progressCounter.innerHTML = "";
+					if (originalTotal != this.lostFilms.totalCount || hide == "hide")
+						progressCounter.append(" / " + originalTotal + " total");
+					progressCounter.prepend(progressCount);
 
 					// Update the percentage
 					var progressPercent = document.querySelector('.sidebar .actions .progress-panel .progress-status p .progress-percentage');
@@ -6652,14 +6685,16 @@ function toggleAllRatings(event, letterboxd){
 
 function toggleLostFilms(event, letterboxd){
 	var filter = event.target.parentNode;
-	var enabled = false; // hide is true
+	var enabled = "show";
 	
 	if (filter.className.includes('smenu-subselected')){
 		filter.className = filter.className.replace(' smenu-subselected', '');
 	}else{
 		filter.className += ' smenu-subselected';
-		enabled = true;
+		enabled = "hide";
 	}
 
 	letterboxd.storage.set('hide-lost-films', enabled);
+
+	letterboxd.person.updateLostFilms();
 }
