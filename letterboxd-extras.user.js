@@ -4950,6 +4950,7 @@
 				this.lostFilms.state = 3;
 				this.lostFilms.lostFilmCount = 0;
 				this.lostFilms.visibleCount = 0;
+				this.lostFilms.watchedCount = 0;
 				this.lostFilms.totalCount = 0;
 
 				var hide = letterboxd.storage.get('hide-lost-films');
@@ -5007,6 +5008,38 @@
 					var progressPercent = document.querySelector('.sidebar .actions .progress-panel .progress-status p .progress-percentage');
 					var percentage = Math.round(this.lostFilms.watchedCount / this.lostFilms.visibleCount * 100);
 					progressPercent.innerText = percentage;
+
+					// Update the progress bar
+					var progressContainer = document.querySelector('.progress-container');
+					var progressBar = progressContainer.querySelector('.progress-bar');
+					progressBar.style['width'] = percentage + '%';
+
+					if (percentage == '100'){
+						progressContainer.className = 'progress-container near-end';
+					}else if (percentage == '0'){
+						progressContainer.className = 'progress-container near-zero';
+					}
+				}
+
+				// Update ui heading
+				var prefix = "There are ";
+				var suffix = " films ";
+				if (this.lostFilms.visibleCount == 1){
+					prefix = "There is ";
+					suffix = " film ";
+				}
+				suffix += letterboxd.helpers.getPersonRole(window.location.pathname.match(new RegExp(/\/([A-za-z\-]+)/))[1]);
+
+				if (document.querySelector('.ui-block-heading') != null){
+					// Edit the existing heading
+					var uiHeading = document.querySelector('.ui-block-heading');
+					var removeLink = document.querySelector('.ui-block-heading a');
+					uiHeading.innerText = '';
+					uiHeading.append(prefix + this.lostFilms.visibleCount + suffix + ' matching your filters. ');
+					uiHeading.append(removeLink);
+					uiHeading.append('.');
+				}else{
+					// Create heading
 				}
 			}
 
@@ -6436,6 +6469,36 @@
 					return { year: 'numeric', month: 'short', timeZone: 'UTC' };
 				}else{
 					return { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
+				}
+			},
+
+			getPersonRole(role){
+				switch(role){
+					case "director":
+					case "co-director":
+					case "additional-directing":
+						return "by this director";
+
+					case "writer":
+					case "producer":
+					case "executive-producer":
+					case "actor":
+						return "by this " + role.replace('-',' ');
+						
+					case "original-writer":
+						return "by this writer";
+						
+					case "editor":
+						return "edited by this editor";
+
+					case "cinematography":
+						return "shot by this cinematographer";
+
+					case "composer":
+						return "with music by this composer";
+					
+					default:
+						return "with " + role.replace('-',' ') + " by this artist";
 				}
 			}
 		},
