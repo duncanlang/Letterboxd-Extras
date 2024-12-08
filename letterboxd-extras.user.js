@@ -4635,7 +4635,7 @@
 			wiki: null,
 			letterboxdName: null,
 
-			lostFilms: { state: 0, filterAdded: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0, totalCount: 0 },
+			lostFilms: { state: 0, filterAdded: false, enabled: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0, totalCount: 0 },
 
 			stopRunning() {
 				this.running = false;
@@ -4738,6 +4738,7 @@
 				var className = '';
 				if (letterboxd.storage.get('hide-lost-films') === "hide"){
 					className = ' smenu-subselected';
+					this.lostFilms.enabled = true;
 				}
 
 				// Create filter element
@@ -4943,7 +4944,6 @@
 					this.lostFilms.list = letterboxd.storage.get('lost-films');
 					this.lostFilms.state = 2;
 				}
-
 			},
 
 			updateLostFilms(){
@@ -4954,6 +4954,7 @@
 				this.lostFilms.totalCount = 0;
 
 				var hide = letterboxd.storage.get('hide-lost-films');
+				this.lostFilms.enabled = hide == "hide";
 
 				// Check and set hidden
 				const films = document.querySelectorAll('div.poster-grid ul li');
@@ -5021,6 +5022,7 @@
 					}
 				}
 
+
 				// Update ui heading
 				var prefix = "There are ";
 				var suffix = " films ";
@@ -5030,16 +5032,54 @@
 				}
 				suffix += letterboxd.helpers.getPersonRole(window.location.pathname.match(new RegExp(/\/([A-za-z\-]+)/))[1]);
 
-				if (document.querySelector('.ui-block-heading') != null){
-					// Edit the existing heading
-					var uiHeading = document.querySelector('.ui-block-heading');
-					var removeLink = document.querySelector('.ui-block-heading a');
-					uiHeading.innerText = '';
-					uiHeading.append(prefix + this.lostFilms.visibleCount + suffix + ' matching your filters. ');
-					uiHeading.append(removeLink);
-					uiHeading.append('.');
+				var uiHeader = document.querySelector('.ui-block-header');
+				var extrasuiHeader = document.querySelector('.extras-filter-header');
+				var extrasuiHeading = null;
+				if (extrasuiHeader != null)
+					extrasuiHeading = extrasuiHeader.querySelector('.ui-block-heading');
+
+				// Create custom heading if one does not already exist
+				if (extrasuiHeader == null){
+					extrasuiHeader = letterboxd.helpers.createElement('section', {
+						class: 'ui-block-header filtered-message body-text -small message-text extras-filter-header'
+					}, {
+						display: 'none'
+					});
+					extrasuiHeading = letterboxd.helpers.createElement('p', {
+						class: 'ui-block-heading'
+					});
+					extrasuiHeader.append(extrasuiHeading);
+					var removeLink = letterboxd.helpers.createElement('a', {
+						class: 'js-film-filter-remover',
+						href: '#',
+					});
+					removeLink.innerText = "Remove filters";
+					extrasuiHeading.append(removeLink);
+
+					// Append to page
+					document.querySelector('.poster-grid').before(extrasuiHeader);
+					
+					$(".extras-filter-header .ui-block-heading .js-film-filter-remover").on('click', function(event){
+						removeFilters(event, letterboxd);
+					});
+				}
+				
+				// Set text of the custom header
+				var removeLink = extrasuiHeader.querySelector('.js-film-filter-remover');
+				extrasuiHeading.innerText = '';
+				extrasuiHeading.append(prefix + this.lostFilms.visibleCount + suffix + ' matching your filters. ');
+				extrasuiHeading.append(removeLink);
+				extrasuiHeading.append('.');
+
+				// Set the new header and existing header based on current filter
+				if (this.lostFilms.enabled && this.lostFilms.lostFilmCount > 0){
+					if (uiHeader != null)
+						uiHeader.style['display'] = 'none';
+					extrasuiHeader.style['display'] = '';
 				}else{
-					// Create heading
+					if (uiHeader != null)
+						uiHeader.style['display'] = '';
+					extrasuiHeader.style['display'] = 'none';
 				}
 			}
 
@@ -6482,8 +6522,10 @@
 					case "writer":
 					case "producer":
 					case "executive-producer":
-					case "actor":
 						return "by this " + role.replace('-',' ');
+
+					case "actor":
+						return "with this " + role.replace('-',' ');
 						
 					case "original-writer":
 						return "by this writer";
@@ -6760,4 +6802,9 @@ function toggleLostFilms(event, letterboxd){
 	letterboxd.storage.set('hide-lost-films', enabled);
 
 	letterboxd.person.updateLostFilms();
+}
+
+function removeFilters(event, letterboxd){
+	// Run this before the page will be reloaded
+	letterboxd.storage.set('hide-lost-films', 'show');
 }
