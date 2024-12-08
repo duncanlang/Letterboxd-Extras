@@ -1222,7 +1222,7 @@
 							var dates = [];
 							var dates_origin = [];
 							for (var i = 0; i < this.wiki_dates.length; i++){
-								var date = {date: '', precision: '', country: '', format: '', score: 0};
+								var date = {date: '', precision: '', country: '', city: '', format: '', score: 0};
 								if (this.wiki_dates[i].Date != null){
 									date.date = this.wiki_dates[i].Date.value;
 
@@ -1230,8 +1230,14 @@
 										date.precision = this.wiki_dates[i].Date_Precision.value;
 									if (this.wiki_dates[i].Date_Country != null && this.wiki_dates[i].Date_Country.value != "") 
 										date.country = this.wiki_dates[i].Date_Country.value;
-									if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "") 
+									if (this.wiki_dates[i].Date_Format != null && this.wiki_dates[i].Date_Format.value != "")
 										date.format = this.wiki_dates[i].Date_Format.value;
+									
+									if (this.wiki_dates[i].Date_City_Country != null && this.wiki_dates[i].Date_City_Country.value != ""){
+										date.city = date.country
+										date.country = this.wiki_dates[i].Date_City_Country.value;
+										date.format = 'Q3491297';
+									}
 
 									// Check distribution format - if not limited release
 									if (!date.format.endsWith('Q3491297')){
@@ -5990,16 +5996,13 @@
 						break;
 				}
 				if (queryType == "DATE"){
-					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Date ?Date_Country ?Date_CountryLabel ?Date_Precision ?Date_Format ?Date_FormatLabel WHERE {\n" +
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Date ?Date_Country ?Date_CountryLabel ?Date_Precision ?Date_Format ?Date_FormatLabel ?Date_City_Country WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
-					"  {\n" +
-					"    SELECT DISTINCT ?item WHERE {\n" +
-					"      ?item p:" + idType + " ?statement0.\n" +
-					"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
-					"      MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
-					"    }\n" +
-					"    LIMIT 15\n" +
-					"  }\n" +
+					"\n" +
+					"  ?item p:" + idType + " ?statement0.\n" +
+					"  ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+					"  MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"\n" +
 					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P577 ?Entry.\n" +
@@ -6007,120 +6010,117 @@
 					"    ?Entry psv:P577 [wikibase:timePrecision ?Date_Precision].\n" +
 					"    OPTIONAL { ?Entry pq:P291 ?Date_Country }.\n" +
 					"    OPTIONAL { ?Entry pq:P437 ?Date_Format }.\n" +
+					"    \n" +
+					"    OPTIONAL {\n" +
+					"      ?Date_Country wdt:P17 ?Date_City_Country.\n" +
+					"      FILTER NOT EXISTS { ?Date_Country wdt:P31 wd:Q6256. }\n" +
+					"    }\n" +
+					"    \n" +
 					"    MINUS { ?Entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"  }\n" +
 					"}";
 				}else if (queryType == "PERSON"){
-						var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
-						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
-						"  {\n" +
-						"    SELECT DISTINCT ?item WHERE {\n" +
-						"      ?item p:P4985 ?statement0.\n" +
-						"      ?statement0 ps:P4985 \"" + id + "\".\n" +
-						"      MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
-						"    }\n" +
-						"    LIMIT 10\n" +
-						"  }\n" +
-						"  OPTIONAL { \n" +
-						"    ?item wdt:P1477 ?BirthName.\n" +
-						"    FILTER(LANG(?BirthName) = \"en\") .\n" +
-						"  }\n" +
-						"  OPTIONAL { ?item wdt:P345 ?IMDb_ID. }\n" +
-						"  OPTIONAL { \n" +
-						"    ?item p:P569 ?BirthEntry.\n" +
-						"    ?BirthEntry ps:P569 ?Date_Of_Birth.\n" +
-						"    ?BirthEntry psv:P569 [wikibase:timePrecision ?Date_Of_Birth_Precision]. \n" +
-						"    ?BirthEntry a wikibase:BestRank\n" +
-						"  }\n" +
-						"  OPTIONAL { \n" +
-						"    ?item p:P570 ?DeathEntry.\n" +
-						"    ?DeathEntry ps:P570 ?Date_Of_Death.\n" +
-						"    ?DeathEntry psv:P570 [wikibase:timePrecision ?Date_Of_Death_Precision].\n" +
-						"    ?DeathEntry a wikibase:BestRank\n" +
-						"  }\n" +
-						"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
-						"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
-						"  OPTIONAL { \n" +
-						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
-						"    ?item p:P19 ?Entry.\n" +
-						"    ?Entry ps:P19 ?BirthCity.  \n" +
-						"    ?BirthCity wdt:P31/wdt:P279* ?locationType.\n" +
-						"    OPTIONAL { \n" +
-						"      ?BirthCity p:P17 ?Country.\n" +
-						"      ?Country ps:P17 ?Country_Of_Birth.\n" +
-						"      ?Country a wikibase:BestRank\n" +
-						"      OPTIONAL { \n" +
-						"        ?Country_Of_Birth wdt:P298 ?BirthCountry.\n" +
-						"      }\n" +
-						"    }\n" +
-						"  }\n" +
-						"  OPTIONAL { \n" +
-						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
-						"    ?item p:P19 ?Entry.\n" +
-						"    ?Entry ps:P19 ?BirthTemp.  \n" +
-						"    ?BirthTemp wdt:P131 ?BirthCity.\n" +
-						"    ?BirthCity wdt:P31/wdt:P279* ?locationType2.\n" +
-						"    OPTIONAL { \n" +
-						"      ?BirthCity p:P17 ?Country.\n" +
-						"      ?Country ps:P17 ?Country_Of_Birth.\n" +
-						"      ?Country a wikibase:BestRank\n" +
-						"      OPTIONAL { \n" +
-						"        ?Country_Of_Birth wdt:P298 ?BirthCountry.\n" +
-						"      }\n" +
-						"    }\n" +
-						"  }\n" +
-						"  OPTIONAL { \n" +
-						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
-						"    ?item p:P20 ?Entry2.\n" +
-						"    ?Entry2 ps:P20 ?DeathCity.\n" +
-						"    ?DeathCity wdt:P31/wdt:P279* ?locationType3.\n" +
-						"    OPTIONAL { \n" +
-						"      ?DeathCity p:P17 ?Country2.\n" +
-						"      ?Country2 ps:P17 ?Country_Of_Death.\n" +
-						"      ?Country2 a wikibase:BestRank\n" +
-						"      OPTIONAL { \n" +
-						"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
-						"      }\n" +
-						"    }\n" +
-						"  }\n" +
-						"  OPTIONAL { \n" +
-						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
-						"    ?item p:P20 ?Entry2.\n" +
-						"    ?Entry2 ps:P20 ?DeathTemp.  \n" +
-						"    ?DeathTemp wdt:P131 ?DeathCity.\n" +
-						"    ?DeathCity wdt:P31/wdt:P279* ?locationType4.\n" +
-						"    OPTIONAL { \n" +
-						"      ?DeathCity p:P17 ?Country2.\n" +
-						"      ?Country2 ps:P17 ?Country_Of_Death.\n" +
-						"      ?Country2 a wikibase:BestRank\n" +
-						"      OPTIONAL { \n" +
-						"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
-						"      }\n" +
-						"    }\n" +
-						"  }\n" +
-						"  OPTIONAL {\n" +
-						"    ?WikipediaEN schema:about ?item .\n" +
-						"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
-						"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
-						"  }\n" +
-						"  OPTIONAL {\n" +
-						"    ?Wikipedia schema:about ?item .\n" +
-						"    ?Wikipedia schema:inLanguage \""+ lang + "\" .\n" +
-						"    ?Wikipedia schema:isPartOf <https://"+ lang + ".wikipedia.org/> .\n" +
-						"  }\n" +
-						"}\n" +
-						"";
+					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
+        			"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+					"  ?item p:P4985 ?statement0.\n" +
+					"  ?statement0 ps:P4985 \"" + id + "\".\n" +
+					"\n" +
+					"  OPTIONAL { \n" +
+					"    ?item wdt:P1477 ?BirthName.\n" +
+					"    FILTER(LANG(?BirthName) = \"en\") .\n" +
+					"  }\n" +
+					"  OPTIONAL { ?item wdt:P345 ?IMDb_ID. }\n" +
+					"  OPTIONAL { \n" +
+					"    ?item p:P569 ?BirthEntry.\n" +
+					"    ?BirthEntry ps:P569 ?Date_Of_Birth.\n" +
+					"    ?BirthEntry psv:P569 [wikibase:timePrecision ?Date_Of_Birth_Precision]. \n" +
+					"    ?BirthEntry a wikibase:BestRank\n" +
+					"  }\n" +
+					"  OPTIONAL { \n" +
+					"    ?item p:P570 ?DeathEntry.\n" +
+					"    ?DeathEntry ps:P570 ?Date_Of_Death.\n" +
+					"    ?DeathEntry psv:P570 [wikibase:timePrecision ?Date_Of_Death_Precision].\n" +
+					"    ?DeathEntry a wikibase:BestRank\n" +
+					"  }\n" +
+					"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
+					"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
+					"  OPTIONAL { \n" +
+					"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+					"    ?item p:P19 ?Entry.\n" +
+					"    ?Entry ps:P19 ?BirthCity.  \n" +
+					"    ?BirthCity wdt:P31/wdt:P279* ?locationType.\n" +
+					"    OPTIONAL { \n" +
+					"      ?BirthCity p:P17 ?Country.\n" +
+					"      ?Country ps:P17 ?Country_Of_Birth.\n" +
+					"      ?Country a wikibase:BestRank\n" +
+					"      OPTIONAL { \n" +
+					"        ?Country_Of_Birth wdt:P298 ?BirthCountry.\n" +
+					"      }\n" +
+					"    }\n" +
+					"  }\n" +
+					"  OPTIONAL { \n" +
+					"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+					"    ?item p:P19 ?Entry.\n" +
+					"    ?Entry ps:P19 ?BirthTemp.  \n" +
+					"    ?BirthTemp wdt:P131 ?BirthCity.\n" +
+					"    ?BirthCity wdt:P31/wdt:P279* ?locationType2.\n" +
+					"    OPTIONAL { \n" +
+					"      ?BirthCity p:P17 ?Country.\n" +
+					"      ?Country ps:P17 ?Country_Of_Birth.\n" +
+					"      ?Country a wikibase:BestRank\n" +
+					"      OPTIONAL { \n" +
+					"        ?Country_Of_Birth wdt:P298 ?BirthCountry.\n" +
+					"      }\n" +
+					"    }\n" +
+					"  }\n" +
+					"  OPTIONAL { \n" +
+					"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+					"    ?item p:P20 ?Entry2.\n" +
+					"    ?Entry2 ps:P20 ?DeathCity.\n" +
+					"    ?DeathCity wdt:P31/wdt:P279* ?locationType3.\n" +
+					"    OPTIONAL { \n" +
+					"      ?DeathCity p:P17 ?Country2.\n" +
+					"      ?Country2 ps:P17 ?Country_Of_Death.\n" +
+					"      ?Country2 a wikibase:BestRank\n" +
+					"      OPTIONAL { \n" +
+					"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
+					"      }\n" +
+					"    }\n" +
+					"  }\n" +
+					"  OPTIONAL { \n" +
+					"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+					"    ?item p:P20 ?Entry2.\n" +
+					"    ?Entry2 ps:P20 ?DeathTemp.  \n" +
+					"    ?DeathTemp wdt:P131 ?DeathCity.\n" +
+					"    ?DeathCity wdt:P31/wdt:P279* ?locationType4.\n" +
+					"    OPTIONAL { \n" +
+					"      ?DeathCity p:P17 ?Country2.\n" +
+					"      ?Country2 ps:P17 ?Country_Of_Death.\n" +
+					"      ?Country2 a wikibase:BestRank\n" +
+					"      OPTIONAL { \n" +
+					"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
+					"      }\n" +
+					"    }\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?WikipediaEN schema:about ?item .\n" +
+					"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
+					"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
+					"  }\n" +
+					"  OPTIONAL {\n" +
+					"    ?Wikipedia schema:about ?item .\n" +
+					"    ?Wikipedia schema:inLanguage \""+ lang + "\" .\n" +
+					"    ?Wikipedia schema:isPartOf <https://"+ lang + ".wikipedia.org/> .\n" +
+					"  }\n" +
+					"}\n" +
+					"";
 				}else{
 					var sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
-					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
-					"  {\n" +
-					"    SELECT DISTINCT ?item WHERE {\n" +
-					"      ?item p:" + idType + " ?statement0.\n" +
-					"      ?statement0 ps:" + idType + " \"" + id + "\".\n" +
-					"      MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
-					"    }\n" +
-					"    LIMIT 10\n" +
-					"  }\n" +
+        			"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+					"  ?item p:" + idType + " ?statement0.\n" +
+       			 	"  ?statement0 ps:" + idType + " \"" + id + "\".\n" +
+					"  MINUS { ?statement0 wikibase:rank wikibase:DeprecatedRank. }\n" +
+					"\n" +
 					"  OPTIONAL { ?item wdt:P1258 ?Rotten_Tomatoes_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P1712 ?Metacritic_ID. }\n" +
 					"  OPTIONAL { ?item wdt:P8729 ?Anilist_ID. }\n" +
