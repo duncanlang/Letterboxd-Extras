@@ -4635,7 +4635,7 @@
 			wiki: null,
 			letterboxdName: null,
 
-			lostFilms: { state: 0, filterAdded: false, enabled: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0, totalCount: 0 },
+			lostFilms: { state: 0, filterAdded: false, enabled: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0, totalCount: 0, watchedUpdated: false },
 
 			stopRunning() {
 				this.running = false;
@@ -4672,6 +4672,11 @@
 						this.callWikiDataLostFilms();
 					}
 					if (this.lostFilms.state == 2 && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count .js-progress-count') != null && document.querySelector('.poster-grid ul li div div a span span span span.ajax-initialising') == null){
+						this.updateLostFilms();
+					}
+					if (document.querySelector('.tooltip.griditem.poster-container.film-watched') != null && this.lostFilms.watchedUpdated == false){
+						// The page can load the grid before the site has marked movies as watched, this should allow the watched percentage to be correctly calculated
+						this.lostFilms.watchedUpdated = true;
 						this.updateLostFilms();
 					}
 				}
@@ -5017,7 +5022,7 @@
 
 					if (percentage == '100'){
 						progressContainer.className = 'progress-container near-end';
-					}else if (percentage == '0'){
+					}else {
 						progressContainer.className = 'progress-container near-zero';
 					}
 				}
