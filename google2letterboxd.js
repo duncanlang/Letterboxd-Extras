@@ -57,11 +57,15 @@ async function google2letterboxd(){
                 letterboxdLink.href = letterboxdUrl
 
                 imdbLink.parentElement.appendChild(letterboxdLink)
-                imdbLink.parentElement.style = "overflow-x:auto; overflow-y:hidden; justify-content:start;"
+                imdbLink.parentElement.style = "overflow-x:auto; overflow-y:hidden; justify-content:space-between;"
 
                 const spans = letterboxdLink.querySelectorAll('span')
                 const span1 = Array.from(spans).find(span => span.textContent.includes('/10'))
-                span1.textContent = '/5'
+                if (options['convert-ratings'] != null && options['convert-ratings'] === "10"){
+                    span1.textContent = '/10'
+                }else{
+                    span1.textContent = '/5'
+                }
                 const span2 = Array.from(spans).find(span => span.textContent.trim() === 'IMDb')
                 span2.textContent = 'Letterboxd'
 
