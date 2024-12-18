@@ -664,10 +664,10 @@
 				}
 
 				// Get year and title
-				if ((document.querySelector(".filmtitle")) && this.letterboxdYear == null){
+				if (document.querySelector(".releaseyear a") != null && document.querySelector(".headline-1.filmtitle span") != null && this.letterboxdYear == null){
 					if (this.isMobile){
 						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
-						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.filmtitle span").innerText;
 
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
@@ -675,7 +675,7 @@
 						}
 					}else{
 						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
-						this.letterboxdTitle = document.querySelector(".filmtitle span").innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.filmtitle span").innerText;
 	
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
