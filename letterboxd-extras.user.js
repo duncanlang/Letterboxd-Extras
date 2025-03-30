@@ -664,10 +664,10 @@
 				}
 
 				// Get year and title
-				if (document.querySelector(".releaseyear a") != null && document.querySelector(".headline-1.filmtitle span") != null && this.letterboxdYear == null){
+				if (document.querySelector(".releaseyear a") != null && document.querySelector(".headline-1.primaryname span") != null && this.letterboxdYear == null){
 					if (this.isMobile){
 						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.filmtitle span").innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
@@ -675,7 +675,7 @@
 						}
 					}else{
 						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.filmtitle span").innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 	
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
@@ -3725,9 +3725,9 @@
 				this.tspdt.state = 3;
 
 				// Get list from page
-				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
-				if (list != null && list.length >= 2){
-					list = list[1].innerHTML;
+				var list = this.tspdt.data.querySelector("div #stacks_out_1772 div div div");
+				if (list != null){
+					list = list.innerHTML;
 					list = list.replaceAll('<br>','\n');
 					list = list.replaceAll('&amp;','&');
 				}else{
