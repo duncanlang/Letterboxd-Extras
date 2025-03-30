@@ -664,10 +664,10 @@
 				}
 
 				// Get year and title
-				if (document.querySelector(".releaseyear a") != null && document.querySelector(".headline-1.filmtitle span") != null && this.letterboxdYear == null){
+				if (document.querySelector(".releaseyear a") != null && document.querySelector(".headline-1.primaryname span") != null && this.letterboxdYear == null){
 					if (this.isMobile){
 						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.filmtitle span").innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
@@ -675,7 +675,7 @@
 						}
 					}else{
 						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.filmtitle span").innerText;
+						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 	
 						var nativeTitle = document.querySelector('.originalname')
 						if (nativeTitle != null){
@@ -3710,9 +3710,9 @@
 				this.tspdt.state = 3;
 
 				// Get list from page
-				var list = this.tspdt.data.querySelectorAll("div #stacks_out_1772 div div div span");
-				if (list != null && list.length >= 2){
-					list = list[1].innerHTML;
+				var list = this.tspdt.data.querySelector("div #stacks_out_1772 div div div");
+				if (list != null){
+					list = list.innerHTML;
 					list = list.replaceAll('<br>','\n');
 					list = list.replaceAll('&amp;','&');
 				}else{
@@ -4130,23 +4130,25 @@
 				this.simkl.state = 1;
 				
 				// Configure URL
-				var url = "https://api.simkl.com/ratings";
+				// The current API requires a client_id? I don't believe it did before
+				// Annoying because this does have a daily limit and now this client id is available online, but you can't have the secret!
+				var url = "https://api.simkl.com/ratings?client_id=05e838d7230a966313e654449100038628f7a89b840e3fcfaf4d4da94999213a";
 				if (this.imdbID != ""){
-					url += "?imdb=" + this.imdbID;
+					url += "&imdb=" + this.imdbID;
 				}
 				if (this.tmdbID != ""){
-					url += "?tmdb=" + this.tmdbID;
+					url += "&tmdb=" + this.tmdbID;
 				}
 				if (this.tmdbTV){
-					url += "?type=show";
+					url += "&type=show";
 				}
 				var regex = new RegExp("letterboxd.com\\/film\\/(.+)\\/");
 				var letterboxdUrl = window.location.href;
 				if (letterboxdUrl.match(regex)){
 					letterboxdUrl = letterboxdUrl.match(regex)[1];
-					url += "?letterboxd=" + letterboxdUrl;
+					url += "&letterboxd=" + letterboxdUrl;
 				}
-				url += "?fields=rank,simkl";
+				url += "&fields=rank,simkl";
 
 				// Make Call
 				chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
