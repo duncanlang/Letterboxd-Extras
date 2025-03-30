@@ -4145,23 +4145,25 @@
 				this.simkl.state = 1;
 				
 				// Configure URL
-				var url = "https://api.simkl.com/ratings";
+				// The current API requires a client_id? I don't believe it did before
+				// Annoying because this does have a daily limit and now this client id is available online, but you can't have the secret!
+				var url = "https://api.simkl.com/ratings?client_id=05e838d7230a966313e654449100038628f7a89b840e3fcfaf4d4da94999213a";
 				if (this.imdbID != ""){
-					url += "?imdb=" + this.imdbID;
+					url += "&imdb=" + this.imdbID;
 				}
 				if (this.tmdbID != ""){
-					url += "?tmdb=" + this.tmdbID;
+					url += "&tmdb=" + this.tmdbID;
 				}
 				if (this.tmdbTV){
-					url += "?type=show";
+					url += "&type=show";
 				}
 				var regex = new RegExp("letterboxd.com\\/film\\/(.+)\\/");
 				var letterboxdUrl = window.location.href;
 				if (letterboxdUrl.match(regex)){
 					letterboxdUrl = letterboxdUrl.match(regex)[1];
-					url += "?letterboxd=" + letterboxdUrl;
+					url += "&letterboxd=" + letterboxdUrl;
 				}
-				url += "?fields=rank,simkl";
+				url += "&fields=rank,simkl";
 
 				// Make Call
 				letterboxd.helpers.getData(url, "GET", null, null).then((value) => {
