@@ -4154,8 +4154,14 @@
 				chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
 					this.simkl.raw = value.response;
 					this.simkl.data = JSON.parse(value.response);
-					
-					this.simkl.state = 2;
+
+					if (this.simkl.data.error != null){
+						this.simkl.state = 3;
+						console.error("Letterboxd Extras - Simkl API error: " + this.simkl.data.code + " " + this.simkl.data.message);
+
+					}else{
+						this.simkl.state = 2;
+					}
 				});
 			},
 
