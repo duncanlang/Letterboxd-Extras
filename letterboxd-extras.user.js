@@ -2816,14 +2816,14 @@
 
 				if (durationElement != null){
 					var regex = new RegExp(/([0-9.,]+)(.+)(mins|min)/);
-					var duration = durationElement.innerText.match(regex);
+					var duration = durationElement.textContent.match(regex);
 					
 					var totalMinutes = parseFloat(letterboxd.helpers.cleanNumber(duration[1]));
 					const minutes = totalMinutes % 60;
 					var hours = Math.floor(totalMinutes / 60);
 					var format = hours + "h " + minutes + "m";
 
-					durationElement.innerText += " (" + format + ")";
+					durationElement.textContent += " (" + format + ")";
 
 					durationElement.className += " extras-duration";
 
