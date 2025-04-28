@@ -1,3 +1,7 @@
+var isAndroid = (navigator.userAgent.includes('Android'));
+if (isAndroid)
+    AndroidImportReplacer();
+
 var options;
 
 function initDefaultSettings(){
@@ -214,6 +218,9 @@ document.addEventListener('click', event => {
         case "reset":
             resetSettings();
             break;
+        case "importbutton":
+            OpenImportTab();
+            break;
     }
 });
 
@@ -371,6 +378,9 @@ async function importSettings() {
     save();
 
     window.alert("Your settings have been restored from file")
+
+    if (isAndroid)
+        window.close();
 }
 
 async function resetSettings(){
@@ -447,4 +457,30 @@ function versionCompare(v1, v2, options) {
     }
 
     return 0;
+}
+
+async function OpenImportTab(){
+    let permissionsToRequest = { permissions: ['tabs'] };
+    const response = await browser.permissions.request(permissionsToRequest);
+    if (response == true) {
+        let creating = browser.tabs.create({
+            url: "/restore.html",
+            active: true
+          });
+        window.close();
+    }
+}
+
+// Make a link to the android replacer page
+// For some reason, FF on android has a bug where the filepicker does not work in the options_ui
+// So we have a separate page where we want the android users to use instead
+function AndroidImportReplacer(){
+    if (document.URL.endsWith('restore.html'))
+        return;
+
+    const importDesktop = document.getElementById("importdivdesktop");
+    importDesktop.style.display = 'none';
+
+    const importAndroid = document.getElementById("importdivandroid");
+    importAndroid.style.display = '';
 }

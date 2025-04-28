@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            --body-text-color: #000;
+            --body-back-color: #ffffff;
+            --body-text-alt-color: #7d7d7d;
+
+            color: var(--body-text-color);
+            background-color: var(--body-back-color);
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Color scheme */
+        @media (prefers-color-scheme: light) {
+            body {
+                --body-text-color: #000;
+                --body-back-color: #ffffff;
+                --body-text-alt-color: #7d7d7d;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                --body-text-color: #f4f4f4;
+                --body-back-color: #23222b;
+                --body-text-alt-color: #a3a2a7;
+            }
+        }
+
+        h3,
+        label,
+        p,
+        a,
+        input#export,
+        input#import,
+        input#reset {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        input#export,
+        input#import{
+            margin-top: 5px;
+        }
+        
+        input#reset {
+            margin-top: 25px;
+        }
+
+        p {
+            margin-top: 0px;
+            font-style: italic;
+            font-size: 11px;
+            width: 95%;
+            color: var(--body-text-alt-color);
+        }
+
+        a{
+            color: rgb(51, 167, 255);
+            width: 95%;
+            text-decoration: none;
+        }
+        a:hover{
+            opacity: 50%;
+            text-decoration: underline;
+        }
+
+        label {
+            display: inline-block;
+            width: 175px;
+            margin-bottom: 10px;
+        }
+        
+        .div-request-permission, .div-request-contentscript{
+            display: none;
+        }
+        .div-request-permission label, .div-request-contentscript label{
+            font-size: 15px;
+        }
+
+        .disabled{
+            pointer-events: none;
+            opacity: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h3>Import Settings From File</h3>
+        <div>
+            <input type="button" id="import" value="Import from File" />
+            <input type="file" accept="application/json" id="importpicker">
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <script src="options.js"></script>
+</body>
+
+</html>

@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
-	"version": "3.15.4",
+	"version": "3.15.5",
 	"minimum_chrome_version": "88",
 
 	"browser_specific_settings": {
@@ -52,7 +52,8 @@
 		"https://www.bfi.org.uk/*",
 		"https://www.allocine.fr/*",
 		"https://api.simkl.com/*",
-		"https://www.google.com/search*"
+		"https://www.google.com/search*",
+		"tabs"
 	],
 
 	"content_scripts": [

@@ -386,9 +386,13 @@
         <div>
             <input type="button" id="export" value="Export to File" />
         </div>
-        <div>
+        <div id="importdivdesktop">
             <input type="button" id="import" value="Import from File" />
             <input type="file" accept="application/json" id="importpicker">
+        </div>
+        <div id="importdivandroid" style="display:none">
+            <input type="button" id="importbutton" value="Import from File" />
+            <p>This will open a separate tab. Please close the add-on options if it does close automatically.</p>
         </div>
         <div>
             <input type="button" id="reset" value="Reset settings to default" />
