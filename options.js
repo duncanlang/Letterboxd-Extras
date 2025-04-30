@@ -4,6 +4,9 @@ if (isAndroid)
 
 var options;
 
+var missingHostPermissions = [];
+var missingContentScripts = [];
+
 function initDefaultSettings(){
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
@@ -63,8 +66,8 @@ function save() {
     browser.storage.local.set(options);
 }
 
-function set() {
-    Object.keys(options).forEach(key => {
+async function set() {
+    for (const key in options){
         var element = document.querySelector('#' + key);
         if (element != null) {
             switch (typeof (options[key])) {
@@ -78,10 +81,19 @@ function set() {
             checkSubIDToDisable(element);
 
             if (element.getAttribute("permission") != null) {
-                checkPermission(element);
+                await checkPermission(element);
             }
         }
-    })
+    }    
+
+    const requestDiv =  document.getElementById('requestalldiv');
+    if (missingHostPermissions.length > 0 || missingContentScripts.length > 0){
+        requestDiv.style.display = '';
+        console.log("show");
+    }else{
+        requestDiv.style.display = 'none';
+        console.log("hide");
+    }
 }
 
 async function checkPermission(element) {
@@ -97,12 +109,14 @@ async function checkPermission(element) {
         } else if (response == false && element.checked == true) {
             // Permission does NOT exist and setting is enabled
             div.setAttribute("style", "display:block;");
+            missingHostPermissions.push(element.getAttribute("permission"));
         } else {
             div.setAttribute("style", "display:none;");
         }
     }
 
     // Check for content scripts
+    let js = element.getAttribute("contentScript");
     let id = element.getAttribute("contentScriptID");
     let scripts = await browser.scripting.getRegisteredContentScripts();
     scripts = scripts.map((script) => script.id);
@@ -116,6 +130,7 @@ async function checkPermission(element) {
         } else if (response == false && element.checked == true) {
             // Permission does NOT exist and setting is enabled
             div.setAttribute("style", "display:block;");
+            missingContentScripts.push({ id: id, js: [js], matches: [element.getAttribute("permission")] });
         } else {
             div.setAttribute("style", "display:none;");
         }
@@ -221,6 +236,9 @@ document.addEventListener('click', event => {
         case "importbutton":
             OpenImportTab();
             break;
+        case "requestall":
+            RequestAllMissingPermissions();
+            break;
     }
 });
 
@@ -284,6 +302,12 @@ async function registerContentScript(target) {
 document.addEventListener('DOMContentLoaded', event => {
     load();
     validateImportButton();
+});
+
+document.addEventListener('focus', event => {
+    missingHostPermissions = [];
+    missingContentScripts = [];
+    set();
 });
 
 function validateImportButton() {
@@ -379,8 +403,14 @@ async function importSettings() {
 
     window.alert("Your settings have been restored from file")
 
-    if (isAndroid)
+    if (isAndroid){
+        let creating = browser.tabs.create({
+            url: "/options.html",
+            active: true
+        });
+
         window.close();
+    }
 }
 
 async function resetSettings(){
@@ -483,4 +513,32 @@ function AndroidImportReplacer(){
 
     const importAndroid = document.getElementById("importdivandroid");
     importAndroid.style.display = '';
+}
+
+
+async function RequestAllMissingPermissions(){
+    // Request any missing permissions
+    if (missingHostPermissions.length > 0){
+        let permissionsToRequest = { origins: missingHostPermissions };
+        var response = await browser.permissions.request(permissionsToRequest);
+        if (response == true) {
+            missingHostPermissions = [];
+            await set();
+        }
+    }
+    
+    // Request any content scripts
+    if (missingContentScripts.length > 0){
+        // Register
+        try {
+            var response = await browser.scripting.registerContentScripts(missingContentScripts);
+            if (response == true) {
+                missingContentScripts = [];
+                await set();
+            }
+        } catch (err) {
+            console.error(`failed to register content scripts: ${err}`);
+            return false;
+        }
+    }
 }
