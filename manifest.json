@@ -13,7 +13,7 @@
 	
 	"browser_action": {
 		"default_title": "Letterboxd Extras Settings",
-		"default_popup": "options.html",
+		"default_popup": "options.html?type=action",
 		"default_icon": {
 			"16": "icon16.png",
 			"32": "icon32.png",

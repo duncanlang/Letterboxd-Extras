@@ -40,7 +40,10 @@
         a,
         input#export,
         input#import,
-        input#reset {
+        input#reset,
+        input#importbutton,
+        input#importpicker,
+        input#requestall {
             margin-left: 15px;
             margin-right: 15px;
         }
@@ -59,6 +62,7 @@
             font-style: italic;
             font-size: 11px;
             width: 95%;
+            max-width: 450px;
             color: var(--body-text-alt-color);
         }
 
@@ -301,20 +305,24 @@
     <div>
         <h3>Rankings</h3>
         <div>
-            <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
-            <input type="checkbox" id="tspdt-enabled" permission="https://www.theyshootpictures.com/*" />
-        </div>
-        <div class="div-request-permission">
-            <label style="color: red;">! Missing Permission !</label>
-            <input type="button" id="tspdt-permissions" class="request-permission" permissionTarget="tspdt-enabled" value="Request Permission"/>
+            <div>
+                <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
+                <input type="checkbox" id="tspdt-enabled" permission="https://www.theyshootpictures.com/*" />
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="tspdt-permissions" class="request-permission" permissionTarget="tspdt-enabled" value="Request Permission"/>
+            </div>
         </div>
         <div>
-            <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
-            <input type="checkbox" id="bfi-enabled" permission="https://www.bfi.org.uk/*" />
-        </div>
-        <div class="div-request-permission">
-            <label style="color: red;">! Missing Permission !</label>
-            <input type="button" id="bfi-permissions" class="request-permission" permissionTarget="bfi-enabled" value="Request Permission"/>
+            <div>
+                <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
+                <input type="checkbox" id="bfi-enabled" permission="https://www.bfi.org.uk/*" />
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="bfi-permissions" class="request-permission" permissionTarget="bfi-enabled" value="Request Permission"/>
+            </div>
         </div>
     </div>
 
@@ -400,7 +408,7 @@
         </div>
         <div id="importdivandroid" style="display:none">
             <input type="button" id="importbutton" value="Import from File" />
-            <p>This will open a separate tab. Please close the add-on options if it does close automatically.</p>
+            <p>This will open a separate tab. Please make sure to accept the 'tabs' permission and close the add-on options if it does close automatically.</p>
         </div>
         <div>
             <input type="button" id="reset" value="Reset settings to default" />
