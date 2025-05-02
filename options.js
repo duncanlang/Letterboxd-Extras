@@ -1,5 +1,14 @@
 // 3rd Attempt
+let isAndroid = (navigator.userAgent.includes('Android'));
+let isPopup = window.location.search.includes('type=action');
+
+if (isAndroid || isPopup)
+    AndroidImportReplacer();
+
 var options = {};
+
+var missingHostPermissions = [];
+var missingContentScripts = [];
 
 function initDefaultSettings(){
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
@@ -218,7 +227,7 @@ async function load() {
 function set(){
     // Set the settings
     var elements = document.querySelectorAll('.setting');
-    elements.forEach(element => {
+    for (const element in elements){
         var key = element.id;
         if (options.hasOwnProperty(key)) {
             switch (element.type) {
@@ -231,47 +240,64 @@ function set(){
             }
 
             if (element.getAttribute("permission") != null) {
-                checkPermission(element);
+                await checkPermission(element);
             }
         }
         checkSubIDToDisable(element);
-    });
+    }
+
+    ValidateRequestAllVisiblity();
 }
 
 async function checkPermission(element) {
     // Check for Permissions
-    let permissionsToRequest = { origins: [element.getAttribute("permission")] };
+    let permission = element.getAttribute("permission");
+    let permissionsToRequest = { origins: [permission] };
     var response = await chrome.permissions.contains(permissionsToRequest);
 
     var div = element.parentNode.parentNode.querySelector(".div-request-permission");
     if (div != null) {
-        if (response == true && element.checked == true) {
-            // Permission exists and setting is enabled
-            div.setAttribute("style", "display:none;");
-        } else if (response == false && element.checked == true) {
+        if (response == false && element.checked == true) {
             // Permission does NOT exist and setting is enabled
             div.setAttribute("style", "display:block;");
+
+            if (!missingHostPermissions.includes(permission)){ // add to array
+                missingHostPermissions.push(permission);
+            }
         } else {
             div.setAttribute("style", "display:none;");
+
+            if (missingHostPermissions.includes(permission)){  // remove from array
+                missingHostPermissions.splice(missingHostPermissions.indexOf(permission), 1);
+            }
         }
     }
 
     // Check for content scripts
+    let js = element.getAttribute("contentScript");
     let id = element.getAttribute("contentScriptID");
-    let scripts = await chrome.scripting.getRegisteredContentScripts();
-    scripts = scripts.map((script) => script.id);
-    response = (scripts.includes(id));
+    if (js != null && id != null){
+        let scripts = await chrome.scripting.getRegisteredContentScripts();
+        scripts = scripts.map((script) => script.id);
+        response = (scripts.includes(id));
 
-    div = element.parentNode.parentNode.querySelector(".div-request-contentscript");
-    if (div != null) {
-        if (response == true && element.checked == true) {
-            // Permission exists and setting is enabled
-            div.setAttribute("style", "display:none;");
-        } else if (response == false && element.checked == true) {
-            // Permission does NOT exist and setting is enabled
-            div.setAttribute("style", "display:block;");
-        } else {
-            div.setAttribute("style", "display:none;");
+        div = element.parentNode.parentNode.querySelector(".div-request-contentscript");
+        if (div != null) {
+            if (response == false && element.checked == true) {
+                // Permission does NOT exist and setting is enabled
+                div.setAttribute("style", "display:block;");
+
+                if (!missingContentScripts.some(obj => obj.id === id)){ // add to array
+                    missingContentScripts.push({ id: id, js: [js], matches: [element.getAttribute("permission")] });
+                }
+            } else {
+                div.setAttribute("style", "display:none;");
+                
+                const script = missingContentScripts.find(obj => obj.id == id);
+                if (script != null){ // remove from array
+                    missingContentScripts.splice(missingContentScripts.indexOf(script), 1);
+                }
+            }
         }
     }
 }
@@ -295,6 +321,12 @@ document.addEventListener('click', event => {
             break;
         case "reset":
             resetSettings();
+            break;
+        case "importbutton":
+            OpenImportTab();
+            break;
+        case "requestall":
+            RequestAllMissingPermissions();
             break;
     }
 });
@@ -388,6 +420,15 @@ async function importSettings() {
     save();
 
     window.alert("Your settings have been restored from file")
+
+    if (isAndroid){
+        let creating = browser.tabs.create({
+            url: "/options.html",
+            active: true
+        });
+
+        window.close();
+    }
 }
 
 async function resetSettings(){
@@ -464,4 +505,62 @@ function versionCompare(v1, v2, options) {
     }
 
     return 0;
+}
+
+async function OpenImportTab(){
+    let permissionsToRequest = { permissions: ['tabs'] };
+    const response = await browser.permissions.request(permissionsToRequest);
+    if (response == true) {
+        browser.tabs.create({
+            url: "/restore.html",
+            active: true
+        });
+        window.close();
+    }
+}
+
+// Make a link to the android replacer page
+// For some reason, FF on android has a bug where the filepicker does not work in the options_ui
+// So we have a separate page where we want the android users to use instead
+function AndroidImportReplacer(){
+    if (document.URL.endsWith('restore.html'))
+        return;
+
+    const importDesktop = document.getElementById("importdivdesktop");
+    importDesktop.style.display = 'none';
+
+    const importAndroid = document.getElementById("importdivandroid");
+    importAndroid.style.display = '';
+}
+
+function ValidateRequestAllVisiblity(){
+    const requestDiv =  document.getElementById('requestalldiv');
+    if (missingHostPermissions.length > 0 || missingContentScripts.length > 0){
+        requestDiv.style.display = '';
+    }else{
+        requestDiv.style.display = 'none';
+    }
+}
+
+async function RequestAllMissingPermissions(){
+    // Request any missing permissions
+    if (missingHostPermissions.length > 0){
+        let permissionsToRequest = { origins: missingHostPermissions };
+        var response = await browser.permissions.request(permissionsToRequest);
+        if (response == true) {
+            missingHostPermissions = [];
+        }else{
+        }
+    }
+    
+    // Request any content scripts
+    if (missingContentScripts.length > 0){
+        try {
+            await browser.scripting.registerContentScripts(missingContentScripts);
+            missingContentScripts = [];
+        } catch (err) {
+            console.error(`failed to register content scripts: ${err}`);
+        }
+    }
+    await set();
 }

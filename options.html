@@ -42,7 +42,10 @@
         a,
         input#export,
         input#import,
-        input#reset {
+        input#reset,
+        input#importbutton,
+        input#importpicker,
+        input#requestall {
             margin-left: 15px;
             margin-right: 15px;
         }
@@ -61,6 +64,7 @@
             font-style: italic;
             font-size: 11px;
             width: 95%;
+            max-width: 450px;
             color: var(--body-text-alt-color);
         }
 
@@ -95,6 +99,14 @@
 </head>
 
 <body>
+    <div id="requestalldiv">
+        <h3>Missing Permissions</h3>
+        <div>
+            <p>You are missing some permissions needed for certain enabled settings.</p>
+            <input type="button" id="requestall" value="Request Missing Permissions" />
+        </div>
+        <hr width="100%">
+    </div>
     <div>
         <h3>IMDb</h3>
         <div>
@@ -392,9 +404,13 @@
         <div>
             <input type="button" id="export" value="Export to File" />
         </div>
-        <div>
+        <div id="importdivdesktop">
             <input type="button" id="import" value="Import from File" />
             <input type="file" accept="application/json" id="importpicker">
+        </div>
+        <div id="importdivandroid" style="display:none">
+            <input type="button" id="importbutton" value="Import from File" />
+            <p>This will open a separate tab. Please make sure to accept the 'tabs' permission and close the add-on options if it does close automatically.</p>
         </div>
         <div>
             <input type="button" id="reset" value="Reset settings to default" />
