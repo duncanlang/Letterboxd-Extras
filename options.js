@@ -1,8 +1,10 @@
-// 3rd Attempt
+const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
+const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
+
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
 
-if (isAndroid || isPopup)
+if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
 
 var options = {};
@@ -421,8 +423,8 @@ async function importSettings() {
 
     window.alert("Your settings have been restored from file")
 
-    if (isAndroid){
-        let creating = chrome.tabs.create({
+    if (window.location.href.endsWith('restore.html')){
+        chrome.tabs.create({
             url: "/options.html",
             active: true
         });
@@ -531,6 +533,19 @@ function AndroidImportReplacer(){
 
     const importAndroid = document.getElementById("importdivandroid");
     importAndroid.style.display = '';
+
+    // Show the tab permission reminder
+    browser.permissions.contains({ permissions: ['tabs'] }).then((value) => {
+        let reminder = document.getElementById('tabpermissionreminder');
+
+        if (reminder != null){
+            if (isAndroid == false && value == false){
+                reminder.style.display = '';
+            }else{
+                reminder.style.display = 'none';
+            }
+        }
+    });
 }
 
 function ValidateRequestAllVisiblity(){
