@@ -224,10 +224,10 @@ async function load() {
     });
 }
 
-function set(){
+async function set(){
     // Set the settings
     var elements = document.querySelectorAll('.setting');
-    for (const element in elements){
+    for (const element in elements.values){
         var key = element.id;
         if (options.hasOwnProperty(key)) {
             switch (element.type) {
@@ -422,7 +422,7 @@ async function importSettings() {
     window.alert("Your settings have been restored from file")
 
     if (isAndroid){
-        let creating = browser.tabs.create({
+        let creating = chrome.tabs.create({
             url: "/options.html",
             active: true
         });
@@ -509,9 +509,9 @@ function versionCompare(v1, v2, options) {
 
 async function OpenImportTab(){
     let permissionsToRequest = { permissions: ['tabs'] };
-    const response = await browser.permissions.request(permissionsToRequest);
+    const response = await chrome.permissions.request(permissionsToRequest);
     if (response == true) {
-        browser.tabs.create({
+        chrome.tabs.create({
             url: "/restore.html",
             active: true
         });
@@ -546,7 +546,7 @@ async function RequestAllMissingPermissions(){
     // Request any missing permissions
     if (missingHostPermissions.length > 0){
         let permissionsToRequest = { origins: missingHostPermissions };
-        var response = await browser.permissions.request(permissionsToRequest);
+        var response = await chrome.permissions.request(permissionsToRequest);
         if (response == true) {
             missingHostPermissions = [];
         }else{
@@ -556,7 +556,7 @@ async function RequestAllMissingPermissions(){
     // Request any content scripts
     if (missingContentScripts.length > 0){
         try {
-            await browser.scripting.registerContentScripts(missingContentScripts);
+            await chrome.scripting.registerContentScripts(missingContentScripts);
             missingContentScripts = [];
         } catch (err) {
             console.error(`failed to register content scripts: ${err}`);
