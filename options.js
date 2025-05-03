@@ -534,11 +534,13 @@ function AndroidImportReplacer(){
 }
 
 function ValidateRequestAllVisiblity(){
-    const requestDiv =  document.getElementById('requestalldiv');
-    if (missingHostPermissions.length > 0 || missingContentScripts.length > 0){
-        requestDiv.style.display = '';
-    }else{
-        requestDiv.style.display = 'none';
+    const requestDiv = document.getElementById('requestalldiv');
+    if (requestDiv != null){
+        if (missingHostPermissions.length > 0 || missingContentScripts.length > 0){
+            requestDiv.style.display = '';
+        }else{
+            requestDiv.style.display = 'none';
+        }
     }
 }
 
