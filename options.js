@@ -229,7 +229,8 @@ async function load() {
 async function set(){
     // Set the settings
     var elements = document.querySelectorAll('.setting');
-    for (const element in elements.values){
+    for (let i = 0; i < elements.length; i++){
+        let element = elements[i];
         var key = element.id;
         if (options.hasOwnProperty(key)) {
             switch (element.type) {
