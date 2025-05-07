@@ -30,10 +30,6 @@
 		"scripting"
 	],
 
-	"optional_permissions": [
-		"tabs"
-	],
-
 	"host_permissions": [
 		"https://www.imdb.com/*",
 		"https://letterboxd.com/*",
