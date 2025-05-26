@@ -1,11 +1,15 @@
 const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
+document.body.classList.add(isFirefox ? "firefox" : "chrome");
 
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
 
 if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
+
+if (isPopup == false)
+    document.querySelector('.logo-holder').setAttribute("style", "display:none;");
 
 var options = {};
 

@@ -1,0 +1,79 @@
+{
+	"manifest_version": 3,
+	"name": "Letterboxd Extras",
+	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
+	"version": "3.15.5",
+	"minimum_chrome_version": "88",
+	"action": {
+		"default_title": "Letterboxd Extras Settings",
+		"default_popup": "options.html?type=action",
+		"default_icon": {
+			"16": "icons/icon16.png",
+			"32": "icons/icon32.png",
+			"128": "icons/icon128.png"
+		}
+	},
+	"icons": {
+		"16": "icons/icon16.png",
+		"32": "icons/icon32.png",
+		"128": "icons/icon128.png"
+	},
+	"options_ui": {
+		"page": "options.html",
+		"open_in_tab": true
+	},
+	"permissions": [
+		"storage",
+		"scripting"
+	],
+	"host_permissions": [
+		"https://www.imdb.com/*",
+		"https://letterboxd.com/*",
+		"https://*.imdb.com/*",
+		"https://www.rottentomatoes.com/*",
+		"https://www.boxofficemojo.com/*",
+		"https://webapp.cinemascore.com/*",
+		"https://query.wikidata.org/*",
+		"https://www.metacritic.com/*",
+		"https://api.jikan.moe/*",
+		"https://graphql.anilist.co/*"
+	],
+	"optional_host_permissions": [
+		"https://api.mubi.com/*",
+		"https://apollo.senscritique.com/*",
+		"https://*.filmaffinity.com/*",
+		"https://www.theyshootpictures.com/*",
+		"https://www.bfi.org.uk/*",
+		"https://www.allocine.fr/*",
+		"https://api.simkl.com/*",
+		"https://www.google.com/search*"
+	],
+	"background": {
+		"service_worker": "background.js",
+		"type": "module"
+	},
+	"content_scripts": [
+		{
+			"matches": [
+				"https://letterboxd.com/*"
+			],
+			"js": [
+				"polyfill.js",
+				"letterboxd-extras.user.js",
+				"jquery-3.6.0.min.js"
+			],
+			"run_at": "document_start"
+		}
+	],
+	"web_accessible_resources": [
+		{
+			"resources": [
+				"images/*"
+			],
+			"matches": [
+				"https://letterboxd.com/*"
+			],
+			"use_dynamic_url": true
+		}
+	]
+}
