@@ -16,6 +16,9 @@ var options = {};
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
+if (isChrome)
+    document.querySelector('#wiki-link-div').setAttribute("style", "display:none;");
+
 // On change, save
 document.addEventListener('change', event => {
     var permission = event.target.getAttribute('permission');

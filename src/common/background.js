@@ -146,13 +146,18 @@ async function registerContentScripts() {
 
 async function InitDefaultSettings(convert) {
     if (convert){
+        // does this work properly?
+        console.log("converting: getting local");
         // Convert from local to sync
         var options = await chrome.storage.local.get().then(function (storedSettings) {
             return storedSettings;
         });
+        console.log(options.length);
         // Clear the (now) unused local storage
         chrome.storage.local.clear();
+        console.log("cleared local");
     }else{
+        console.log("getting sync");
         // Get existing sync
         var options = await chrome.storage.sync.get().then(function (storedSettings) {
             return storedSettings;
@@ -207,6 +212,7 @@ async function InitDefaultSettings(convert) {
 
     // Save
     chrome.storage.sync.set(options);
+    console.log("saving sync");
 }
 
 chrome.runtime.onStartup.addListener(registerContentScripts);
@@ -215,6 +221,8 @@ chrome.runtime.onInstalled.addListener((details) => {
     // Make sure to register content scripts
     registerContentScripts();
 
+    console.log(details.reason);
+
     if (details.reason == 'install') {
         // Init the default settings
         InitDefaultSettings(false);
@@ -222,6 +230,7 @@ chrome.runtime.onInstalled.addListener((details) => {
         // TODO: onboarding here
     }
     else if (details.reason == 'update') {
+        console.log(details.previousVersion);
         var version = parseInt(details.previousVersion.substring(0,1));
         if (isFirefox && version < 4){
             // Convert and unit the default settings
