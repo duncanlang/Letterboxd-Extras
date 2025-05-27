@@ -16,47 +16,6 @@ var options = {};
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
-function initDefaultSettings(){
-    if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
-    if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
-    if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
-    if (options['mal-enabled'] == null) options['mal-enabled'] = true;
-    if (options['al-enabled'] == null) options['al-enabled'] = true;
-    if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
-    if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
-    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
-    if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
-    if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
-    if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
-    if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = true;
-    if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
-    if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
-    if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
-    if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
-    if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
-
-    if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
-    if (options['critic-default'] == null) options['critic-default'] = "all";
-    if (options['audience-default'] == null) options['audience-default'] = "all";
-    if (options['meta-default-view'] == null) options['meta-default-view'] = "hide";
-    if (options['senscritique-enabled'] == null) options['senscritique-enabled'] = false;
-    if (options['mubi-enabled'] == null) options['mubi-enabled'] = false;
-    if (options['filmaff-enabled'] == null) options['filmaff-enabled'] = false;
-    if (options['simkl-enabled'] == null) options['simkl-enabled'] = false;
-    if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
-    if (options['allocine-default-view'] == null) options['allocine-default-view'] = "user";
-    if (options['search-redirect'] == null) options['search-redirect'] = false;
-    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = false;
-    if (options['bfi-enabled'] == null) options['bfi-enabled'] = false;
-    if (options['convert-ratings'] == null) options['convert-ratings'] = "false";
-    if (options['mpa-convert'] == null) options['mpa-convert'] = false;
-    if (options['open-same-tab'] == null) options['open-same-tab'] = false;
-    if (options['replace-fans'] == null) options['replace-fans'] = "false";
-    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
-    if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
-    if (options['google'] == null) options['google'] = false;
-}
-
 // On change, save
 document.addEventListener('change', event => {
     var permission = event.target.getAttribute('permission');
@@ -219,12 +178,6 @@ async function load() {
     // Assign the object
     chrome.storage.sync.get('options', (data) => {
         Object.assign(options, data.options);
-        if (options["convert-ratings"] === true){
-            options["convert-ratings"] = "5";
-        }
-
-        // Init default settings
-        initDefaultSettings();
         // Set the settings
         set();
     });

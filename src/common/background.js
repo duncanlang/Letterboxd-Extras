@@ -1,3 +1,6 @@
+const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
+const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
+
 chrome.runtime.onMessage.addListener((msg, sender, response) => {
     chrome.storage.sync.get('options', (data) => {
         var options = data.options;
@@ -141,13 +144,64 @@ async function registerContentScripts() {
     });
 }
 
+async function InitDefaultSettings(convert) {
+    if (convert){
+        // Convert from local to sync
+        var options = await chrome.storage.local.get().then(function (storedSettings) {
+            return storedSettings;
+        });
+        // Clear the (now) unused local storage
+        chrome.storage.local.clear();
+    }else{
+        // Get existing sync
+        var options = await chrome.storage.sync.get().then(function (storedSettings) {
+            return storedSettings;
+        });
+    }
+    
+    if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
+    if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
+    if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
+    if (options['mal-enabled'] == null) options['mal-enabled'] = true;
+    if (options['al-enabled'] == null) options['al-enabled'] = true;
+    if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
+    if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
+    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
+    if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
+    if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
+    if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
+    if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = true;
+    if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
+    if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
+    if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
+    if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
+    if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
 
-async function InitDefaultSettings() {
-    var options = await chrome.storage.sync.get().then(function (storedSettings) {
-        return storedSettings;
-    });
+    if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
+    if (options['critic-default'] == null) options['critic-default'] = "all";
+    if (options['audience-default'] == null) options['audience-default'] = "all";
+    if (options['meta-default-view'] == null) options['meta-default-view'] = "hide";
+    if (options['senscritique-enabled'] == null) options['senscritique-enabled'] = false;
+    if (options['mubi-enabled'] == null) options['mubi-enabled'] = false;
+    if (options['filmaff-enabled'] == null) options['filmaff-enabled'] = false;
+    if (options['simkl-enabled'] == null) options['simkl-enabled'] = false;
+    if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
+    if (options['allocine-default-view'] == null) options['allocine-default-view'] = "user";
+    if (options['search-redirect'] == null) options['search-redirect'] = false;
+    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = false;
+    if (options['bfi-enabled'] == null) options['bfi-enabled'] = false;
+    if (options['convert-ratings'] == null) options['convert-ratings'] = "false";
+    if (options['mpa-convert'] == null) options['mpa-convert'] = false;
+    if (options['open-same-tab'] == null) options['open-same-tab'] = false;
+    if (options['replace-fans'] == null) options['replace-fans'] = "false";
+    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
+    if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
+    if (options['google'] == null) options['google'] = false;
+    
+    if (options["convert-ratings"] === true){
+        options["convert-ratings"] = "5";
+    }
 
-    // TODO: default options here
     // TODO: convert firefox local to firefox sync
     // Default options
 
@@ -156,20 +210,29 @@ async function InitDefaultSettings() {
 }
 
 chrome.runtime.onStartup.addListener(registerContentScripts);
+
 chrome.runtime.onInstalled.addListener((details) => {
     // Make sure to register content scripts
     registerContentScripts();
 
-    // Init the default settings
-    InitDefaultSettings();
-
     if (details.reason == 'install') {
+        // Init the default settings
+        InitDefaultSettings(false);
+        
         // TODO: onboarding here
     }
     else if (details.reason == 'update') {
-    }
-    else if (details.reason == 'browser_update' || details.reason == 'chrome_update') {
+        var version = parseInt(details.previousVersion.substring(0,1));
+        if (isFirefox && version < 4){
+            // Convert and unit the default settings
+            InitDefaultSettings(true);
+        }else{
+            // Init the default settings
+            InitDefaultSettings(false);
+        }
 
     }
+    else if (details.reason == 'browser_update' || details.reason == 'chrome_update') {
+        // Do nothing
+    }
 });
-chrome.runtime.onInstalled.addListener();

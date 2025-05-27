@@ -6372,32 +6372,8 @@
 
 			async init() {	
 				chrome.storage.sync.get('options', (data) => {
-					Object.assign(this.options, data.options);					
-					if (this.options["convert-ratings"] === true){
-						this.options["convert-ratings"] = "5";
-					}
-					
-					// Init default settings
-					if (this.options['imdb-enabled'] == null) this.set('imdb-enabled', true);
-					if (this.options['tomato-enabled'] == null) this.set('tomato-enabled', true);
-					if (this.options['metacritic-enabled'] == null) this.set('metacritic-enabled', true);
-					if (this.options['mal-enabled'] == null) this.set('mal-enabled', true);
-					if (this.options['al-enabled'] == null) this.set('al-enabled', true);
-					if (this.options['cinema-enabled'] == null) this.set('cinema-enabled', true);
-					if (this.options['mpa-enabled'] == null) this.set('mpa-enabled', true);
-					if (this.options['mojo-link-enabled'] == null) this.set('mojo-link-enabled', true);
-					if (this.options['wiki-link-enabled'] == null) this.set('wiki-link-enabled', true);
-					if (this.options['tomato-critic-enabled'] == null) this.set('tomato-critic-enabled', true);
-					if (this.options['tomato-audience-enabled'] == null) this.set('tomato-audience-enabled', true);
-					if (this.options['metacritic-critic-enabled'] == null) this.set('metacritic-critic-enabled', true);
-					if (this.options['metacritic-users-enabled'] == null) this.set('metacritic-users-enabled', true);
-					if (this.options['metacritic-mustsee-enabled'] == null) this.set('metacritic-mustsee-enabled', true);
-					if (this.options['sens-favorites-enabled'] == null) this.set('sens-favorites-enabled', true);
-					if (this.options['allocine-critic-enabled'] == null) this.set('allocine-critic-enabled', true);
-					if (this.options['allocine-users-enabled'] == null) this.set('allocine-users-enabled', true);
-				});
-
-				
+					Object.assign(this.options, data.options);
+				});				
 			},
 			get(key) {
 				if (this.options != null && this.options.hasOwnProperty(key))// && this.options[key] != "")
