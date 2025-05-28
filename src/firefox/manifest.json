@@ -31,9 +31,7 @@
 	},
 	"permissions": [
 		"storage",
-		"scripting"
-	],
-	"optional_permissions": [
+		"scripting",
 		"tabs"
 	],
 	"host_permissions": [

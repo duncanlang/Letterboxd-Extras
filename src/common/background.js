@@ -145,25 +145,22 @@ async function registerContentScripts() {
 }
 
 async function InitDefaultSettings(convert) {
-    if (convert){
-        // does this work properly?
-        console.log("converting: getting local");
+    if (convert) {
         // Convert from local to sync
         var options = await chrome.storage.local.get().then(function (storedSettings) {
             return storedSettings;
         });
-        console.log(options.length);
         // Clear the (now) unused local storage
         chrome.storage.local.clear();
         console.log("cleared local");
-    }else{
+    } else {
         console.log("getting sync");
         // Get existing sync
         var options = await chrome.storage.sync.get().then(function (storedSettings) {
             return storedSettings;
         });
     }
-    
+
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
     if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
@@ -202,17 +199,13 @@ async function InitDefaultSettings(convert) {
     if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
     if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
     if (options['google'] == null) options['google'] = false;
-    
-    if (options["convert-ratings"] === true){
+
+    if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
 
-    // TODO: convert firefox local to firefox sync
-    // Default options
-
     // Save
     chrome.storage.sync.set(options);
-    console.log("saving sync");
 }
 
 chrome.runtime.onStartup.addListener(registerContentScripts);
@@ -220,22 +213,25 @@ chrome.runtime.onStartup.addListener(registerContentScripts);
 chrome.runtime.onInstalled.addListener((details) => {
     // Make sure to register content scripts
     registerContentScripts();
+    
 
-    console.log(details.reason);
+    // TODO, this is just here for testing. in the final version, this should only be for install
+        chrome.tabs.create({
+            url: "/setup.html",
+            active: true
+        });
 
     if (details.reason == 'install') {
         // Init the default settings
         InitDefaultSettings(false);
-        
-        // TODO: onboarding here
     }
     else if (details.reason == 'update') {
         console.log(details.previousVersion);
-        var version = parseInt(details.previousVersion.substring(0,1));
-        if (isFirefox && version < 4){
+        var version = parseInt(details.previousVersion.substring(0, 1));
+        if (isFirefox && version < 4) {
             // Convert and unit the default settings
             InitDefaultSettings(true);
-        }else{
+        } else {
             // Init the default settings
             InitDefaultSettings(false);
         }

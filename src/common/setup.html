@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="setup.css">
+</head>
+
+<body>
+    <div>
+        <img class="logo" src="icons/icon128.png" alt="Letterboxd Extras" title="Letterboxd Extras">
+    </div>
+    <div>
+        <h2 class="logotext">Letterboxd Extras</h3>
+    </div>
+    <p>Thank you for downloading Letterboxd Extras!</p>
+    <p>Please verify these options here before closing this tab.</p>
+    <hr width="100%">
+
+    <div id="mandatory-permissions-div">
+        <p>To function correctly, Letterboxd Extras requires permission to access Letterboxd and WikiData.</p>
+        <input type="button" id="mandatory-permissions" class="request-permission" value="Request Permissions" />
+        <hr width="100%">
+    </div>
+
+    <div id="optional-permissions-div">
+        <h4>Quick setup, please configure your preferred options:</h4>
+        <input type="button" id="optional-permissions" class="request-permission" value="Request Missing Permissions" disabled="true" />
+
+        <!-- Ratings -->
+        <div>
+            <label for="imdb-enabled">Display IMDb ratings:</label>
+            <input type="checkbox" id="imdb-enabled" class="setting" />
+        </div>
+        <!-- TODO all of them should be here -->
+
+        <hr width="100%">
+    </div>
+    
+    <div id="full-options-div">
+        <a href="/options.html">More options are available, please check out the full options here.</a>
+        <hr width="100%">
+    </div>
+
+    <script src="setup.js"></script>
+</body>
+
+</html>
