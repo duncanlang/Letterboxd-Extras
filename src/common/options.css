@@ -40,6 +40,8 @@ body {
 }
 
 h3,
+h4,
+h5,
 label,
 p,
 a,
@@ -48,7 +50,9 @@ input#import,
 input#reset,
 input#importbutton,
 input#importpicker,
-input#requestall {
+input#requestall,
+input#mandatory-permissions,
+input#recommended-options {
     margin-left: 15px;
     margin-right: 15px;
 }
@@ -64,10 +68,13 @@ input#reset {
 
 p {
     margin-top: 0px;
-    font-style: italic;
-    font-size: 11px;
     width: 95%;
     max-width: 450px;
+}
+
+p.info {
+    font-style: italic;
+    font-size: 11px;
     color: var(--body-text-alt-color);
 }
 

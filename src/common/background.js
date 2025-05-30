@@ -145,39 +145,50 @@ async function registerContentScripts() {
 }
 
 async function InitDefaultSettings(convert) {
+    var options = {};
     if (convert) {
         // Convert from local to sync
-        var options = await chrome.storage.local.get().then(function (storedSettings) {
+        options = await chrome.storage.local.get().then(function (storedSettings) {
             return storedSettings;
         });
         // Clear the (now) unused local storage
         chrome.storage.local.clear();
-        console.log("cleared local");
     } else {
-        console.log("getting sync");
-        // Get existing sync
-        var options = await chrome.storage.sync.get().then(function (storedSettings) {
-            return storedSettings;
+        await chrome.storage.sync.get('options', (data) => {
+            console.log(data);
+            console.log(data.options);
+            console.log(data.options['imdb-enabled']);
+            Object.assign(options, data.options);
         });
     }
+    if (options == null)
+        options = {};
 
-    if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
-    if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
-    if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
-    if (options['mal-enabled'] == null) options['mal-enabled'] = true;
-    if (options['al-enabled'] == null) options['al-enabled'] = true;
-    if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
-    if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
-    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
-    if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
-    if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
-    if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
-    if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = true;
-    if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
-    if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
-    if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
-    if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
-    if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
+    // TODO something is fucky here
+
+    if (options['imdb-enabled'] != null)
+        console.log('background.js | imdb-enabled is not null: ' + options['imdb-enabled']);
+    else
+        console.log('background.js | imdb-enabled IS null');
+
+    // No more defaults - all settings are disabled
+    if (options['imdb-enabled'] == null) options['imdb-enabled'] = false;
+    if (options['tomato-enabled'] == null) options['tomato-enabled'] = false;
+    if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = false;
+    if (options['mal-enabled'] == null) options['mal-enabled'] = false;
+    if (options['al-enabled'] == null) options['al-enabled'] = false;
+    if (options['cinema-enabled'] == null) options['cinema-enabled'] = false;
+    if (options['mpa-enabled'] == null) options['mpa-enabled'] = false;
+    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = false;
+    if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = false;
+    if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = false;
+    if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = false;
+    if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = false;
+    if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = false;
+    if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = false;
+    if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = false;
+    if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = false;
+    if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = false;
 
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
     if (options['critic-default'] == null) options['critic-default'] = "all";
@@ -204,8 +215,9 @@ async function InitDefaultSettings(convert) {
         options["convert-ratings"] = "5";
     }
 
+    console.log('background.js | saving');
     // Save
-    chrome.storage.sync.set(options);
+    chrome.storage.sync.set({options});
 }
 
 chrome.runtime.onStartup.addListener(registerContentScripts);
@@ -213,20 +225,17 @@ chrome.runtime.onStartup.addListener(registerContentScripts);
 chrome.runtime.onInstalled.addListener((details) => {
     // Make sure to register content scripts
     registerContentScripts();
-    
-
-    // TODO, this is just here for testing. in the final version, this should only be for install
-        chrome.tabs.create({
-            url: "/setup.html",
-            active: true
-        });
 
     if (details.reason == 'install') {
         // Init the default settings
         InitDefaultSettings(false);
+        
+        chrome.tabs.create({
+            url: "/options.html?type=setup",
+            active: true
+        });
     }
     else if (details.reason == 'update') {
-        console.log(details.previousVersion);
         var version = parseInt(details.previousVersion.substring(0, 1));
         if (isFirefox && version < 4) {
             // Convert and unit the default settings

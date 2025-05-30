@@ -19,10 +19,42 @@
         <hr width="100%">
     </div>
 
+    <div id="first-time-setup" style="display:none">
+        <h4>Thank you for downloading Letterboxd Extras!</h4>
+        <h5><b>Please verify these options before closing this tab.</b></h5>
+        <hr width="100%">
+        <div id="mandatory-permissions-div">
+            <h4>Mandatory Permissions</h4>
+            <p>To function correctly, Letterboxd Extras requires permission to access Letterboxd and WikiData.</p>
+            <input type="button" id="mandatory-permissions" class="request-permission"
+                value="Click here to request mandatory permissions" />
+            <p style="display: none; color: green">Mandatory permissions have been successfully added!</p>
+        </div>
+        <div id="recommended-options-div">
+            <h4>Quick Setup</h4>
+            <p>Letterboxd Extras is configurable. For quick setup, click below to enable the recommended options.</p>
+            <p>The recommended options will enable:</p>
+            <ul>
+                <li>IMDb ratings</li>
+                <li>Rotten Tomatoes ratings</li>
+                <li>Metacritic ratings</li>
+                <li>MyAnimeList ratings</li>
+                <li>AniList ratings</li>
+                <li>MPA ratings</li>
+                <li>Budget and Box Office</li>
+            </ul>
+            <input type="button" id="recommended-options" class="request-permission"
+                value="Click here to request and enable recommended options" />
+            <br>
+            <p style="margin-top: 30px">Or, you can choose your preferred options below:</p>
+            <hr width="100%">
+        </div>
+    </div>
+
     <div id="requestalldiv">
         <h3>Missing Permissions</h3>
         <div>
-            <p>You are missing some permissions needed for certain enabled settings.</p>
+            <p class="info">You are missing some permissions needed for certain enabled settings.</p>
             <input type="button" id="requestall" value="Request Missing Permissions" />
         </div>
         <hr width="100%">
@@ -225,7 +257,8 @@
         <div>
             <label for="search-redirect">Default results to films:</label>
             <input type="checkbox" id="search-redirect" class="setting" />
-            <p>Defaults the Letterboxd search to only show results for films, rather than showing all results.</p>
+            <p class="info">Defaults the Letterboxd search to only show results for films, rather than showing all
+                results.</p>
         </div>
     </div>
 
@@ -269,8 +302,8 @@
                 <option value="5">5-point scale</option>
                 <option value="10">10-point scale</option>
             </select>
-            <p>Converts ratings to different rating scales. Affects Letterboxd, IMDb, MyAnimeList, AniList, and Mubi.
-            </p>
+            <p class="info">Converts ratings to different rating scales. Affects Letterboxd, IMDb, MyAnimeList, AniList,
+                and Mubi.</p>
         </div>
         <div>
             <label for="mpa-enabled">Display MPA film ratings:</label>
@@ -344,8 +377,9 @@
         </div>
         <div id="importdivandroid" style="display:none">
             <input type="button" id="importbutton" value="Import from File" />
-            <p>This will open the restore in a separate tab.</p>
-            <p id="tabpermissionreminder">This requires the 'tabs' permission to open the new tab. The request pop-up
+            <p class="info">This will open the restore in a separate tab.</p>
+            <p id="tabpermissionreminder" class="info">This requires the 'tabs' permission to open the new tab. The
+                request pop-up
                 will likely open behind this due to a bug with FireFox.</p>
         </div>
         <div>

@@ -2,13 +2,18 @@ const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 document.body.classList.add(isFirefox ? "firefox" : "chrome");
 
+let mandatoryPermissions = { origins: ['https://letterboxd.com/*', 'https://query.wikidata.org/*'] };
+let recommendedPermisions = { origins: ['https://*.imdb.com/*', 'https://www.rottentomatoes.com/*', 'https://www.boxofficemojo.com/*', 'https://webapp.cinemascore.com/*', 'https://www.metacritic.com/*', 'https://api.jikan.moe/*', 'https://graphql.anilist.co/*'] };
+
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
+let isSetup = window.location.search.includes('type=setup');
+let isAddonManager = window.location.search.includes('type=embed');
 
 if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
 
-if (isPopup == false)
+if (isAddonManager)
     document.querySelector('.logo-holder').setAttribute("style", "display:none;");
 
 var options = {};
@@ -19,13 +24,16 @@ var missingContentScripts = [];
 if (isChrome)
     document.querySelector('#wiki-link-div').setAttribute("style", "display:none;");
 
+if (isSetup)
+    InitSetup();
+
 // On change, save
 document.addEventListener('change', event => {
     var permission = event.target.getAttribute('permission');
 
     if (permission != null && permission != "") {
         var permission = { origins: [permission] };
-        if (event.target.getAttribute("permissionBrowser") != null){
+        if (event.target.getAttribute("permissionBrowser") != null) {
             permission = { origins: [event.target.getAttribute('permission')], permissions: [event.target.getAttribute("permissionBrowser")] };
         }
         if (event.target.checked == true) {
@@ -36,7 +44,7 @@ document.addEventListener('change', event => {
 
                     save();
 
-                    if (event.target.getAttribute('contentScript') != null){
+                    if (event.target.getAttribute('contentScript') != null) {
                         registerContentScript(event.target);
                     }
                 } else {
@@ -55,12 +63,12 @@ document.addEventListener('change', event => {
                 }
                 checkSubIDToDisable(event.target);
             });
-            
-            if (event.target.getAttribute('contentScript') != null){
+
+            if (event.target.getAttribute('contentScript') != null) {
                 registerContentScript(event.target);
             }
         }
-    } else if (event.target.id == "importpicker"){
+    } else if (event.target.id == "importpicker") {
         validateImportButton();
     } else {
         switch (event.target.type) {
@@ -78,6 +86,7 @@ document.addEventListener('change', event => {
 });
 // Save:
 function save() {
+    console.log('save()');
     chrome.storage.sync.set({ options });
 }
 
@@ -86,16 +95,16 @@ function checkSubIDToDisable(element) {
         var target = document.querySelector("#" + element.getAttribute("subid"));
         var targetValue = element.getAttribute("subidvalue");
 
-        if (targetValue != null){
-            if (element.value == targetValue){
-                target.className = target.className.replace("disabled","").trim();
-            }else if (!target.className.includes('disabled')){
+        if (targetValue != null) {
+            if (element.value == targetValue) {
+                target.className = target.className.replace("disabled", "").trim();
+            } else if (!target.className.includes('disabled')) {
                 target.className += " disabled";
             }
-        }else{
-            if (element.checked){
-                target.className = target.className.replace("disabled","").trim();
-            }else if (!target.className.includes('disabled')){
+        } else {
+            if (element.checked) {
+                target.className = target.className.replace("disabled", "").trim();
+            } else if (!target.className.includes('disabled')) {
                 target.className += " disabled";
             }
         }
@@ -119,14 +128,14 @@ async function requestPermission(event) {
     }
 }
 
-async function registerContentScript(target){
+async function registerContentScript(target) {
     var id = target.getAttribute('contentScriptID');
     var js = target.getAttribute('contentScript');
     var match = target.getAttribute('permission');
 
     var failed = false;
 
-    if (target.checked){
+    if (target.checked) {
         // Register
         const script = {
             id: id,
@@ -137,7 +146,7 @@ async function registerContentScript(target){
         try {
             const scripts = await chrome.scripting.getRegisteredContentScripts();
             const scriptIds = scripts.map(script => script.id);
-            if (!scriptIds.includes(id)){
+            if (!scriptIds.includes(id)) {
                 await chrome.scripting.registerContentScripts([script]);
             }
         } catch (err) {
@@ -160,8 +169,8 @@ async function registerContentScript(target){
             return false;
         }
     }
-    
-    if (failed){
+
+    if (failed) {
         target.checked = false;
         options[target.id] = target.checked;
         save();
@@ -170,6 +179,43 @@ async function registerContentScript(target){
     return true;
 }
 
+async function requestMandatoryPermissions() {
+    const response = await chrome.permissions.request(mandatoryPermissions);
+    if (response) {
+        let div = document.getElementById('mandatory-permissions-div');
+        div.setAttribute("style", "display:none;");
+    }
+}
+
+async function requestRecommendedOptions() {
+    const response = await chrome.permissions.request(recommendedPermisions);
+    if (response) {
+        let div = document.getElementById('recommended-options-div');
+        div.setAttribute("style", "display:none;");
+
+        options['imdb-enabled'] = true;
+        options['tomato-enabled'] = true;
+        options['metacritic-enabled'] = true;
+        options['mal-enabled'] = true;
+        options['al-enabled'] = true;
+        options['cinema-enabled'] = true;
+        options['mpa-enabled'] = true;
+        options['mojo-link-enabled'] = true;
+        options['tomato-critic-enabled'] = true;
+        options['tomato-audience-enabled'] = true;
+        options['metacritic-critic-enabled'] = true;
+        options['metacritic-users-enabled'] = true;
+        options['metacritic-mustsee-enabled'] = true;
+        options['sens-favorites-enabled'] = true;
+        options['allocine-critic-enabled'] = true;
+        options['allocine-users-enabled'] = true;
+        if (isFirefox)
+            options['wiki-link-enabled'] = true;
+
+        save();
+        set();
+    }
+}
 
 // On load, load
 document.addEventListener('DOMContentLoaded', event => {
@@ -178,18 +224,24 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 // Load
 async function load() {
+    console.log('load()');
     // Assign the object
-    chrome.storage.sync.get('options', (data) => {
+    await chrome.storage.sync.get('options', async (data) => {
+        console.log('assigning object');
+        console.log(data);
+        console.log(data.options);
+        console.log(data.options['imdb-enabled']);
         Object.assign(options, data.options);
         // Set the settings
         set();
     });
 }
 
-async function set(){
+async function set() {
+    console.log('set()');
     // Set the settings
     var elements = document.querySelectorAll('.setting');
-    for (let i = 0; i < elements.length; i++){
+    for (let i = 0; i < elements.length; i++) {
         let element = elements[i];
         var key = element.id;
         if (options.hasOwnProperty(key)) {
@@ -224,13 +276,13 @@ async function checkPermission(element) {
             // Permission does NOT exist and setting is enabled
             div.setAttribute("style", "display:block;");
 
-            if (!missingHostPermissions.includes(permission)){ // add to array
+            if (!missingHostPermissions.includes(permission)) { // add to array
                 missingHostPermissions.push(permission);
             }
         } else {
             div.setAttribute("style", "display:none;");
 
-            if (missingHostPermissions.includes(permission)){  // remove from array
+            if (missingHostPermissions.includes(permission)) {  // remove from array
                 missingHostPermissions.splice(missingHostPermissions.indexOf(permission), 1);
             }
         }
@@ -239,7 +291,7 @@ async function checkPermission(element) {
     // Check for content scripts
     let js = element.getAttribute("contentScript");
     let id = element.getAttribute("contentScriptID");
-    if (js != null && id != null){
+    if (js != null && id != null) {
         let scripts = await chrome.scripting.getRegisteredContentScripts();
         scripts = scripts.map((script) => script.id);
         response = (scripts.includes(id));
@@ -250,14 +302,14 @@ async function checkPermission(element) {
                 // Permission does NOT exist and setting is enabled
                 div.setAttribute("style", "display:block;");
 
-                if (!missingContentScripts.some(obj => obj.id === id)){ // add to array
+                if (!missingContentScripts.some(obj => obj.id === id)) { // add to array
                     missingContentScripts.push({ id: id, js: [js], matches: [element.getAttribute("permission")] });
                 }
             } else {
                 div.setAttribute("style", "display:none;");
-                
+
                 const script = missingContentScripts.find(obj => obj.id == id);
-                if (script != null){ // remove from array
+                if (script != null) { // remove from array
                     missingContentScripts.splice(missingContentScripts.indexOf(script), 1);
                 }
             }
@@ -273,6 +325,13 @@ document.addEventListener('click', event => {
     if (event.target.getAttribute("class") != null && event.target.getAttribute("class") == "request-contentscript" && event.target.getAttribute("permissionTarget") != null) {
         var target = document.querySelector("#" + event.target.getAttribute("permissionTarget"));
         registerContentScript(target);
+    }
+
+    if (event.target.id == 'mandatory-permissions') {
+        requestMandatoryPermissions();
+    }
+    else if (event.target.id == 'recommended-options') {
+        requestRecommendedOptions();
     }
 
     switch (event.target.id) {
@@ -346,26 +405,26 @@ async function importSettings() {
     // Get file and read the contents
     const selectedFile = importPicker.files[0];
     const content = await readFileAsText(selectedFile);
-    
+
     var json;
     var error = "";
     try {
         json = JSON.parse(content);
-    } catch(err) {
+    } catch (err) {
         error = "File is not valid JSON."
     }
 
-    if (json != null){
+    if (json != null) {
         // Validate file contents
-        if (json.timeStamp == null || json.version == null || json.settings == null){
+        if (json.timeStamp == null || json.version == null || json.settings == null) {
             error = "File is not a valid Letterboxd Extras backup."
         }
-        if (json.version != null && versionCompare(json.version, chrome.runtime.getManifest().version, {lexicographical: false, zeroExtend: true}) > 0){
+        if (json.version != null && versionCompare(json.version, chrome.runtime.getManifest().version, { lexicographical: false, zeroExtend: true }) > 0) {
             error = "Backup is from a newer version (" + json.version + ") than the current add-on (" + chrome.runtime.getManifest().version + "). Please update before importing settings."
         }
     }
 
-    if (error != ""){
+    if (error != "") {
         window.alert("Invalid file: " + error + "\n\nThe import could not be completed");
         return;
     }
@@ -384,7 +443,7 @@ async function importSettings() {
 
     window.alert("Your settings have been restored from file")
 
-    if (window.location.href.endsWith('restore.html')){
+    if (window.location.href.endsWith('restore.html')) {
         chrome.tabs.create({
             url: "/options.html",
             active: true
@@ -394,7 +453,7 @@ async function importSettings() {
     }
 }
 
-async function resetSettings(){
+async function resetSettings() {
     // Confirmation Popup
     if (!window.confirm("Your settings will be reset.\n\nReset all settings to default?")) {
         return;
@@ -409,15 +468,15 @@ async function resetSettings(){
 async function readFileAsText(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
+
+        reader.onload = function (e) {
             resolve(e.target.result); // Resolve the promise with file content
         };
-        
-        reader.onerror = function(e) {
+
+        reader.onerror = function (e) {
             reject(e); // Reject the promise if an error occurs
         };
-        
+
         reader.readAsText(file);
     });
 }
@@ -470,7 +529,7 @@ function versionCompare(v1, v2, options) {
     return 0;
 }
 
-async function OpenImportTab(){
+async function OpenImportTab() {
     let permissionsToRequest = { permissions: ['tabs'] };
     const response = await chrome.permissions.request(permissionsToRequest);
     if (response == true) {
@@ -485,7 +544,7 @@ async function OpenImportTab(){
 // Make a link to the android replacer page
 // For some reason, FF on android has a bug where the filepicker does not work in the options_ui
 // So we have a separate page where we want the android users to use instead
-function AndroidImportReplacer(){
+function AndroidImportReplacer() {
     if (document.URL.endsWith('restore.html'))
         return;
 
@@ -499,40 +558,40 @@ function AndroidImportReplacer(){
     browser.permissions.contains({ permissions: ['tabs'] }).then((value) => {
         let reminder = document.getElementById('tabpermissionreminder');
 
-        if (reminder != null){
-            if (isAndroid == false && value == false){
+        if (reminder != null) {
+            if (isAndroid == false && value == false) {
                 reminder.style.display = '';
-            }else{
+            } else {
                 reminder.style.display = 'none';
             }
         }
     });
 }
 
-function ValidateRequestAllVisiblity(){
+function ValidateRequestAllVisiblity() {
     const requestDiv = document.getElementById('requestalldiv');
-    if (requestDiv != null){
-        if (missingHostPermissions.length > 0 || missingContentScripts.length > 0){
+    if (requestDiv != null) {
+        if (missingHostPermissions.length > 0 || missingContentScripts.length > 0) {
             requestDiv.style.display = '';
-        }else{
+        } else {
             requestDiv.style.display = 'none';
         }
     }
 }
 
-async function RequestAllMissingPermissions(){
+async function RequestAllMissingPermissions() {
     // Request any missing permissions
-    if (missingHostPermissions.length > 0){
+    if (missingHostPermissions.length > 0) {
         let permissionsToRequest = { origins: missingHostPermissions };
         var response = await chrome.permissions.request(permissionsToRequest);
         if (response == true) {
             missingHostPermissions = [];
-        }else{
+        } else {
         }
     }
-    
+
     // Request any content scripts
-    if (missingContentScripts.length > 0){
+    if (missingContentScripts.length > 0) {
         try {
             await chrome.scripting.registerContentScripts(missingContentScripts);
             missingContentScripts = [];
@@ -541,4 +600,16 @@ async function RequestAllMissingPermissions(){
         }
     }
     await set();
+}
+
+async function InitSetup(){
+    // Check if we already have mandatory permissions
+    var response = await chrome.permissions.contains(mandatoryPermissions);
+    let div = document.getElementById('mandatory-permissions-div');
+    if (response == true) {
+        div.setAttribute("style", "display:none;");
+    }
+
+    // Display the setup div
+    document.querySelector('#first-time-setup').setAttribute("style", "display:block;");
 }

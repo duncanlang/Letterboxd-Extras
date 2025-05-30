@@ -27,18 +27,17 @@
 		"scripting"
 	],
 	"host_permissions": [
-		"https://www.imdb.com/*",
 		"https://letterboxd.com/*",
+		"https://query.wikidata.org/*"
+	],
+	"optional_host_permissions": [
 		"https://*.imdb.com/*",
 		"https://www.rottentomatoes.com/*",
 		"https://www.boxofficemojo.com/*",
 		"https://webapp.cinemascore.com/*",
-		"https://query.wikidata.org/*",
 		"https://www.metacritic.com/*",
 		"https://api.jikan.moe/*",
-		"https://graphql.anilist.co/*"
-	],
-	"optional_host_permissions": [
+		"https://graphql.anilist.co/*",
 		"https://api.mubi.com/*",
 		"https://apollo.senscritique.com/*",
 		"https://*.filmaffinity.com/*",
