@@ -208,6 +208,7 @@ async function requestRecommendedOptions() {
         options['sens-favorites-enabled'] = true;
         options['allocine-critic-enabled'] = true;
         options['allocine-users-enabled'] = true;
+        options['boxoffice-enabled'] = true;
         if (isFirefox)
             options['wiki-link-enabled'] = true;
 
@@ -221,6 +222,7 @@ document.addEventListener('DOMContentLoaded', event => {
     load();
     validateImportButton();
 });
+
 // Load
 async function load() {
     // Assign the object
@@ -228,7 +230,7 @@ async function load() {
     if (data != null && data.options != null) {
         Object.assign(options, data.options);
         // Set the settings
-        set();
+        await set();
     }
 }
 
@@ -337,6 +339,11 @@ document.addEventListener('click', event => {
             break;
         case "reset":
             resetSettings();
+            break;
+        case "resetrecommended":
+            if (resetToRecommended()){
+                requestRecommendedOptions();
+            }
             break;
         case "importbutton":
             OpenImportTab();
@@ -453,10 +460,18 @@ async function resetSettings() {
         return;
     }
 
-    options = {};
-    initDefaultSettings();
-    save();
-    set();
+    await chrome.runtime.sendMessage({ name: "RESETSETTINGS" });
+    await load();
+}
+async function resetToRecommended() {
+    // Confirmation Popup
+    if (!window.confirm("Your settings will be reset.\n\nReset all settings to the default recommended settings?")) {
+        return false;
+    }
+
+    await chrome.runtime.sendMessage({ name: "RESETSETTINGS" });
+    await load();
+    return true;
 }
 
 async function readFileAsText(file) {
@@ -603,7 +618,7 @@ async function RequestAllMissingPermissions() {
     await set();
 }
 
-async function InitSetup(){
+async function InitSetup() {
     // Check if we already have mandatory permissions
     var response = await chrome.permissions.contains(mandatoryPermissions);
     let div = document.getElementById('mandatory-permissions-div');
