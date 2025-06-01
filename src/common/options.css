@@ -1,3 +1,4 @@
+
 body {
     --body-text-color: #000;
     --body-back-color: #ffffff;
@@ -11,7 +12,7 @@ body {
 
 /* Color scheme */
 @media (prefers-color-scheme: light) {
-    body.firefox {
+    body {
         --body-text-color: #000;
         --body-back-color: #ffffff;
         --body-text-alt-color: #7d7d7d;
@@ -25,7 +26,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-    body.firefox {
+    body {
         --body-text-color: #f4f4f4;
         --body-back-color: #23222b;
         --body-text-alt-color: #a3a2a7;
@@ -33,8 +34,7 @@ body {
 
     body.chrome {
         --body-text-color: #f4f4f4;
-        --body-back-color: rgb(32, 33, 36);
-        /* --google-grey-900 */
+        --body-back-color: rgb(32, 33, 36); /* --google-grey-900 */
         --body-text-alt-color: #a3a2a7;
     }
 }
@@ -91,7 +91,7 @@ a:hover {
 
 label {
     display: inline-block;
-    width: 175px;
+    width: 200px;
     margin-bottom: 10px;
 }
 

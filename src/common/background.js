@@ -144,32 +144,36 @@ async function registerContentScripts() {
     });
 }
 
-async function InitDefaultSettings(convert) {
+async function InitDefaultSettings(previousVersion) {
+    var version = 99;
+    if (previousVersion != "")
+        version = parseInt(previousVersion.substring(0, 1));
+
     var options = {};
-    if (convert) {
+    if (isFirefox && version < 4) {
         // Convert from local to sync
-        options = await chrome.storage.local.get().then(function (storedSettings) {
+        /*options = await chrome.storage.local.get().then(function (storedSettings) {
             return storedSettings;
-        });
-        // Clear the (now) unused local storage
-        chrome.storage.local.clear();
-    } else {
-        await chrome.storage.sync.get('options', (data) => {
-            console.log(data);
-            console.log(data.options);
-            console.log(data.options['imdb-enabled']);
+        });*/
+        // no worky???
+        const data = await chrome.storage.local.get('options');
+        if (data != null && data.options != null) {
             Object.assign(options, data.options);
-        });
+        }
+        // Clear the (now) unused local storage
+        chrome.storage.local.clear();        
+    } else {
+        const data = await chrome.storage.sync.get('options');
+        if (data != null && data.options != null) {
+            Object.assign(options, data.options);
+        }
     }
     if (options == null)
         options = {};
 
-    // TODO something is fucky here
-
-    if (options['imdb-enabled'] != null)
-        console.log('background.js | imdb-enabled is not null: ' + options['imdb-enabled']);
-    else
-        console.log('background.js | imdb-enabled IS null');
+    if (version < 4){
+        options['boxoffice-enabled'] = true;
+    }
 
     // No more defaults - all settings are disabled
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = false;
@@ -210,43 +214,36 @@ async function InitDefaultSettings(convert) {
     if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
     if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
     if (options['google'] == null) options['google'] = false;
+    if (options['boxoffice-enabled'] == null) options['boxoffice-enabled'] = false;
 
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
 
-    console.log('background.js | saving');
     // Save
-    chrome.storage.sync.set({options});
+    chrome.storage.sync.set({ options });
 }
 
 chrome.runtime.onStartup.addListener(registerContentScripts);
 
-chrome.runtime.onInstalled.addListener((details) => {
-    // Make sure to register content scripts
-    registerContentScripts();
-
+chrome.runtime.onInstalled.addListener(async (details) => {
     if (details.reason == 'install') {
         // Init the default settings
-        InitDefaultSettings(false);
-        
+        await InitDefaultSettings("");
+
         chrome.tabs.create({
             url: "/options.html?type=setup",
             active: true
         });
     }
     else if (details.reason == 'update') {
-        var version = parseInt(details.previousVersion.substring(0, 1));
-        if (isFirefox && version < 4) {
-            // Convert and unit the default settings
-            InitDefaultSettings(true);
-        } else {
-            // Init the default settings
-            InitDefaultSettings(false);
-        }
+        await InitDefaultSettings(details.previousVersion);
 
     }
     else if (details.reason == 'browser_update' || details.reason == 'chrome_update') {
         // Do nothing
     }
+
+    // Make sure to register content scripts
+    registerContentScripts();
 });

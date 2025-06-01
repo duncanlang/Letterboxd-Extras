@@ -86,7 +86,6 @@ document.addEventListener('change', event => {
 });
 // Save:
 function save() {
-    console.log('save()');
     chrome.storage.sync.set({ options });
 }
 
@@ -224,21 +223,16 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 // Load
 async function load() {
-    console.log('load()');
     // Assign the object
-    await chrome.storage.sync.get('options', async (data) => {
-        console.log('assigning object');
-        console.log(data);
-        console.log(data.options);
-        console.log(data.options['imdb-enabled']);
+    const data = await chrome.storage.sync.get('options');
+    if (data != null && data.options != null) {
         Object.assign(options, data.options);
         // Set the settings
         set();
-    });
+    }
 }
 
 async function set() {
-    console.log('set()');
     // Set the settings
     var elements = document.querySelectorAll('.setting');
     for (let i = 0; i < elements.length; i++) {
@@ -569,12 +563,19 @@ function AndroidImportReplacer() {
 }
 
 function ValidateRequestAllVisiblity() {
-    const requestDiv = document.getElementById('requestalldiv');
-    if (requestDiv != null) {
+    const requestButton = document.getElementById('requestall');
+    const permissionWarning = document.getElementById('permission-warning');
+    const permissionNotice = document.getElementById('permission-notice');
+
+    if (requestButton != null) {
         if (missingHostPermissions.length > 0 || missingContentScripts.length > 0) {
-            requestDiv.style.display = '';
+            requestButton.disabled = false;
+            permissionWarning.style.display = '';
+            permissionNotice.style.display = 'none';
         } else {
-            requestDiv.style.display = 'none';
+            requestButton.disabled = true;
+            permissionWarning.style.display = 'none';
+            permissionNotice.style.display = '';
         }
     }
 }

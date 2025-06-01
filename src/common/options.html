@@ -14,11 +14,12 @@
             <img class="logo" src="icons/icon128.png" alt="Letterboxd Extras" title="Letterboxd Extras">
         </div>
         <div>
-            <h2 class="logotext">Letterboxd Extras Options</h3>
+            <h2 class="logotext">Letterboxd Extras Options</h4>
         </div>
         <hr width="100%">
     </div>
 
+    <!-- First Time Setup -->
     <div id="first-time-setup" style="display:none">
         <h4>Thank you for downloading Letterboxd Extras!</h4>
         <h5><b>Please verify these options before closing this tab.</b></h5>
@@ -51,40 +52,64 @@
         </div>
     </div>
 
+    <!-- Request missing permissions -->
     <div id="requestalldiv">
-        <h3>Missing Permissions</h3>
+        <h4>Permissions</h4>
         <div>
-            <p class="info">You are missing some permissions needed for certain enabled settings.</p>
+            <p id="permission-warning" style="color: red; display: none;">You are missing some permissions needed for certain enabled settings.</p>
+            <p id="permission-notice" style="color: green; display: none;">All required permissions have been granted.</p>
             <input type="button" id="requestall" value="Request Missing Permissions" />
         </div>
         <hr width="100%">
     </div>
+    
+    <!-- Settings -->
     <div>
-        <h3>IMDb</h3>
+        <h4>IMDb</h4>
         <div>
             <label for="imdb-enabled">Display IMDb:</label>
-            <input type="checkbox" id="imdb-enabled" class="setting" />
+            <input type="checkbox" id="imdb-enabled" class="setting" permission="https://*.imdb.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="imdb-permissions" class="request-permission"
+                permissionTarget="imdb-enabled" value="Request Permission" />
         </div>
     </div>
     <div>
-        <h3>MyAnimeList</h3>
+        <h4>MyAnimeList</h4>
         <div>
             <label for="mal-enabled">Display MyAnimeList:</label>
-            <input type="checkbox" id="mal-enabled" class="setting" />
+            <input type="checkbox" id="mal-enabled" class="setting" permission="https://api.jikan.moe/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="mal-permissions" class="request-permission"
+                permissionTarget="mal-enabled" value="Request Permission" />
         </div>
     </div>
     <div>
-        <h3>AniList</h3>
+        <h4>AniList</h4>
         <div>
             <label for="al-enabled">Display AniList:</label>
-            <input type="checkbox" id="al-enabled" class="setting" />
+            <input type="checkbox" id="al-enabled" class="setting" permission="https://graphql.anilist.co/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="al-permissions" class="request-permission"
+                permissionTarget="al-enabled" value="Request Permission" />
         </div>
     </div>
     <div>
-        <h3>Rotten Tomatoes</h3>
+        <h4>Rotten Tomatoes</h4>
         <div>
             <label for="tomato-enabled">Display Rotten Tomatoes:</label>
-            <input type="checkbox" id="tomato-enabled" class="setting" subid="tomato-div" />
+            <input type="checkbox" id="tomato-enabled" class="setting" subid="tomato-div" permission="https://www.rottentomatoes.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="tomato-permissions" class="request-permission"
+                permissionTarget="tomato-enabled" value="Request Permission" />
         </div>
         <div id="tomato-div">
             <div>
@@ -120,10 +145,15 @@
         </div>
     </div>
     <div>
-        <h3>Metacritic</h3>
+        <h4>Metacritic</h4>
         <div>
             <label for="metacritic-enabled">Display Metacritic:</label>
-            <input type="checkbox" id="metacritic-enabled" class="setting" subid="meta-div" />
+            <input type="checkbox" id="metacritic-enabled" class="setting" subid="meta-div" permission="https://www.metacritic.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="metacritic-permissions" class="request-permission"
+                permissionTarget="metacritic-enabled" value="Request Permission"/>
         </div>
         <div id="meta-div">
             <div>
@@ -149,7 +179,7 @@
         </div>
     </div>
     <div>
-        <h3>SensCritique</h3>
+        <h4>SensCritique</h4>
         <div>
             <label for="senscritique-enabled">Display SensCritique:</label>
             <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*"
@@ -168,7 +198,7 @@
         </div>
     </div>
     <div>
-        <h3>MUBI</h3>
+        <h4>MUBI</h4>
         <div>
             <label for="mubi-enabled">Display MUBI:</label>
             <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" class="setting" />
@@ -180,7 +210,7 @@
         </div>
     </div>
     <div>
-        <h3>FilmAffinity</h3>
+        <h4>FilmAffinity</h4>
         <div>
             <label for="filmaff-enabled">Display FilmAffinity:</label>
             <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" class="setting" />
@@ -192,7 +222,7 @@
         </div>
     </div>
     <div>
-        <h3>Simkl</h3>
+        <h4>Simkl</h4>
         <div>
             <label for="simkl-enabled">Display Simkl:</label>
             <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" class="setting" />
@@ -204,7 +234,7 @@
         </div>
     </div>
     <div>
-        <h3>AlloCiné</h3>
+        <h4>AlloCiné</h4>
         <div>
             <label for="allocine-enabled">Display AlloCiné:</label>
             <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" subid="allo-div"
@@ -243,17 +273,22 @@
         </div>
     </div>
     <div>
-        <h3>CinemaScore</h3>
+        <h4>CinemaScore</h4>
         <div>
             <label for="cinema-enabled">Display CinemaScore:</label>
-            <input type="checkbox" id="cinema-enabled" class="setting" />
+            <input type="checkbox" id="cinema-enabled" class="setting" permission="https://webapp.cinemascore.com/*" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="cinema-permissions" class="request-permission"
+                permissionTarget="cinema-enabled" value="Request Permission" />
         </div>
     </div>
 
     <hr width="100%">
 
     <div>
-        <h3>Search</h3>
+        <h4>Search</h4>
         <div>
             <label for="search-redirect">Default results to films:</label>
             <input type="checkbox" id="search-redirect" class="setting" />
@@ -265,7 +300,7 @@
     <hr width="100%">
 
     <div>
-        <h3>Rankings</h3>
+        <h4>Rankings</h4>
         <div>
             <div>
                 <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
@@ -294,7 +329,7 @@
     <hr width="100%">
 
     <div>
-        <h3>Miscellaneous</h3>
+        <h4>Miscellaneous</h4>
         <div>
             <label for="convert-ratings">Convert ratings:</label>
             <select id="convert-ratings" class="setting">
@@ -314,12 +349,16 @@
             <input type="checkbox" id="mpa-convert" class="setting" />
         </div>
         <div>
+            <label for="boxoffice-convert">Display Budget and Box Office:</label>
+            <input type="checkbox" id="boxoffice-convert" class="setting" />
+        </div>
+        <div>
             <label for="open-same-tab">Open 'More At' links in same tab:</label>
             <input type="checkbox" id="open-same-tab" class="setting" />
         </div>
         <div>
             <label for="mojo-link-enabled">Display BoxOfficeMojo link:</label>
-            <input type="checkbox" id="mojo-link-enabled" class="setting" />
+            <input type="checkbox" id="mojo-link-enabled" class="setting" permission="https://www.boxofficemojo.com/*" />
         </div>
         <div id="wiki-link-div">
             <label for="wiki-link-enabled">Display Wikipedia link:</label>
@@ -346,7 +385,7 @@
     <hr width="100%">
 
     <div>
-        <h3>Google Search</h3>
+        <h4>Google Search</h4>
         <div>
             <label for="google">Always display Letterboxd score on Google searches:</label>
             <input type="checkbox" id="google" permission="https://www.google.com/search*"
@@ -367,7 +406,7 @@
     <hr width="100%">
 
     <div>
-        <h3>Import/Export Settings</h3>
+        <h4>Import/Export Settings</h4>
         <div>
             <input type="button" id="export" value="Export to File" />
         </div>
@@ -390,7 +429,7 @@
     <hr width="100%">
 
     <div>
-        <h3>Debug</h3>
+        <h4>Debug</h4>
         <div>
             <label for="console-log">Log calls in console:</label>
             <input type="checkbox" id="console-log" class="setting" />
