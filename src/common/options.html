@@ -331,6 +331,20 @@
     <hr width="100%">
 
     <div>
+        <h4>Budget and Box Office</h4>
+        <div>
+            <label for="boxoffice-enabled">Display Budget and Box Office in the details tab:</label>
+            <input type="checkbox" id="boxoffice-enabled" class="setting" permission="https://www.boxofficemojo.com/*" />
+        </div>
+        <div>
+            <label for="mojo-link-enabled">Add 'More At' link for BoxOfficeMojo:</label>
+            <input type="checkbox" id="mojo-link-enabled" class="setting" />
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <div>
         <h4>Miscellaneous</h4>
         <div>
             <label for="convert-ratings">Convert ratings:</label>
@@ -351,16 +365,8 @@
             <input type="checkbox" id="mpa-convert" class="setting" />
         </div>
         <div>
-            <label for="boxoffice-convert">Display Budget and Box Office:</label>
-            <input type="checkbox" id="boxoffice-convert" class="setting" />
-        </div>
-        <div>
             <label for="open-same-tab">Open 'More At' links in same tab:</label>
             <input type="checkbox" id="open-same-tab" class="setting" />
-        </div>
-        <div>
-            <label for="mojo-link-enabled">Display BoxOfficeMojo link:</label>
-            <input type="checkbox" id="mojo-link-enabled" class="setting" permission="https://www.boxofficemojo.com/*" />
         </div>
         <div id="wiki-link-div">
             <label for="wiki-link-enabled">Display Wikipedia link:</label>

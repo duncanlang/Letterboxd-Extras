@@ -567,9 +567,6 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 			cinemascore: {state: 0, data: null, result: null},
 			cinemascoreAlt: false,
 
-			// Omdb
-			omdbData: {state: 0, data: null},
-
 			// WikiData
 			wiki: null,
 			wiki_dates: null,
@@ -629,6 +626,7 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 			// SIMKL
 			simkl: {state: 0, data: null, url: null, rating: null, num_ratings: 0},
 
+			permissions: null,
 
 			linksAdded: [],
 			
@@ -648,6 +646,12 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 				if (this.running) return;
 
 				this.running = true;
+
+				// Store all permissions
+				if (this.permissions == null){
+					this.permissions = await chrome.runtime.sendMessage({ name: "GETPERMISSIONS" });
+					//this.permissions = await chrome.permissions.getAll();
+				}
 
 				// Determine mobile
 				if (this.isMobile == null){
@@ -902,26 +906,33 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 				if (this.imdbID != "" && this.imdbData.state < 1){
 					// Call IMDb and Add to page when done
 					if (letterboxd.storage.get('imdb-enabled') === true){
-						this.imdbData.state = 1;
-						chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url}, (value) => {
-							this.imdbData.state = 2;
-							this.imdbData.raw = value.response;
-							this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
-							this.addIMDBScore();
-						});		
-						
-						
-						// Call the IMDb main show page
-						chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url.replace('/ratings','')}, (value) => {
-							this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
-						
-							if (this.imdbData.data2 != null){	
-								this.getIMDBAdditional();
-							}
-							this.imdbData.state2 = 1;
-						});
-						
-						// Call BoxOfficeMojo
+						if (this.permissions.origins.includes('https://*.imdb.com/*')){
+							this.imdbData.state = 1;
+							chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url}, (value) => {
+								this.imdbData.state = 2;
+								this.imdbData.raw = value.response;
+								this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
+								this.addIMDBScore();
+							});		
+							
+							
+							// Call the IMDb main show page
+							chrome.runtime.sendMessage({name: "GETDATA", url: this.imdbData.url.replace('/ratings','')}, (value) => {
+								this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
+							
+								if (this.imdbData.data2 != null){	
+									this.getIMDBAdditional();
+								}
+								this.imdbData.state2 = 1;
+							});
+						}else{
+							// TODO, some form of visual
+							console.log('missing imdb permission!');
+						}
+					}
+
+					// Call BoxOfficeMojo
+					if (this.permissions.origins.includes('https://www.boxofficemojo.com/*')){
 						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
 						if (letterboxd.storage.get('mojo-link-enabled') === true){
 							this.addLink(mojoURL);
@@ -939,6 +950,9 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 							if (this.filmDate.date != null && this.dateAdded == false)
 								this.addDate(this.filmDate.date);
 						});
+					}else{
+						// TODO, some form of visual
+						console.log('missing boxofficemojo permission!');
 					}
 				}
 				if (this.imdbID != '' || this.tmdbID != ''){
@@ -2117,11 +2131,9 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 					}
 
 				}else{
-					// When metacritic score can only be found from omdb or imdb
+					// When metacritic score can only be found from imdb
 					if (this.imdbData.meta != null){
 						this.metaData.critic.rating = this.imdbData.meta;
-					}else if (this.omdbData.data.Metascore != null){
-						this.metaData.critic.rating = this.omdbData.data.Metascore;
 					}
 					this.metaData.critic.num_ratings = -1; // This prevents the 'return' from below, and also from the tooltip from being added
 				}
@@ -3133,11 +3145,6 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 
 					var years = [year,"","",""];
 
-					if (this.omdbData.data != null && this.omdbData.data.Year != null && this.omdbData.data.Year != "N/A"){
-						years[1] = this.omdbData.data.Year;
-					}else if (this.omdbData.data != null){
-						years[1] = (new Date(this.omdbData.data.Released)).getFullYear().toString();
-					}
 					if (this.wikiData.date.value != null){
 						years[2] = (new Date(this.wikiData.date.value)).getFullYear().toString();
 					}

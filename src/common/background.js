@@ -1,7 +1,7 @@
 const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 
-chrome.runtime.onMessage.addListener(async (msg, sender, response) => {
+chrome.runtime.onMessage.addListener((msg, sender, response) => {
     chrome.storage.sync.get('options', (data) => {
         var options = data.options;
         if (options != null && options.hasOwnProperty('console-log') && options['console-log'] == true) {
@@ -131,6 +131,12 @@ chrome.runtime.onMessage.addListener(async (msg, sender, response) => {
             await chrome.storage.sync.set({ options });
             await InitDefaultSettings();
             return true;
+        })();
+
+    } else if (msg.name == "GETPERMISSIONS") { // Get all permissions
+        return (async () => {
+            var permissions = await chrome.permissions.getAll();
+            return permissions;
         })();
     }
 
