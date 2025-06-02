@@ -24,36 +24,38 @@
         <h4>Thank you for downloading Letterboxd Extras!</h4>
         <h5><b>Please verify these options before closing this tab.</b></h5>
         <hr width="100%">
-        <div id="mandatory-permissions-div">
-            <h4>Mandatory Permissions</h4>
-            <p>To function correctly, Letterboxd Extras requires permission to access Letterboxd and WikiData.</p>
-            <input type="button" id="mandatory-permissions" class="request-permission"
-                value="Click here to request mandatory permissions" />
-            <p style="display: none; color: green">Mandatory permissions have been successfully added!</p>
-        </div>
-        <div id="recommended-options-div">
-            <h4>Quick Setup</h4>
-            <p>Letterboxd Extras is configurable. For quick setup, click below to enable the recommended options.</p>
-            <p>The recommended options will enable:</p>
-            <ul>
-                <li>IMDb ratings</li>
-                <li>Rotten Tomatoes ratings</li>
-                <li>Metacritic ratings</li>
-                <li>MyAnimeList ratings</li>
-                <li>AniList ratings</li>
-                <li>MPA ratings</li>
-                <li>Budget and Box Office</li>
-            </ul>
-            <input type="button" id="recommended-options" class="request-permission"
-                value="Click here to request and enable recommended options" />
-            <br>
-            <p style="margin-top: 30px">Or, you can choose your preferred options below:</p>
-            <hr width="100%">
-        </div>
     </div>
-
+    <!-- Mandatory permissions -->
+    <div id="mandatory-permissions-div">
+        <h4>Mandatory Permissions</h4>
+        <p>To function correctly, Letterboxd Extras requires permission to access Letterboxd and WikiData.</p>
+        <input type="button" id="mandatory-permissions" class="request-permission"
+            value="Click here to request mandatory permissions" />
+        <p style="display: none; color: green">Mandatory permissions have been successfully added!</p>
+        <hr width="100%">
+    </div>
+    <!-- Recommended options (first time setup) -->
+    <div id="recommended-options-div" style="display:none">
+        <h4>Quick Setup</h4>
+        <p>Letterboxd Extras is configurable. For quick setup, click the button here to enable the recommended options.</p>
+        <p>The recommended options will enable:</p>
+        <ul>
+            <li>IMDb ratings</li>
+            <li>Rotten Tomatoes ratings</li>
+            <li>Metacritic ratings</li>
+            <li>MyAnimeList ratings</li>
+            <li>AniList ratings</li>
+            <li>MPA ratings</li>
+            <li>Budget and Box Office</li>
+        </ul>
+        <input type="button" id="recommended-options" class="request-permission"
+            value="Click here to request and enable recommended options" />
+        <br>
+        <p style="margin-top: 30px">Or, you can keep scrolling and choose your preferred options below:</p>
+        <hr width="100%">
+    </div>
     <!-- Request missing permissions -->
-    <div id="requestalldiv">
+    <div id="requestalldiv" style="display:none">
         <h4>Permissions</h4>
         <div>
             <p id="permission-warning" style="color: red; display: none;">You are missing some permissions needed for certain enabled settings.</p>

@@ -24,6 +24,9 @@ var missingContentScripts = [];
 if (isChrome)
     document.querySelector('#wiki-link-div').setAttribute("style", "display:none;");
 
+// Check for mandatory permissions
+CheckMandatoryPermissions();
+
 if (isSetup)
     InitSetup();
 
@@ -618,14 +621,21 @@ async function RequestAllMissingPermissions() {
     await set();
 }
 
-async function InitSetup() {
+async function CheckMandatoryPermissions(){
     // Check if we already have mandatory permissions
     var response = await chrome.permissions.contains(mandatoryPermissions);
     let div = document.getElementById('mandatory-permissions-div');
     if (response == true) {
         div.setAttribute("style", "display:none;");
+    }else{
+        div.setAttribute("style", "display:block;");
     }
+}
 
+async function InitSetup() {
     // Display the setup div
     document.querySelector('#first-time-setup').setAttribute("style", "display:block;");
+
+    // Display the recommended options div
+    document.querySelector('#recommended-options-div').setAttribute("style", "display:block;");
 }
