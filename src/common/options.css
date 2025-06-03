@@ -1,4 +1,3 @@
-
 body {
     --body-text-color: #000;
     --body-back-color: #ffffff;
@@ -8,6 +7,10 @@ body {
     background-color: var(--body-back-color);
 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    padding: 16px;
+    margin: 0;
+    font-size: 14px;
 }
 
 /* Color scheme */
