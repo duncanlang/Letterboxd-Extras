@@ -952,7 +952,8 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 								this.addDate(this.filmDate.date);
 						});
 					}else{
-						console.error('Missing host permission for BoxOfficeMojo!');
+						// Use the function just so it writes the standard console error, don't use the div it returns
+						letterboxd.helpers.createPermissionError('mojo', 'BoxOfficeMojo');
 					}
 				}
 				if (this.imdbID != '' || this.tmdbID != ''){
@@ -1132,32 +1133,38 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 									if (this.mal.data == null && this.mal.state < 1){
 										try{
 											this.mal.state = 1;
-											chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
-												var mal = value.response;
-												if (mal != ""){
-													this.mal.data = JSON.parse(mal);
+											if (this.permissions.origins.includes('https://api.jikan.moe/*')){
+												chrome.runtime.sendMessage({name: "GETDATA", url: url}, (value) => {
+													var mal = value.response;
+													if (mal != ""){
+														this.mal.data = JSON.parse(mal);
 
-													if (this.mal.data.data != null){
-														this.mal.data = this.mal.data.data;
-														this.mal.url = this.mal.data.url;
-													}else{
-														this.mal.state = 3;
+														if (this.mal.data.data != null){
+															this.mal.data = this.mal.data.data;
+															this.mal.url = this.mal.data.url;
+														}else{
+															this.mal.state = 3;
+														}
 													}
-												}
-											});
-											
-											chrome.runtime.sendMessage({name: "GETDATA", url: url + "/statistics"}, (value) => {
-												var mal = value.response;
-												if (mal != ""){
-													this.mal.statistics = JSON.parse(mal);
-													
-													if (this.mal.statistics.data != null){
-														this.mal.statistics = this.mal.statistics.data;
-													}else{
-														this.mal.state = 3;
+												});
+												
+												chrome.runtime.sendMessage({name: "GETDATA", url: url + "/statistics"}, (value) => {
+													var mal = value.response;
+													if (mal != ""){
+														this.mal.statistics = JSON.parse(mal);
+														
+														if (this.mal.statistics.data != null){
+															this.mal.statistics = this.mal.statistics.data;
+														}else{
+															this.mal.state = 3;
+														}
 													}
-												}
-											});
+												});
+											}else{
+												this.mal.state = 3;
+												this.mal.permissionFailure = true;
+												this.addMAL();
+											}
 										}catch{
 											console.error("Unable to parse MAL URL");
 											this.mal.state = 3;
@@ -1958,34 +1965,37 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 				//************************************************************
 				this.appendRating(section, 'tomato-ratings');
 				
-				// Add click event for score buttons
-				//************************************************************
-				if (this.isMobile){
-					$(".rt-button:not(.disabled)").on('click', changeTomatoScoreMobile);
-					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
-						$(".rt-button.critic-toggle").click();
-					}
-					if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
-						$(".rt-button.audience-toggle").click();
-					}
-				}else{
-					$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
-					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
-						$(".rt-button.critic-top").click();
-					}
-					if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
-						$(".rt-button.audience-verified").click();
-					}
-				}
 				
-				// Add click for Show details button
-				//************************************************************
-				if (this.tomatoData.hideDetailButton == false){
-					$(".rt-show-details").on('click', function(event){
-						toggleDetails(event, letterboxd);
-					});
-					if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show') || letterboxd.storage.get('tooltip-show-details') === true){
-						$(".rt-show-details").click();
+				if (this.tomatoData.data != null){
+					// Add click event for score buttons
+					//************************************************************
+					if (this.isMobile){
+						$(".rt-button:not(.disabled)").on('click', changeTomatoScoreMobile);
+						if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
+							$(".rt-button.critic-toggle").click();
+						}
+						if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
+							$(".rt-button.audience-toggle").click();
+						}
+					}else{
+						$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
+						if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top'){
+							$(".rt-button.critic-top").click();
+						}
+						if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified'){
+							$(".rt-button.audience-verified").click();
+						}
+					}
+					
+					// Add click for Show details button
+					//************************************************************
+					if (this.tomatoData.hideDetailButton == false){
+						$(".rt-show-details").on('click', function(event){
+							toggleDetails(event, letterboxd);
+						});
+						if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show') || letterboxd.storage.get('tooltip-show-details') === true){
+							$(".rt-show-details").click();
+						}
 					}
 				}
 				
@@ -3271,20 +3281,8 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 
 				if (!document.querySelector('.sidebar')) return;
 
-				// Init
-				this.mal.score = "N/A";
-				this.mal.scored_by = 0;
-
-				if (this.mal.data.score != null) 
-					this.mal.score = this.mal.data.score;
-				if (this.mal.data.scored_by != null) 
-					this.mal.scored_by = this.mal.data.scored_by;
-
-				// Return if there are no ratings
-				if (this.mal.scored_by == 0)
-					return;
-
-				// Create and Add				
+				// Create the header
+				//*******************************************		
 				// Add the section to the page
 				const scoreSection = letterboxd.helpers.createElement('section', {
 					class: 'section ratings-histogram-chart mal-ratings ratings-extras extras-chart'
@@ -3296,14 +3294,18 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 				});
 				scoreSection.append(heading);
 
+				var url = 'https://myanimelist.net/anime/' + this.mal.id;
+				if (this.mal.data != null && this.mal.data.url != null)
+					url = this.mal.data.url;
+
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-mal",
-					href: this.mal.data.url + '/stats',
+					href: url + '/stats',
 					style: 'position: absolute; background-image: url("' + chrome.runtime.getURL("images/mal-logo.png") + '");'
 				});
 				heading.append(logoHolder);
 
-				if (this.isMobile){
+				if (this.isMobile && this.mal.permissionFailure == false){
 					// Add the Show Details button			
 					const showDetails = letterboxd.helpers.createElement('a', {
 						class: 'all-link more-link show-details mal-show-details',
@@ -3313,21 +3315,41 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 					scoreSection.append(showDetails);
 				}
 				
-				// Loop first and determine highest votes
-				for (var ii = 0; ii < 10; ii++){
-					if (this.mal.statistics.scores[ii].votes > this.mal.highest)
-						this.mal.highest = this.mal.statistics.scores[ii].votes;
-				}
+				if (this.mal.permissionFailure == true){
+					// Display an error due to lack of permission
+					//**********************************************/
+					scoreSection.append(letterboxd.helpers.createPermissionError('mal', 'MyAnimeList'));
 
-				scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "mal", this.mal.score, this.mal.scored_by, this.mal.data.url + '/reviews', this.isMobile));
-				scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "mal", "", this.mal.scored_by, this.mal.statistics.scores, this.mal.statistics.scores, this.mal.highest));
+				}else{
+					// Init
+					this.mal.score = "N/A";
+					this.mal.scored_by = 0;
 
-				// Add the tooltip as text for mobile
-				var score = scoreSection.querySelector(".average-rating .tooltip");
-				var tooltip = "";
-				if (score != null){
-					tooltip = score.getAttribute('data-original-title');
-					letterboxd.helpers.createDetailsText('mal', scoreSection, tooltip, this.isMobile);
+					if (this.mal.data.score != null) 
+						this.mal.score = this.mal.data.score;
+					if (this.mal.data.scored_by != null) 
+						this.mal.scored_by = this.mal.data.scored_by;
+
+					// Return if there are no ratings
+					if (this.mal.scored_by == 0)
+						return;
+
+					// Loop first and determine highest votes
+					for (var ii = 0; ii < 10; ii++){
+						if (this.mal.statistics.scores[ii].votes > this.mal.highest)
+							this.mal.highest = this.mal.statistics.scores[ii].votes;
+					}
+
+					scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "mal", this.mal.score, this.mal.scored_by, this.mal.data.url + '/reviews', this.isMobile));
+					scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "mal", "", this.mal.scored_by, this.mal.statistics.scores, this.mal.statistics.scores, this.mal.highest));
+
+					// Add the tooltip as text for mobile
+					var score = scoreSection.querySelector(".average-rating .tooltip");
+					var tooltip = "";
+					if (score != null){
+						tooltip = score.getAttribute('data-original-title');
+						letterboxd.helpers.createDetailsText('mal', scoreSection, tooltip, this.isMobile);
+					}
 				}
 
 				// Append to the sidebar
