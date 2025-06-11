@@ -1370,38 +1370,50 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 
 				// Add Mubi
 				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2 && this.mubiData.state < 1){
-					if (this.wikiData.Mubi_ID != null && this.wikiData.Mubi_ID != ""){
-						// ID found in WikiData
-						this.mubiData.state = 1;
-						this.initMubi();
+					if (this.permissions.origins.includes('https://api.mubi.com/*')){
+						if (this.wikiData.Mubi_ID != null && this.wikiData.Mubi_ID != ""){
+							// ID found in WikiData
+							this.mubiData.state = 1;
+							this.initMubi();
+						}else{
+							// No ID from Wikidata, search using the API instead
+							var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
+							this.mubiSearch(url);
+						}
 					}else{
-						// No ID from Wikidata, search using the API instead
-						var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
-						this.mubiSearch(url);
+						this.mubiData.permissionFailure = true;
+						this.mubiData.state = 3;
+						this.addMubi();
 					}
 				}
 
 				// Add Senscritique
 				if (letterboxd.storage.get('senscritique-enabled') === true && this.wikiData.state == 2 && this.sensCritique.state < 1){
-					if (this.wikiData.SensCritique_ID != null && this.wikiData.SensCritique_ID != ""){
-						// ID found in WikiData
-						this.sensCritique.state = 1;
+					if (this.permissions.origins.includes('https://apollo.senscritique.com/*')){
+						if (this.wikiData.SensCritique_ID != null && this.wikiData.SensCritique_ID != ""){
+							// ID found in WikiData
+							this.sensCritique.state = 1;
 
-						var url = "https://apollo.senscritique.com/";
-						var options = letterboxd.helpers.getSensIDQuery(this.wikiData.SensCritique_ID);
+							var url = "https://apollo.senscritique.com/";
+							var options = letterboxd.helpers.getSensIDQuery(this.wikiData.SensCritique_ID);
 
-						chrome.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
-							this.sensCritique.state = 2;
-							var sens = value.response;
-							if (sens.data != null)
-							{
-								this.sensCritique.data = sens.data;
-								this.addSensCritique();
-							}
-						});
-					}else if (this.letterboxdTitle != null){
-						// No ID from Wikidata, search using the API instead
-						this.searchSensCritique();
+							chrome.runtime.sendMessage({name: "GETSENSDATA", url: url, options: options}, (value) => {
+								this.sensCritique.state = 2;
+								var sens = value.response;
+								if (sens.data != null)
+								{
+									this.sensCritique.data = sens.data;
+									this.addSensCritique();
+								}
+							});
+						}else if (this.letterboxdTitle != null){
+							// No ID from Wikidata, search using the API instead
+							this.searchSensCritique();
+						}
+					}else{
+						this.sensCritique.permissionFailure = true;
+						this.sensCritique.state = 3;
+						this.addSensCritique();
 					}
 				}
 
@@ -2415,20 +2427,9 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 
 				if (!document.querySelector('.sidebar')) return;
 
-				// Collect Date from MUBI response
-				//***************************************************************
-				this.mubiData.rating = this.mubiData.data.average_rating_out_of_ten;
-				this.mubiData.ratingAlt = this.mubiData.data.average_rating;
-				if (this.mubiData.data.number_of_ratings != null){
-					this.mubiData.num_ratings = this.mubiData.data.number_of_ratings;
-				}
-				if (this.mubiData.data.popularity != null){
-					this.mubiData.popularity = this.mubiData.data.popularity;
-				}
-				this.mubiData.url = this.mubiData.data.web_url;
-
-				// Do not display if there is no score or ratings
-				if (this.mubiData.rating == null && this.mubiData.num_ratings == 0) return;
+				var url = '';
+				if (this.mubiData.url != null)
+					url = this.mubiData.url;
 
 				// Add to Letterboxd
 				//***************************************************************
@@ -2442,15 +2443,15 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 					class: 'section-heading section-heading-extras'
 				});
 				section.append(heading);
-
+				
 				const logo = letterboxd.helpers.createElement('a', {
 					class: 'logo-mubi'
 				});
 				logo.innerHTML = '<svg viewBox="0 0 800 240" width="48px" class: "mubi-star" style="vertical-align:top"><g fill="#FFFFFF"><path d="M444.53,171.29a45.66,45.66,0,0,0-15.67-14.69,39.3,39.3,0,0,0,11.78-12.32q4.42-7.34,4.43-17.94a40.2,40.2,0,0,0-3.46-16.85,38.1,38.1,0,0,0-9.61-13,43.34,43.34,0,0,0-14.7-8.32,57.32,57.32,0,0,0-18.69-2.92H324.07V236.54h78.86a56.74,56.74,0,0,0,19.34-3.14,44.75,44.75,0,0,0,15-8.74A38.58,38.58,0,0,0,447,211a44,44,0,0,0,3.46-17.71Q450.47,180.36,444.53,171.29Zm-92.37-62.23h44.29q9.72,0,15.13,4.65t5.4,13.72q0,9.06-5.4,14.26t-15.13,5.18H352.16Zm65.14,98q-5.07,5.73-16.53,5.73H352.16V170.64h48.61q11.24,0,16.43,6.37a23.43,23.43,0,0,1,5.18,15.24Q422.38,201.33,417.3,207Z"></path><path d="M268.53,235.24a58,58,0,0,0,19.77-12.42,53.71,53.71,0,0,0,12.42-18.58,60.11,60.11,0,0,0,4.33-22.8V85.29H277v96.15A39.87,39.87,0,0,1,274.47,196a30,30,0,0,1-7,10.8,30.73,30.73,0,0,1-10.91,6.81,43.43,43.43,0,0,1-28.3,0,30.77,30.77,0,0,1-10.92-6.81,30.25,30.25,0,0,1-7-10.8,40.09,40.09,0,0,1-2.48-14.59V85.29H179.73v96.15a60.3,60.3,0,0,0,4.32,22.8,53.71,53.71,0,0,0,12.42,18.58,58.33,58.33,0,0,0,19.67,12.42,77.84,77.84,0,0,0,52.39,0"></path><path d="M80.13,236.54l34.36-65.9q3-5.61,5.39-10.59t4.54-9.83q2.16-4.86,4.22-9.94t4.43-10.69h.86q-.44,6-.86,11.34c-.3,3.53-.51,6.95-.65,10.26s-.25,6.74-.33,10.27-.11,7.31-.11,11.34v63.74h28.09V85.29H128.75L99.36,142.76q-3,5.85-5.51,10.81c-1.66,3.31-3.24,6.56-4.75,9.72s-3,6.41-4.43,9.73-3,6.84-4.54,10.58Q77.75,178,75.59,173t-4.43-9.73c-1.51-3.16-3.1-6.41-4.75-9.72s-3.49-6.91-5.51-10.81L31.51,85.29H.19V236.54H28.27V172.8q0-6-.1-11.34t-.33-10.27q-.21-5-.65-10.26t-.86-11.34h.86q2.16,5.61,4.32,10.69t4.33,9.94c1.43,3.24,2.95,6.52,4.53,9.83s3.39,6.85,5.4,10.59Z"></path><rect x="468.61" y="85.29" width="28.09" height="151.25"></rect><g fill="#FFFFFF"><circle cx="766.5" cy="118.11" r="33.13"></circle><circle cx="595.89" cy="118.11" r="33.13"></circle><circle cx="681.2" cy="118.11" r="33.13"></circle><circle cx="595.89" cy="33.13" r="33.13"></circle><circle cx="681.2" cy="33.13" r="33.13"></circle><circle cx="595.89" cy="203.1" r="33.13"></circle><circle cx="681.2" cy="203.1" r="33.13"></circle></g></g></svg>';
-				logo.setAttribute('href', this.mubiData.url);
+				logo.setAttribute('href', url);
 				heading.append(logo);
 				
-				if (this.isMobile){
+				if (this.isMobile && this.mubiData.data != null){
 					// Add the Show Details button			
 					const showDetails = letterboxd.helpers.createElement('a', {
 						class: 'all-link more-link show-details mubi-show-details',
@@ -2460,72 +2461,94 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 					section.append(showDetails);
 				}
 				
-				// Score
-				//***************************************************************
-				// Create a span that holds the entire 
-				const mubiSpan = letterboxd.helpers.createElement('span', {
-				},{
-					display: "block",
-					['margin-bottom']: '10px',
-					['margin-top']: '5px'
-				});
-				section.append(mubiSpan);
+				if (this.mubiData.permissionFailure == true){
+					// Display an error due to lack of permission
+					//**********************************************/
+					section.append(letterboxd.helpers.createPermissionError('mubi', 'Mubi'));
 
-				// Add the star SVG (taken from MUBI)
-				mubiSpan.innerHTML = '<svg viewBox="0 0 22 20" fill="#FFFFFF" width="20px"><path d="M21.15 7.6a.64.64 0 0 0-.6-.45l-7.05-.14L11.2.43a.63.63 0 0 0-1.2 0L7.67 7l-7.05.14a.63.63 0 0 0-.59.44c-.08.26 0 .54.22.7l5.62 4.22-2.04 6.67a.64.64 0 0 0 .97.71l5.79-3.99 5.8 3.99a.64.64 0 0 0 .73-.01c.22-.16.3-.44.23-.7l-2.04-6.67 5.62-4.21c.21-.17.3-.45.22-.7"></path></svg>';
+				}else{
+					// Collect Date from MUBI response
+					//***************************************************************
+					this.mubiData.rating = this.mubiData.data.average_rating_out_of_ten;
+					this.mubiData.ratingAlt = this.mubiData.data.average_rating;
+					if (this.mubiData.data.number_of_ratings != null){
+						this.mubiData.num_ratings = this.mubiData.data.number_of_ratings;
+					}
+					if (this.mubiData.data.popularity != null){
+						this.mubiData.popularity = this.mubiData.data.popularity;
+					}
+					this.mubiData.url = this.mubiData.data.web_url;
 
-				// The span that holds the score
-				const scoreSpan = letterboxd.helpers.createElement('span', {
-					class: 'mubi-score'
-				},{
-					display: 'inline-block'
-				});
-				mubiSpan.append(scoreSpan);
+					// Do not display if there is no score or ratings
+					if (this.mubiData.rating == null && this.mubiData.num_ratings == 0) return;
+					
+					// Score
+					//***************************************************************
+					// Create a span that holds the entire 
+					const mubiSpan = letterboxd.helpers.createElement('span', {
+					},{
+						display: "block",
+						['margin-bottom']: '10px',
+						['margin-top']: '5px'
+					});
+					section.append(mubiSpan);
 
-				// The element that is the score itself
-				const scoreText = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight mubi-score'
-				});
-				scoreSpan.append(scoreText);
+					// Add the star SVG (taken from MUBI)
+					mubiSpan.innerHTML = '<svg viewBox="0 0 22 20" fill="#FFFFFF" width="20px"><path d="M21.15 7.6a.64.64 0 0 0-.6-.45l-7.05-.14L11.2.43a.63.63 0 0 0-1.2 0L7.67 7l-7.05.14a.63.63 0 0 0-.59.44c-.08.26 0 .54.22.7l5.62 4.22-2.04 6.67a.64.64 0 0 0 .97.71l5.79-3.99 5.8 3.99a.64.64 0 0 0 .73-.01c.22-.16.3-.44.23-.7l-2.04-6.67 5.62-4.21c.21-.17.3-.45.22-.7"></path></svg>';
 
-				// Score and hover
-				var score = this.mubiData.rating;
-				var totalScore = "/10";
-				var hover = "Average of " + score.toFixed(1) + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
-				if (this.mubiData.num_ratings != 1)
-					hover += "s"
-				
-				if (letterboxd.storage.get('convert-ratings') === "5"){
-					totalScore = "/5";
-					score = this.mubiData.ratingAlt;
-				}
+					// The span that holds the score
+					const scoreSpan = letterboxd.helpers.createElement('span', {
+						class: 'mubi-score'
+					},{
+						display: 'inline-block'
+					});
+					mubiSpan.append(scoreSpan);
 
-				// If no ratings, display as N/A and change hover
-				if (score == null && this.mubiData.num_ratings == 0){
-					score = "N/A";
-					hover = "No score available";
-				}else if (this.mubiData.num_ratings == 0){
-					score = "N/A";
-					hover = this.mubiData.num_ratings.toLocaleString() + ' rating';
+					// The element that is the score itself
+					const scoreText = letterboxd.helpers.createElement('a', {
+						class: 'tooltip display-rating -highlight mubi-score'
+					});
+					scoreSpan.append(scoreText);
+
+					// Score and hover
+					var score = this.mubiData.rating;
+					var totalScore = "/10";
+					var hover = "Average of " + score.toFixed(1) + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
 					if (this.mubiData.num_ratings != 1)
 						hover += "s"
-				}else{
-					score = score.toFixed(1)
+					
+					if (letterboxd.storage.get('convert-ratings') === "5"){
+						totalScore = "/5";
+						score = this.mubiData.ratingAlt;
+					}
+
+					// If no ratings, display as N/A and change hover
+					if (score == null && this.mubiData.num_ratings == 0){
+						score = "N/A";
+						hover = "No score available";
+					}else if (this.mubiData.num_ratings == 0){
+						score = "N/A";
+						hover = this.mubiData.num_ratings.toLocaleString() + ' rating';
+						if (this.mubiData.num_ratings != 1)
+							hover += "s"
+					}else{
+						score = score.toFixed(1)
+					}
+
+					scoreText.innerText = score;
+					scoreText.setAttribute('data-original-title',hover);
+					scoreText.setAttribute('href', this.mubiData.url + "/ratings");
+					
+					// Add the element /10 or /5 depending on score
+					const scoreTotal = letterboxd.helpers.createElement('p', {
+						style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
+					});
+					scoreTotal.innerText = totalScore;
+					scoreSpan.append(scoreTotal);
+
+					// Add the tooltip as text for mobile
+					letterboxd.helpers.createDetailsText('mubi', section, hover, this.isMobile);
 				}
-
-				scoreText.innerText = score;
-				scoreText.setAttribute('data-original-title',hover);
-				scoreText.setAttribute('href', this.mubiData.url + "/ratings");
-				
-				// Add the element /10 or /5 depending on score
-				const scoreTotal = letterboxd.helpers.createElement('p', {
-					style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
-				});
-				scoreTotal.innerText = totalScore;
-				scoreSpan.append(scoreTotal);
-
-				// Add the tooltip as text for mobile
-				letterboxd.helpers.createDetailsText('mubi', section, hover, this.isMobile);
 
 				// APPEND to the sidebar
 				//************************************************************
@@ -3593,7 +3616,7 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 				});
 				heading.append(logoHolder);
 				
-				if (this.isMobile){
+				if (this.isMobile && this.sensCritique.data != null){
 					// Add the Show Details button			
 					const showDetails = letterboxd.helpers.createElement('a', {
 						class: 'all-link more-link show-details sens-show-details',
@@ -3603,75 +3626,83 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 					section.append(showDetails);
 				}
 				
-				// Score
-				//***************************************************************
-				var rating = this.sensCritique.data.product.rating;
-				var ratingCount = this.sensCritique.data.product.stats.ratingCount;
-				var recommendCount = this.sensCritique.data.product.stats.recommendCount;
-
-				this.addLink(url);
-
-				// Do not display if there is no score or ratings
-				if (rating == null && ratingCount == 0) return;
-
-				const container = letterboxd.helpers.createElement('span', {}, {
-					['display']: 'block',
-					['margin-bottom']: '10px'
-				});
-
-				// The span that holds the score
-				const span = letterboxd.helpers.createElement('div', {}, {
-					['display']: 'inline-block',
-					['width']: 'auto'
-				});
 				
-				// The element that is the score itself
-				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight sens-score'
-				});
-
-				// Add the hoverover text and href
-				var tooltip = 'No score available';
-				if (ratingCount > 0 && rating == null){
-					tooltip = ratingCount.toLocaleString() + ' rating';
-					if (ratingCount > 1) tooltip += "s";
-					rating = "N/A";
-
-				}else if (ratingCount > 0){
-					tooltip = "Weighted average of " + rating + "/10 based on " + ratingCount.toLocaleString() + ' ratings';
+				if (this.sensCritique.permissionFailure == true){
+					// Display an error due to lack of permission
+					//**********************************************/
+					section.append(letterboxd.helpers.createPermissionError('sens', 'SensCritique'));
 
 				}else{
-					rating = "N/A";
-				}
-				text.setAttribute('data-original-title', tooltip);
-				text.setAttribute('href', url + "/critiques");
-				text.innerText = rating
-				span.append(text);
+					// Score
+					//***************************************************************
+					var rating = this.sensCritique.data.product.rating;
+					var ratingCount = this.sensCritique.data.product.stats.ratingCount;
+					var recommendCount = this.sensCritique.data.product.stats.recommendCount;
 
-				container.append(span);
+					this.addLink(url);
 
-				// Number of ratings and likes text
-				//***************************************************************
-				const textSpan = letterboxd.helpers.createElement('div', {}, {
-					['display']: 'inline-block',
-					['width']: 'auto',
-					['height']: '20px'
-				});
+					// Do not display if there is no score or ratings
+					if (rating == null && ratingCount == 0) return;
 
-				if (letterboxd.storage.get('sens-favorites-enabled') === true){
-					// Recommend Count
-					const text2 = letterboxd.helpers.createElement('p', {
-						class: 'display-rating sens-text'
+					const container = letterboxd.helpers.createElement('span', {}, {
+						['display']: 'block',
+						['margin-bottom']: '10px'
 					});
-					text2.innerText = "♥ " + recommendCount.toLocaleString();
-					textSpan.append(text2);
+
+					// The span that holds the score
+					const span = letterboxd.helpers.createElement('div', {}, {
+						['display']: 'inline-block',
+						['width']: 'auto'
+					});
+					
+					// The element that is the score itself
+					const text = letterboxd.helpers.createElement('a', {
+						class: 'tooltip display-rating -highlight sens-score'
+					});
+
+					// Add the hoverover text and href
+					var tooltip = 'No score available';
+					if (ratingCount > 0 && rating == null){
+						tooltip = ratingCount.toLocaleString() + ' rating';
+						if (ratingCount > 1) tooltip += "s";
+						rating = "N/A";
+
+					}else if (ratingCount > 0){
+						tooltip = "Weighted average of " + rating + "/10 based on " + ratingCount.toLocaleString() + ' ratings';
+
+					}else{
+						rating = "N/A";
+					}
+					text.setAttribute('data-original-title', tooltip);
+					text.setAttribute('href', url + "/critiques");
+					text.innerText = rating
+					span.append(text);
+
+					container.append(span);
+
+					// Number of ratings and likes text
+					//***************************************************************
+					const textSpan = letterboxd.helpers.createElement('div', {}, {
+						['display']: 'inline-block',
+						['width']: 'auto',
+						['height']: '20px'
+					});
+
+					if (letterboxd.storage.get('sens-favorites-enabled') === true){
+						// Recommend Count
+						const text2 = letterboxd.helpers.createElement('p', {
+							class: 'display-rating sens-text'
+						});
+						text2.innerText = "♥ " + recommendCount.toLocaleString();
+						textSpan.append(text2);
+					}
+
+					container.append(textSpan);
+					section.append(container);
+
+					// Add the tooltip as text for mobile
+					letterboxd.helpers.createDetailsText('sens', section, tooltip, this.isMobile);
 				}
-
-				container.append(textSpan);
-				section.append(container);
-
-				// Add the tooltip as text for mobile
-				letterboxd.helpers.createDetailsText('sens', section, tooltip, this.isMobile);
 
 				// APPEND to the sidebar
 				//************************************************************
