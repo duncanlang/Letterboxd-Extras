@@ -664,9 +664,9 @@
 				}
 
 				// Get year and title
-				if (document.querySelector(".releaseyear a") != null && document.querySelector(".headline-1.primaryname span") != null && this.letterboxdYear == null){
+				if (document.querySelector(".releasedate a") != null && document.querySelector(".headline-1.primaryname span") != null && this.letterboxdYear == null){
 					if (this.isMobile){
-						this.letterboxdYear = document.querySelector(".details .releaseyear a").innerText;
+						this.letterboxdYear = document.querySelector(".details .releasedate a").innerText;
 						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 
 						var nativeTitle = document.querySelector('.originalname')
@@ -674,7 +674,7 @@
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
 					}else{
-						this.letterboxdYear = document.querySelectorAll(".metablock .releaseyear a")[0].innerText;
+						this.letterboxdYear = document.querySelectorAll(".metablock .releasedate a")[0].innerText;
 						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 	
 						var nativeTitle = document.querySelector('.originalname')
@@ -2832,7 +2832,7 @@
 			},
 
 			addDate(date){
-				const year = document.querySelector('.metablock .releaseyear');
+				const year = document.querySelector('.metablock .releasedate');
 
 				if (year != null){
 					year.setAttribute("data-original-title", date);
@@ -2957,31 +2957,34 @@
 				// Adjust the rating if needed
 				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
 				
-				if (this.isMobile){
-					const intro = document.querySelector('.details .credits .introduction');
+				try{
+					if (this.isMobile){
+						const intro = document.querySelector('.details .credits .introduction');
 
-					const rating = letterboxd.helpers.createElement('span', {
-						class: 'introduction extras-rating extras-rating-mobile'
-					});
-					rating.innerText = this.mpaaRating;
-					intro.before(rating);
+						const rating = letterboxd.helpers.createElement('span', {
+							class: 'introduction extras-rating extras-rating-mobile'
+						});
+						rating.innerText = this.mpaaRating;
+						intro.before(rating);
 
-				}else{
-					const year = document.querySelector('.metablock .releaseyear');
-	
-					const small = letterboxd.helpers.createElement('span', {
-						class: 'extras-rating'
-					});
-					year.after(small);
-					
-					const p = letterboxd.helpers.createElement('span', {
-					});
-					p.innerText = this.mpaaRating;
-					small.append(p);
+					}else{
+						const year = document.querySelector('.metablock .releasedate');
+		
+						const small = letterboxd.helpers.createElement('span', {
+							class: 'extras-rating'
+						});
+						year.after(small);
+						
+						const p = letterboxd.helpers.createElement('span', {
+						});
+						p.innerText = this.mpaaRating;
+						small.append(p);
+					}
+				}catch(error){
+					console.error('Letterboxd Extras | Error! There was an error when adding the MPA rating!\nException:\n' + error);
 				}
 
 				this.ratingAdded = true;
-
 			},
 
 			replaceMPARating(){
