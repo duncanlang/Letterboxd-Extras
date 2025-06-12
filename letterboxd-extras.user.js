@@ -548,6 +548,7 @@
 			scoreConverted: false,
 			fansConverted: false,
 			showDetailsAdded: false,
+			titleError: false,
 
 			// IMDb
 			imdbID: "",
@@ -664,27 +665,20 @@
 				}
 
 				// Get year and title
-				if (document.querySelector(".releasedate a") != null && document.querySelector(".headline-1.primaryname span") != null && this.letterboxdYear == null){
-					if (this.isMobile){
-						this.letterboxdYear = document.querySelector(".details .releasedate a").innerText;
+				if (document.querySelector("section .production-masthead") != null && this.letterboxdYear == null && this.titleError == false){
+					try{
+						// Collect Year and Title
+						this.letterboxdYear = document.querySelector(".releasedate a").innerText;
 						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 
-						var nativeTitle = document.querySelector('.originalname')
+						// Collect native title
+						var nativeTitle = document.querySelector('.originalname .quoted-creative-work-title')
 						if (nativeTitle != null){
 							this.letterboxdNativeTitle = nativeTitle.innerText;
 						}
-					}else{
-						this.letterboxdYear = document.querySelectorAll(".metablock .releasedate a")[0].innerText;
-						this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
-	
-						var nativeTitle = document.querySelector('.originalname')
-						if (nativeTitle != null){
-							this.letterboxdNativeTitle = nativeTitle.innerText;
-						}
-					}
-					if (this.letterboxdNativeTitle != null){
-						this.letterboxdNativeTitle = this.letterboxdNativeTitle.replace('‘','');
-						this.letterboxdNativeTitle = this.letterboxdNativeTitle.replace('’','');
+					}catch (error){
+						this.titleError = true;
+						console.error('Letterboxd Extras | Error! There was an error when collecting the title and year!\nException:\n' + error);
 					}
 				}
 
@@ -2966,7 +2960,7 @@
 						intro.before(rating);
 
 					}else{
-						const year = document.querySelector('.metablock .releasedate');
+						const year = document.querySelector('.releasedate');
 		
 						const small = letterboxd.helpers.createElement('span', {
 							class: 'extras-rating'
