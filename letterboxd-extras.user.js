@@ -665,7 +665,7 @@
 				}
 
 				// Get year and title
-				if (document.querySelector("section .production-masthead") != null && this.letterboxdYear == null && this.titleError == false){
+				if (document.querySelector("section.production-masthead") != null && this.letterboxdYear == null && this.titleError == false){
 					try{
 						// Collect Year and Title
 						this.letterboxdYear = document.querySelector(".releasedate a").innerText;
