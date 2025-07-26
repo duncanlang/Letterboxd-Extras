@@ -2826,7 +2826,7 @@
 			},
 
 			addDate(date){
-				const year = document.querySelector('.metablock .releasedate');
+				const year = document.querySelector('.productioninfo .releasedate');
 
 				if (year != null){
 					year.setAttribute("data-original-title", date);
