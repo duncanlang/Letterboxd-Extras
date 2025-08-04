@@ -5,95 +5,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            --body-text-color: #000;
-            --body-back-color: #ffffff;
-            --body-text-alt-color: #7d7d7d;
-
-            color: var(--body-text-color);
-            background-color: var(--body-back-color);
-
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* Color scheme */
-        @media (prefers-color-scheme: light) {
-            body {
-                --body-text-color: #000;
-                --body-back-color: #ffffff;
-                --body-text-alt-color: #7d7d7d;
-            }
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                --body-text-color: #f4f4f4;
-                --body-back-color: #23222b;
-                --body-text-alt-color: #a3a2a7;
-            }
-        }
-
-        h3,
-        label,
-        p,
-        a,
-        input#export,
-        input#import,
-        input#reset,
-        input#importbutton,
-        input#importpicker,
-        input#requestall {
-            margin-left: 15px;
-            margin-right: 15px;
-        }
-
-        input#export,
-        input#import{
-            margin-top: 5px;
-        }
-        
-        input#reset {
-            margin-top: 25px;
-        }
-
-        p {
-            margin-top: 0px;
-            font-style: italic;
-            font-size: 11px;
-            width: 95%;
-            max-width: 450px;
-            color: var(--body-text-alt-color);
-        }
-
-        a{
-            color: rgb(51, 167, 255);
-            width: 95%;
-            text-decoration: none;
-        }
-        a:hover{
-            opacity: 50%;
-            text-decoration: underline;
-        }
-
-        label {
-            display: inline-block;
-            width: 175px;
-            margin-bottom: 10px;
-        }
-        
-        .div-request-permission, .div-request-contentscript{
-            display: none;
-        }
-        .div-request-permission label, .div-request-contentscript label{
-            font-size: 15px;
-        }
-
-        .disabled{
-            pointer-events: none;
-            opacity: 50%;
-        }
-    </style>
+    
+    <link rel="stylesheet" href="options.css">
+    <link rel="stylesheet" href="colour_scheme.css">
 </head>
 
 <body>
@@ -109,41 +23,41 @@
         <h3>IMDb</h3>
         <div>
             <label for="imdb-enabled">Display IMDb:</label>
-            <input type="checkbox" id="imdb-enabled" />
+            <input type="checkbox" id="imdb-enabled" class="setting"/>
         </div>
     </div>
     <div>
         <h3>MyAnimeList</h3>
         <div>
             <label for="mal-enabled">Display MyAnimeList:</label>
-            <input type="checkbox" id="mal-enabled" />
+            <input type="checkbox" id="mal-enabled" class="setting"/>
         </div>
     </div>
     <div>
         <h3>AniList</h3>
         <div>
             <label for="al-enabled">Display AniList:</label>
-            <input type="checkbox" id="al-enabled" />
+            <input type="checkbox" id="al-enabled" class="setting"/>
         </div>
     </div>
     <div>
         <h3>Rotten Tomatoes</h3>
         <div>
             <label for="tomato-enabled">Display Rotten Tomatoes:</label>
-            <input type="checkbox" id="tomato-enabled" subid="tomato-div"/>
+            <input type="checkbox" id="tomato-enabled" subid="tomato-div"class="setting"/>
         </div>
         <div id="tomato-div">
             <div>
                 <label for="tomato-critic-enabled">Display critic ratings:</label>
-                <input type="checkbox" id="tomato-critic-enabled" />
+                <input type="checkbox" id="tomato-critic-enabled" class="setting"/>
             </div>
             <div>
                 <label for="tomato-audience-enabled">Display audience ratings:</label>
-                <input type="checkbox" id="tomato-audience-enabled" />
+                <input type="checkbox" id="tomato-audience-enabled" class="setting"/>
             </div>
             <div>
                 <label for="rt-default-view">Default detail view:</label>
-                <select id="rt-default-view">
+                <select id="rt-default-view"class="setting">
                     <option value="hide">Hide</option>
                     <option value="show">Show</option>
                     <option value="remember">Remember Last</option>
@@ -151,14 +65,14 @@
             </div>
             <div>
                 <label for="critic-default">Default critic score:</label>
-                <select id="critic-default">
+                <select id="critic-default"class="setting">
                     <option value="all">All Critics</option>
                     <option value="top">Top Critics</option>
                 </select>
             </div>
             <div>
                 <label for="audience-default">Default audience score:</label>
-                <select id="audience-default">
+                <select id="audience-default"class="setting">
                     <option value="all">All Audience</option>
                     <option value="verified">Verified Audience</option>
                 </select>
@@ -169,24 +83,24 @@
         <h3>Metacritic</h3>
         <div>
             <label for="metacritic-enabled">Display Metacritic:</label>
-            <input type="checkbox" id="metacritic-enabled" subid="meta-div"/>
+            <input type="checkbox" id="metacritic-enabled" subid="meta-div"class="setting"/>
         </div>
         <div id="meta-div">
             <div>
                 <label for="metacritic-critic-enabled">Display critic ratings:</label>
-                <input type="checkbox" id="metacritic-critic-enabled" />
+                <input type="checkbox" id="metacritic-critic-enabled" class="setting"/>
             </div>
             <div>
                 <label for="metacritic-users-enabled">Display user ratings:</label>
-                <input type="checkbox" id="metacritic-users-enabled" />
+                <input type="checkbox" id="metacritic-users-enabled" class="setting"/>
             </div>
             <div>
                 <label for="metacritic-mustsee-enabled">Display Must-See/Must-Watch:</label>
-                <input type="checkbox" id="metacritic-mustsee-enabled" />
+                <input type="checkbox" id="metacritic-mustsee-enabled" class="setting"/>
             </div>
             <div>
                 <label for="meta-default-view">Default detail view:</label>
-                <select id="meta-default-view">
+                <select id="meta-default-view" class="setting">
                     <option value="hide">Hide</option>
                     <option value="show">Show</option>
                     <option value="remember">Remember Last</option>
@@ -198,7 +112,7 @@
         <h3>SensCritique</h3>
         <div>
             <label for="senscritique-enabled">Display SensCritique:</label>
-            <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" subid="sens-div" />
+            <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" subid="sens-div" class="setting"/>
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
@@ -207,7 +121,7 @@
         <div id="sens-div" class="disabled">
             <div>
                 <label for="sens-favorites-enabled">Display recommended count:</label>
-                <input type="checkbox" id="sens-favorites-enabled" />
+                <input type="checkbox" id="sens-favorites-enabled" class="setting"/>
             </div>
         </div>
     </div>
@@ -215,7 +129,7 @@
         <h3>MUBI</h3>
         <div>
             <label for="mubi-enabled">Display MUBI:</label>
-            <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" />
+            <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" class="setting"/>
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
@@ -226,7 +140,7 @@
         <h3>FilmAffinity</h3>
         <div>
             <label for="filmaff-enabled">Display FilmAffinity:</label>
-            <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" />
+            <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" class="setting"/>
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
@@ -237,7 +151,7 @@
         <h3>Simkl</h3>
         <div>
             <label for="simkl-enabled">Display Simkl:</label>
-            <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" />
+            <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" class="setting"/>
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
@@ -248,7 +162,7 @@
         <h3>AlloCiné</h3>
         <div>
             <label for="allocine-enabled">Display AlloCiné:</label>
-            <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" subid="allo-div" />
+            <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" subid="allo-div" class="setting"/>
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
@@ -257,15 +171,15 @@
         <div id="allo-div" class="disabled">
             <div>
                 <label for="allocine-users-enabled">Display user ratings:</label>
-                <input type="checkbox" id="allocine-users-enabled" />
+                <input type="checkbox" id="allocine-users-enabled" class="setting"/>
             </div>
             <div>
                 <label for="allocine-critic-enabled">Display critic ratings:</label>
-                <input type="checkbox" id="allocine-critic-enabled" />
+                <input type="checkbox" id="allocine-critic-enabled" class="setting"/>
             </div>
             <div>
                 <label for="allocine-style">Display Style:</label>
-                <select id="allocine-style" subid="allo-view-div" subidvalue="histogram">
+                <select id="allocine-style" subid="allo-view-div" subidvalue="histogram" class="setting">
                     <option value="histogram">Histogram Graph</option>
                     <option value="ratings">Side-by-side Ratings</option>
                 </select>
@@ -273,7 +187,7 @@
             <div id="allo-view-div">
                 <div>
                     <label for="allocine-default-view">Default ratings view:</label>
-                    <select id="allocine-default-view">
+                    <select id="allocine-default-view" class="setting">
                         <option value="user">User</option>
                         <option value="critic">Critic</option>
                     </select>
@@ -285,7 +199,7 @@
         <h3>CinemaScore</h3>
         <div>
             <label for="cinema-enabled">Display CinemaScore:</label>
-            <input type="checkbox" id="cinema-enabled" />
+            <input type="checkbox" id="cinema-enabled" class="setting"/>
         </div>
     </div>
 
@@ -295,7 +209,7 @@
         <h3>Search</h3>
         <div>
             <label for="search-redirect">Default results to films:</label>
-            <input type="checkbox" id="search-redirect" />
+            <input type="checkbox" id="search-redirect" class="setting"/>
             <p>Defaults the Letterboxd search to only show results for films, rather than showing all results.</p>
         </div>
     </div>
@@ -307,7 +221,7 @@
         <div>
             <div>
                 <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
-                <input type="checkbox" id="tspdt-enabled" permission="https://www.theyshootpictures.com/*" />
+                <input type="checkbox" id="tspdt-enabled" permission="https://www.theyshootpictures.com/*" class="setting"/>
             </div>
             <div class="div-request-permission">
                 <label style="color: red;">! Missing Permission !</label>
@@ -317,7 +231,7 @@
         <div>
             <div>
                 <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
-                <input type="checkbox" id="bfi-enabled" permission="https://www.bfi.org.uk/*" />
+                <input type="checkbox" id="bfi-enabled" permission="https://www.bfi.org.uk/*" class="setting"/>
             </div>
             <div class="div-request-permission">
                 <label style="color: red;">! Missing Permission !</label>
@@ -332,7 +246,7 @@
         <h3>Miscellaneous</h3>
         <div>
             <label for="convert-ratings">Convert ratings:</label>
-            <select id="convert-ratings">
+            <select id="convert-ratings" class="setting">
                 <option value="false">Leave unchanged</option>
                 <option value="5">5-point scale</option>
                 <option value="10">10-point scale</option>
@@ -341,23 +255,23 @@
         </div>
         <div>
             <label for="mpa-enabled">Display MPA film ratings:</label>
-            <input type="checkbox" id="mpa-enabled" subid="mpa-div" />
+            <input type="checkbox" id="mpa-enabled" subid="mpa-div" class="setting"/>
         </div>
         <div id="mpa-div">
             <label for="mpa-convert">Convert historical MPA ratings to modern equivalent:</label>
-            <input type="checkbox" id="mpa-convert" />
+            <input type="checkbox" id="mpa-convert" class="setting"/>
         </div>
         <div>
             <label for="open-same-tab">Open 'More At' links in same tab:</label>
-            <input type="checkbox" id="open-same-tab" />
+            <input type="checkbox" id="open-same-tab" class="setting"/>
         </div>
         <div>
             <label for="mojo-link-enabled">Display BoxOfficeMojo link:</label>
-            <input type="checkbox" id="mojo-link-enabled" />
+            <input type="checkbox" id="mojo-link-enabled" class="setting"/>
         </div>
-        <div>
+        <div id="wiki-link-div">
             <label for="wiki-link-enabled">Display Wikipedia link:</label>
-            <input type="checkbox" id="wiki-link-enabled" />
+            <input type="checkbox" id="wiki-link-enabled" class="setting"/>
         </div>
         <div>
             <label for="replace-fans">Replace 'Fans' with Rating Count:</label>
@@ -369,11 +283,11 @@
         </div>
         <div>
             <label for="hide-ratings-enabled">Hide additional ratings behind a 'Show More' button:</label>
-            <input type="checkbox" id="hide-ratings-enabled" />
+            <input type="checkbox" id="hide-ratings-enabled" class="setting"/>
         </div>
         <div>
             <label for="tooltip-show-details">Display tooltips on page:</label>
-            <input type="checkbox" id="tooltip-show-details" />
+            <input type="checkbox" id="tooltip-show-details" class="setting"/>
         </div>
     </div>
 
@@ -383,7 +297,7 @@
         <h3>Google Search</h3>
         <div>
             <label for="google">Always display Letterboxd score on Google searches:</label>
-            <input type="checkbox" id="google" permission="https://www.google.com/search*" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" />
+            <input type="checkbox" id="google" permission="https://www.google.com/search*" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" class="setting"/>
         </div>
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
@@ -422,7 +336,7 @@
         <h3>Debug</h3>
         <div>
             <label for="console-log">Log calls in console:</label>
-            <input type="checkbox" id="console-log" />
+            <input type="checkbox" id="console-log" class="setting"/>
         </div>
     </div>
 

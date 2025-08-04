@@ -3,7 +3,7 @@ google2letterboxd();
 
 async function google2letterboxd(){
     // Get storage
-    var options = await browser.storage.local.get().then(function (storedSettings) {
+    var options = await chrome.storage.local.get().then(function (storedSettings) {
         if (storedSettings["convert-ratings"] === true){
             storedSettings["convert-ratings"] = "5";
         }

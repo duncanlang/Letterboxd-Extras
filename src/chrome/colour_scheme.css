@@ -1,0 +1,15 @@
+@media (prefers-color-scheme: light) {
+    body {
+        --body-text-color: #000;
+        --body-back-color: #ffffff;
+        --body-text-alt-color: #7d7d7d;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        --body-text-color: #f4f4f4;
+        --body-back-color: rgb(32, 33, 36); /* --google-grey-900 */
+        --body-text-alt-color: #a3a2a7;
+    }
+}

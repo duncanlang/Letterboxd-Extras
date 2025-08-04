@@ -1,5 +1,9 @@
 const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
+document.body.classList.add(isFirefox ? "firefox" : "chrome");
+
+if (isChrome)
+    var browser = chrome;
 
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
@@ -7,95 +11,164 @@ let isPopup = window.location.search.includes('type=action');
 if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
 
-var options;
+var options = {};
 
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
-function initDefaultSettings(){
-    if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
-    if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
-    if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
-    if (options['mal-enabled'] == null) options['mal-enabled'] = true;
-    if (options['al-enabled'] == null) options['al-enabled'] = true;
-    if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
-    if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
-    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
-    if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
-    if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
-    if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
-    if (options['metacritic-critic-enabled'] == null) options['metacritic-critic-enabled'] = true;
-    if (options['metacritic-users-enabled'] == null) options['metacritic-users-enabled'] = true;
-    if (options['metacritic-mustsee-enabled'] == null) options['metacritic-mustsee-enabled'] = true;
-    if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
-    if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
-    if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
-
-    if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
-    if (options['critic-default'] == null) options['critic-default'] = "all";
-    if (options['audience-default'] == null) options['audience-default'] = "all";
-    if (options['meta-default-view'] == null) options['meta-default-view'] = "hide";
-    if (options['senscritique-enabled'] == null) options['senscritique-enabled'] = false;
-    if (options['mubi-enabled'] == null) options['mubi-enabled'] = false;
-    if (options['filmaff-enabled'] == null) options['filmaff-enabled'] = false;
-    if (options['simkl-enabled'] == null) options['simkl-enabled'] = false;
-    if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
-    if (options['allocine-default-view'] == null) options['allocine-default-view'] = "user";
-    if (options['search-redirect'] == null) options['search-redirect'] = false;
-    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = false;
-    if (options['bfi-enabled'] == null) options['bfi-enabled'] = false;
-    if (options['convert-ratings'] == null) options['convert-ratings'] = "false";
-    if (options['mpa-convert'] == null) options['mpa-convert'] = false;
-    if (options['open-same-tab'] == null) options['open-same-tab'] = false;
-    if (options['replace-fans'] == null) options['replace-fans'] = "false";
-    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
-    if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
-    if (options['google'] == null) options['google'] = false;
-}
+if (isChrome)
+    document.querySelector('#wiki-link-div').setAttribute("style", "display:none;");
 
 // Load from storage
 async function load() {
-    options = await browser.storage.local.get().then(function (storedSettings) {
-        if (storedSettings["convert-ratings"] === true) {
-            storedSettings["convert-ratings"] = "5";
-        }
-        return storedSettings;
-    });
-    // Init default settings
-    initDefaultSettings();
+    // Assign the object
+    var data = await browser.storage.sync.get('options');
 
-    set();
+    if (data != null && data.options != null) {
+        Object.assign(options, data.options);
+        // Set the settings
+        await set();
+    }
 }
 
+// Save
 function save() {
-    browser.storage.local.set(options);
+    browser.storage.sync.set({ options });
 }
 
 async function set() {
-    for (const key in options){
-        var element = document.querySelector('#' + key);
-        if (element != null) {
-            switch (typeof (options[key])) {
-                case ('boolean'):
+    var elements = document.querySelectorAll('.setting');
+    for (let i = 0; i < elements.length; i++) {
+        let element = elements[i];
+        var key = element.id;
+        if (options.hasOwnProperty(key)) {
+            switch (element.type) {
+                case ('checkbox'):
                     element.checked = options[key];
                     break;
-                case ('string'):
+                default:
                     element.value = options[key];
                     break;
             }
-            checkSubIDToDisable(element);
 
             if (element.getAttribute("permission") != null) {
-                await checkPermission(element);
+                ValidatePermission(element);
+                ValidateContentScript(element);
             }
         }
-    }    
-
-    ValidateRequestAllVisiblity();
+        checkSubIDToDisable(element);
+    }
 }
 
-async function checkPermission(element) {
-    // Check for Permissions
+function checkSubIDToDisable(element) {
+    if (element.getAttribute("subid") != null) {
+        var target = document.querySelector("#" + element.getAttribute("subid"));
+        var targetValue = element.getAttribute("subidvalue");
+
+        if (targetValue != null) {
+            if (element.value == targetValue) {
+                target.className = target.className.replace("disabled", "");
+            } else if (!target.className.includes("disabled")) {
+                target.className += " disabled";
+            }
+        } else {
+            if (element.checked) {
+                target.className = target.className.replace("disabled", "");
+            } else if (!target.className.includes("disabled")) {
+                target.className += " disabled";
+            }
+        }
+    }
+}
+
+
+// On change, save
+document.addEventListener('change', event => {
+    if (event.target.id == "importpicker") {
+        validateImportButton();
+    } else {
+        let element = event.target;
+
+        switch (element.type) {
+            case ('checkbox'):
+                options[element.id] = element.checked;
+                break;
+            default:
+                options[element.id] = element.value;
+                break;
+        }
+        checkSubIDToDisable(element);
+
+        save();
+
+        // Check for permissions
+        var origins = element.getAttribute("permission") ? [element.getAttribute("permission")] : [];
+        var permissions = element.getAttribute("permissionBrowser") ? [element.getAttribute("permissionBrowser")] : [];
+
+        if (origins.length > 0 || permissions.length > 0){
+            let permissionsToRequest = { origins: origins, permissions: permissions };
+
+            if (element.checked == true) {
+                // Request the permission
+                browser.permissions.request(permissionsToRequest, (granted) => {
+                    if (granted) {
+                        ValidatePermission(element);
+                        if (element.getAttribute('contentScript') != null) {
+                            registerContentScript(element);
+                        }
+                    } else {
+                        element.checked = false;
+                        options[element.id] = element.checked;
+                        save();
+                    }
+                    checkSubIDToDisable(element);
+                });
+            } else {
+                // Remove the permission
+                browser.permissions.remove(permissionsToRequest, (removed) => {
+                    if (removed) {
+                        ValidatePermission(element);
+                        if (element.getAttribute('contentScript') != null) {
+                            registerContentScript(element);
+                        }
+                    } else {
+                        element.checked = true;
+                        options[element.id] = element.checked;
+                        save();
+                    }
+                    checkSubIDToDisable(element);
+                });
+            }
+        }
+    }
+});
+
+async function ValidateAllPermissions(){
+    var elements = document.querySelectorAll('.setting');
+    for (let i = 0; i < elements.length; i++) {
+        let element = elements[i];
+        var key = element.id;
+        if (options.hasOwnProperty(key)) {
+            switch (element.type) {
+                case ('checkbox'):
+                    element.checked = options[key];
+                    break;
+                default:
+                    element.value = options[key];
+                    break;
+            }
+
+            if (element.getAttribute("permission") != null) {
+                ValidatePermission(element);
+                ValidateContentScript(element);
+            }
+        }
+        checkSubIDToDisable(element);
+    }
+}
+
+// Validate Permission - check to see if the permission is granted, and determine visibility of the warning
+async function ValidatePermission(element){
     let permission = element.getAttribute("permission");
     let permissionsToRequest = { origins: [permission] };
     var response = await browser.permissions.contains(permissionsToRequest);
@@ -118,13 +191,21 @@ async function checkPermission(element) {
         }
     }
 
-    // Check for content scripts
+    ValidateRequestAllVisiblity();
+}
+
+// Validate Content Script - check to see if the content script has been registered, and determine visibility of the warning
+async function ValidateContentScript(element){
     let js = element.getAttribute("contentScript");
     let id = element.getAttribute("contentScriptID");
     if (js != null && id != null){
         let scripts = await browser.scripting.getRegisteredContentScripts();
-        scripts = scripts.map((script) => script.id);
-        response = (scripts.includes(id));
+        if (scripts != null){
+            scripts = scripts.map((script) => script.id);
+            response = (scripts.includes(id));
+        }else{
+            response = false;
+        }
 
         div = element.parentNode.parentNode.querySelector(".div-request-contentscript");
         if (div != null) {
@@ -147,83 +228,6 @@ async function checkPermission(element) {
     }
 }
 
-function checkSubIDToDisable(element) {
-    if (element.getAttribute("subid") != null) {
-        var target = document.querySelector("#" + element.getAttribute("subid"));
-        var targetValue = element.getAttribute("subidvalue");
-
-        if (targetValue != null) {
-            if (element.value == targetValue) {
-                target.className = target.className.replace("disabled", "");
-            } else {
-                target.className += " disabled";
-            }
-        } else {
-            if (element.checked) {
-                target.className = target.className.replace("disabled", "");
-            } else {
-                target.className += " disabled";
-            }
-        }
-    }
-}
-
-
-// On change, save
-document.addEventListener('change', event => {
-    if (event.target.id == "importpicker") {
-        validateImportButton();
-    } else {
-        changeSetting(event);
-    }
-});
-
-async function changeSetting(event) {
-    switch (event.target.type) {
-        case ('checkbox'):
-            options[event.target.id] = event.target.checked;
-            break;
-        default:
-            options[event.target.id] = event.target.value;
-            break;
-    }
-    checkSubIDToDisable(event.target);
-
-    save();
-
-    if (event.target.getAttribute("permission") != null) {
-        let permissionsToRequest = { origins: [event.target.getAttribute("permission")] };
-        if (event.target.getAttribute("permissionBrowser") != null) {
-            permissionsToRequest = { origins: [event.target.getAttribute("permission")], permissions: [event.target.getAttribute("permissionBrowser")] };
-        }
-
-        if (event.target.checked == true) {
-            const response = await browser.permissions.request(permissionsToRequest);
-
-            if (response != true) {
-                event.target.checked = false;
-                options[event.target.id] = event.target.checked;
-                save();
-            }
-        } else {
-            browser.permissions.remove(permissionsToRequest);
-            checkPermission(event.target); // this will hide the "missing permission" if it's showing
-        }
-        checkSubIDToDisable(event.target);
-
-        if (event.target.getAttribute('contentScript') != null) {
-            const response = await registerContentScript(event.target);
-
-            if (response != true) {
-                event.target.checked = false;
-                options[event.target.id] = event.target.checked;
-                save();
-            }
-        }
-
-        ValidateRequestAllVisiblity();
-    }
-}
 
 // Request permission if missing
 document.addEventListener('click', event => {
@@ -267,7 +271,19 @@ async function requestPermission(event) {
         const response = await browser.permissions.request(permissionsToRequest);
         if (response == true) {
             event.target.parentNode.setAttribute("style", "display:none;");
+
+            // Remove from array
+            if (missingHostPermissions.includes(permission)){
+                missingHostPermissions.splice(missingHostPermissions.indexOf(permission), 1);
+            }
+        }else{
+            // Add to array
+            if (!missingHostPermissions.includes(permission)){
+                missingHostPermissions.push(permission);
+            }
         }
+
+        ValidateRequestAllVisiblity();
     }
 }
 
@@ -317,7 +333,7 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 
 document.addEventListener('focus', event => {
-    set();
+    ValidateAllPermissions();
 });
 
 function validateImportButton() {
@@ -329,17 +345,14 @@ function validateImportButton() {
 
 async function exportSettings() {
     // Create JSON
-    var settings = await browser.storage.local.get().then(function (storedSettings) {
-        if (storedSettings["convert-ratings"] === true) {
-            storedSettings["convert-ratings"] = "5";
-        }
+    var settings = await browser.storage.sync.get('options').then(function (storedSettings) {
         return storedSettings;
     });
 
     const userdata = {
         timeStamp: Date.now(),
         version: browser.runtime.getManifest().version,
-        settings: settings
+        settings: settings.options
     }
 
     const timeOptions = {
@@ -429,10 +442,10 @@ async function resetSettings(){
         return;
     }
 
-    options = {};
-    initDefaultSettings();
-    save();
-    set();
+    browser.runtime.sendMessage({ name: "RESETSETTINGS" }, (value) => {
+        load();
+        window.alert("Your settings have been reset to default.")
+    });
 }
 
 async function readFileAsText(file) {

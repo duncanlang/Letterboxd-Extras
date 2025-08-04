@@ -2,12 +2,16 @@
 	"manifest_version": 2,
 	"name": "Letterboxd Extras",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
-	"version": "3.15.8",
+	"version": "3.16.0",
 	"minimum_chrome_version": "88",
 
 	"browser_specific_settings": {
+		"gecko": {
+			"id": "{9abb0ce4-6348-4119-b97a-3f8116351aca}",
+			"strict_min_version": "109.0"
+		},
 		"gecko_android": {
-		  "strict_min_version": "113.0"
+			"strict_min_version": "113.0"
 		}
 	},	  
 	
