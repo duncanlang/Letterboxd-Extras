@@ -2027,8 +2027,10 @@ if (isChrome)
 				// First, lets grab all the useful information
 				//***************************************************************
 				if (this.metaData.data != null) {
+					var scoreContainer = this.metaData.data.querySelector('.c-productHero_player-scoreInfo .c-productHero_score-container');
+
 					// Scores
-					var criticScore = this.metaData.data.querySelector('.c-productHero_score-container .c-siteReviewScore:not(.c-siteReviewScore_user) span');
+					var criticScore = scoreContainer.querySelector('.c-siteReviewScore:not(.c-siteReviewScore_user) span');
 					if (criticScore != null) {
 						// Standard page with score
 						this.metaData.critic.rating = criticScore.innerText;
@@ -2037,7 +2039,7 @@ if (isChrome)
 						this.metaData.critic.rating = "N/A";
 					}
 
-					var userScore = this.metaData.data.querySelector('.c-productHero_score-container .c-siteReviewScore_user span');
+					var userScore = scoreContainer.querySelector('.c-siteReviewScore_user span');
 					if (userScore != null) {
 						// Standard page with score
 						this.metaData.user.rating = userScore.innerText;
@@ -2056,11 +2058,12 @@ if (isChrome)
 					var criticSection = this.metaData.data.querySelector('.c-reviewsSection_criticReviews');
 
 					if (criticSection != null) {
+						/*
 						var criticScore = criticSection.querySelector('.c-siteReviewScore span');
 
 						if (criticScore != null) {
 							this.metaData.critic.rating = criticScore.innerText;
-						}
+						}*/
 
 						var criticPositive = criticSection.querySelectorAll('.c-reviewsStats_positiveStats span');
 						var criticNeutral = criticSection.querySelectorAll('.c-reviewsStats_neutralStats span');
@@ -2102,11 +2105,12 @@ if (isChrome)
 					var userSection = this.metaData.data.querySelector('.c-reviewsSection_userReviews');
 
 					if (userSection != null) {
+						/*
 						var userScore = userSection.querySelector('.c-siteReviewScore span');
 
 						if (userScore != null) {
 							this.metaData.user.rating = userScore.innerText;
-						}
+						}*/
 
 						var userPositive = userSection.querySelectorAll('.c-reviewsStats_positiveStats span');
 						var userNeutral = userSection.querySelectorAll('.c-reviewsStats_neutralStats span');
