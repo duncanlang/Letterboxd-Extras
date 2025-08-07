@@ -2058,13 +2058,6 @@ if (isChrome)
 					var criticSection = this.metaData.data.querySelector('.c-reviewsSection_criticReviews');
 
 					if (criticSection != null) {
-						/*
-						var criticScore = criticSection.querySelector('.c-siteReviewScore span');
-
-						if (criticScore != null) {
-							this.metaData.critic.rating = criticScore.innerText;
-						}*/
-
 						var criticPositive = criticSection.querySelectorAll('.c-reviewsStats_positiveStats span');
 						var criticNeutral = criticSection.querySelectorAll('.c-reviewsStats_neutralStats span');
 						var criticNegative = criticSection.querySelectorAll('.c-reviewsStats_negativeStats span');
@@ -2105,13 +2098,6 @@ if (isChrome)
 					var userSection = this.metaData.data.querySelector('.c-reviewsSection_userReviews');
 
 					if (userSection != null) {
-						/*
-						var userScore = userSection.querySelector('.c-siteReviewScore span');
-
-						if (userScore != null) {
-							this.metaData.user.rating = userScore.innerText;
-						}*/
-
 						var userPositive = userSection.querySelectorAll('.c-reviewsStats_positiveStats span');
 						var userNeutral = userSection.querySelectorAll('.c-reviewsStats_neutralStats span');
 						var userNegative = userSection.querySelectorAll('.c-reviewsStats_negativeStats span');
@@ -5236,32 +5222,35 @@ if (isChrome)
 					style: style
 				});
 
-				// Add the hoverover text and href
+				// Create Tooltip
+				var tooltip = "";
 				if (data.num_ratings > 0 && data.rating == "tbd") {
-					var hover = 'No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' review';
+					tooltip = 'No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' review';
 					if (data.num_ratings == 1)
-						hover += ")";
+						tooltip += ")";
 					else
-						hover += "s)";
+						tooltip += "s)";
 
-					text.setAttribute('data-original-title', hover);
-					text.setAttribute('href', url);
 				} else if (data.num_ratings > 0) {
 					var totalScore = "/100";
 					if (type == "user")
 						totalScore = "/10";
-					var hover = "Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' review';
+					tooltip = "Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' review';
 					if (data.num_ratings != 1)
-						hover += "s"
-
-					text.setAttribute('data-original-title', hover);
-					text.setAttribute('href', url);
+						tooltip += "s"
+					
 				} else if (url != "") {
 					if (data.rating == "N/A") {
-						text.setAttribute('data-original-title', 'No score available');
+						tooltip = 'No score available';
 					} else {
-						text.setAttribute('data-original-title', 'No score yet');
+						tooltip = 'No score yet';
 					}
+				}
+				text.setAttribute('data-original-title', tooltip);
+
+				// Add href link
+				if (data.num_ratings > 0){
+					text.setAttribute('href', url);
 				}
 
 				text.innerText = data.rating;
@@ -5292,7 +5281,7 @@ if (isChrome)
 
 					const detailsText = letterboxd.helpers.createElement('p', {
 					});
-					detailsText.innerText = hover;
+					detailsText.innerText = tooltip;
 					detailsSpan.append(detailsText);
 
 					span.append(detailsSpan);
