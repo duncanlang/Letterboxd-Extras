@@ -20,38 +20,46 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         msg.type = "";
     }
 
-    // Make Fetch
     if (msg.name == "GETDATA") { // Standard call
         var options = null;
         if (msg.options != null)
             options = msg.options;
 
         try {
-            fetch(msg.url, options).then(async function (res) {
-                var errors = null;
-                if (res.status !== 200) {
-                    if (res.errors != null)
-                        errors = res.errors;
-                    
-                    response({ response: null, url: null, status: res.status, errors: errors })
-                    return;
-                }
-                
-                var resData = null;
+            (async () => {
+                // Check for permission before call
+                if (await CheckForPermission(msg.url)){
+                    fetch(msg.url, options).then(async function (res) {
+                        var errors = null;
 
-                if (msg.type == "JSON"){
-                    await res.json().then(function (data) {
-                        resData = data;
+                        // Check for errors
+                        if (res.status !== 200) {
+                            if (res.errors != null)
+                                errors = res.errors;
+                            
+                            response({ response: null, url: null, status: res.status, errors: errors })
+                            return;
+                        }
+                        
+                        // Get response body
+                        var resData = null;
+                        if (msg.type == "JSON"){
+                            await res.json().then(function (data) {
+                                resData = data;
+                            });
+                        }else{
+                            await res.text().then(function (data) {
+                                resData = data;
+                            });
+                        }
+
+                        response({ response: resData, url: res.url, status: res.status });
                     });
                 }else{
-                    await res.text().then(function (data) {
-                        resData = data;
-                    });
+                    response({ response: null, url: msg.url, status: 0, errors: ["No permission found matching url: " + msg.url] });
                 }
-
-                response({ response: resData, url: res.url, status: res.status });
-            });
-        } catch {
+            })();
+        } catch (exception){
             response({ response: null, url: null, status: 0 })
         }
 
@@ -188,3 +196,29 @@ browser.runtime.onInstalled.addListener(async (details) => {
     // Make sure to register content scripts
     registerContentScripts();
 });
+
+async function CheckForPermission(url) {
+    // Wrap chrome API in a Promise
+    const perms = await new Promise(resolve => {
+        chrome.permissions.getAll(resolve);
+    });
+
+    // Loop through granted origins and check against the given URL
+    for (const pattern of perms.origins) {
+        try {
+            const urlPattern = new URLPattern({ 
+                protocol: pattern.split("://")[0],
+                hostname: pattern.split("://")[1].split("/")[0],
+                pathname: pattern.split("/").slice(3).join("/") || "*"
+            });
+
+            if (urlPattern.test(url)) {
+                return true;
+            }
+        } catch (e) {
+            console.warn("Invalid pattern in permissions:", pattern, e);
+        }
+    }
+
+    return false;
+}

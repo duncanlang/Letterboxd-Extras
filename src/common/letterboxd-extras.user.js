@@ -2510,8 +2510,9 @@ if (isChrome)
 						try {
 							this.filmaffData.state = 1;
 							browser.runtime.sendMessage({ name: "GETDATA", url: this.wikiData.FilmAffinity_URL }, (value) => {
-								if (value.status != 200)
-									console.error("Letterboxd Extras | There was an error with the FilmAffinity call. Code: " + value.status);
+								if (letterboxd.helpers.ValidateResponse("FilmAffinity", value) == false){
+									return;
+								}
 
 								var filmaff = value.response;
 								if (filmaff != "") {
@@ -4915,29 +4916,22 @@ if (isChrome)
 		},
 
 		helpers: {
-			async getData(link, method, headers, body) {
-				if (letterboxd.storage.get('console-log') === true)
-					console.log("Letterboxd-extras | Calling: " + link);
+			ValidateResponse(name, value){
+				var output = true;
 
-				try {
-					// Fetch options
-					var options = { method: method, url: link }
-					if (headers != null)
-						options.headers = headers;
-					if (body != null)
-						options.body = body;
+				if (value == null || value.status == null){
+					console.error("Letterboxd Extras | There was an error with the " + name + " call. Error unknown");
+					output = false;
+				}else if (value.status != 200){
+					if (value.errors != null){
+						console.error("Letterboxd Extras | There was an error with the " + name + " call. Message: " + value.errors[0]);
+					}else{
+						console.error("Letterboxd Extras | There was an error with the " + name + " call. Code: " + value.status);
+					}
+					output = false;
+				}		
 
-					// Make call
-					const response = await fetch(link, options);
-
-					// Return value
-					const value = await response.text();
-					return { response: value, url: response.url };
-				} catch (error) {
-					console.error("Letterboxd Extras | Error:", error);
-				}
-
-				return null;
+				return output;
 			},
 
 			getMubiHeaders() {
