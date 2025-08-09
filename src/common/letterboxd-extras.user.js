@@ -909,8 +909,9 @@ if (isChrome)
 					if (letterboxd.storage.get('imdb-enabled') === true) {
 						this.imdbData.state = 1;
 						browser.runtime.sendMessage({ name: "GETDATA", url: this.imdbData.url }, (value) => {
-							if (value.status != 200)
-								console.error("Letterboxd Extras | There was an error with the IMDb ratings call. Code: " + value.status);
+							if (letterboxd.helpers.ValidateResponse("IMDb Ratings", value) == false){
+								return;
+							}
 
 							if (value.response != null){
 								this.imdbData.raw = value.response;
@@ -930,8 +931,9 @@ if (isChrome)
 
 						// Call the IMDb main show page
 						browser.runtime.sendMessage({ name: "GETDATA", url: this.imdbData.url.replace('/ratings', '') }, (value) => {
-							if (value.status != 200)
-								console.error("Letterboxd Extras | There was an error with the IMDb additional call. Code: " + value.status);
+							if (letterboxd.helpers.ValidateResponse("IMDb Additional", value) == false){
+								return;
+							}
 
 							if (value.response != null){
 								this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
@@ -949,8 +951,9 @@ if (isChrome)
 							this.addLink(mojoURL);
 						}
 						browser.runtime.sendMessage({ name: "GETDATA", url: mojoURL }, (value) => {
-							if (value.status != 200)
-								console.error("Letterboxd Extras | There was an error with the BoxOfficeMojo call. Code: " + value.status);
+							if (letterboxd.helpers.ValidateResponse("BoxOfficeMojo", value) == false){
+								return;
+							}
 
 							if (value.response != null){
 								this.mojoData.data = letterboxd.helpers.parseHTML(value.response);
@@ -975,8 +978,9 @@ if (isChrome)
 
 						this.wikiData.state = 1;
 						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryString }, (data) => {
-							if (data.status != 200)
-								console.error("Letterboxd Extras | There was an error with the WikiData call. Code: " + data.status);
+							if (letterboxd.helpers.ValidateResponse("WikiData", data) == false){
+								return;
+							}
 
 							var value = data.response;
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0) {
@@ -1135,8 +1139,9 @@ if (isChrome)
 										try {
 											this.mal.state = 1;
 											browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-												if (value.status != 200)
-													console.error("Letterboxd Extras | There was an error with the Jikan (MAL API) call. Code: " + value.status);
+												if (letterboxd.helpers.ValidateResponse("Jikan (MAL API)", value) == false){
+													return;
+												}
 
 												var mal = value.response;
 												if (mal != "") {
@@ -1152,8 +1157,9 @@ if (isChrome)
 											});
 
 											browser.runtime.sendMessage({ name: "GETDATA", url: url + "/statistics" }, (value) => {
-												if (value.status != 200)
-													console.error("Letterboxd Extras | There was an error with the Jikan (MAL API) ratings call. Code: " + value.status);
+												if (letterboxd.helpers.ValidateResponse("Jikan (MAL API) ratings", value) == false){
+													return;
+												}
 												
 												var mal = value.response;
 												if (mal != "") {
@@ -1196,8 +1202,9 @@ if (isChrome)
 										try {
 											this.al.state = 1;
 											browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-												if (value.status != 200)
-													console.error("Letterboxd Extras | There was an error with the AniList call. Code: " + value.status);
+												if (letterboxd.helpers.ValidateResponse("AniList API", value) == false){
+													return;
+												}
 												
 												var al = value.response;
 												if (al != null && al.data != null) {
@@ -1235,8 +1242,9 @@ if (isChrome)
 
 						// Call WikiData a second time for dates
 						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryStringDate }, (data) => {
-							if (data.status != 200)
-								console.error("Letterboxd Extras | There was an error with the WikiData date call. Code: " + data.status);
+							if (letterboxd.helpers.ValidateResponse("WikiData Dates", data) == false){
+								return;
+							}
 
 							var value = data.response;
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0) {
@@ -1334,8 +1342,9 @@ if (isChrome)
 						try {
 							this.metaData.state = 1;
 							browser.runtime.sendMessage({ name: "GETDATA", url: this.wikiData.metaURL }, (value) => {
-								if (value.status != 200)
-									console.error("Letterboxd Extras | There was an error with the Metacritic call. Code: " + value.status);
+								if (letterboxd.helpers.ValidateResponse("Metacritic", value) == false){
+									return;
+								}
 								
 								var meta = value.response;
 								if (meta != "") {
@@ -1380,8 +1389,9 @@ if (isChrome)
 						var options = letterboxd.helpers.getSensIDQuery(this.wikiData.SensCritique_ID);
 
 						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-							if (value.status != 200)
-								console.error("Letterboxd Extras | There was an error with the Senscritique call. Code: " + value.status);
+							if (letterboxd.helpers.ValidateResponse("SensCritique API", value) == false){
+								return;
+							}
 
 							this.sensCritique.state = 2;
 							var sens = value.response;
@@ -1786,8 +1796,9 @@ if (isChrome)
 						try {
 							this.tomatoData.state = 1;
 							browser.runtime.sendMessage({ name: "GETDATA", url: this.wikiData.tomatoURL }, (value) => {
-								if (value.status != 200)
-									console.error("Letterboxd Extras | There was an error with the RottenTomatoes call. Code: " + value.status);
+								if (letterboxd.helpers.ValidateResponse("RottenTomatoes", value) == false){
+									return;
+								}
 								
 								var tomato = value.response;
 								if (tomato != null) {
@@ -2287,8 +2298,9 @@ if (isChrome)
 					if (this.mubiData.data == null) {
 						try {
 							browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: this.wikiData.Mubi_URL, options: letterboxd.helpers.getMubiHeaders() }, (value) => {
-								if (value.status != 200)
-									console.error("Letterboxd Extras | There was an error with the Mubi call. Code: " + value.status);
+								if (letterboxd.helpers.ValidateResponse("Mubi", value) == false){
+									return;
+								}
 								
 								var mubi = value.response;
 								if (mubi != "") {
@@ -2316,8 +2328,9 @@ if (isChrome)
 				try {
 					this.mubiData.state = 1;
 					browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: letterboxd.helpers.getMubiHeaders() }, (value) => {
-						if (value.status != 200)
-							console.error("Letterboxd Extras | There was an error with the Mubi search call. Code: " + value.status);
+						if (letterboxd.helpers.ValidateResponse("Mubi search", value) == false){
+							return;
+						}
 						
 						var mubi = value.response;
 						if (mubi != null) {
@@ -3057,8 +3070,9 @@ if (isChrome)
 
 				if (letterboxd.storage.get('cinema-enabled') === true) {
 					browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url }, (data) => {
-						if (data.status != 200)
-							console.error("Letterboxd Extras | There was an error with the Cinemascore call. Code: " + data.status);
+						if (letterboxd.helpers.ValidateResponse("Cinemascore", data) == false){
+							return;
+						}
 
 						var value = data.response;
 
@@ -3145,11 +3159,11 @@ if (isChrome)
 				var encoded = letterboxd.helpers.encodeASCII(title);
 				var url = "https://webapp.cinemascore.com/guest/search/title/" + encoded;
 				browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url }, (data) => {
-					if (data.status != 200)
-						console.error("Letterboxd Extras | There was an error with the Cinemascore call. Code: " + data.status);
+					if (letterboxd.helpers.ValidateResponse("Cinemascore", data) == false){
+						return;
+					}
 
 					var value = data.response;
-
 					if (this.cinemascore.data == null) {
 						this.cinemascore.data = value;
 					} else {
@@ -3466,8 +3480,9 @@ if (isChrome)
 				var options = letterboxd.helpers.getSensSearchQuery(type, title);
 
 				browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the Senscritique search call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("SensCritique search", value) == false){
+						return;
+					}
 
 					this.sensCritique.state = 2;
 					var sens = value.response;
@@ -3712,8 +3727,9 @@ if (isChrome)
 				var url = "https://www.theyshootpictures.com/gf1000_all1000films.htm";
 				this.tspdt.state = 1;
 				browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the TSPDT list call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("TSPDT list", value) == false){
+						return;
+					}
 
 					this.tspdt.raw = value.response;
 					this.tspdt.data = letterboxd.helpers.parseHTML(this.tspdt.raw);
@@ -3726,8 +3742,9 @@ if (isChrome)
 				// Get the letterboxd list from the page
 				var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
 				browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the TSPDT link call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("TSPDT link", value) == false){
+						return;
+					}
 
 					const data = letterboxd.helpers.parseHTML(value.response);
 					var list = data.querySelectorAll('#stacks_in_9823 span');
@@ -3942,8 +3959,9 @@ if (isChrome)
 				var url = "https://www.bfi.org.uk/sight-and-sound/greatest-films-all-time";
 				this.bfi.state = 1;
 				browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the BFI call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("BFI", value) == false){
+						return;
+					}
 
 					this.bfi.raw = value.response;
 					this.bfi.data = letterboxd.helpers.parseHTML(value);
@@ -4204,8 +4222,9 @@ if (isChrome)
 
 				// Make Call
 				browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the Simkl call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("Simkl", value) == false){
+						return;
+					}
 
 					this.simkl.raw = value.response;
 					this.simkl.data = JSON.parse(value.response);
@@ -4370,8 +4389,9 @@ if (isChrome)
 
 				// Make Calls
 				browser.runtime.sendMessage({ name: "GETDATA", url: this.allocine.urlUser }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the Allocine (user ratings) call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("AlloCine (user ratings)", value) == false){
+						return;
+					}
 
 					try {
 						this.allocine.user.raw = value.response;
@@ -4383,8 +4403,9 @@ if (isChrome)
 
 				});
 				browser.runtime.sendMessage({ name: "GETDATA", url: this.allocine.urlCritic }, (value) => {
-					if (value.status != 200)
-						console.error("Letterboxd Extras | There was an error with the Allocine (critic ratings) call. Code: " + value.status);
+					if (letterboxd.helpers.ValidateResponse("AlloCine (critic ratings)", value) == false){
+						return;
+					}
 
 					try {
 						this.allocine.critic.raw = value.response;
@@ -4744,8 +4765,9 @@ if (isChrome)
 
 				// Call WikiData
 				browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryString }, (data) => {
-					if (data.status != 200)
-						console.error("Letterboxd Extras | There was an error with the Wikidata call. Code: " + data.status);
+					if (letterboxd.helpers.ValidateResponse("WikiData", data) == false){
+						return;
+					}
 
 					var value = data.response;
 					if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0) {
@@ -4917,12 +4939,16 @@ if (isChrome)
 
 		helpers: {
 			ValidateResponse(name, value){
-				var output = true;
+				// Standard fetch response validation with standardized debug messages
+				// should catch any issues and prevent any catastrophic errors
 
+				var output = true;
 				if (value == null || value.status == null){
+					// Something went really wrong with the fetch
 					console.error("Letterboxd Extras | There was an error with the " + name + " call. Error unknown");
 					output = false;
-				}else if (value.status != 200){
+				}else if (value.status > 299 || value.status == 0){
+					// Something went wrong, check for errors in the response
 					if (value.errors != null){
 						console.error("Letterboxd Extras | There was an error with the " + name + " call. Message: " + value.errors[0]);
 					}else{
