@@ -29,7 +29,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             (async () => {
                 // Check for permission before call
                 if (await CheckForPermission(msg.url)){
-                    fetch(msg.url, options).then(async function (res) {
+                    fetch(encodeURI(msg.url), options).then(async function (res) {
                         var errors = null;
 
                         // Check for errors

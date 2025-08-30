@@ -4942,6 +4942,10 @@ if (isChrome)
 				// Standard fetch response validation with standardized debug messages
 				// should catch any issues and prevent any catastrophic errors
 
+				if (letterboxd.storage.get('console-log') === true && value.url != null && value.status != null) {
+					console.log("Letterboxd Extras | Fetch made to URL: " + value.url + "\nResponse status: " + value.status);
+				}
+
 				var output = true;
 				if (value == null || value.status == null){
 					// Something went really wrong with the fetch
@@ -4949,7 +4953,7 @@ if (isChrome)
 					output = false;
 				}else if (value.status > 299 || value.status == 0){
 					// Something went wrong, check for errors in the response
-					if (value.errors != null){
+					if (value.errors != null && value.errors.length > 0){
 						console.error("Letterboxd Extras | There was an error with the " + name + " call. Message: " + value.errors[0]);
 					}else{
 						console.error("Letterboxd Extras | There was an error with the " + name + " call. Code: " + value.status);
@@ -6353,7 +6357,7 @@ if (isChrome)
 
 				sparqlQuery = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + sparqlQuery;
 
-				return encodeURI(sparqlQuery);
+				return sparqlQuery;
 			},
 
 			createTableRow(table, label, value1, value2, value3) {
