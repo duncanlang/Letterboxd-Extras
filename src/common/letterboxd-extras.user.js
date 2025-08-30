@@ -6243,26 +6243,18 @@ if (isChrome)
 						"        ?Country_Of_Death wdt:P298 ?DeathCountry.\n" +
 						"      }\n" +
 						"    }\n" +
-						"  }\n";
-
-					if (isFirefox) {
-						// Chrome is dumb and the fetch doesn't work with this for some reason. Until I can figure this out, chrome users will have to do without :(
-						sparqlQuery +=
-							"  OPTIONAL {\n" +
-							"    ?WikipediaEN schema:about ?item .\n" +
-							"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
-							"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
-							"  }\n" +
-							"  OPTIONAL {\n" +
-							"    ?Wikipedia schema:about ?item .\n" +
-							"    ?Wikipedia schema:inLanguage \"en\" .\n" +
-							"    ?Wikipedia schema:isPartOf <https://en.wikipedia.org/> .\n" +
-							"  }\n" +
-							"}";
-					} else {
-						sparqlQuery +=
-							"}";
-					}
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?WikipediaEN schema:about ?item .\n" +
+						"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
+						"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?Wikipedia schema:about ?item .\n" +
+						"    ?Wikipedia schema:inLanguage \"en\" .\n" +
+						"    ?Wikipedia schema:isPartOf <https://en.wikipedia.org/> .\n" +
+						"  }\n" +
+						"}";
 
 				} else {
 					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
@@ -6345,31 +6337,23 @@ if (isChrome)
 						"    ?TV_End_entry ps:P582 ?TV_End.\n" +
 						"    ?TV_End_entry psv:P582 [wikibase:timePrecision ?TV_End_Precision].\n" +
 						"    MINUS { ?TV_End_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
-						"  }\n";
-
-					if (isFirefox) {
-						// Chrome is dumb and the fetch doesn't work with this for some reason. Until I can figure this out, chrome users will have to do without :(
-						sparqlQuery +=
-							"  OPTIONAL {\n" +
-							"    ?WikipediaEN schema:about ?item .\n" +
-							"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
-							"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
-							"  }\n" +
-							"  OPTIONAL {\n" +
-							"    ?Wikipedia schema:about ?item .\n" +
-							"    ?Wikipedia schema:inLanguage \"" + lang + "\" .\n" +
-							"    ?Wikipedia schema:isPartOf <https://" + lang + ".wikipedia.org/> .\n" +
-							"  }\n" +
-							"}";
-					} else {
-						sparqlQuery +=
-							"}";
-					}
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?WikipediaEN schema:about ?item .\n" +
+						"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
+						"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
+						"  }\n" +
+						"  OPTIONAL {\n" +
+						"    ?Wikipedia schema:about ?item .\n" +
+						"    ?Wikipedia schema:inLanguage \"" + lang + "\" .\n" +
+						"    ?Wikipedia schema:isPartOf <https://" + lang + ".wikipedia.org/> .\n" +
+						"  }\n" +
+						"}";
 				}
 
 				sparqlQuery = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + sparqlQuery;
 
-				return sparqlQuery;
+				return encodeURI(sparqlQuery);
 			},
 
 			createTableRow(table, label, value1, value2, value3) {

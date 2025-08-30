@@ -16,9 +16,6 @@ var options = {};
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
-if (isChrome)
-    document.querySelector('#wiki-link-div').setAttribute("style", "display:none;");
-
 // Load from storage
 async function load() {
     // Assign the object
