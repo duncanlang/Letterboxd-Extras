@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 
 document.addEventListener('focus', event => {
-    ValidateAllPermissions();
+    //ValidateAllPermissions();
 });
 
 function validateImportButton() {
