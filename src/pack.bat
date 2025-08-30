@@ -14,7 +14,7 @@ set TARGET_DIR=%SOURCE_DIR%%TARGET%
 set DIST_DIR=%SOURCE_DIR%dist\%TARGET%
 
 :: Full path to output zip file
-set ZIP_FILE=%SOURCE_DIR%%TARGET%.zip
+set ZIP_FILE=%SOURCE_DIR%Letterboxd-Extras-%TARGET%.zip
 
 :: Delete old zip if it exists
 if exist "%ZIP_FILE%" del "%ZIP_FILE%"
