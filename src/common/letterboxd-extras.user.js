@@ -6164,7 +6164,7 @@ if (isChrome)
 						"GROUP BY ?Date ?Date_Precision ?Date_Country ?Date_Format ?Date_City_Country";
 
 				} else if (queryType == "PERSON") {
-					sparqlQuery = "SELECT DISTINCT ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
+					sparqlQuery = "SELECT DISTINCT ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"  \n" +
 						"  ?item p:P4985 ?statement0.\n" +
