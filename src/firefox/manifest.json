@@ -6,12 +6,12 @@
 	"minimum_chrome_version": "88",
 
 	"browser_specific_settings": {
+		"gecko_android": {
+			"strict_min_version": "120.0"
+		},
 		"gecko": {
 			"id": "{9abb0ce4-6348-4119-b97a-3f8116351aca}",
 			"strict_min_version": "109.0"
-		},
-		"gecko_android": {
-			"strict_min_version": "113.0"
 		}
 	},	  
 	
