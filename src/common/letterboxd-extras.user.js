@@ -1948,6 +1948,23 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'tomato-ratings');
 
+				// Move the details text
+				//************************************************************
+				var criticAllText = section.querySelector('.mobile-details-text.score-critic-all');
+				var criticTopText = section.querySelector('.mobile-details-text.score-critic-top');
+				var audienceAllText = section.querySelector('.mobile-details-text.score-audience-all');
+				var audienceVerifiedText = section.querySelector('.mobile-details-text.score-audience-verified');
+
+				if (criticAllText != null)
+					section.append(criticAllText);
+				if (criticTopText != null)
+					section.append(criticTopText);
+				if (audienceAllText != null)
+					section.append(audienceAllText);
+				if (audienceVerifiedText != null)
+					section.append(audienceVerifiedText);
+
+
 				// Click the rt-buttons
 				//************************************************************
 				if (this.isMobile) {
@@ -1969,7 +1986,7 @@ if (isChrome)
 				// Click the show details if needed
 				//************************************************************
 				if (showDetails != null) {
-					if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show') || letterboxd.storage.get('tooltip-show-details') === true) {
+					if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show')) {
 						showDetails.click();
 					}
 				}
@@ -4936,6 +4953,8 @@ if (isChrome)
 			},
 
 			createTomatoScore(type, display, url, data, visibility, isMobile, addTooltip) {
+				const baseType = type.split('-')[0];
+
 				const scoreDiv = letterboxd.helpers.createElement('div', {
 					class: 'rt-score-div score-' + type,
 					style: 'display: ' + visibility + ';'
@@ -5023,9 +5042,12 @@ if (isChrome)
 				// Add the tooltip as text for mobile
 				if (addTooltip) {
 					const detailsSpan = letterboxd.helpers.createElement('span', {
-						class: 'rt-score-details mobile-details-text',
-						style: 'display:none'
+						class: 'rt-score-div score-' + baseType + ' score-' + type + ' mobile-details-text'
 					});
+
+					if (type.includes('critic-top') || type.includes('audience-verified')){
+						detailsSpan.style.display = 'none';
+					}
 
 					const detailsText = letterboxd.helpers.createElement('p', {
 					});
@@ -6455,17 +6477,39 @@ function getOffset(el) {
 	};
 }
 
-function changeTomatoScore(event) {
+function changeTomatoScore(event) {	
 	// Get the target class stored in the 'target' attribute of the clicked button
 	var target = '.' + event.target.getAttribute('target');
 	var parent = event.target.parentNode.parentNode;
 	// Grab the target score div and then the other non-target score div
-	var targetNode = parent.querySelector('.rt-score-div' + target);
-	var otherNode = parent.querySelector('.rt-score-div:not(' + target + ')');
+	var targetNodes = parent.querySelectorAll('.rt-score-div' + target);
+	var otherNodes = parent.querySelectorAll('.rt-score-div:not(' + target + ')');
 
 	// Hide the current visible score, display the current hidden score
-	otherNode.style.display = 'none';
-	targetNode.style.display = 'block';
+	otherNodes.forEach(element => {
+		element.style.display = 'none';
+	});
+	targetNodes.forEach(element => {
+		element.style.display = 'block';
+	});
+
+	// Adjust the visibility of mobile-details-text
+	if (target.includes('score-critic-') || target.includes('score-audience-')){
+		var bits = target.split("-");
+		var baseTarget = bits[0] + "-" + bits[1];
+		parent = parent.parentNode;
+
+		targetNodes = parent.querySelectorAll('.rt-score-div' + baseTarget + '.mobile-details-text' + target);
+		otherNodes = parent.querySelectorAll('.rt-score-div' + baseTarget + '.mobile-details-text:not(' + target + ')');
+		
+		// Hide the current visible score, display the current hidden score
+		otherNodes.forEach(element => {
+			element.style.display = 'none';
+		});
+		targetNodes.forEach(element => {
+			element.style.display = 'block';
+		});
+	}
 
 	// Swap .selected class on the buttons
 	var otherButton = event.target.parentNode.querySelector('.selected');
@@ -6480,6 +6524,8 @@ function changeTomatoScoreMobile(event) {
 	// Grab the target score div and then the other non-target score div
 	var targetNode = parent.querySelector('.rt-score-div.disabled');
 	var otherNode = parent.querySelector('.rt-score-div:not(.disabled)');
+	
+	// TODO - handle the mobile details text visibilty
 
 	// Hide the current visible score, display the current hidden score
 	otherNode.style.display = 'none';
@@ -6516,6 +6562,39 @@ function toggleDetails(event, letterboxd) {
 		}
 	});
 
+	// Move the Rotten Tomatoes tooltip text depending on the details visibility
+	if (event.target.className.includes('rt-show-details')) {
+		var tomatoDiv = document.querySelector('.tomato-ratings.ratings-extras');
+
+		var criticAllText = document.querySelector('.mobile-details-text.score-critic-all');
+		var criticTopText = document.querySelector('.mobile-details-text.score-critic-top');
+		var audienceAllText = document.querySelector('.mobile-details-text.score-audience-all');
+		var audienceVerifiedText = document.querySelector('.mobile-details-text.score-audience-verified');
+		
+		var criticAllDiv = document.querySelector('.rt-score-div.score-critic-all');
+		var criticTopDiv = document.querySelector('.rt-score-div.score-critic-top');
+		var audienceAllDiv = document.querySelector('.rt-score-div.score-audience-all');
+		var audienceVerifiedDiv = document.querySelector('.rt-score-div.score-audience-verified');
+
+		if (event.target.innerText.includes("SHOW")) {
+			// Details shown - Put the text after each rating div
+			criticAllDiv.after(criticAllText);
+			criticTopDiv.after(criticTopText);
+			audienceAllDiv.after(audienceAllText);
+			audienceVerifiedDiv.after(audienceVerifiedText);
+
+		} else {
+			// Details hidden - Put the text after all of the rating divs
+			tomatoDiv.append(criticAllText);
+			tomatoDiv.append(criticTopText);
+			tomatoDiv.append(audienceAllText);
+			tomatoDiv.append(audienceVerifiedText);
+		}
+	}
+
+	// TODO, also do the same as above, but for metacritic
+
+	// Move the 'must-see' badge depending on the details visibility
 	if (event.target.className.includes('meta-show-details')) {
 		var mustSee = document.querySelector('.meta-must-see');
 		var userScore = document.querySelector('.meta-score-user');
