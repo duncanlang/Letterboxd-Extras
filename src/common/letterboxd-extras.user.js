@@ -304,6 +304,9 @@ if (isChrome)
 		}
 		.show-details{
 			font-size: 9px !important;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* Standard syntax */
 		}
 		.show-details:hover{
 			cursor: pointer;
@@ -1629,13 +1632,7 @@ if (isChrome)
 				imdbHeading.append(imdbLogoHolder);
 
 				if (this.isMobile) {
-					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details imdb-show-details',
-						['target']: 'imdb-score-details'
-					});
-					showDetails.innerText = "Show Details";
-					imdbScoreSection.append(showDetails);
+					imdbScoreSection.append(letterboxd.helpers.createShowDetailsButton("imdb", "imdb-score-details"));
 				}
 
 				imdbScoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "imdb", this.imdbData.rating, this.imdbData.num_ratings, this.imdbData.url.replace('ratings', 'reviews'), this.isMobile));
@@ -1653,16 +1650,9 @@ if (isChrome)
 				//*****************************************************************
 				this.appendRating(imdbScoreSection, 'imdb-ratings');
 
-				// Add click for Show details button
-				//************************************************************
-				$(".imdb-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(imdbScoreSection);
 			},
 
 			getIMDBScoreV2() {
@@ -1874,14 +1864,10 @@ if (isChrome)
 				heading.append(logo);
 
 				// Add the Show Details button
+				var showDetails = null;
 				if (this.tomatoData.hideDetailButton == false) {
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details rt-show-details',
-						['target']: 'rt-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					showDetails = letterboxd.helpers.createShowDetailsButton("rt", "rt-score-details")
 					section.append(showDetails);
-
 				}
 
 				var createTooltip = (this.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
@@ -1961,43 +1947,35 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'tomato-ratings');
 
-				// Add click event for score buttons
+				// Click the rt-buttons
 				//************************************************************
 				if (this.isMobile) {
-					$(".rt-button:not(.disabled)").on('click', changeTomatoScoreMobile);
 					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top') {
-						$(".rt-button.critic-toggle").click();
+						section.querySelector(".rt-button.critic-toggle").click();
 					}
 					if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified') {
-						$(".rt-button.audience-toggle").click();
+						section.querySelector(".rt-button.audience-toggle").click();
 					}
 				} else {
-					$(".rt-button:not(.disabled)").on('click', changeTomatoScore);
 					if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top') {
-						$(".rt-button.critic-top").click();
+						section.querySelector(".rt-button.critic-top").click();
 					}
 					if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified') {
-						$(".rt-button.audience-verified").click();
+						section.querySelector(".rt-button.audience-verified").click();
 					}
 				}
 
-				// Add click for Show details button
+				// Click the show details if needed
 				//************************************************************
-				if (this.tomatoData.hideDetailButton == false) {
-					$(".rt-show-details").on('click', function (event) {
-						toggleDetails(event, letterboxd);
-					});
+				if (showDetails != null) {
 					if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show') || letterboxd.storage.get('tooltip-show-details') === true) {
-						$(".rt-show-details").click();
+						showDetails.click();
 					}
 				}
-
 
 				// Add the Events for the hover
 				//************************************************************
-				$(".tooltip.display-rating.-highlight.tomato-score").on("mouseover", ShowTwipsy);
-				$(".tooltip.display-rating.-highlight.tomato-score").on("mouseout", HideTwipsy);
-
+				letterboxd.helpers.addTooltipEvents(section);
 
 				this.rtAdded = true;
 			},
@@ -2199,12 +2177,9 @@ if (isChrome)
 				logoHolder.append(metaText);
 
 				// Add the Show Details button
+				var showDetails = null;
 				if (this.metaData.data != null) {
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details meta-show-details',
-						['target']: 'meta-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					showDetails = letterboxd.helpers.createShowDetailsButton("meta", "meta-score-details");
 					section.append(showDetails);
 				}
 
@@ -2240,14 +2215,14 @@ if (isChrome)
 					if (this.metaData.mustSee == true) {
 						if (this.tmdbTV) {
 							const mustSeeSpan = letterboxd.helpers.createElement('span', {
-								class: 'meta-must-see meta-must-watch tooltip display-rating -highlight',
+								class: 'meta-must-see meta-must-watch tooltip tooltip-extra display-rating -highlight',
 								style: 'margin-top: 5px;',
 								['data-original-title']: 'Metacritic Must-Watch'
 							});
 							section.append(mustSeeSpan);
 						} else {
 							const mustSeeSpan = letterboxd.helpers.createElement('span', {
-								class: 'meta-must-see tooltip display-rating -highlight',
+								class: 'meta-must-see tooltip tooltip-extra display-rating -highlight',
 								style: 'margin-top: 5px;',
 								['data-original-title']: 'Metacritic Must-See'
 							});
@@ -2267,30 +2242,15 @@ if (isChrome)
 
 				//Add click for Show details button
 				//************************************************************
-				$(".meta-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
 				if (letterboxd.storage.get('meta-default-view') === 'show' || (letterboxd.storage.get('meta-default-view') === 'remember' && letterboxd.storage.get('meta-score-details') === 'show') || letterboxd.storage.get('tooltip-show-details') === true) {
-					$(".meta-show-details").click();
+					showDetails.click();
 				}
 
 				// Add Hover events
 				//************************************************************
-				if (this.metaData.critic.num_ratings > 0 || this.metaData.critic.rating == "tbd" || this.metaData.critic.rating == "N/A") {
-					$(".tooltip.display-rating.-highlight.meta-score").on("mouseover", ShowTwipsy);
-					$(".tooltip.display-rating.-highlight.meta-score").on("mouseout", HideTwipsy);
-				}
-				if (this.metaData.user.num_ratings > 0 || this.metaData.user.rating == "tbd" || this.metaData.critic.rating == "N/A") {
-					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseover", ShowTwipsy);
-					$(".tooltip.display-rating.-highlight.meta-score-user").on("mouseout", HideTwipsy);
-				}
-				if (this.metaData.mustSee) {
-					$(".tooltip.display-rating.-highlight.meta-must-see").on("mouseover", ShowTwipsy);
-					$(".tooltip.display-rating.-highlight.meta-must-see").on("mouseout", HideTwipsy);
-				}
+				letterboxd.helpers.addTooltipEvents(section);
 
 				this.metaAdded = true;
-
 			},
 
 			initMubi() {
@@ -2423,13 +2383,9 @@ if (isChrome)
 				logo.setAttribute('href', this.mubiData.url);
 				heading.append(logo);
 
+				var showDetails = null;
 				if (this.isMobile) {
-					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details mubi-show-details',
-						['target']: 'mubi-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					showDetails = letterboxd.helpers.createShowDetailsButton("mubi", "mubi-score-details");
 					section.append(showDetails);
 				}
 
@@ -2457,7 +2413,7 @@ if (isChrome)
 
 				// The element that is the score itself
 				const scoreText = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight mubi-score'
+					class: 'tooltip tooltip-extra display-rating -highlight mubi-score'
 				});
 				scoreSpan.append(scoreText);
 
@@ -2504,16 +2460,9 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'mubi-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".mubi-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add Hover events
 				//************************************************************
-				$(".tooltip.display-rating.-highlight.mubi-score").on("mouseover", ShowTwipsy);
-				$(".tooltip.display-rating.-highlight.mubi-score").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(section);
 			},
 
 			initFilmAffinity() {
@@ -2600,13 +2549,10 @@ if (isChrome)
 				logo.setAttribute('href', this.filmaffData.url);
 				heading.append(logo);
 
+				var showDetails = null;
 				if (this.isMobile) {
-					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details filmaff-show-details',
-						['target']: 'filmaff-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					// Add the Show Details button
+					showDetails = letterboxd.helpers.createShowDetailsButton("filmaff", "filmaff-score-details");
 					section.append(showDetails);
 				}
 
@@ -2626,7 +2572,7 @@ if (isChrome)
 
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight filmaff-score'
+					class: 'tooltip tooltip-extra display-rating -highlight filmaff-score'
 				});
 				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
 
@@ -2656,16 +2602,9 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'filmaff-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".filmaff-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add Hover events
 				//************************************************************
-				$(".tooltip.display-rating.-highlight.filmaff-score").on("mouseover", ShowTwipsy);
-				$(".tooltip.display-rating.-highlight.filmaff-score").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(section);
 			},
 
 			addLink(url) {
@@ -2826,7 +2765,7 @@ if (isChrome)
 
 						// Create the new duration text
 						const durationSpan = letterboxd.helpers.createElement('span', {
-							class: 'text-footer-extra duration-extra'
+							class: 'text-footer-extra duration-extra tooltip-extra'
 						});
 						durationSpan.innerText = duration[0];
 						durationSpan.setAttribute('data-original-title', format);
@@ -2843,8 +2782,7 @@ if (isChrome)
 					footer.append(newHolder);
 
 					if (hours > 0) {
-						$(".duration-extra").on("mouseover", ShowTwipsy);
-						$(".duration-extra").on("mouseout", HideTwipsy);
+						letterboxd.helpers.addTooltipEvents(footer);
 					}
 					this.linksMoved = true;
 				}
@@ -2878,10 +2816,9 @@ if (isChrome)
 				if (year != null) {
 					year.setAttribute("data-original-title", date);
 					if (this.dateAdded == false) {
-						year.setAttribute("class", year.getAttribute("class") + " number-tooltip")
+						year.setAttribute("class", year.getAttribute("class") + " number-tooltip tooltip-extra")
 
-						$(".number-tooltip").on("mouseover", ShowTwipsy);
-						$(".number-tooltip").on("mouseout", HideTwipsy);
+						letterboxd.helpers.addTooltipEvents(year.parentNode);
 
 						this.dateAdded = true;
 					}
@@ -3327,13 +3264,10 @@ if (isChrome)
 				});
 				heading.append(logoHolder);
 
+				var showDetails = null;
 				if (this.isMobile) {
-					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details mal-show-details',
-						['target']: 'mal-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					// Add the Show Details button
+					showDetails = letterboxd.helpers.createShowDetailsButton("mal", "mal-score-details");
 					scoreSection.append(showDetails);
 				}
 
@@ -3358,16 +3292,9 @@ if (isChrome)
 				//*****************************************************************
 				this.appendRating(scoreSection, 'mal-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".mal-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(scoreSection);
 			},
 
 			addAL() {
@@ -3431,13 +3358,10 @@ if (isChrome)
 				logoText.innerText = "AniList"
 				logoHolder.append(logoText);
 
+				var showDetails = null;
 				if (this.isMobile) {
-					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details al-show-details',
-						['target']: 'al-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					// Add the Show Details button
+					showDetails = letterboxd.helpers.createShowDetailsButton("al", "al-score-details");
 					scoreSection.append(showDetails);
 				}
 
@@ -3456,16 +3380,9 @@ if (isChrome)
 				//*****************************************************************
 				this.appendRating(scoreSection, 'al-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".al-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(scoreSection);
 			},
 
 			searchSensCritique() {
@@ -3562,13 +3479,10 @@ if (isChrome)
 				});
 				heading.append(logoHolder);
 
+				var showDetails = null;
 				if (this.isMobile) {
-					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details sens-show-details',
-						['target']: 'sens-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					// Add the Show Details button
+					showDetails = letterboxd.helpers.createShowDetailsButton("sens", "sens-score-details");
 					section.append(showDetails);
 				}
 
@@ -3596,7 +3510,7 @@ if (isChrome)
 
 				// The element that is the score itself
 				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight sens-score'
+					class: 'tooltip tooltip-extra display-rating -highlight sens-score'
 				});
 
 				// Add the hoverover text and href
@@ -3646,16 +3560,9 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'sens-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".sens-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add Hover events
 				//************************************************************
-				$(".tooltip.display-rating.-highlight.sens-score").on("mouseover", ShowTwipsy);
-				$(".tooltip.display-rating.-highlight.sens-score").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(section);
 			},
 
 			appendRating(rating, className) {
@@ -3694,7 +3601,7 @@ if (isChrome)
 						moreButton.innerText = "Show more ratings";
 						currentSidebar.append(moreButton)
 
-						$(".extras-show-more").on('click', function (event) {
+						moreButton.addEventListener('click', event => {
 							toggleAllRatings(event, letterboxd);
 						});
 					}
@@ -3949,8 +3856,7 @@ if (isChrome)
 
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(li);
 
 			},
 
@@ -4135,8 +4041,7 @@ if (isChrome)
 
 					// Add the hover events
 					//*****************************************************************
-					$(".tooltip-extra").on("mouseover", ShowTwipsy);
-					$(".tooltip-extra").on("mouseout", HideTwipsy);
+					letterboxd.helpers.addTooltipEvents(li);
 					
 				}catch (error){
 					console.error("Letterboxd Extras | BFI error: " + error)
@@ -4154,18 +4059,10 @@ if (isChrome)
 						// Add to page
 						extrasStats.className += ' extras-ranking-mobile';
 						document.querySelector('.sidebar').after(extrasStats);
-						// Add the Show Details button			
-						const showDetails = letterboxd.helpers.createElement('a', {
-							class: 'film-stats-show-details',
-							style: 'display: inline-block',
-							['target']: 'mobile-ranking-details'
-						});
-						showDetails.innerText = "SHOW DETAILS";
+
+						// Add the Show Details button
+						const showDetails = letterboxd.helpers.createShowDetailsButton("film-stats", "mobile-ranking-details")
 						extrasStats.after(showDetails);
-						// Add the hover events
-						$(".film-stats-show-details").on('click', function (event) {
-							toggleDetails(event, letterboxd);
-						});
 					} else {
 						document.querySelector('.production-statistic-list').after(extrasStats);
 					}
@@ -4292,11 +4189,7 @@ if (isChrome)
 
 				if (this.isMobile) {
 					// Add the Show Details button			
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details simkl-show-details',
-						['target']: 'simkl-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					const showDetails = letterboxd.helpers.createShowDetailsButton("simkl", "simkl-score-details");
 					section.append(showDetails);
 				}
 
@@ -4365,16 +4258,9 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'simkl-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".simkl-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(section);
 			},
 
 			initAllocine(id, type) {
@@ -4526,11 +4412,7 @@ if (isChrome)
 
 				// Add the Show Details button
 				if (this.isMobile) {
-					const showDetails = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link show-details allocine-show-details',
-						['target']: 'allocine-score-details'
-					});
-					showDetails.innerText = "Show Details";
+					const showDetails = letterboxd.helpers.createShowDetailsButton("allocine", "allocine-score-details");
 					section.append(showDetails);
 				}
 
@@ -4650,26 +4532,18 @@ if (isChrome)
 				//************************************************************
 				this.appendRating(section, 'allocine-ratings');
 
-				//Add click for Show details button
-				//************************************************************
-				$(".allocine-show-details").on('click', function (event) {
-					toggleDetails(event, letterboxd);
-				});
-
 				// Add click event for score buttons
 				//************************************************************
 				//if (letterboxd.storage.get('allocine-style') === "histogram" && letterboxd.storage.get('allocine-critic-enabled') === true){
 				if (section.querySelector('.rt-button.allo-button')) {
-					$(".rt-button.allo-button:not(.disabled)").on('click', changeTomatoScore);
 					if (this.allocine.critic.rating != 0 && (letterboxd.storage.get('allocine-default-view') === 'critic' || letterboxd.storage.get('allocine-users-enabled') != true)) {
-						$(".rt-button.allo-critic").click();
+						section.querySelector(".rt-button.allo-critic").click();
 					}
 				}
 
 				// Add the hover events
 				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
+				letterboxd.helpers.addTooltipEvents(section);
 			},
 
 			initDouban() {
@@ -4971,7 +4845,25 @@ if (isChrome)
 			},
 
 			addTooltipEvents(element) {
+				// Add the mouseover and mouseout events to each .tooltip-extra that is a child of the provided element
+				element.querySelectorAll('.tooltip-extra').forEach(item => {
+					item.addEventListener('mouseover', ShowTwipsy);
+					item.addEventListener('mouseout', HideTwipsy);
+				});
+			},
 
+			createShowDetailsButton(name, target){
+				// Add the Show Details button
+				const showDetails = letterboxd.helpers.createElement('a', {
+					class: 'all-link more-link show-details ' + name + '-show-details',
+					['target']: target
+				});
+				showDetails.innerText = "Show Details";
+
+				// Add click event
+				showDetails.addEventListener('click', event => { toggleDetails(event, letterboxd); });
+
+				return showDetails;
 			},
 
 			getMubiHeaders() {
@@ -5102,7 +4994,7 @@ if (isChrome)
 					url += "/reviews"
 
 				const score = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight tomato-score',
+					class: 'tooltip tooltip-extra display-rating -highlight tomato-score',
 					href: url,
 					style: 'display: inline-block; width: 50px',
 					['data-original-title']: hover
@@ -5167,6 +5059,13 @@ if (isChrome)
 					button.className += " extras-mobile";
 				}
 				button.innerText = text;
+				
+				// Add click event
+				if (isMobile && !type.includes('allo')){
+					button.addEventListener('click', event => { changeTomatoScoreMobile(event); });
+				} else if (disabled == false){
+					button.addEventListener('click', event => { changeTomatoScore(event); });
+				}
 
 				return button;
 			},
@@ -5282,6 +5181,9 @@ if (isChrome)
 				}
 				text.setAttribute('data-original-title', tooltip);
 
+				if (tooltip != "")
+					text.className += " tooltip-extra";
+
 				// Add href link
 				if (data.num_ratings > 0){
 					text.setAttribute('href', url);
@@ -5307,7 +5209,7 @@ if (isChrome)
 				span.append(chartSpan);
 
 				// Add the tooltip as text for mobile
-				if (addTooltip) {
+				if (addTooltip && tooltip != "") {
 					const detailsSpan = letterboxd.helpers.createElement('span', {
 						class: 'meta-score-details mobile-details-text',
 						style: 'display: none'
