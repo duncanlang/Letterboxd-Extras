@@ -5061,10 +5061,12 @@ if (isChrome)
 				button.innerText = text;
 				
 				// Add click event
-				if (isMobile && !type.includes('allo')){
-					button.addEventListener('click', event => { changeTomatoScoreMobile(event); });
-				} else if (disabled == false){
-					button.addEventListener('click', event => { changeTomatoScore(event); });
+				if (disabled == false){
+					if (isMobile && !type.includes('allo')){
+						button.addEventListener('click', event => { changeTomatoScoreMobile(event); });
+					} else if (disabled == false){
+						button.addEventListener('click', event => { changeTomatoScore(event); });
+					}
 				}
 
 				return button;
