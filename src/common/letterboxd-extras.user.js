@@ -479,7 +479,7 @@ if (isChrome)
 		}
 		.extras-ranking-mobile{
 			margin-left: -5px !important;
-			margin-top: 25px !important;
+			margin-top: 10px !important;
 			text-align: left !important;
 		}
 		.extras-ranking-mobile li a{
@@ -490,6 +490,7 @@ if (isChrome)
 			text-align: left;
 			margin-left: 2px;
 			margin-top: 10px;
+			display: block;
 		}
 		.mobile-ranking-details{
 			font-size: 10px;
@@ -3816,7 +3817,7 @@ if (isChrome)
 				//***************************************************************
 				// create the li
 				const li = letterboxd.helpers.createElement('li', {
-					class: 'production-statistic tspdt-ranking extras-ranking'
+					class: 'stat tspdt-ranking extras-ranking'
 				});
 
 				// Determine list page number
@@ -3827,7 +3828,7 @@ if (isChrome)
 				}
 
 				const a = letterboxd.helpers.createElement('a', {
-					class: 'has-icon icon-16 tooltip tooltip-extra',
+					class: 'icon-16 tooltip tooltip-extra',
 					style: 'padding-left: 0px',
 					href: url
 				});
@@ -4058,12 +4059,14 @@ if (isChrome)
 					if (this.isMobile) {
 						// Add to page
 						extrasStats.className += ' extras-ranking-mobile';
-						document.querySelector('.sidebar').after(extrasStats);
+						document.querySelector('.production-masthead .details').append(extrasStats);
 
 						// Add the Show Details button
 						const showDetails = letterboxd.helpers.createShowDetailsButton("film-stats", "mobile-ranking-details")
-						extrasStats.after(showDetails);
+						showDetails.className = "film-stats-show-details";
+						extrasStats.before(showDetails);
 					} else {
+						// Add to page
 						document.querySelector('.production-statistic-list').after(extrasStats);
 					}
 				}
@@ -4858,7 +4861,7 @@ if (isChrome)
 					class: 'all-link more-link show-details ' + name + '-show-details',
 					['target']: target
 				});
-				showDetails.innerText = "Show Details";
+				showDetails.innerText = "SHOW DETAILS";
 
 				// Add click event
 				showDetails.addEventListener('click', event => { toggleDetails(event, letterboxd); });
