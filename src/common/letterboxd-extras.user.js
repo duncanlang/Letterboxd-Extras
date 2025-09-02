@@ -1494,7 +1494,7 @@ if (isChrome)
 				}
 
 				// Add addtional rankings 
-				if ((this.isMobile && document.querySelector('.sidebar')) || (this.isMobile == false && document.querySelector('.film-stats .stat.filmstat-watches'))) {
+				if ((this.isMobile && document.querySelector('.sidebar')) || (this.isMobile == false && document.querySelector('.production-statistic'))) {
 					// Add 'They Shoot Pictures, Don't They' ranking
 					if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3 && this.letterboxdDirectors.length > 0) {
 						// this.tspdt.state:
@@ -3902,14 +3902,14 @@ if (isChrome)
 				if (this.isMobile) {
 					if (!document.querySelector('.sidebar')) return;
 				} else {
-					if (!document.querySelector('.film-stats')) return;
+					if (!document.querySelector('.production-statistic-list')) return;
 				}
 
 				// Lets add it to the page
 				//***************************************************************
 				// create the li
 				const li = letterboxd.helpers.createElement('li', {
-					class: 'stat tspdt-ranking extras-ranking'
+					class: 'production-statistic tspdt-ranking extras-ranking'
 				});
 
 				// Determine list page number
@@ -3926,7 +3926,7 @@ if (isChrome)
 				});
 				li.append(a);
 				a.innerText = "🎥 " + this.tspdt.ranking;
-				var tooltip = '№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They\" Top 1000"
+				var tooltip = '№ ' + this.tspdt.ranking + " in \"They Shoot Pictures, Don't They?\" Top 1000"
 				a.setAttribute('data-original-title', tooltip);
 
 				// Add the tooltip as text for mobile
@@ -4074,67 +4074,73 @@ if (isChrome)
 			addBFI() {
 				if (document.querySelector('.bfi-ranking')) return;
 
-				if (this.isMobile) {
-					if (!document.querySelector('.sidebar')) return;
-				} else {
-					if (!document.querySelector('.film-stats')) return;
-				}
+				try{
+					if (this.isMobile) {
+						if (!document.querySelector('.sidebar')) return;
+					} else {
+						if (!document.querySelector('.production-statistic-list')){
+							throw new Error("Unable to locate the production-statistic-list on the Letterboxd page!");
+						}
+					}
 
-				// Lets add it to the page
-				//***************************************************************
-				// create the li
-				const li = letterboxd.helpers.createElement('li', {
-					class: 'stat bfi-ranking extras-ranking'
-				});
-
-				// Determine list page number
-				var url = 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/';
-				var page = Math.ceil(this.bfi.listIndex / 100);
-				if (this.bfi.ranking == "196") {
-					page = letterboxd.helpers.getBFIListPage(this.bfi.ranking, this.letterboxdTitle, this.letterboxdYear);
-				}
-				if (page > 1) {
-					url += 'page/' + page + '/';
-				}
-
-				const a = letterboxd.helpers.createElement('a', {
-					class: 'has-icon icon-16 tooltip tooltip-extra',
-					href: url
-				});
-				li.append(a);
-				a.innerText = this.bfi.ranking;
-				var tooltip = '№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250";
-				a.setAttribute('data-original-title', tooltip);
-
-				const span = letterboxd.helpers.createElement('span', {
-					class: 'icon',
-					style: 'background: url(' + browser.runtime.getURL('/images/bfi-logo.svg') + ')'
-				});
-				a.append(span);
-
-				// Add the tooltip as text for mobile
-				if (this.isMobile) {
-					const detailsSpan = letterboxd.helpers.createElement('span', {
-						class: 'mobile-ranking-details',
-						style: 'display:none'
+					// Lets add it to the page
+					//***************************************************************
+					// create the li
+					const li = letterboxd.helpers.createElement('li', {
+						class: 'stat bfi-ranking extras-ranking'
 					});
 
-					const detailsText = letterboxd.helpers.createElement('p', {
+					// Determine list page number
+					var url = 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/';
+					var page = Math.ceil(this.bfi.listIndex / 100);
+					if (this.bfi.ranking == "196") {
+						page = letterboxd.helpers.getBFIListPage(this.bfi.ranking, this.letterboxdTitle, this.letterboxdYear);
+					}
+					if (page > 1) {
+						url += 'page/' + page + '/';
+					}
+
+					const a = letterboxd.helpers.createElement('a', {
+						class: 'has-icon icon-16 tooltip tooltip-extra',
+						href: url
 					});
-					detailsText.innerText = tooltip;
-					detailsSpan.append(detailsText);
+					li.append(a);
+					a.innerText = this.bfi.ranking;
+					var tooltip = '№ ' + this.bfi.ranking + " in \"BFI Sight and Sound\" Top 250";
+					a.setAttribute('data-original-title', tooltip);
 
-					li.append(detailsSpan);
+					const span = letterboxd.helpers.createElement('span', {
+						class: 'icon',
+						style: 'background: url(' + browser.runtime.getURL('/images/bfi-logo.svg') + ')'
+					});
+					a.append(span);
+
+					// Add the tooltip as text for mobile
+					if (this.isMobile) {
+						const detailsSpan = letterboxd.helpers.createElement('span', {
+							class: 'mobile-ranking-details',
+							style: 'display:none'
+						});
+
+						const detailsText = letterboxd.helpers.createElement('p', {
+						});
+						detailsText.innerText = tooltip;
+						detailsSpan.append(detailsText);
+
+						li.append(detailsSpan);
+					}
+
+					// Add to page
+					this.appendRanking(li, 'bfi-ranking');
+
+					// Add the hover events
+					//*****************************************************************
+					$(".tooltip-extra").on("mouseover", ShowTwipsy);
+					$(".tooltip-extra").on("mouseout", HideTwipsy);
+					
+				}catch (error){
+					console.error("Letterboxd Extras | BFI error: " + error)
 				}
-
-				// Add to page
-				this.appendRanking(li, 'bfi-ranking');
-
-				// Add the hover events
-				//*****************************************************************
-				$(".tooltip-extra").on("mouseover", ShowTwipsy);
-				$(".tooltip-extra").on("mouseout", HideTwipsy);
-
 			},
 
 			appendRanking(ranking, className) {
@@ -4142,7 +4148,7 @@ if (isChrome)
 				var extrasStats = document.querySelector('.extras-stats')
 				if (extrasStats == null) {
 					extrasStats = letterboxd.helpers.createElement('ul', {
-						class: 'film-stats extras-stats'
+						class: 'production-statistic-list extras-stats'
 					});
 					if (this.isMobile) {
 						// Add to page
@@ -4161,7 +4167,7 @@ if (isChrome)
 							toggleDetails(event, letterboxd);
 						});
 					} else {
-						document.querySelector('.film-stats').after(extrasStats);
+						document.querySelector('.production-statistic-list').after(extrasStats);
 					}
 				}
 
@@ -4962,6 +4968,10 @@ if (isChrome)
 				}		
 
 				return output;
+			},
+
+			addTooltipEvents(element) {
+
 			},
 
 			getMubiHeaders() {
