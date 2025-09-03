@@ -1950,19 +1950,21 @@ if (isChrome)
 
 				// Move the details text
 				//************************************************************
-				var criticAllText = section.querySelector('.mobile-details-text.score-critic-all');
-				var criticTopText = section.querySelector('.mobile-details-text.score-critic-top');
-				var audienceAllText = section.querySelector('.mobile-details-text.score-audience-all');
-				var audienceVerifiedText = section.querySelector('.mobile-details-text.score-audience-verified');
+				if (this.isMobile == false) {
+					var criticAllText = section.querySelector('.mobile-details-text.score-critic-all');
+					var criticTopText = section.querySelector('.mobile-details-text.score-critic-top');
+					var audienceAllText = section.querySelector('.mobile-details-text.score-audience-all');
+					var audienceVerifiedText = section.querySelector('.mobile-details-text.score-audience-verified');
 
-				if (criticAllText != null)
-					section.append(criticAllText);
-				if (criticTopText != null)
-					section.append(criticTopText);
-				if (audienceAllText != null)
-					section.append(audienceAllText);
-				if (audienceVerifiedText != null)
-					section.append(audienceVerifiedText);
+					if (criticAllText != null)
+						section.append(criticAllText);
+					if (criticTopText != null)
+						section.append(criticTopText);
+					if (audienceAllText != null)
+						section.append(audienceAllText);
+					if (audienceVerifiedText != null)
+						section.append(audienceVerifiedText);
+				}
 
 
 				// Click the rt-buttons
@@ -2260,13 +2262,15 @@ if (isChrome)
 
 				// Move the details text
 				//************************************************************
-				var criticText = document.querySelector('.meta-details-critic.mobile-details-text');
-				var userText = document.querySelector('.meta-details-user.mobile-details-text');
+				if (this.isMobile == false){
+					var criticText = document.querySelector('.meta-details-critic.mobile-details-text');
+					var userText = document.querySelector('.meta-details-user.mobile-details-text');
 
-				if (criticText != null)
-					section.append(criticText);
-				if (userText != null)
-					section.append(userText);
+					if (criticText != null)
+						section.append(criticText);
+					if (userText != null)
+						section.append(userText);
+				}
 
 				//Add click for Show details button
 				//************************************************************
@@ -5055,7 +5059,11 @@ if (isChrome)
 						class: 'rt-score-div score-' + baseType + ' score-' + type + ' mobile-details-text'
 					});
 
-					if (type.includes('critic-top') || type.includes('audience-verified')){
+					if (isMobile){
+						detailsSpan.className += ' rt-score-details'; 
+					}
+
+					if (type.includes('critic-top') || type.includes('audience-verified') || isMobile){
 						detailsSpan.style.display = 'none';
 					}
 
@@ -5251,6 +5259,11 @@ if (isChrome)
 					const detailsSpan = letterboxd.helpers.createElement('span', {
 						class: 'meta-details-' + type + ' mobile-details-text'
 					});
+
+					if (isMobile){
+						detailsSpan.className += ' meta-score-details'
+						detailsSpan.style.display = 'none';
+					}
 
 					const detailsText = letterboxd.helpers.createElement('p', {
 					});
@@ -6532,10 +6545,8 @@ function changeTomatoScoreMobile(event) {
 	// Get the parent node
 	var parent = event.target.parentNode.parentNode;
 	// Grab the target score div and then the other non-target score div
-	var targetNode = parent.querySelector('.rt-score-div.disabled');
-	var otherNode = parent.querySelector('.rt-score-div:not(.disabled)');
-	
-	// TODO - handle the mobile details text visibilty
+	var targetNode = parent.querySelector('.rt-score-div.disabled:not(.mobile-details-text)');
+	var otherNode = parent.querySelector('.rt-score-div:not(.disabled):not(.mobile-details-text)');
 
 	// Hide the current visible score, display the current hidden score
 	otherNode.style.display = 'none';
@@ -6573,7 +6584,7 @@ function toggleDetails(event, letterboxd) {
 	});
 
 	// Move the Rotten Tomatoes tooltip text depending on the details visibility
-	if (event.target.className.includes('rt-show-details')) {
+	if (event.target.className.includes('rt-show-details') && letterboxd.isMobile == false) {
 		var tomatoDiv = document.querySelector('.tomato-ratings.ratings-extras');
 
 		var criticAllText = document.querySelector('.mobile-details-text.score-critic-all');
