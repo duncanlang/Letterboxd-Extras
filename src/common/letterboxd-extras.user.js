@@ -6584,7 +6584,7 @@ function toggleDetails(event, letterboxd) {
 	});
 
 	// Move the Rotten Tomatoes tooltip text depending on the details visibility
-	if (event.target.className.includes('rt-show-details') && letterboxd.isMobile == false) {
+	if (event.target.className.includes('rt-show-details') && letterboxd.overview.isMobile == false) {
 		var tomatoDiv = document.querySelector('.tomato-ratings.ratings-extras');
 
 		var criticAllText = document.querySelector('.mobile-details-text.score-critic-all');
