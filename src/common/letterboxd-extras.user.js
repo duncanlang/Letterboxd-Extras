@@ -2256,11 +2256,21 @@ if (isChrome)
 
 				// APPEND to the sidebar
 				//************************************************************
-				this.appendRating(section, 'meta-ratings');
+				this.appendRating(section, 'meta-ratings');				
+
+				// Move the details text
+				//************************************************************
+				var criticText = document.querySelector('.meta-details-critic.mobile-details-text');
+				var userText = document.querySelector('.meta-details-user.mobile-details-text');
+
+				if (criticText != null)
+					section.append(criticText);
+				if (userText != null)
+					section.append(userText);
 
 				//Add click for Show details button
 				//************************************************************
-				if (letterboxd.storage.get('meta-default-view') === 'show' || (letterboxd.storage.get('meta-default-view') === 'remember' && letterboxd.storage.get('meta-score-details') === 'show') || letterboxd.storage.get('tooltip-show-details') === true) {
+				if (letterboxd.storage.get('meta-default-view') === 'show' || (letterboxd.storage.get('meta-default-view') === 'remember' && letterboxd.storage.get('meta-score-details') === 'show')) {
 					showDetails.click();
 				}
 
@@ -5160,6 +5170,7 @@ if (isChrome)
 				if (type == "critic" || mustSee)
 					style += "margin-right: 10px;"
 				const span = letterboxd.helpers.createElement('span', {
+					class: 'meta-span-' + type,
 					style: style
 				});
 
@@ -5221,7 +5232,7 @@ if (isChrome)
 
 				// Add the positive/mixed/negative bars
 				const chartSpan = letterboxd.helpers.createElement('span', {
-					class: 'meta-score-details ' + mobileClass,
+					class: 'meta-score-details score-' + type + ' ' + mobileClass,
 					style: 'display: none'
 				});
 				if (type == "critic" && letterboxd.storage.get('metacritic-mustsee-enabled') === true && mustSee) {
@@ -5238,8 +5249,7 @@ if (isChrome)
 				// Add the tooltip as text for mobile
 				if (addTooltip && tooltip != "") {
 					const detailsSpan = letterboxd.helpers.createElement('span', {
-						class: 'meta-score-details mobile-details-text',
-						style: 'display: none'
+						class: 'meta-details-' + type + ' mobile-details-text'
 					});
 
 					const detailsText = letterboxd.helpers.createElement('p', {
@@ -6578,36 +6588,61 @@ function toggleDetails(event, letterboxd) {
 
 		if (event.target.innerText.includes("SHOW")) {
 			// Details shown - Put the text after each rating div
-			criticAllDiv.after(criticAllText);
-			criticTopDiv.after(criticTopText);
-			audienceAllDiv.after(audienceAllText);
-			audienceVerifiedDiv.after(audienceVerifiedText);
+			if (criticAllDiv != null && criticAllText != null)
+				criticAllDiv.after(criticAllText);
+			if (criticTopDiv != null && criticTopText != null)
+				criticTopDiv.after(criticTopText);
+			if (audienceAllDiv != null && audienceAllText != null)
+				audienceAllDiv.after(audienceAllText);
+			if (audienceVerifiedDiv != null && audienceVerifiedText != null)
+				audienceVerifiedDiv.after(audienceVerifiedText);
 
-		} else {
+		} else if (tomatoDiv != null) {
 			// Details hidden - Put the text after all of the rating divs
-			tomatoDiv.append(criticAllText);
-			tomatoDiv.append(criticTopText);
-			tomatoDiv.append(audienceAllText);
-			tomatoDiv.append(audienceVerifiedText);
+			if (criticAllText != null)
+				tomatoDiv.append(criticAllText);
+			if (criticTopText != null)
+				tomatoDiv.append(criticTopText);
+			if (audienceAllText != null)
+				tomatoDiv.append(audienceAllText);
+			if (audienceVerifiedText != null)
+				tomatoDiv.append(audienceVerifiedText);
 		}
 	}
 
-	// TODO, also do the same as above, but for metacritic
-
-	// Move the 'must-see' badge depending on the details visibility
 	if (event.target.className.includes('meta-show-details')) {
+		// Move the tooltip details text depending on the details visibility
+		var metaDiv = document.querySelector('.meta-ratings.ratings-extras');
+
+		var criticText = document.querySelector('.meta-details-critic.mobile-details-text');
+		var userText = document.querySelector('.meta-details-user.mobile-details-text');
+		
+		var criticDiv = document.querySelector('span.meta-span-critic');
+		var userDiv = document.querySelector('span.meta-span-user');
+		
+		if (event.target.innerText.includes("SHOW")) {
+			// Details shown - Put the text after each rating div
+			if (criticDiv != null && criticText != null)
+				criticDiv.after(criticText);
+			if (userDiv != null && userText != null)
+				userDiv.after(userText);
+		} else {
+			// Details hidden - Put the text after all of the rating divs
+			if (criticText != null)
+				metaDiv.append(criticText);
+			if (userText != null)
+				metaDiv.append(userText);
+		}
+
+		// Move the 'must-see' badge depending on the details visibility
 		var mustSee = document.querySelector('.meta-must-see');
 		var userScore = document.querySelector('.meta-score-user');
-		var detailsText = document.querySelector('.meta-score-details.mobile-details-text');
+		var criticScoreDetails = document.querySelector('.meta-score-details.score-critic');
 		if (mustSee != null && userScore != null) {
 			userScore = userScore.parentNode;
 
 			if (event.target.innerText.includes("SHOW")) {
-				if (detailsText != null) {
-					detailsText.before(mustSee);
-				} else {
-					userScore.before(mustSee);
-				}
+				criticScoreDetails.after(mustSee);
 			} else {
 				userScore.after(mustSee);
 			}
