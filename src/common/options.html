@@ -243,6 +243,25 @@
     <hr width="100%">
 
     <div>
+        <h3>"Does the Dog Die?" Link</h3>
+        <div>
+            <label for="ddd-enabled">Add link for "Does the Dog Die?":</label>
+            <input type="checkbox" id="ddd-enabled" permission="https://www.doesthedogdie.com/*" class="setting"/>
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="tspdt-permissions" class="request-permission" permissionTarget="tspdt-enabled" value="Request Permission"/>
+        </div>
+        <div>
+            <label for="ddd-apikey">API Key:</label>
+            <input type="text" id="ddd-apikey" class="setting"/>
+            <a href="https://www.doesthedogdie.com/profile" target="_blank" style="color: rgb(51, 167, 255);">Get your API key from your DDD profile</a>
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <div>
         <h3>Miscellaneous</h3>
         <div>
             <label for="convert-ratings">Convert ratings:</label>

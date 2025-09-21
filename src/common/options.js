@@ -43,6 +43,9 @@ async function set() {
                 case ('checkbox'):
                     element.checked = options[key];
                     break;
+                case ('text'):
+                    element.value = options[key];
+                    break;
                 default:
                     element.value = options[key];
                     break;
@@ -89,6 +92,9 @@ document.addEventListener('change', event => {
         switch (element.type) {
             case ('checkbox'):
                 options[element.id] = element.checked;
+                break;
+            case ('text'):
+                options[element.id] = element.value;
                 break;
             default:
                 options[element.id] = element.value;
@@ -149,6 +155,9 @@ async function ValidateAllPermissions(){
             switch (element.type) {
                 case ('checkbox'):
                     element.checked = options[key];
+                    break;
+                case ('text'):
+                    element.value = options[key];
                     break;
                 default:
                     element.value = options[key];

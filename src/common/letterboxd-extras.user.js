@@ -639,6 +639,8 @@ if (isChrome)
 			// SIMKL
 			simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 
+			// Does the Dog Die (ddd)
+			ddd: { state: 0, data: null, url: null, added: false },
 
 			linksAdded: [],
 
@@ -1530,6 +1532,19 @@ if (isChrome)
 					}
 				}
 
+				// Add 'Does the dog die?' link
+				if (this.imdbID != '' && this.tmdbID != '' && this.letterboxdTitle != null && document.querySelector('.micro-button') != null && this.linksMoved == true && letterboxd.storage.get('ddd-enabled') === true){
+					// TODO validate an API key has been entered - or maybe an api key is not required??? verify
+					if (this.ddd.state == 0){
+						// Call API
+						this.initDDD();
+					}
+					if (this.ddd.state == 2 && this.ddd.added == false){
+						// Add link to the page
+						this.addDDD();
+					}
+				} 
+
 				// Stop
 				return this.stopRunning();
 			},
@@ -1572,7 +1587,7 @@ if (isChrome)
 
 						this.imdbData.url = imdbLink;
 
-					} else if (links[i].innerHTML === "TMDb") {
+					} else if (links[i].innerHTML === "TMDB") {
 						// Grab the tmdb link
 						tmdbLink = links[i].href;
 					}
@@ -2686,6 +2701,9 @@ if (isChrome)
 					} else if (url.includes("allocine")) {
 						text = "ALLO";
 						className = "allo-button";
+					} else if (url.includes("doesthedogdie")) {
+						text = "DOG";
+						className = "ddd-button";
 					}
 
 					if (document.querySelector('.' + className)) {
@@ -2716,7 +2734,8 @@ if (isChrome)
 						'.al-button',
 						'.anidb-button',
 						'.mojo-button',
-						'.wiki-button'
+						'.wiki-button',
+						'.ddd-button'
 					];
 
 					var index = order.indexOf('.' + className);
@@ -4582,6 +4601,63 @@ if (isChrome)
 
 			initDouban() {
 				// TODO
+			},
+
+			async initDDD(){
+				var options = {
+					method: 'GET',
+					  headers: {
+						"Accept": "application/json",
+						'X-API-KEY': letterboxd.storage.get("ddd-apikey")
+					}
+				};
+
+				// Call the ddd API with the IMDB query 
+				var url = "https://www.doesthedogdie.com/dddsearch?imdb=" + this.imdbID;
+				this.ddd.state = 1;
+				await browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+					if (letterboxd.helpers.ValidateResponse("DDD IMDb", value) == false){
+						return;
+					}
+					var result = value.response;
+					if (result.items != null && result.items.length > 0){
+						this.ddd.data = result.items[0];
+						this.ddd.state = 2;
+					}
+				});
+
+				// If not found with the first call, do the search query instead
+				url = "https://www.doesthedogdie.com/dddsearch?q=" + this.letterboxdTitle;
+				browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+					if (letterboxd.helpers.ValidateResponse("DDD Search", value) == false){
+						return;
+					}
+					var result = value.response;
+					if (result.items != null && result.items.length > 0){
+						for (var i = 0; i < result.items.length; i++){
+							var item = result.items[i];
+							if (item.tmdbID == this.tmdbID || (item.name == this.letterboxdTitle && item.releaseYear == this.letterboxdYear) || (item.name == this.letterboxdTitle + " " + this.letterboxdYear && item.releaseYear == this.letterboxdYear)){
+								this.ddd.data = item;
+								this.ddd.state = 2;
+								break;
+							}
+						}
+
+						if (this.ddd.state < 2){
+							console.log("Letterboxd Extras | Unable to locate DDD film page.");
+							this.ddd.state = 3;
+						}
+					}
+				});
+			},
+
+			addDDD(){
+				if (this.ddd.data != null){
+					this.ddd.url = "https://www.doesthedogdie.com/media/" + this.ddd.data.id;
+					this.addLink(this.ddd.url);
+				}
+
+				this.ddd.added = true;
 			}
 		},
 
