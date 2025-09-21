@@ -243,6 +243,30 @@
     <hr width="100%">
 
     <div>
+        <h3>Content Ratings</h3>
+        <div>
+            <label for="content-ratings">Display content ratings from:</label>
+            <select id="content-ratings" class="setting">
+                <option value="none">None</option>
+                <option value="mpaa">MPA (United States)</option>
+                <option value="bbfc">BBFC (United Kingdom)</option>
+                <option value="fsk">FSK (Germany)</option>
+                <option value="cnc">CNC (France)</option>
+                <option value="eirin">EIRIN (Japan)</option>
+                <option value="kmrb">KMRB (South Korea)</option>
+                <option value="acb">ACB (Australia)</option>
+                <option value="classind">ClassInd (Brazil)</option>
+            </select>
+        </div>
+        <div id="mpa-div">
+            <label for="mpa-convert">Convert historical content ratings to modern equivalent:</label>
+            <input type="checkbox" id="mpa-convert" class="setting"/>
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <div>
         <h3>Miscellaneous</h3>
         <div>
             <label for="convert-ratings">Convert ratings:</label>
@@ -252,14 +276,6 @@
                 <option value="10">10-point scale</option>
             </select>
             <p>Converts ratings to different rating scales. Affects Letterboxd, IMDb, MyAnimeList, AniList, and Mubi.</p>
-        </div>
-        <div>
-            <label for="mpa-enabled">Display MPA film ratings:</label>
-            <input type="checkbox" id="mpa-enabled" subid="mpa-div" class="setting"/>
-        </div>
-        <div id="mpa-div">
-            <label for="mpa-convert">Convert historical MPA ratings to modern equivalent:</label>
-            <input type="checkbox" id="mpa-convert" class="setting"/>
         </div>
         <div>
             <label for="open-same-tab">Open 'More At' links in same tab:</label>

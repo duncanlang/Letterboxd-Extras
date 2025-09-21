@@ -570,7 +570,7 @@ if (isChrome)
 			tmdbTV: false,
 
 			// Mojo
-			mojoData: { url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: "", added: false },
+			mojoData: { state: 0, url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: "", mpaaRating: null, added: false },
 
 			// Cinemascore
 			cinemascore: { state: 0, data: null, result: null },
@@ -588,6 +588,13 @@ if (isChrome)
 				boxOfficeUS: { value: null, currency: null },
 				boxOfficeWW: { value: null, currency: null },
 				mpaa: null,
+				bbfc: null,
+				cnc: null,
+				fsk: null,
+				eirin: null,
+				kmrb: null,
+				acb: null,
+				classind: null,
 				countries: [],
 				date: { value: null, precision: null },
 				date_origin: { value: null, precision: null },
@@ -609,8 +616,10 @@ if (isChrome)
 			// Film Affinity
 			filmaffData: { state: 0, data: null, raw: null, url: null, rating: null, num_ratings: 0 },
 
-			// MPAA rating
-			mpaaRating: null,
+			// Content ratings (MPA, BBFC, FSK, etc)
+			contentRating: null,
+			contentRatingSystem: null,
+			contentRatingAdded: false,
 
 			// Date
 			filmDate: { date: null, precision: null },
@@ -645,7 +654,6 @@ if (isChrome)
 			rtAdded: false,
 			metaAdded: false,
 			dateAdded: false,
-			ratingAdded: false,
 			durationAdded: false,
 
 			ratingsSuffix: [],
@@ -955,7 +963,9 @@ if (isChrome)
 							this.addLink(mojoURL);
 						}
 						browser.runtime.sendMessage({ name: "GETDATA", url: mojoURL }, (value) => {
+							this.mojoData.state = 1;
 							if (letterboxd.helpers.ValidateResponse("BoxOfficeMojo", value) == false){
+								this.mojoData.state = 3;
 								return;
 							}
 
@@ -963,13 +973,13 @@ if (isChrome)
 								this.mojoData.data = letterboxd.helpers.parseHTML(value.response);
 								this.addBoxOffice();
 
-								// If MPAA rating found on Mojo, add it now
-								if (this.mpaaRating != null)
-									this.addRating();
-
 								// If the domestic date was found on Mojo, add it now
 								if (this.filmDate.date != null && this.dateAdded == false)
 									this.addDate(this.filmDate.date);
+
+								this.mojoData.state = 2;
+							}else{
+								this.mojoData.state = 3;
 							}
 						});
 					}
@@ -1052,17 +1062,6 @@ if (isChrome)
 										dateString += this.wikiData.TV_End;
 									}
 									this.addDate(dateString);
-								}
-
-								// Add Rating
-								if (this.wiki != null && this.wiki.MPAA_film_ratingLabel != null) {
-									this.mpaaRating = this.wiki.MPAA_film_ratingLabel.value;
-
-									if (this.ratingAdded) {
-										this.replaceMPARating();
-									} else {
-										this.addRating();
-									}
 								}
 
 								// Get US Title and attempt Cinemascore
@@ -1237,6 +1236,19 @@ if (isChrome)
 										}
 									}
 								}
+
+								// Get Content Ratings (MPAA, BBFC, etc)
+								if (this.wiki != null){
+									this.wikiData.mpaa = letterboxd.helpers.parseWikiDataResult(this.wiki, "MPAA_film_ratingLabel", this.wikiData.mpaa);
+									this.wikiData.bbfc = letterboxd.helpers.parseWikiDataResult(this.wiki, "BBFC_ratingLabel", this.wikiData.bbfc);
+									this.wikiData.fsk = letterboxd.helpers.parseWikiDataResult(this.wiki, "FSK_ratingLabel", this.wikiData.fsk);
+									this.wikiData.cnc = letterboxd.helpers.parseWikiDataResult(this.wiki, "CNC_rating", this.wikiData.cnc);
+									this.wikiData.eirin = letterboxd.helpers.parseWikiDataResult(this.wiki, "EIRIN_ratingLabel", this.wikiData.eirin);
+									this.wikiData.kmrb = letterboxd.helpers.parseWikiDataResult(this.wiki, "KMRB_ratingLabel", this.wikiData.kmrb);
+									this.wikiData.acb = letterboxd.helpers.parseWikiDataResult(this.wiki, "ACB_ratingLabel", this.wikiData.acb);
+									this.wikiData.classind = letterboxd.helpers.parseWikiDataResult(this.wiki, "ClassInd_ratingLabel", this.wikiData.classind);
+								}
+
 							}else{
 								console.log("Letterboxd Extras | No WikiData results found.");
 							}
@@ -1444,13 +1456,6 @@ if (isChrome)
 				if (this.imdbData.state2 == 1 && this.wikiData.state == 2) {
 					this.imdbData.state2 = 2;
 
-					// MPAA / Parental Guidence
-					var ratings = ["G", "PG", "PG-13", "R", "NC-17", "X", "M", "GP", "M/PG"];
-					if (this.mpaaRating == null && this.imdbData.mpaa != null && ratings.includes(this.imdbData.mpaa)) {
-						this.mpaaRating = this.imdbData.mpaa;
-						this.addRating();
-					}
-
 					// Metascore
 					if (this.metaData.state == 3 && this.imdbData.meta != null && letterboxd.storage.get("metacritic-enabled") === true) {
 						this.metaData.state = 2;
@@ -1526,6 +1531,31 @@ if (isChrome)
 						}
 						if (this.bfi.state == 2 && this.wikiData.state == 2) {
 							this.verifyBFI();
+						}
+					}
+				}
+
+				// Add Content Ratings
+				if (this.wikiData.state == 2 && this.mojoData.state >= 2 && this.contentRatingAdded == false){
+					if (letterboxd.storage.get('content-ratings') === null || letterboxd.storage.get('content-ratings') === 'none'){
+						// Disabled, add nothing
+						this.contentRatingAdded == true;
+					}else{
+						// Enabled, get rating from data
+						this.contentRatingSystem = letterboxd.storage.get('content-ratings');
+						this.contentRating = this.wikiData[this.contentRatingSystem];
+
+						// Check for BoxOfficeMojo backup
+						if (this.contentRatingSystem == 'mpaa' && this.contentRating == null && this.mojoData.mpaaRating != null){
+							this.contentRating = this.mojoData.mpaaRating;
+						}
+
+						// Add the rating if we have it
+						if (this.contentRating != null && this.contentRating != ''){
+							this.addRating();
+						}
+						else{
+							console.log("Letterboxd Extras | No " + this.contentRatingSystem + " rating found.");
 						}
 					}
 				}
@@ -2888,8 +2918,7 @@ if (isChrome)
 						if (header == "Budget") {
 							this.mojoData.budget = data;
 						} else if (header == "MPAA") {
-							if (this.mpaaRating == null)
-								this.mpaaRating = data;
+							this.mojoData.mpaaRating = data;
 						} else if (header == "Earliest Release Date" && data.includes("Domestic")) {
 							this.filmDate.date = data.split("\n")[0];
 							this.filmDate.date = this.filmDate.date.replace(",", "");
@@ -2959,14 +2988,10 @@ if (isChrome)
 			addRating() {
 				if (document.querySelector('.extras-rating')) return;
 
-				if (letterboxd.storage.get('mpa-enabled') === false) {
-					this.ratingAdded = true;
-					return;
-				}
+				// Correct the rating label, if needed (convert to modern, remove redunant labelling, get CNC labels)
+				this.contentRating = letterboxd.helpers.correctContentRating(this.contentRating);
 
-				// Adjust the rating if needed
-				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
-
+				// Add to the page
 				try {
 					if (this.isMobile) {
 						const intro = document.querySelector('.details .credits .introduction');
@@ -2974,7 +2999,7 @@ if (isChrome)
 						const rating = letterboxd.helpers.createElement('span', {
 							class: 'introduction extras-rating extras-rating-mobile'
 						});
-						rating.innerText = this.mpaaRating;
+						rating.innerText = this.contentRating;
 						intro.before(rating);
 
 					} else {
@@ -2987,7 +3012,7 @@ if (isChrome)
 
 						const p = letterboxd.helpers.createElement('span', {
 						});
-						p.innerText = this.mpaaRating;
+						p.innerText = this.contentRating;
 						small.append(p);
 					}
 				} catch (error) {
@@ -2995,28 +3020,6 @@ if (isChrome)
 				}
 
 				this.ratingAdded = true;
-			},
-
-			replaceMPARating() {
-				if (document.querySelector('.extras-rating') == null) return;
-				if (this.mpaaRating == null) return;
-				if (this.mpaaRating == "") return;
-				// The MPA rating might already be added from another source, but we want to replace it with the rating from WikiData
-
-				// Adjust the rating if needed
-				this.mpaaRating = letterboxd.helpers.convertMPARating(this.mpaaRating);
-
-				var rating = null;
-				if (this.isMobile) {
-					rating = document.querySelector('.extras-rating');
-				} else {
-					rating = document.querySelector('.extras-rating p');
-				}
-
-				if (rating != null) {
-					rating.innerText = this.mpaaRating;
-				}
-
 			},
 
 			initCinema(title) {
@@ -4878,6 +4881,20 @@ if (isChrome)
 				return output;
 			},
 
+			parseWikiDataResult(data, tagName, currentValue){
+				// Get from the data if it exists
+				if (data[tagName] != null){
+					return data[tagName].value;
+				}
+
+				// Return empty if it's null
+				if (currentValue == null)
+					return '';
+
+				// Otherwise, return the original value
+				return currentValue;
+			},
+
 			addTooltipEvents(element) {
 				// Add the mouseover and mouseout events to each .tooltip-extra that is a child of the provided element
 				element.querySelectorAll('.tooltip-extra').forEach(item => {
@@ -5938,17 +5955,84 @@ if (isChrome)
 				return value;
 			},
 
-			convertMPARating(rating) {
-				if (letterboxd.storage.get('mpa-convert') === true) {
+			correctContentRating(rating) {
+				// Adjust CNC (france) ratings to a readable format (cannot use wikidata label because they are too long)
+				switch (rating) {
+					case "http://www.wikidata.org/entity/Q23817729":
+						rating = "TP";
+						break;
+					case "http://www.wikidata.org/entity/Q23817740":
+						rating = "12";
+						break;
+					case "http://www.wikidata.org/entity/Q23817741":
+						rating = "16";
+						break;
+					case "http://www.wikidata.org/entity/Q23817742":
+						rating = "18";
+						break;
+					case "http://www.wikidata.org/entity/Q23926014":
+					case "http://www.wikidata.org/entity/Q23925995":
+						rating = "X";
+						break;
+					case "http://www.wikidata.org/entity/Q23837002":
+						rating = "P";
+						break;
+					case "http://www.wikidata.org/entity/Q23817739":
+						rating = "!";
+						break;
+				}
+
+				// Adukst KMRB (South Korea)
+				if (letterboxd.contentRatingSystem == 'kmrb'){
 					switch (rating) {
-						case "GP":
-						case "M":
-						case "M/PG":
-							rating = "PG";
+						case "Adults only":
+							rating = "18";
 							break;
-						case "X":
-							rating = "NC-17";
+						case "Restricted":
+							rating = "19";
 							break;
+					}
+				}
+
+				// Remove redundant labels
+				rating = rating.replace('certificate', ''); 
+				rating = rating.replace('FSK', '');
+
+				// Convert to modern equivalent, if enabled
+				if (letterboxd.storage.get('mpa-convert') === true) {
+					if (this.contentRatingSystem == 'mpa'){
+						switch (rating) {
+							case "GP":
+							case "M":
+							case "M/PG":
+								rating = "PG";
+								break;
+							case "X":
+								rating = "NC-17";
+								break;
+						}
+					}
+					else if (this.contentRatingSystem == 'bbfc'){
+						switch (rating) {
+							case "Uc":
+								rating = "U";
+								break;
+							case "E":
+								rating = "U";
+								break;
+							case "A":
+								rating = "PG";
+								break;
+							case "AA":
+								rating = "15";
+								break;
+							case "X":
+								rating = "18";
+								break;
+							case "H":
+								rating = "18";
+								break;
+						}
 					}
 				}
 
@@ -6223,7 +6307,7 @@ if (isChrome)
 						"}";
 
 				} else {
-					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?MPAA_film_ratingLabel ?Country_Of_Origin ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
+					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"\n" +
 						sparqlQuery +
@@ -6238,8 +6322,15 @@ if (isChrome)
 						"  OPTIONAL { ?item wdt:P1265 ?Allocine_Film_ID }\n" +
 						"  OPTIONAL { ?item wdt:P1267 ?Allocine_TV_ID }\n" +
 						"  OPTIONAL { ?item wdt:P4529 ?Douban_ID }\n" +
-						"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 						"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
+						"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P2629 ?BBFC_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P1981 ?FSK_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P2758 ?CNC_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P2756 ?EIRIN_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P3818 ?KMRB_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P3156 ?ACB_rating. }\n" +
+						"  OPTIONAL { ?item wdt:P3216 ?ClassInd_rating. }\n" +
 						"  OPTIONAL {\n" +
 						"    ?item p:P2130 ?Budget_Entry.\n" +
 						"    ?Budget_Entry ps:P2130 ?Budget.\n" +

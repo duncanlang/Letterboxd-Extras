@@ -108,6 +108,16 @@ async function InitDefaultSettings() {
 
     if (options == null)
         options = {};
+    
+    // mpa-enabled -> content-ratings
+    if (options['mpa-enabled'] != null){
+        if (options['mpa-enabled'] === true){
+            options['content-ratings'] = 'mpaa';
+        }else{
+            options['content-ratings'] = 'none';
+        }
+        options['mpa-enabled'] = null;
+    }
 
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
@@ -115,7 +125,6 @@ async function InitDefaultSettings() {
     if (options['mal-enabled'] == null) options['mal-enabled'] = true;
     if (options['al-enabled'] == null) options['al-enabled'] = true;
     if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
-    if (options['mpa-enabled'] == null) options['mpa-enabled'] = true;
     if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
     if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
@@ -126,6 +135,8 @@ async function InitDefaultSettings() {
     if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
     if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
     if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
+    
+    if (options['content-ratings'] == null) options['content-ratings'] = 'mpaa';
 
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
     if (options['critic-default'] == null) options['critic-default'] = "all";
@@ -152,6 +163,7 @@ async function InitDefaultSettings() {
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
+    
 
     // Save
     await browser.storage.sync.set({ options });
@@ -182,7 +194,7 @@ browser.runtime.onInstalled.addListener(async (details) => {
         // Convert from previous versions
         var version = details.previousVersion.split('.');
 
-        if (parseInt(version[1]) < 16 && isFirefox) {
+        if (parseInt(version[0]) == 3 && parseInt(version[1]) < 16 && isFirefox) {
             await ConvertLocalToSync();
         }
 
