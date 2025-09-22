@@ -51,7 +51,8 @@
 		"https://www.bfi.org.uk/*",
 		"https://www.allocine.fr/*",
 		"https://api.simkl.com/*",
-		"https://www.google.com/search*"
+		"https://www.google.com/search*",
+		"https://markuapiz.onrender.com/*"
 	],
 
 	"background": {

@@ -93,7 +93,7 @@ if (isChrome)
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl{
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks {
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -150,7 +150,7 @@ if (isChrome)
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover {
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -499,6 +499,10 @@ if (isChrome)
 		.logo-simkl{
 			width: 50px;
 		}
+		.logo-filmarks{
+			width: 80px;
+			height: 20px;
+		}
 		.simkl-box{
 			border: rgb(89 88 86/37%) 1px solid;
 			border-radius: 6px;
@@ -560,6 +564,8 @@ if (isChrome)
 			fansConverted: false,
 			showDetailsAdded: false,
 			titleError: false,
+			altTitleList: null,
+			altTitleError: false,
 
 			// IMDb
 			imdbID: "",
@@ -639,6 +645,8 @@ if (isChrome)
 			// SIMKL
 			simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 
+			// Filmarks
+			filmarks: { state: 0, data: null, movie: null, url: null, rating: null, num_ratings: 0 },
 
 			linksAdded: [],
 
@@ -697,6 +705,20 @@ if (isChrome)
 					} catch (error) {
 						this.titleError = true;
 						console.error('Letterboxd Extras | Error! There was an error when collecting the title and year!\nException:\n' + error);
+					}
+				}
+
+				// Get Alt Title List
+				if (this.altTitleList == null && this.altTitleError == false && document.querySelector("div#tab-details") != null){
+					try {
+						// Collect Alternate Title List
+						var altTitleList = document.querySelector('div.text-indentedlist p')
+						if (altTitleList != null) {
+							this.altTitleList = altTitleList.innerText.split(', ');
+						}
+					} catch (error) {
+						this.altTitleError = true;
+						console.error('Letterboxd Extras | Error! There was an error when collecting the alternate titles!\nException:\n' + error);
 					}
 				}
 
@@ -1528,6 +1550,11 @@ if (isChrome)
 							this.verifyBFI();
 						}
 					}
+				}
+
+				// Add Filmarks
+				if (this.letterboxdTitle != null && letterboxd.storage.get('filmarks-enabled') === true && this.filmarks.state == 0 && this.altTitleList != null){
+					this.initFilmarks();
 				}
 
 				// Stop
@@ -2686,6 +2713,9 @@ if (isChrome)
 					} else if (url.includes("allocine")) {
 						text = "ALLO";
 						className = "allo-button";
+					} else if (url.includes("filmarks")) {
+						text = "FILMARKS";
+						className = "filmarks-button";
 					}
 
 					if (document.querySelector('.' + className)) {
@@ -2715,6 +2745,7 @@ if (isChrome)
 						'.mal-button',
 						'.al-button',
 						'.anidb-button',
+						'.filmarks-button',
 						'.mojo-button',
 						'.wiki-button'
 					];
@@ -3610,6 +3641,7 @@ if (isChrome)
 					'.filmaff-ratings',
 					'.simkl-ratings',
 					'.anidb-ratings',
+					'.filmarks-ratings',
 					'.cinemascore'
 				];
 
@@ -4582,6 +4614,145 @@ if (isChrome)
 
 			initDouban() {
 				// TODO
+			},
+
+			initFilmarks() {
+				this.filmarks.state = 1;
+				var apiURL = "https://markuapiz.onrender.com/search/movies?limit=20&q=" + this.letterboxdTitle;
+				// todo: native title? anime endpoint?
+				
+				// Make Calls
+				browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
+					if (letterboxd.helpers.ValidateResponse("Filmarks", value) == false){
+						return;
+					}
+
+					try {
+						this.filmarks.data = value.response;
+						this.filmarks.state = 2;
+					} catch (error) {
+						console.error(error);
+						this.filmarks.state = 3; // Error
+					}
+
+					if (this.filmarks.state == 2 && this.filmarks.data != null){
+						this.addFilmarks();
+					}
+				});
+			},
+
+			addFilmarks() {
+				if (document.querySelector('.filmarks-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+
+				// See if we can match from the API
+				//***************************************************************
+				if (this.filmarks.data.results != null && this.filmarks.data.results.movies != null && this.filmarks.data.results.movies.length > 0){
+					var movies = this.filmarks.data.results.movies;
+					for (var i = 0; i < movies.length; i++){
+						var movie = movies[i];
+
+						// To hopefully get an accurate match, we will do the following:
+						//	- See if the filmark title is exactly the same as the letterboxd title (display or native)
+						//	- OR See if the filmark title is located in the array of alternative titles on letterboxed
+						//	- AND if filmark year is within 3 years of the letterboxd year
+						// This will likely not be 100%, but hopefully work decently?
+						var filmarksTitle = movie.title;
+						var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.screening_date, /(\d{4})年/, 1, "0"));
+						
+						var letterboxdYear = 0;
+						if (this.letterboxdYear != "")
+							letterboxdYear = parseInt(this.letterboxdYear);
+
+						// If matches the year
+						if (this.letterboxdYear >= filmarksYear - 3 && this.letterboxdYear <= filmarksYear + 3){
+							// if matches the title
+							if (filmarksTitle == this.letterboxdTitle || (this.letterboxdNativeTitle != null && filmarksTitle == this.letterboxdNativeTitle) || this.altTitleList.includes(filmarksTitle)){
+								this.filmarks.movie = movie;
+								break;
+							}
+						}
+					}
+				}
+
+
+				// Collect Date from the Filmark API
+				//***************************************************************
+				if (this.filmarks.movie != null) {
+					// Rating
+					if (this.filmarks.movie.rating != null && this.filmarks.movie.rating != "-")
+						this.filmarks.rating = this.filmarks.movie.rating;
+
+					// Review Count
+					if (this.filmarks.movie.mark_count != null && this.filmarks.movie.mark_count != "-")
+						this.filmarks.num_ratings = this.filmarks.movie.mark_count;
+
+					// URL
+					if (this.filmarks.movie.link != null)
+						this.filmarks.url = this.filmarks.movie.link;
+					
+					this.addLink(this.filmarks.url);
+				}else{
+					console.log("Letterboxd Extras | Unable to find/match Filmarks page.");
+					return;
+				}
+
+				// Do not display if there is no score or ratings
+				if (this.filmarks.rating == null && this.filmarks.num_ratings == 0) return;
+
+				// Add to Letterboxd
+				//***************************************************************
+				// Add the section to the page
+				const section = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart filmarks-ratings ratings-extras'
+				});
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading section-heading-extras',
+					style: 'height: 20px !important;'
+				});
+				section.append(heading);
+
+				const logoHolder = letterboxd.helpers.createElement('a', {
+					class: "logo-filmarks",
+					href: this.filmarks.url,
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/filmarks-logo.svg") + '");'
+				});
+				heading.append(logoHolder);
+
+				if (this.isMobile) {
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createShowDetailsButton("filmarks", "filmarks-score-details");
+					section.append(showDetails);
+				}
+
+				// Score
+				//***************************************************************
+				const ratingSpan = letterboxd.helpers.createElement('span', {
+					class: 'filmarks-critic-score rt-score-div',
+					style: 'position: relative; display: block; height: 44px;'
+				});
+				ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.isMobile));
+				ratingSpan.append(letterboxd.helpers.createAllocineStars(this.filmarks.rating));
+				section.append(ratingSpan);
+
+				// Add the tooltip as text for mobile
+				// Critic Rating Tooltip
+				var scoreSpan = section.querySelector(".filmarks-critic-score .filmarks-critic .tooltip");
+				if (scoreSpan != null) {
+					var tooltip = scoreSpan.getAttribute('data-original-title');
+					letterboxd.helpers.createDetailsText('filmarks', section.querySelector(".filmarks-critic-score"), tooltip, this.isMobile);
+				}
+
+				// APPEND to the sidebar
+				//************************************************************
+				this.appendRating(section, 'filmarks-ratings');
+
+				// Add the hover events
+				//*****************************************************************
+				letterboxd.helpers.addTooltipEvents(section);
 			}
 		},
 
@@ -6379,6 +6550,17 @@ if (isChrome)
 				} else {
 					return { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
 				}
+			},
+
+			regexExtract(input, regexPattern, captureGroup, defaultValue) {
+				if (input != null){
+					const found = input.match(regexPattern);
+					if (found){
+						return found[captureGroup];
+					}
+				}
+
+				return defaultValue;
 			}
 		},
 
