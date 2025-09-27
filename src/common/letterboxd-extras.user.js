@@ -93,7 +93,7 @@ if (isChrome)
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl{
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-kinopoisk {
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -150,7 +150,7 @@ if (isChrome)
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-kinopoisk:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -164,6 +164,9 @@ if (isChrome)
 			height: 26px;
 			display: block;
 			margin-left: 2px;
+		}
+		.logo-kinopoisk{
+			width: 80px;
 		}
 		.text-rym{
 			display: inline-block;
@@ -414,7 +417,7 @@ if (isChrome)
 		.extras-table td{
 			padding-bottom: 10px;
 		}
-		.mubi-score,.simkl-score{
+		.mubi-score, .simkl-score, .kinopoisk-score {
 			color: #FFF;
 			font-size: 18px;
 		}
@@ -533,6 +536,10 @@ if (isChrome)
 			display: block;
 			text-align: center; 
 			font-size: 10px;
+		}
+			
+		.kinopoisk-score {
+			color: #bbbbbb !important;
 		}
 	`);
 	/* eslint-enable */
@@ -1244,11 +1251,18 @@ if (isChrome)
 
 								// Get Kinopoisk data
 								if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
-									this.kinopoisk.id = this.wiki.Kinopoisk_ID;
+									this.kinopoisk.id = this.wiki.Kinopoisk_ID.value;
 									this.kinopoisk.api_url = "https://kinopoiskapiunofficial.tech/api/v2.2/films/" + this.kinopoisk.id;
 									this.kinopoisk.state = 1;
+
+									var options = {
+										method: 'GET',
+										headers: {
+											'X-API-KEY': letterboxd.storage.get('kinopoisk-apikey')
+										}
+									};
 									
-									browser.runtime.sendMessage({ name: "GETDATA", url: this.kinopoisk.api_url, type: "JSON" }, (value) => {
+									browser.runtime.sendMessage({ name: "GETDATA", url: this.kinopoisk.api_url, options: options, type: "JSON" }, (value) => {
 										if (letterboxd.helpers.ValidateResponse("Kinopoisk Unofficial API", value) == false){
 											return;
 										}
@@ -2709,6 +2723,9 @@ if (isChrome)
 					} else if (url.includes("allocine")) {
 						text = "ALLO";
 						className = "allo-button";
+					} else if (url.includes("kinopoisk")) {
+						text = "KINOPOISK";
+						className = "kinopoisk-button";
 					}
 
 					if (document.querySelector('.' + className)) {
@@ -2734,6 +2751,7 @@ if (isChrome)
 						'.mubi-button',
 						'.filmaff-button',
 						'.simkl-button',
+						'.kinopoisk-button',
 						'.allo-button',
 						'.mal-button',
 						'.al-button',
@@ -3632,6 +3650,7 @@ if (isChrome)
 					'.mubi-ratings',
 					'.filmaff-ratings',
 					'.simkl-ratings',
+					'.kinopoisk-ratings',
 					'.anidb-ratings',
 					'.cinemascore'
 				];
@@ -4613,8 +4632,6 @@ if (isChrome)
 
 				if (!document.querySelector('.sidebar')) return;
 
-				this.simkl.state = 3;
-
 				// Collect Date from the SIMKL API
 				//***************************************************************
 				if (this.kinopoisk.data != null) {
@@ -4626,6 +4643,8 @@ if (isChrome)
 					}
 					if (this.kinopoisk.data.webUrl != null) {
 						this.kinopoisk.url = this.kinopoisk.data.webUrl;
+
+						this.addLink(this.kinopoisk.url);
 					}
 				}
 
@@ -4649,7 +4668,7 @@ if (isChrome)
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-kinopoisk",
 					href: this.kinopoisk.url,
-					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/kinopoisk-logo.png") + '");'
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/kinopoisk-logo-rus.svg") + '");'
 				});
 				heading.append(logoHolder);
 
@@ -4693,7 +4712,7 @@ if (isChrome)
 				// The span that holds the score
 				const span = letterboxd.helpers.createElement('a', {
 					class: "kinopoisk-box tooltip tooltip-extra",
-					['href']: this.kinopoisk.url,
+					['href']: this.kinopoisk.url + "reviews/",
 					['data-original-title']: tooltip
 				}, {
 					['display']: 'inline-block',
