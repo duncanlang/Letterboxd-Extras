@@ -93,7 +93,7 @@ if (isChrome)
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk {
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -150,7 +150,7 @@ if (isChrome)
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover {
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -164,6 +164,9 @@ if (isChrome)
 			height: 26px;
 			display: block;
 			margin-left: 2px;
+		}
+		.logo-kinopoisk{
+			width: 80px;
 		}
 		.text-rym{
 			display: inline-block;
@@ -414,7 +417,7 @@ if (isChrome)
 		.extras-table td{
 			padding-bottom: 10px;
 		}
-		.mubi-score,.simkl-score{
+		.mubi-score, .simkl-score, .kinopoisk-score {
 			color: #FFF;
 			font-size: 18px;
 		}
@@ -538,6 +541,10 @@ if (isChrome)
 			text-align: center; 
 			font-size: 10px;
 		}
+			
+		.kinopoisk-score {
+			color: #bbbbbb !important;
+		}
 	`);
 	/* eslint-enable */
 
@@ -610,6 +617,7 @@ if (isChrome)
 				Mubi_ID: null, Mubi_URL: null,
 				FilmAffinity_ID: null, FilmAffinity_URL: null,
 				SensCritique_ID: null, SensCritique_URL: null,
+				Kinopoisk_ID: null,
 			},
 
 			// Rotten Tomatoes
@@ -661,6 +669,10 @@ if (isChrome)
 
 			// Filmarks
 			filmarks: { state: 0, data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
+
+			// Kinopoisk
+			kinopoisk: { state: 0, status_code: 0, data: null, id: null, url: null, api_url: null, rating: null, num_ratings: 0 },
+
 
 			linksAdded: [],
 
@@ -1280,6 +1292,32 @@ if (isChrome)
 								// Get the Filmarks ID to use for later (ID property not yet in WikiData)
 								if (this.wiki != null && this.wiki.Filmarks_ID != null && this.wiki.Filmarks_ID.value != null) {
 									this.filmarks.id = this.wiki.Filmarks_ID.value;
+								}
+
+								// Get Kinopoisk data
+								if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
+									this.kinopoisk.id = this.wiki.Kinopoisk_ID.value;
+									this.kinopoisk.api_url = "https://kinopoiskapiunofficial.tech/api/v2.2/films/" + this.kinopoisk.id;
+									this.kinopoisk.state = 1;
+
+									var options = {
+										method: 'GET',
+										headers: {
+											'X-API-KEY': letterboxd.storage.get('kinopoisk-apikey')
+										}
+									};
+									
+									browser.runtime.sendMessage({ name: "GETDATA", url: this.kinopoisk.api_url, options: options, type: "JSON" }, (value) => {
+										if (letterboxd.helpers.ValidateResponse("Kinopoisk Unofficial API", value) == false){
+											return;
+										}
+
+										this.kinopoisk.data = value.response;
+										if (this.kinopoisk.data != "") {
+											this.kinopoisk.state = 2;
+											this.addKinopoisk();
+										}
+									});
 								}
 							}else{
 								console.log("Letterboxd Extras | No WikiData results found.");
@@ -2771,6 +2809,9 @@ if (isChrome)
 					} else if (url.includes("filmarks")) {
 						text = "FILMARKS";
 						className = "filmarks-button";
+					} else if (url.includes("kinopoisk")) {
+						text = "KINOPOISK";
+						className = "kinopoisk-button";
 					} else if (url.includes("doesthedogdie")) {
 						text = "DOG";
 						className = "ddd-button";
@@ -2799,6 +2840,7 @@ if (isChrome)
 						'.mubi-button',
 						'.filmaff-button',
 						'.simkl-button',
+						'.kinopoisk-button',
 						'.allo-button',
 						'.mal-button',
 						'.al-button',
@@ -3672,6 +3714,7 @@ if (isChrome)
 					'.mubi-ratings',
 					'.filmaff-ratings',
 					'.simkl-ratings',
+					'.kinopoisk-ratings',
 					'.anidb-ratings',
 					'.filmarks-ratings',
 					'.cinemascore'
@@ -4947,6 +4990,128 @@ if (isChrome)
 				// APPEND to the sidebar
 				//************************************************************
 				this.appendRating(section, 'filmarks-ratings');
+
+				// Add the hover events
+				//*****************************************************************
+				letterboxd.helpers.addTooltipEvents(section);
+			},
+			
+
+			addKinopoisk() {
+				if (document.querySelector('.kinopoisk-ratings')) return;
+
+				if (!document.querySelector('.sidebar')) return;
+
+				// Collect Date from the SIMKL API
+				//***************************************************************
+				if (this.kinopoisk.data != null) {
+					if (this.kinopoisk.data.ratingKinopoisk != null) {
+						this.kinopoisk.rating = this.kinopoisk.data.ratingKinopoisk;
+					}
+					if (this.kinopoisk.data.ratingKinopoiskVoteCount != null) {
+						this.kinopoisk.num_ratings = this.kinopoisk.data.ratingKinopoiskVoteCount;
+					}
+					if (this.kinopoisk.data.webUrl != null) {
+						this.kinopoisk.url = this.kinopoisk.data.webUrl;
+
+						this.addLink(this.kinopoisk.url);
+					}
+				}
+
+				// Do not display if there is no score or ratings
+				if (this.kinopoisk.rating == null && this.kinopoisk.num_ratings == 0) return;
+
+				// Add to Letterboxd
+				//***************************************************************
+				// Add the section to the page
+				const section = letterboxd.helpers.createElement('section', {
+					class: 'section ratings-histogram-chart kinopoisk-ratings ratings-extras'
+				});
+
+				// Add the Header
+				const heading = letterboxd.helpers.createElement('h2', {
+					class: 'section-heading section-heading-extras',
+					style: 'height: 13px;'
+				});
+				section.append(heading);
+
+				const logoHolder = letterboxd.helpers.createElement('a', {
+					class: "logo-kinopoisk",
+					href: this.kinopoisk.url,
+					style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/kinopoisk-logo-rus.svg") + '");'
+				});
+				heading.append(logoHolder);
+
+				if (this.isMobile) {
+					// Add the Show Details button			
+					const showDetails = letterboxd.helpers.createShowDetailsButton("kinopoisk", "kinopoisk-score-details");
+					section.append(showDetails);
+				}
+
+				// Score
+				//***************************************************************
+				const container = letterboxd.helpers.createElement('span', {}, {
+					['display']: 'block',
+					['margin-bottom']: '10px'
+				});
+				section.append(container);
+
+				// Setup Score and Tooltip
+				var score = this.kinopoisk.rating;
+				var totalScore = "/10";
+				if (letterboxd.storage.get('convert-ratings') === "5") {
+					totalScore = "/5";
+					score = (score / 2);
+				}
+				score = score.toFixed(1).toLocaleString();
+				var num_ratings = this.kinopoisk.num_ratings.toLocaleString();
+
+				// Add the hoverover text and href
+				var tooltip = 'No score available';
+				if (this.kinopoisk.num_ratings > 0 && this.kinopoisk.rating == null) {
+					tooltip = num_ratings + ' rating';
+					if (this.kinopoisk.num_ratings > 1) tooltip += "s";
+					score = "N/A";
+
+				} else if (this.kinopoisk.num_ratings > 0) {
+					tooltip = "Average of " + score.toLocaleString() + totalScore + " based on " + num_ratings + ' ratings';
+				} else {
+					score = "N/A";
+				}
+
+				// The span that holds the score
+				const span = letterboxd.helpers.createElement('a', {
+					class: "kinopoisk-box tooltip tooltip-extra",
+					['href']: this.kinopoisk.url + "reviews/",
+					['data-original-title']: tooltip
+				}, {
+					['display']: 'inline-block',
+					['width']: 'auto'
+				});
+
+				// The element that is the score itself
+				const text = letterboxd.helpers.createElement('span', {
+					class: 'display-rating -highlight kinopoisk-score'
+				});
+				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
+				text.innerText = score;
+				span.append(text);
+
+				// Add the element /10 or /5 depending on score
+				const scoreTotal = letterboxd.helpers.createElement('p', {
+					style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
+				});
+				scoreTotal.innerText = totalScore;
+				span.append(scoreTotal);
+
+				container.append(span);
+
+				// Add the tooltip as text for mobile
+				letterboxd.helpers.createDetailsText('kinopoisk', section, tooltip, this.isMobile);
+
+				// APPEND to the sidebar
+				//************************************************************
+				this.appendRating(section, 'kinopoisk-ratings');
 
 				// Add the hover events
 				//*****************************************************************
@@ -6673,7 +6838,7 @@ if (isChrome)
 						"}";
 
 				} else {
-					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
+					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Country_Of_Origin ?Kinopoisk_ID ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"\n" +
 						sparqlQuery +
@@ -6688,6 +6853,7 @@ if (isChrome)
 						"  OPTIONAL { ?item wdt:P1265 ?Allocine_Film_ID }\n" +
 						"  OPTIONAL { ?item wdt:P1267 ?Allocine_TV_ID }\n" +
 						"  OPTIONAL { ?item wdt:P4529 ?Douban_ID }\n" +
+						"  OPTIONAL { ?item wdt:P2603 ?Kinopoisk_ID }\n" +
 						"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 						"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 						"  OPTIONAL { ?item wdt:P2629 ?BBFC_rating. }\n" +
