@@ -25,6 +25,16 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         if (msg.options != null)
             options = msg.options;
 
+        if (msg.url.includes('kinopoiskapiunofficial.tech') && msg.options == null){
+            // do not steal pls :(
+            var options = {
+                method: 'GET',
+                headers: {
+                    'X-API-KEY': 'd761642c-8182-4167-b8db-cae260ade0db'
+                }
+            };
+        }
+
         try {
             (async () => {
                 // Check for permission before call
@@ -119,6 +129,7 @@ async function InitDefaultSettings() {
         options['mpa-enabled'] = null;
     }
 
+    // Default enabled settings
     if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
     if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
@@ -135,9 +146,9 @@ async function InitDefaultSettings() {
     if (options['sens-favorites-enabled'] == null) options['sens-favorites-enabled'] = true;
     if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
     if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
-    
     if (options['content-ratings'] == null) options['content-ratings'] = 'mpaa';
 
+    // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
     if (options['critic-default'] == null) options['critic-default'] = "all";
     if (options['audience-default'] == null) options['audience-default'] = "all";
@@ -159,11 +170,16 @@ async function InitDefaultSettings() {
     if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
     if (options['google'] == null) options['google'] = false;
     if (options['boxoffice-enabled'] == null) options['boxoffice-enabled'] = false;
+    if (options['ddd-enabled'] == null) options['ddd-enabled'] = false;
+    if (options['ddd-apikey'] == null) options['ddd-apikey'] = '';
+    if (options['kinopoisk-enabled'] == null) options['kinopoisk-enabled'] = false;
+    if (options['kinopoisk-apikey'] == null) options['kinopoisk-apikey'] = '';
+    if (options['filmarks-enabled'] == null) options['filmarks-enabled'] = false;
 
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
-    
+
 
     // Save
     await browser.storage.sync.set({ options });

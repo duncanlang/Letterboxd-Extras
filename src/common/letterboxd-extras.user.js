@@ -665,7 +665,7 @@ if (isChrome)
 			simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 
 			// Does the Dog Die (ddd)
-			ddd: { state: 0, data: null, url: null, added: false },
+			ddd: { state: 0, data: null, id: null, url: null, added: false },
 
 			// Filmarks
 			filmarks: { state: 0, data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
@@ -1039,245 +1039,245 @@ if (isChrome)
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0) {
 								this.wiki = value.results.bindings[0];
 
-								// Add Wikipedia Link
-								if (letterboxd.storage.get('wiki-link-enabled') === true) {
-									this.addWikiButton();
-								}
-
-								// Collect the countries
-								for (var i = 0; i < value.results.bindings.length; i++) {
-									var result = value.results.bindings[i];
-									if (result.Country_Of_Origin != null && result.Country_Of_Origin.value != "") {
-										this.wikiData.countries.push(result.Country_Of_Origin.value);
+								if (this.wiki != null){
+									// Add Wikipedia Link
+									if (letterboxd.storage.get('wiki-link-enabled') === true) {
+										this.addWikiButton();
 									}
-								}
 
-								// Box Office and Budget
-								if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null) {
-									this.wikiData.budget.value = this.wiki.Budget.value;
-									if (this.wiki.Budget_UnitLabel != null)
-										this.wikiData.budget.currency = this.wiki.Budget_UnitLabel.value;
-									if (this.wiki.Budget_TogetherWith != null)
-										this.wikiData.budget.togetherWith = this.wiki.Budget_TogetherWith.value;
-
-									var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.budget.value));
-									var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.budget));
-									if (this.mojoData.budget == "" || (value > value2) || this.wikiData.budget.togetherWith != null) {
-										letterboxd.helpers.createDetailsRow("Budget", this.wikiData.budget.value, this.wikiData.budget.currency, this.wikiData.budget.togetherWith);
-									}
-								}
-								if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null) {
-									this.wikiData.boxOfficeUS.value = this.wiki.Box_OfficeUS.value;
-									if (this.wiki.Box_OfficeUS_UnitLabel != null)
-										this.wikiData.boxOfficeUS.currency = this.wiki.Box_OfficeUS_UnitLabel.value;
-
-									var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeUS.value));
-									var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeUS));
-									if (this.mojoData.boxOfficeUS == "" || (value > value2)) {
-										letterboxd.helpers.createDetailsRow("Box Office (US)", this.wikiData.boxOfficeUS.value, this.wikiData.boxOfficeUS.currency);
-									}
-								}
-								if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null) {
-									this.wikiData.boxOfficeWW.value = this.wiki.Box_OfficeWW.value;
-									if (this.wiki.Box_OfficeWW_UnitLabel != null)
-										this.wikiData.boxOfficeWW.currency = this.wiki.Box_OfficeWW_UnitLabel.value;
-
-									var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeWW.value));
-									var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeWW));
-									if (this.mojoData.boxOfficeWW == "" || (value > value2)) {
-										letterboxd.helpers.createDetailsRow("Box Office (WW)", this.wikiData.boxOfficeWW.value, this.wikiData.boxOfficeWW.currency);
-									}
-								}
-
-								// Get TV dates
-								var options = { year: 'numeric', month: 'short', day: 'numeric' };
-								if (this.wiki.TV_Start != null) {
-									this.wikiData.TV_Start = new Date(this.wiki.TV_Start.value.replace("Z", "")).toLocaleDateString("en-UK", options);
-									this.filmDate.date = this.wikiData.TV_Start;
-									this.filmDate.precision = "11";
-									var dateString = this.wikiData.TV_Start + " - ";
-									if (this.wiki.TV_End != null) {
-										this.wikiData.TV_End = new Date(this.wiki.TV_End.value.replace("Z", "")).toLocaleDateString("en-UK", options);
-										dateString += this.wikiData.TV_End;
-									}
-									this.addDate(dateString);
-								}
-
-								// Get US Title and attempt Cinemascore
-								if (this.wiki.US_Title != null && this.wiki.US_Title != "")
-									this.wikiData.US_Title = this.wiki.US_Title.value;
-
-								if (this.wiki.itemLabel != null && this.wiki.itemLabel != "")
-									this.wikiData.Alt_Title = this.wiki.itemLabel.value;
-
-								// Get and add Metacritic
-								if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null && letterboxd.storage.get('metacritic-enabled') === true) {
-									this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
-								}
-
-								// Get and add Rotten Tomatoes
-								if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null && letterboxd.storage.get('tomato-enabled') === true) {
-									var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
-									if (url.includes('/tv/') && !url.match(/s[0-9]{2}/i))
-										url += "/s01"
-
-									this.wikiData.tomatoURL = url;
-									this.initTomato();
-								}
-
-								// Get the MUBI ID to use later
-								if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null) {
-									var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
-
-									this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
-									this.wikiData.Mubi_URL = url;
-								}
-
-								// Get the SensCritique ID to use for later
-								if (this.wiki != null && this.wiki.SensCritique_ID != null && this.wiki.SensCritique_ID.value != null) {
-									this.wikiData.SensCritique_ID = this.wiki.SensCritique_ID.value;
-								}
-
-								// Get the Allocine ID to use for later
-								if (this.wiki != null && this.wiki.Allocine_Film_ID != null && this.wiki.Allocine_Film_ID.value != null) {
-									this.wikiData.Allocine_Film_ID = this.wiki.Allocine_Film_ID.value;
-								}
-								if (this.wiki != null && this.wiki.Allocine_TV_ID != null && this.wiki.Allocine_TV_ID.value != null) {
-									this.wikiData.Allocine_TV_ID = this.wiki.Allocine_TV_ID.value;
-								}
-
-								// Get the Douban ID to use for later
-								if (this.wiki != null && this.wiki.Douban_ID != null && this.wiki.Douban_ID.value != null) {
-									this.wikiData.Douban_ID = this.wiki.Douban_ID.value;
-								}
-
-								// Get and add FilmAffinity
-								if (letterboxd.storage.get('filmaff-enabled') === true) {
-									if (this.wiki != null && this.wiki.FilmAffinity_ID != null && this.wiki.FilmAffinity_ID.value != null) {
-										var validLocales = ['us', 'ca', 'mx', 'es', 'uk', 'ie', 'au', 'ar', 'cl', 'co', 'uy', 'py', 'pe', 'ec', 've', 'cr', 'hn', 'gt', 'bo', 'do'];
-										var locale = "us";
-										if (validLocales.includes(this.browserLocale.toLowerCase())) {
-											locale = this.browserLocale.toLowerCase();
+									// Collect the countries
+									for (var i = 0; i < value.results.bindings.length; i++) {
+										var result = value.results.bindings[i];
+										if (result.Country_Of_Origin != null && result.Country_Of_Origin.value != "") {
+											this.wikiData.countries.push(result.Country_Of_Origin.value);
 										}
-
-										var url = "https://www.filmaffinity.com/" + locale + "/film" + this.wiki.FilmAffinity_ID.value + ".html";
-
-										this.wikiData.FilmAffinity_ID = this.wiki.FilmAffinity_ID.value;
-										this.wikiData.FilmAffinity_URL = url;
-										this.filmaffData.url = url;
-										this.initFilmAffinity();
 									}
-								}
 
-								// Get MAL data
-								if (this.wiki != null && this.wiki.MAL_ID != null && this.wiki.MAL_ID.value != null && letterboxd.storage.get('mal-enabled') === true) {
-									this.wikiData.MAL_ID = this.wiki.MAL_ID.value;
-									this.mal.id = this.wiki.MAL_ID.value;
+									// Box Office and Budget
+									if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null) {
+										this.wikiData.budget.value = this.wiki.Budget.value;
+										if (this.wiki.Budget_UnitLabel != null)
+											this.wikiData.budget.currency = this.wiki.Budget_UnitLabel.value;
+										if (this.wiki.Budget_TogetherWith != null)
+											this.wikiData.budget.togetherWith = this.wiki.Budget_TogetherWith.value;
 
-									var url = 'https://api.jikan.moe/v4/anime/' + this.mal.id;
-									this.mal.url = url;
+										var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.budget.value));
+										var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.budget));
+										if (this.mojoData.budget == "" || (value > value2) || this.wikiData.budget.togetherWith != null) {
+											letterboxd.helpers.createDetailsRow("Budget", this.wikiData.budget.value, this.wikiData.budget.currency, this.wikiData.budget.togetherWith);
+										}
+									}
+									if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null) {
+										this.wikiData.boxOfficeUS.value = this.wiki.Box_OfficeUS.value;
+										if (this.wiki.Box_OfficeUS_UnitLabel != null)
+											this.wikiData.boxOfficeUS.currency = this.wiki.Box_OfficeUS_UnitLabel.value;
 
-									if (this.mal.data == null && this.mal.state < 1) {
-										try {
-											this.mal.state = 1;
-											browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-												if (letterboxd.helpers.ValidateResponse("Jikan (MAL API)", value) == false){
-													return;
-												}
+										var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeUS.value));
+										var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeUS));
+										if (this.mojoData.boxOfficeUS == "" || (value > value2)) {
+											letterboxd.helpers.createDetailsRow("Box Office (US)", this.wikiData.boxOfficeUS.value, this.wikiData.boxOfficeUS.currency);
+										}
+									}
+									if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null) {
+										this.wikiData.boxOfficeWW.value = this.wiki.Box_OfficeWW.value;
+										if (this.wiki.Box_OfficeWW_UnitLabel != null)
+											this.wikiData.boxOfficeWW.currency = this.wiki.Box_OfficeWW_UnitLabel.value;
 
-												var mal = value.response;
-												if (mal != "") {
-													this.mal.data = JSON.parse(mal);
+										var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeWW.value));
+										var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeWW));
+										if (this.mojoData.boxOfficeWW == "" || (value > value2)) {
+											letterboxd.helpers.createDetailsRow("Box Office (WW)", this.wikiData.boxOfficeWW.value, this.wikiData.boxOfficeWW.currency);
+										}
+									}
 
-													if (this.mal.data.data != null) {
-														this.mal.data = this.mal.data.data;
-														this.mal.url = this.mal.data.url;
-													} else {
-														this.mal.state = 3;
+									// Get TV dates
+									var options = { year: 'numeric', month: 'short', day: 'numeric' };
+									if (this.wiki.TV_Start != null) {
+										this.wikiData.TV_Start = new Date(this.wiki.TV_Start.value.replace("Z", "")).toLocaleDateString("en-UK", options);
+										this.filmDate.date = this.wikiData.TV_Start;
+										this.filmDate.precision = "11";
+										var dateString = this.wikiData.TV_Start + " - ";
+										if (this.wiki.TV_End != null) {
+											this.wikiData.TV_End = new Date(this.wiki.TV_End.value.replace("Z", "")).toLocaleDateString("en-UK", options);
+											dateString += this.wikiData.TV_End;
+										}
+										this.addDate(dateString);
+									}
+
+									// Get US Title and attempt Cinemascore
+									if (this.wiki.US_Title != null && this.wiki.US_Title != "")
+										this.wikiData.US_Title = this.wiki.US_Title.value;
+
+									if (this.wiki.itemLabel != null && this.wiki.itemLabel != "")
+										this.wikiData.Alt_Title = this.wiki.itemLabel.value;
+
+									// Get and add Metacritic
+									if (this.wiki != null && this.wiki.Metacritic_ID != null && this.wiki.Metacritic_ID.value != null && letterboxd.storage.get('metacritic-enabled') === true) {
+										this.wikiData.metaURL = "https://www.metacritic.com/" + this.wiki.Metacritic_ID.value;
+									}
+
+									// Get and add Rotten Tomatoes
+									if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null && letterboxd.storage.get('tomato-enabled') === true) {
+										var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
+										if (url.includes('/tv/') && !url.match(/s[0-9]{2}/i))
+											url += "/s01"
+
+										this.wikiData.tomatoURL = url;
+										this.initTomato();
+									}
+
+									// Get the MUBI ID to use later
+									if (this.wiki != null && this.wiki.Mubi_ID != null && this.wiki.Mubi_ID.value != null) {
+										var url = "https://api.mubi.com/v3/films/" + this.wiki.Mubi_ID.value;
+
+										this.wikiData.Mubi_ID = this.wiki.Mubi_ID.value;
+										this.wikiData.Mubi_URL = url;
+									}
+
+									// Get the SensCritique ID to use for later
+									if (this.wiki != null && this.wiki.SensCritique_ID != null && this.wiki.SensCritique_ID.value != null) {
+										this.wikiData.SensCritique_ID = this.wiki.SensCritique_ID.value;
+									}
+
+									// Get the Allocine ID to use for later
+									if (this.wiki != null && this.wiki.Allocine_Film_ID != null && this.wiki.Allocine_Film_ID.value != null) {
+										this.wikiData.Allocine_Film_ID = this.wiki.Allocine_Film_ID.value;
+									}
+									if (this.wiki != null && this.wiki.Allocine_TV_ID != null && this.wiki.Allocine_TV_ID.value != null) {
+										this.wikiData.Allocine_TV_ID = this.wiki.Allocine_TV_ID.value;
+									}
+
+									// Get the Douban ID to use for later
+									if (this.wiki != null && this.wiki.Douban_ID != null && this.wiki.Douban_ID.value != null) {
+										this.wikiData.Douban_ID = this.wiki.Douban_ID.value;
+									}
+
+									// Get and add FilmAffinity
+									if (letterboxd.storage.get('filmaff-enabled') === true) {
+										if (this.wiki != null && this.wiki.FilmAffinity_ID != null && this.wiki.FilmAffinity_ID.value != null) {
+											var validLocales = ['us', 'ca', 'mx', 'es', 'uk', 'ie', 'au', 'ar', 'cl', 'co', 'uy', 'py', 'pe', 'ec', 've', 'cr', 'hn', 'gt', 'bo', 'do'];
+											var locale = "us";
+											if (validLocales.includes(this.browserLocale.toLowerCase())) {
+												locale = this.browserLocale.toLowerCase();
+											}
+
+											var url = "https://www.filmaffinity.com/" + locale + "/film" + this.wiki.FilmAffinity_ID.value + ".html";
+
+											this.wikiData.FilmAffinity_ID = this.wiki.FilmAffinity_ID.value;
+											this.wikiData.FilmAffinity_URL = url;
+											this.filmaffData.url = url;
+											this.initFilmAffinity();
+										}
+									}
+
+									// Get MAL data
+									if (this.wiki != null && this.wiki.MAL_ID != null && this.wiki.MAL_ID.value != null && letterboxd.storage.get('mal-enabled') === true) {
+										this.wikiData.MAL_ID = this.wiki.MAL_ID.value;
+										this.mal.id = this.wiki.MAL_ID.value;
+
+										var url = 'https://api.jikan.moe/v4/anime/' + this.mal.id;
+										this.mal.url = url;
+
+										if (this.mal.data == null && this.mal.state < 1) {
+											try {
+												this.mal.state = 1;
+												browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
+													if (letterboxd.helpers.ValidateResponse("Jikan (MAL API)", value) == false){
+														return;
 													}
-												}
-											});
 
-											browser.runtime.sendMessage({ name: "GETDATA", url: url + "/statistics" }, (value) => {
-												if (letterboxd.helpers.ValidateResponse("Jikan (MAL API) ratings", value) == false){
-													return;
-												}
-												
-												var mal = value.response;
-												if (mal != "") {
-													this.mal.statistics = JSON.parse(mal);
+													var mal = value.response;
+													if (mal != "") {
+														this.mal.data = JSON.parse(mal);
 
-													if (this.mal.statistics.data != null) {
-														this.mal.statistics = this.mal.statistics.data;
-													} else {
-														this.mal.state = 3;
+														if (this.mal.data.data != null) {
+															this.mal.data = this.mal.data.data;
+															this.mal.url = this.mal.data.url;
+														} else {
+															this.mal.state = 3;
+														}
 													}
-												}
-											});
-										} catch {
-											console.error("Letterboxd Extras | Unable to parse MAL URL");
-											this.mal.state = 3;
+												});
+
+												browser.runtime.sendMessage({ name: "GETDATA", url: url + "/statistics" }, (value) => {
+													if (letterboxd.helpers.ValidateResponse("Jikan (MAL API) ratings", value) == false){
+														return;
+													}
+													
+													var mal = value.response;
+													if (mal != "") {
+														this.mal.statistics = JSON.parse(mal);
+
+														if (this.mal.statistics.data != null) {
+															this.mal.statistics = this.mal.statistics.data;
+														} else {
+															this.mal.state = 3;
+														}
+													}
+												});
+											} catch {
+												console.error("Letterboxd Extras | Unable to parse MAL URL");
+												this.mal.state = 3;
+											}
 										}
 									}
-								}
 
-								// Get AniList data
-								if (this.wiki != null && this.wiki.Anilist_ID != null && this.wiki.Anilist_ID.value != null && letterboxd.storage.get('al-enabled') === true) {
-									if (this.al.data == null && this.al.state < 1) {
-										this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
-										this.al.id = this.wiki.Anilist_ID.value;
+									// Get AniList data
+									if (this.wiki != null && this.wiki.Anilist_ID != null && this.wiki.Anilist_ID.value != null && letterboxd.storage.get('al-enabled') === true) {
+										if (this.al.data == null && this.al.state < 1) {
+											this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
+											this.al.id = this.wiki.Anilist_ID.value;
 
-										var url = 'https://graphql.anilist.co';
-										const query = letterboxd.helpers.getAniListQuery();
-										const options = {
-											method: 'POST',
-											headers: {
-												'content-type': 'application/json',
-												accept: 'application/json'
-											},
-											body: JSON.stringify({
-												query: query,
-												variables: { id: this.al.id }
-											})
-										}
+											var url = 'https://graphql.anilist.co';
+											const query = letterboxd.helpers.getAniListQuery();
+											const options = {
+												method: 'POST',
+												headers: {
+													'content-type': 'application/json',
+													accept: 'application/json'
+												},
+												body: JSON.stringify({
+													query: query,
+													variables: { id: this.al.id }
+												})
+											}
 
-										try {
-											this.al.state = 1;
-											browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-												if (letterboxd.helpers.ValidateResponse("AniList API", value) == false){
-													return;
-												}
-												
-												var al = value.response;
-												if (al != null && al.data != null) {
-													this.al.data = al.data.Media;
+											try {
+												this.al.state = 1;
+												browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
+													if (letterboxd.helpers.ValidateResponse("AniList API", value) == false){
+														return;
+													}
+													
+													var al = value.response;
+													if (al != null && al.data != null) {
+														this.al.data = al.data.Media;
 
-													if (this.al.data != null) {
-														this.al.url = this.al.data.siteUrl;
-														this.addLink(this.al.data.siteUrl);
+														if (this.al.data != null) {
+															this.al.url = this.al.data.siteUrl;
+															this.addLink(this.al.data.siteUrl);
 
-														this.al.state = 2;
-														this.addAL();
+															this.al.state = 2;
+															this.addAL();
+														} else {
+															this.al.state = 3;
+														}
 													} else {
 														this.al.state = 3;
+														if (value.errors != null)
+															console.error("Letterboxd Extras | AniList API Error: " + value.errors[0].message);
+														else
+															console.error("Letterboxd Extras | AniList Unknown API Error. Status: " + value.status);
 													}
-												} else {
-													this.al.state = 3;
-													if (value.errors != null)
-														console.error("Letterboxd Extras | AniList API Error: " + value.errors[0].message);
-													else
-														console.error("Letterboxd Extras | AniList Unknown API Error. Status: " + value.status);
-												}
-											});
-										} catch {
-											console.error("Letterboxd Extras | Unable to parse AniList URL");
-											this.al.state = 3;
+												});
+											} catch {
+												console.error("Letterboxd Extras | Unable to parse AniList URL");
+												this.al.state = 3;
+											}
 										}
 									}
-								}
 
-								// Get Content Ratings (MPAA, BBFC, etc)
-								if (this.wiki != null){
+									// Get Content Ratings (MPAA, BBFC, etc)
 									this.wikiData.mpaa = letterboxd.helpers.parseWikiDataResult(this.wiki, "MPAA_film_ratingLabel", this.wikiData.mpaa);
 									this.wikiData.bbfc = letterboxd.helpers.parseWikiDataResult(this.wiki, "BBFC_ratingLabel", this.wikiData.bbfc);
 									this.wikiData.fsk = letterboxd.helpers.parseWikiDataResult(this.wiki, "FSK_ratingLabel", this.wikiData.fsk);
@@ -1286,38 +1286,43 @@ if (isChrome)
 									this.wikiData.kmrb = letterboxd.helpers.parseWikiDataResult(this.wiki, "KMRB_ratingLabel", this.wikiData.kmrb);
 									this.wikiData.acb = letterboxd.helpers.parseWikiDataResult(this.wiki, "ACB_ratingLabel", this.wikiData.acb);
 									this.wikiData.classind = letterboxd.helpers.parseWikiDataResult(this.wiki, "ClassInd_ratingLabel", this.wikiData.classind);
-								}
 
+									// Get the Filmarks ID to use for later (ID property not yet in WikiData)
+									this.filmarks.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "Filmarks_ID", this.filmarks.id);
 
-								// Get the Filmarks ID to use for later (ID property not yet in WikiData)
-								if (this.wiki != null && this.wiki.Filmarks_ID != null && this.wiki.Filmarks_ID.value != null) {
-									this.filmarks.id = this.wiki.Filmarks_ID.value;
-								}
+									// Get the DDD ID to use for later  (ID property not yet in WikiData)
+									this.ddd.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "DDD_ID", this.ddd.id);
 
-								// Get Kinopoisk data
-								if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
-									this.kinopoisk.id = this.wiki.Kinopoisk_ID.value;
-									this.kinopoisk.api_url = "https://kinopoiskapiunofficial.tech/api/v2.2/films/" + this.kinopoisk.id;
-									this.kinopoisk.state = 1;
+									// Get Kinopoisk data
+									if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
+										this.kinopoisk.id = this.wiki.Kinopoisk_ID.value;
+										this.kinopoisk.api_url = "https://kinopoiskapiunofficial.tech/api/v2.2/films/" + this.kinopoisk.id;
+										this.kinopoisk.state = 1;
 
-									var options = {
-										method: 'GET',
-										headers: {
-											'X-API-KEY': letterboxd.storage.get('kinopoisk-apikey')
+										var apiKey = letterboxd.storage.get('kinopoisk-apikey');
+										if (apiKey != null & apiKey != ''){
+											var options = {
+												method: 'GET',
+												headers: {
+													'X-API-KEY': letterboxd.storage.get('kinopoisk-apikey')
+												}
+											};
+										}else{
+											var options = null;
 										}
-									};
-									
-									browser.runtime.sendMessage({ name: "GETDATA", url: this.kinopoisk.api_url, options: options, type: "JSON" }, (value) => {
-										if (letterboxd.helpers.ValidateResponse("Kinopoisk Unofficial API", value) == false){
-											return;
-										}
+										
+										browser.runtime.sendMessage({ name: "GETDATA", url: this.kinopoisk.api_url, options: options, type: "JSON" }, (value) => {
+											if (letterboxd.helpers.ValidateResponse("Kinopoisk Unofficial API", value) == false){
+												return;
+											}
 
-										this.kinopoisk.data = value.response;
-										if (this.kinopoisk.data != "") {
-											this.kinopoisk.state = 2;
-											this.addKinopoisk();
-										}
-									});
+											this.kinopoisk.data = value.response;
+											if (this.kinopoisk.data != "") {
+												this.kinopoisk.state = 2;
+												this.addKinopoisk();
+											}
+										});
+									}
 								}
 							}else{
 								console.log("Letterboxd Extras | No WikiData results found.");
@@ -1635,12 +1640,14 @@ if (isChrome)
 						else{
 							console.log("Letterboxd Extras | No " + this.contentRatingSystem + " rating found.");
 						}
+
+						this.contentRatingAdded = true; // prevents this from running again regardless of the rating being added
 					}
 				}
 
 				// Add Filmarks
 				if (this.filmarks.state == 0 && this.wikiData.state == 2 && letterboxd.storage.get('filmarks-enabled') === true ){
-					if (this.filmarks.id != null){
+					if (this.filmarks.id != null && this.filmarks.id != ''){
 						this.getFilmarks();
 					}
 					else if (this.letterboxdTitle != null && this.altTitleList != null){
@@ -3546,31 +3553,35 @@ if (isChrome)
 						for (var i = 0; i < sens.length; i++) {
 							var result = { score: 0, data: sens[i] };
 
-							var directors = [];
-							if (sens[i].product.directors != null)
-								directors = directors.concat(sens[i].product.directors);
-							if (sens[i].product.creators != null)
-								directors = directors.concat(sens[i].product.creators);
-							if (sens[i].product.producers != null)
-								directors = directors.concat(sens[i].product.producers);
+							if (sens[i].product != null){
 
-							// Match based on directors/producers/creators
-							for (var k = 0; k < directors.length; k++) {
-								// Director name to lowercase and removed diacritics
-								var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-								if (this.letterboxdDirectorsAlt.includes(director)) {
-									result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
-									break;
+								// Get directors/creators/producers
+								var directors = [];
+								if (sens[i].product.directors != null)
+									directors = directors.concat(sens[i].product.directors);
+								if (sens[i].product.creators != null)
+									directors = directors.concat(sens[i].product.creators);
+								if (sens[i].product.producers != null)
+									directors = directors.concat(sens[i].product.producers);
+								
+								// Match based on directors/producers/creators
+								for (var k = 0; k < directors.length; k++) {
+									// Director name to lowercase and removed diacritics
+									var director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+									if (this.letterboxdDirectorsAlt.includes(director)) {
+										result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(sens[i].fields.year))
+										break;
+									}
 								}
-							}
-							// Match based on exact name and year match
-							if (result.score == 0 && this.letterboxdTitle == sens[i].product.title && this.letterboxdYear == sens[i].fields.year) {
-								result.score = 90;
-							}
+								// Match based on exact name and year match
+								if (result.score == 0 && this.letterboxdTitle == sens[i].product.title && this.letterboxdYear == sens[i].fields.year) {
+									result.score = 90;
+								}
 
-							// Only consider it a match if greater or equal to 90 score
-							if (result.score >= 90) {
-								results.push(result);
+								// Only consider it a match if greater or equal to 90 score
+								if (result.score >= 90) {
+									results.push(result);
+								}
 							}
 						}
 						if (results.length > 0) {
@@ -4250,7 +4261,7 @@ if (isChrome)
 				if (this.imdbID != "") {
 					url += "&imdb=" + this.imdbID;
 				}
-				if (this.tmdbID != "") {
+				if (this.tmdbID != "" && this.tmdbID != "0") {
 					url += "&tmdb=" + this.tmdbID;
 				}
 				if (this.tmdbTV) {
@@ -4265,15 +4276,18 @@ if (isChrome)
 				url += "&fields=rank,simkl";
 
 				// Make Call
-				browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
+				browser.runtime.sendMessage({ name: "GETDATA", url: url, type: "JSON" }, (value) => {
 					if (letterboxd.helpers.ValidateResponse("Simkl", value) == false){
 						return;
 					}
 
-					this.simkl.raw = value.response;
-					this.simkl.data = JSON.parse(value.response);
+					this.simkl.data = value.response;
 
-					if (this.simkl.data.error != null) {
+					if (this.simkl.data == null || this.simkl.data == 'null'){
+						this.simkl.state = 3;
+						console.error("Letterboxd Extras | Simkl API error: null response");
+
+					} else if (this.simkl.data.error != null) {
 						this.simkl.state = 3;
 						console.error("Letterboxd Extras | Simkl API error: " + this.simkl.data.code + " " + this.simkl.data.message);
 

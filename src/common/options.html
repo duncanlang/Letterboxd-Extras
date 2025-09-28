@@ -206,15 +206,10 @@
             <input type="button" id="kinopoisk-permissions" class="request-permission" permissionTarget="kinopoisk-enabled" value="Request Permission"/>
         </div>
         <div>
-            <label for="kinopoisk-apikey">API Key:</label>
+            <label for="kinopoisk-apikey">API Key (optional):</label>
             <input type="text" id="kinopoisk-apikey" class="setting"/>
-        </div>
-    </div>
-    <div>
-        <h3>CinemaScore</h3>
-        <div>
-            <label for="cinema-enabled">Display CinemaScore:</label>
-            <input type="checkbox" id="cinema-enabled" class="setting"/>
+            <a class="hyperlink" href="https://kinopoiskapiunofficial.tech/" target="_blank">Get your API key from the unofficial API</a>
+            <p>Letterboxd Extras uses an unoffical API to get the ratings from Kinopoisk. If you encounter issues with rate limiting, you can enter your own key.</p>
         </div>
     </div>
     <div>
@@ -226,6 +221,13 @@
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
             <input type="button" id="filmarks-permissions" class="request-permission" permissionTarget="filmarks-enabled" value="Request Permission"/>
+        </div>
+    </div>
+    <div>
+        <h3>CinemaScore</h3>
+        <div>
+            <label for="cinema-enabled">Display CinemaScore:</label>
+            <input type="checkbox" id="cinema-enabled" class="setting"/>
         </div>
     </div>
 
@@ -303,9 +305,10 @@
             <input type="button" id="tspdt-permissions" class="request-permission" permissionTarget="tspdt-enabled" value="Request Permission"/>
         </div>
         <div>
-            <label for="ddd-apikey">API Key:</label>
+            <label for="ddd-apikey">API Key (optional):</label>
             <input type="text" id="ddd-apikey" class="setting"/>
-            <a href="https://www.doesthedogdie.com/profile" target="_blank" style="color: rgb(51, 167, 255);">Get your API key from your DDD profile</a>
+            <a class="hyperlink" href="https://www.doesthedogdie.com/profile" target="_blank">Get your API key from your DDD profile</a>
+            <p>An API key is supposed to be mandatory for the DDD API, however, the API call seems to work without. If this does not work, you can try to use your own API key.</p>
         </div>
     </div>
 
@@ -405,7 +408,7 @@
 
     <div>
         <div>
-            <a href="https://github.com/duncanlang/Letterboxd-Extras/issues" target="_blank" style="color: rgb(51, 167, 255);">Report an issue or suggest a new feature on GitHub</a>
+            <a class="hyperlink" href="https://github.com/duncanlang/Letterboxd-Extras/issues" target="_blank">Report an issue or suggest a new feature on GitHub</a>
         </div>
     </div>
 
