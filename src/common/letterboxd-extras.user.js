@@ -561,6 +561,8 @@ if (isChrome)
 			showDetailsAdded: false,
 			titleError: false,
 
+			idsCollected: false,
+
 			// IMDb
 			imdbID: "",
 			imdbData: { state: 0, url: "", data: null, raw: null, state2: 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null },
@@ -648,6 +650,8 @@ if (isChrome)
 			// SIMKL
 			simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 
+			// Does the Dog Die (ddd)
+			ddd: { state: 0, data: null, url: null, added: false },
 
 			linksAdded: [],
 
@@ -904,7 +908,7 @@ if (isChrome)
 				}
 
 				// First Get the IMDb link 
-				if (this.imdbID == "" && document.querySelector('.micro-button') != null && document.querySelector('.block-flag-wrapper')) {
+				if (this.idsCollected == false && document.querySelector('.micro-button') != null && document.querySelector('.block-flag-wrapper')) {
 					// Gets the IMDb link and ID, and also TMDB id
 					this.getIMDbLink();
 					if (this.linksMoved == false)
@@ -1535,6 +1539,14 @@ if (isChrome)
 					}
 				}
 
+				// Add 'Does the dog die?' link
+				if (this.idsCollected == true && (this.imdbID != '' || this.tmdbID != '') && this.letterboxdTitle != null && document.querySelector('.micro-button') != null && this.linksMoved == true && letterboxd.storage.get('ddd-enabled') === true){
+					if (this.ddd.state == 0){
+						// Call API
+						this.initDDD();
+					}
+				} 
+
 				// Add Content Ratings
 				if (this.wikiData.state == 2 && this.mojoData.state >= 2 && this.contentRatingAdded == false){
 					if (letterboxd.storage.get('content-ratings') === null || letterboxd.storage.get('content-ratings') === 'none'){
@@ -1602,7 +1614,7 @@ if (isChrome)
 
 						this.imdbData.url = imdbLink;
 
-					} else if (links[i].innerHTML === "TMDb") {
+					} else if (links[i].innerHTML === "TMDB") {
 						// Grab the tmdb link
 						tmdbLink = links[i].href;
 					}
@@ -1620,6 +1632,8 @@ if (isChrome)
 					}
 					this.tmdbID = tmdbLink.match(/(themoviedb.org\/(?:tv|movie)\/)([0-9]+)($|\/)/)[2];
 				}
+
+				this.idsCollected = true;
 			},
 
 			addIMDBScore() {
@@ -2716,6 +2730,9 @@ if (isChrome)
 					} else if (url.includes("allocine")) {
 						text = "ALLO";
 						className = "allo-button";
+					} else if (url.includes("doesthedogdie")) {
+						text = "DOG";
+						className = "ddd-button";
 					}
 
 					if (document.querySelector('.' + className)) {
@@ -2746,7 +2763,8 @@ if (isChrome)
 						'.al-button',
 						'.anidb-button',
 						'.mojo-button',
-						'.wiki-button'
+						'.wiki-button',
+						'.ddd-button'
 					];
 
 					var index = order.indexOf('.' + className);
@@ -4585,6 +4603,122 @@ if (isChrome)
 
 			initDouban() {
 				// TODO
+			},
+
+			async initDDD(){
+				this.ddd.state = 1;
+				var options = {
+					method: 'GET',
+					  headers: {
+						"Accept": "application/json",
+						'X-API-KEY': letterboxd.storage.get("ddd-apikey")
+					}
+				};
+
+				// Call the ddd API with the IMDB query 
+				var url = "https://www.doesthedogdie.com/dddsearch?imdb=" + this.imdbID;
+				if (this.imdbID != ''){
+					const response = await new Promise((resolve, reject) => {
+						browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+							if (letterboxd.helpers.ValidateResponse("DDD IMDb", value) == false){
+								reject(new Error("Invalid response"));
+								return;
+							}
+        					resolve(value);
+						});
+					});
+					var result = response.response;
+					if (result.items != null && result.items.length > 0) {
+						var item = result.items[0];
+						if (item.tmdbId > 0 && item.tmdbId != parseInt(this.tmdbID)){
+							// uh oh, DDD has the wrong movie???
+							// Found with https://letterboxd.com/film/the-hunt-2012/
+						}else{
+							this.ddd.data = item;
+							this.ddd.state = 2;
+						}
+					}
+				}
+
+				// If not found with the first call, do the search query instead
+				if (this.ddd.data == null){
+					// Search for title
+					url = "https://www.doesthedogdie.com/dddsearch?q=" + this.letterboxdTitle;
+					var response = await new Promise((resolve, reject) => {
+						browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+							if (letterboxd.helpers.ValidateResponse("DDD Search", value) == false){
+								reject(new Error("Invalid response"));
+								return;
+							}
+        					resolve(value);
+						});
+					});					
+					var result = response.response;
+
+					// Search for native title as well
+					if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle != ""){
+						url = "https://www.doesthedogdie.com/dddsearch?q=" + this.letterboxdNativeTitle;
+						response = await new Promise((resolve, reject) => {
+							browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+								if (letterboxd.helpers.ValidateResponse("DDD Search", value) == false){
+									reject(new Error("Invalid response"));
+									return;
+								}
+								resolve(value);
+							});
+						});
+						if (result.items != null && response.response.items != null)
+							result.items = result.items.concat(response.response.items);
+					}
+
+					if (result.items != null && result.items.length > 0){
+						for (var i = 0; i < result.items.length; i++){
+							var item = result.items[i];
+							var itemType = item.itemType.name;
+
+							// Make sure the item type matches the letterboxd movie
+							if ((this.tmdbTV == true && itemType != "TV Show") || (this.tmdbTV == false && itemType != "Movie")){
+								continue;
+							}
+
+							// Try to match on the TMDB ID
+							if (item.tmdbId == this.tmdbID){
+								// This is an exact match, set and exit out
+								this.ddd.data = item;
+								this.ddd.state = 2;
+								break;
+							}
+							else if (item.tmdbId != null && item.tmdbId > 0){
+								// DDD item has a tmdb ID that does not match letterboxd, lets continue instead of matching on the name
+								continue;
+							}
+
+							// Try to match on the name
+							if (item.name == this.letterboxdTitle && item.releaseYear == this.letterboxdYear || (item.name == this.letterboxdTitle + " " + this.letterboxdYear && item.releaseYear == this.letterboxdYear)){
+								// Match based on name may not be accurate, don't exit so we can keep checking for a match based on TMDB if needed
+								this.ddd.data = item;
+								this.ddd.state = 2;
+							}
+						}
+					}
+				}
+
+				if (this.ddd.state < 2 || this.ddd.data == null){
+					console.log("Letterboxd Extras | Unable to locate DDD film page.");
+					this.ddd.state = 3;
+				}else{
+					// Add link to the page
+					this.addDDD();
+				}
+			},
+
+			addDDD(){
+				if (this.ddd.data != null){
+					this.ddd.url = "https://www.doesthedogdie.com/media/" + this.ddd.data.id;
+					this.addLink(this.ddd.url);
+				}
+
+				this.ddd.added = true;
 			}
 		},
 
