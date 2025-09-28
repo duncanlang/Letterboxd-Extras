@@ -545,6 +545,19 @@ if (isChrome)
 		.kinopoisk-score {
 			color: #bbbbbb !important;
 		}
+
+		.extras-lost-film{
+			display: none !important;
+		}
+		.extras-lost-filter span{
+			cursor: pointer;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* Standard syntax */
+		}
+		.extras-lost-filter span i {
+    		pointer-events:none;
+		}
 	`);
 	/* eslint-enable */
 
@@ -5165,6 +5178,8 @@ if (isChrome)
 			wiki: null,
 			letterboxdName: null,
 
+			lostFilms: { state: 0, filterAdded: false, enabled: false, filmList: null, lostFilmCount: 0, visibleCount: 0, watchedCount: 0, totalCount: 0, watchedUpdated: false },
+
 			stopRunning() {
 				this.running = false;
 			},
@@ -5186,6 +5201,27 @@ if (isChrome)
 					}
 
 					this.callWikiData();
+				}
+
+				// Add the filter
+				if (this.lostFilms.filterAdded == false && document.querySelector('.js-film-filters') != null){
+					this.lostFilms.filterAdded == true
+					this.addLostFilmFilter();
+				}
+
+				// Call WikiData for lost films
+				if (document.querySelector('.poster-grid') != null){
+					if (this.lostFilms.state == 0){
+						this.callWikiDataLostFilms();
+					}
+					if (this.lostFilms.state == 2 && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count .js-progress-count') != null && document.querySelector('.poster-grid ul li div div a span span span span.ajax-initialising') == null){
+						this.updateLostFilms();
+					}
+					if (document.querySelector('.tooltip.griditem.poster-container.film-watched') != null && this.lostFilms.watchedUpdated == false){
+						// The page can load the grid before the site has marked movies as watched, this should allow the watched percentage to be correctly calculated
+						this.lostFilms.watchedUpdated = true;
+						this.updateLostFilms();
+					}
 				}
 
 				// Stop
@@ -5241,6 +5277,80 @@ if (isChrome)
 							this.addWikiButton();
 						}
 					}
+				});
+			}, 
+
+			addLostFilmFilter(){
+				// Check if already added?
+				if (document.querySelector('.extras-lost-filter') != null){
+					return;
+				}
+
+				// Set selected
+				var className = '';
+				if (letterboxd.storage.get('hide-lost-films') === "hide"){
+					className = ' smenu-subselected';
+					this.lostFilms.enabled = true;
+				}
+
+				// Create filter element
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'extras-lost-filter divider-line -inset' + className
+				});
+				const a = letterboxd.helpers.createElement('span', {
+					class: 'item'
+				});
+				li.append(a);
+				a.innerText = "Hide lost films"
+				const i = letterboxd.helpers.createElement('i', {
+					class: 'ir s icon'
+				});
+				a.prepend(i);
+
+				// Add to page
+				const unreleasedFilter = document.querySelector('.js-film-filters ul');
+				unreleasedFilter.append(li);
+				
+				// Add click event
+				$(".extras-lost-filter span").on('click', function(event){
+					toggleLostFilms(event, letterboxd);
+				});
+			},
+
+			addLostFilmFilter(){
+				// Check if already added?
+				if (document.querySelector('.extras-lost-filter') != null){
+					return;
+				}
+
+				// Set selected
+				var className = '';
+				if (letterboxd.storage.get('hide-lost-films') === "hide"){
+					className = ' smenu-subselected';
+					this.lostFilms.enabled = true;
+				}
+
+				// Create filter element
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'extras-lost-filter divider-line -inset' + className
+				});
+				const a = letterboxd.helpers.createElement('span', {
+					class: 'item'
+				});
+				li.append(a);
+				a.innerText = "Hide lost films"
+				const i = letterboxd.helpers.createElement('i', {
+					class: 'ir s icon'
+				});
+				a.prepend(i);
+
+				// Add to page
+				const unreleasedFilter = document.querySelector('.js-film-filters ul');
+				unreleasedFilter.append(li);
+				
+				// Add click event
+				$(".extras-lost-filter span").on('click', function(event){
+					toggleLostFilms(event, letterboxd);
 				});
 			},
 
@@ -5395,6 +5505,171 @@ if (isChrome)
 
 				// Add to Page
 				document.querySelector('.micro-button').before(button);
+			},
+
+			callWikiDataLostFilms(){
+				this.lostFilms.state = 1;
+				var queryString = letterboxd.helpers.getWikiDataQuery('', '', 'LOSTFILMS', '');
+
+				// Check for cached list in the browser storage
+				let timestamp = letterboxd.storage.get('lost-films-timestamp');
+				let now = new Date();
+				const oneDay = 60 * 60 * 24 * 1000
+				if (timestamp == null ||(now - timestamp) > oneDay){
+					// Get new list - Call WikiData
+					letterboxd.helpers.getData(queryString, "GET", null, null).then((value) =>{
+						value = JSON.parse(value.response);
+						if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
+							this.lostFilms.list = value.results.bindings.map(binding => binding.letterboxdID.value);
+							this.lostFilms.state = 2;
+
+							// Save list to browser storage
+							letterboxd.storage.set('lost-films', this.lostFilms.list);
+							letterboxd.storage.set('lost-films-timestamp', new Date());
+						}
+					});
+				}else{
+					// Use cached list in the browser storage
+					this.lostFilms.list = letterboxd.storage.get('lost-films');
+					this.lostFilms.state = 2;
+				}
+			},
+
+			updateLostFilms(){
+				this.lostFilms.state = 3;
+				this.lostFilms.lostFilmCount = 0;
+				this.lostFilms.visibleCount = 0;
+				this.lostFilms.watchedCount = 0;
+				this.lostFilms.totalCount = 0;
+
+				var hide = letterboxd.storage.get('hide-lost-films');
+				this.lostFilms.enabled = hide == "hide";
+
+				// Check and set hidden
+				const films = document.querySelectorAll('div.poster-grid ul li');
+				for (var i = 0; i < films.length; i++){
+					var film = films[i];
+					var filmID = film.querySelector('div').getAttribute('data-film-slug');
+
+					if (this.lostFilms.list.includes(filmID) && hide == "hide"){
+						film.className += ' extras-lost-film';
+						this.lostFilms.lostFilmCount++;
+					}else{
+						this.lostFilms.visibleCount++;
+						if (film.className.includes('film-watched'))
+							this.lostFilms.watchedCount++;
+
+						if (film.className.includes('extras-lost-film'))
+							film.className = film.className.replace(' extras-lost-film', '');
+					}
+					this.lostFilms.totalCount++;
+				}
+
+				// Update progress panel
+				if (document.querySelector('.sidebar .actions .progress-panel') != null){
+					var progressCounter = document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter');
+					var progressCount = progressCounter.querySelector('.progress-count');
+					var jsProgress = progressCount.querySelector('.js-progress-count');
+
+					// Get the original total
+					var originalTotal = "";
+					var regex = new RegExp(/\/ (\d+)/);
+					if (progressCounter.innerText.match(regex) != null){
+						originalTotal = progressCounter.innerText.match(regex)[1];
+					}else{
+						originalTotal = this.lostFilms.totalCount;
+					}
+
+					// Update the watched count
+					jsProgress.innerText = this.lostFilms.watchedCount;
+					// Remove it from the span, then clear the span
+					progressCount.remove(jsProgress);
+					progressCount.innerText = "";
+					// Re-add the progress to the span
+					progressCount.innerText += " of " + this.lostFilms.visibleCount;
+					progressCount.prepend(jsProgress);
+					// Add the count to the counter
+					progressCounter.innerHTML = "";
+					if (originalTotal != this.lostFilms.totalCount || hide == "hide")
+						progressCounter.append(" / " + originalTotal + " total");
+					progressCounter.prepend(progressCount);
+
+					// Update the percentage
+					var progressPercent = document.querySelector('.sidebar .actions .progress-panel .progress-status p .progress-percentage');
+					var percentage = Math.round(this.lostFilms.watchedCount / this.lostFilms.visibleCount * 100);
+					progressPercent.innerText = percentage;
+
+					// Update the progress bar
+					var progressContainer = document.querySelector('.progress-container');
+					var progressBar = progressContainer.querySelector('.progress-bar');
+					progressBar.style['width'] = percentage + '%';
+
+					if (percentage == '100'){
+						progressContainer.className = 'progress-container near-end';
+					}else {
+						progressContainer.className = 'progress-container near-zero';
+					}
+				}
+
+
+				// Update ui heading
+				var prefix = "There are ";
+				var suffix = " films ";
+				if (this.lostFilms.visibleCount == 1){
+					prefix = "There is ";
+					suffix = " film ";
+				}
+				suffix += letterboxd.helpers.getPersonRole(window.location.pathname.match(new RegExp(/\/([A-za-z\-]+)/))[1]);
+
+				var uiHeader = document.querySelector('.ui-block-header');
+				var extrasuiHeader = document.querySelector('.extras-filter-header');
+				var extrasuiHeading = null;
+				if (extrasuiHeader != null)
+					extrasuiHeading = extrasuiHeader.querySelector('.ui-block-heading');
+
+				// Create custom heading if one does not already exist
+				if (extrasuiHeader == null){
+					extrasuiHeader = letterboxd.helpers.createElement('section', {
+						class: 'ui-block-header filtered-message body-text -small message-text extras-filter-header'
+					}, {
+						display: 'none'
+					});
+					extrasuiHeading = letterboxd.helpers.createElement('p', {
+						class: 'ui-block-heading'
+					});
+					extrasuiHeader.append(extrasuiHeading);
+					var removeLink = letterboxd.helpers.createElement('a', {
+						class: 'js-film-filter-remover',
+						href: '#',
+					});
+					removeLink.innerText = "Remove filters";
+					extrasuiHeading.append(removeLink);
+
+					// Append to page
+					document.querySelector('.poster-grid').before(extrasuiHeader);
+					
+					$(".extras-filter-header .ui-block-heading .js-film-filter-remover").on('click', function(event){
+						removeFilters(event, letterboxd);
+					});
+				}
+				
+				// Set text of the custom header
+				var removeLink = extrasuiHeader.querySelector('.js-film-filter-remover');
+				extrasuiHeading.innerText = '';
+				extrasuiHeading.append(prefix + this.lostFilms.visibleCount + suffix + ' matching your filters. ');
+				extrasuiHeading.append(removeLink);
+				extrasuiHeading.append('.');
+
+				// Set the new header and existing header based on current filter
+				if (this.lostFilms.enabled && this.lostFilms.lostFilmCount > 0){
+					if (uiHeader != null)
+						uiHeader.style['display'] = 'none';
+					extrasuiHeader.style['display'] = '';
+				}else{
+					if (uiHeader != null)
+						uiHeader.style['display'] = '';
+					extrasuiHeader.style['display'] = 'none';
+				}
 			}
 
 		},
@@ -6851,6 +7126,11 @@ if (isChrome)
 						"  }\n" +
 						"}";
 
+				}else if (queryType == "LOSTFILMS"){
+					var sparqlQuery = "SELECT ?letterboxdID WHERE {\n" +
+					"  ?item wdt:P12020 wd:Q122238711;\n" +
+					"        wdt:P6127 ?letterboxdID.\n" +
+					"}";
 				} else {
 					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Country_Of_Origin ?Kinopoisk_ID ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
@@ -7027,6 +7307,38 @@ if (isChrome)
 				}
 
 				return defaultValue;
+			},
+
+			getPersonRole(role){
+				switch(role){
+					case "director":
+					case "co-director":
+					case "additional-directing":
+						return "by this director";
+
+					case "writer":
+					case "producer":
+					case "executive-producer":
+						return "by this " + role.replace('-',' ');
+
+					case "actor":
+						return "with this " + role.replace('-',' ');
+						
+					case "original-writer":
+						return "by this writer";
+						
+					case "editor":
+						return "edited by this editor";
+
+					case "cinematography":
+						return "shot by this cinematographer";
+
+					case "composer":
+						return "with music by this composer";
+					
+					default:
+						return "with " + role.replace('-',' ') + " by this artist";
+				}
 			}
 		},
 
@@ -7328,4 +7640,26 @@ function toggleAllRatings(event, letterboxd) {
 		element.style.display = "none";
 		event.target.innerText = "Show more ratings";
 	}
+}
+
+
+function toggleLostFilms(event, letterboxd){
+	var filter = event.target.parentNode;
+	var enabled = "show";
+	
+	if (filter.className.includes('smenu-subselected')){
+		filter.className = filter.className.replace(' smenu-subselected', '');
+	}else{
+		filter.className += ' smenu-subselected';
+		enabled = "hide";
+	}
+
+	letterboxd.storage.set('hide-lost-films', enabled);
+
+	letterboxd.person.updateLostFilms();
+}
+
+function removeFilters(event, letterboxd){
+	// Run this before the page will be reloaded
+	letterboxd.storage.set('hide-lost-films', 'show');
 }
