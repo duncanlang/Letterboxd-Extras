@@ -58,6 +58,7 @@
 		"https://api.simkl.com/*",
 		"https://www.google.com/search*",
 		"https://www.doesthedogdie.com/*",
+		"https://markuapiz.onrender.com/*",
 		"tabs"
 	],
 

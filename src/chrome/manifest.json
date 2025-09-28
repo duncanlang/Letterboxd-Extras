@@ -52,7 +52,8 @@
 		"https://www.allocine.fr/*",
 		"https://api.simkl.com/*",
 		"https://www.google.com/search*",
-		"https://www.doesthedogdie.com/*"
+		"https://www.doesthedogdie.com/*",
+		"https://markuapiz.onrender.com/*"
 	],
 
 	"background": {

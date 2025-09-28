@@ -202,6 +202,17 @@
             <input type="checkbox" id="cinema-enabled" class="setting"/>
         </div>
     </div>
+    <div>
+        <h3>Filmarks</h3>
+        <div>
+            <label for="filmarks-enabled">Display Filmarks:</label>
+            <input type="checkbox" id="filmarks-enabled" permission="https://markuapiz.onrender.com/*" class="setting" />
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="filmarks-permissions" class="request-permission" permissionTarget="filmarks-enabled" value="Request Permission"/>
+        </div>
+    </div>
 
     <hr width="100%">
 
