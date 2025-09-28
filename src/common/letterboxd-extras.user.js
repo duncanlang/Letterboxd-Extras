@@ -1553,7 +1553,7 @@ if (isChrome)
 				}
 
 				// Add Filmarks
-				if (this.letterboxdTitle != null && letterboxd.storage.get('filmarks-enabled') === true && this.filmarks.state == 0 && this.altTitleList != null){
+				if (this.letterboxdTitle != null && letterboxd.storage.get('filmarks-enabled') === true && this.filmarks.state == 0 && this.altTitleList != null && this.wikiData.state == 2){
 					this.initFilmarks();
 				}
 
@@ -1599,7 +1599,7 @@ if (isChrome)
 
 						this.imdbData.url = imdbLink;
 
-					} else if (links[i].innerHTML === "TMDb") {
+					} else if (links[i].innerHTML === "TMDB") {
 						// Grab the tmdb link
 						tmdbLink = links[i].href;
 					}
@@ -4618,8 +4618,16 @@ if (isChrome)
 
 			initFilmarks() {
 				this.filmarks.state = 1;
-				var apiURL = "https://markuapiz.onrender.com/search/movies?limit=20&q=" + this.letterboxdTitle;
-				// todo: native title? anime endpoint?
+
+				var isAnime = (this.mal.id != null || this.al.id != null);
+				var apiURL = "https://markuapiz.onrender.com/search/";
+				if (this.tmdbTV && isAnime){
+					apiURL += "animes?limit=20&q=" + this.letterboxdTitle;
+				}else if (this.tmdbTV){
+					apiURL += "dramas?limit=20&q=" + this.letterboxdTitle;
+				}else{
+					apiURL += "movies?limit=20&q=" + this.letterboxdTitle;
+				}
 				
 				// Make Calls
 				browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
@@ -4648,10 +4656,20 @@ if (isChrome)
 
 				// See if we can match from the API
 				//***************************************************************
-				if (this.filmarks.data.results != null && this.filmarks.data.results.movies != null && this.filmarks.data.results.movies.length > 0){
-					var movies = this.filmarks.data.results.movies;
-					for (var i = 0; i < movies.length; i++){
-						var movie = movies[i];
+				if (this.filmarks.data.results != null){
+					var items = [];
+					if (this.filmarks.data.results.movies != null && this.filmarks.data.results.movies.length > 0){
+						items = this.filmarks.data.results.movies;
+					}
+					else if (this.filmarks.data.results.dramas != null && this.filmarks.data.results.dramas.length > 0){
+						items = this.filmarks.data.results.dramas;
+					}
+					else if (this.filmarks.data.results.animes != null && this.filmarks.data.results.animes.length > 0){
+						items = this.filmarks.data.results.animes;
+					}
+					
+					for (var i = 0; i < items.length; i++){
+						var movie = items[i];
 
 						// To hopefully get an accurate match, we will do the following:
 						//	- See if the filmark title is exactly the same as the letterboxd title (display or native)
@@ -4659,18 +4677,24 @@ if (isChrome)
 						//	- AND if filmark year is within 3 years of the letterboxd year
 						// This will likely not be 100%, but hopefully work decently?
 						var filmarksTitle = movie.title;
-						var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.screening_date, /(\d{4})年/, 1, "0"));
+						if (this.tmdbTV){
+							var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.release_date, /(\d{4})年/, 1, "0"));
+						}else{
+							var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.screening_date, /(\d{4})年/, 1, "0"));
+						}
 						
 						var letterboxdYear = 0;
 						if (this.letterboxdYear != "")
 							letterboxdYear = parseInt(this.letterboxdYear);
 
-						// If matches the year
-						if (this.letterboxdYear >= filmarksYear - 3 && this.letterboxdYear <= filmarksYear + 3){
-							// if matches the title
-							if (filmarksTitle == this.letterboxdTitle || (this.letterboxdNativeTitle != null && filmarksTitle == this.letterboxdNativeTitle) || this.altTitleList.includes(filmarksTitle)){
-								this.filmarks.movie = movie;
-								break;
+						if (filmarksTitle != null && filmarksTitle != '' && filmarksYear > 0 && letterboxdYear > 0){
+							// If matches the year
+							if (this.letterboxdYear >= filmarksYear - 3 && this.letterboxdYear <= filmarksYear + 3){
+								// if matches the title
+								if (filmarksTitle == this.letterboxdTitle || (this.letterboxdNativeTitle != null && filmarksTitle == this.letterboxdNativeTitle) || this.altTitleList.includes(filmarksTitle)){
+									this.filmarks.movie = movie;
+									break;
+								}
 							}
 						}
 					}
