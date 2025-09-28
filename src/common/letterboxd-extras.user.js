@@ -646,7 +646,7 @@ if (isChrome)
 			simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 
 			// Filmarks
-			filmarks: { state: 0, data: null, movie: null, url: null, rating: null, num_ratings: 0 },
+			filmarks: { state: 0, data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
 
 			linksAdded: [],
 
@@ -1259,6 +1259,11 @@ if (isChrome)
 										}
 									}
 								}
+
+								// Get the Filmarks ID to use for later (ID property not yet in WikiData)
+								if (this.wiki != null && this.wiki.Filmarks_ID != null && this.wiki.Filmarks_ID.value != null) {
+									this.filmarks.id = this.wiki.Filmarks_ID.value;
+								}
 							}else{
 								console.log("Letterboxd Extras | No WikiData results found.");
 							}
@@ -1553,8 +1558,13 @@ if (isChrome)
 				}
 
 				// Add Filmarks
-				if (this.letterboxdTitle != null && letterboxd.storage.get('filmarks-enabled') === true && this.filmarks.state == 0 && this.altTitleList != null && this.wikiData.state == 2){
-					this.initFilmarks();
+				if (this.filmarks.state == 0 && this.wikiData.state == 2 && letterboxd.storage.get('filmarks-enabled') === true ){
+					if (this.filmarks.id != null){
+						this.getFilmarks();
+					}
+					else if (this.letterboxdTitle != null && this.altTitleList != null){
+						this.searchFilmarks();
+					}
 				}
 
 				// Stop
@@ -4616,7 +4626,32 @@ if (isChrome)
 				// TODO
 			},
 
-			initFilmarks() {
+			getFilmarks() {
+				this.filmarks.state = 1;
+				var apiURL = "https://markuapiz.onrender.com/" + this.filmarks.id;
+				
+				// Make Calls
+				browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
+					if (letterboxd.helpers.ValidateResponse("Filmarks", value) == false){
+						return;
+					}
+
+					try {
+						this.filmarks.data = value.response;
+						this.filmarks.state = 2;
+					} catch (error) {
+						console.error(error);
+						this.filmarks.state = 3; // Error
+					}
+
+					if (this.filmarks.state == 2 && this.filmarks.data != null){
+						this.filmarks.movie = this.filmarks.data.data;
+						this.addFilmarks();
+					}
+				});
+			},
+
+			searchFilmarks() {
 				this.filmarks.state = 1;
 
 				var isAnime = (this.mal.id != null || this.al.id != null);
@@ -4644,7 +4679,55 @@ if (isChrome)
 					}
 
 					if (this.filmarks.state == 2 && this.filmarks.data != null){
-						this.addFilmarks();
+						// See if we can match from the API
+						if (this.filmarks.data.results != null){
+							var items = [];
+							if (this.filmarks.data.results.movies != null && this.filmarks.data.results.movies.length > 0){
+								items = this.filmarks.data.results.movies;
+							}
+							else if (this.filmarks.data.results.dramas != null && this.filmarks.data.results.dramas.length > 0){
+								items = this.filmarks.data.results.dramas;
+							}
+							else if (this.filmarks.data.results.animes != null && this.filmarks.data.results.animes.length > 0){
+								items = this.filmarks.data.results.animes;
+							}
+							
+							for (var i = 0; i < items.length; i++){
+								var movie = items[i];
+
+								// To hopefully get an accurate match, we will do the following:
+								//	- See if the filmark title is exactly the same as the letterboxd title (display or native)
+								//	- OR See if the filmark title is located in the array of alternative titles on letterboxed
+								//	- AND if filmark year is within 3 years of the letterboxd year
+								// This will likely not be 100%, but hopefully work decently?
+								var filmarksTitle = movie.title;
+								if (this.tmdbTV){
+									var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.release_date, /(\d{4})年/, 1, "0"));
+								}else{
+									var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.screening_date, /(\d{4})年/, 1, "0"));
+								}
+								
+								var letterboxdYear = 0;
+								if (this.letterboxdYear != "")
+									letterboxdYear = parseInt(this.letterboxdYear);
+
+								if (filmarksTitle != null && filmarksTitle != '' && filmarksYear > 0 && letterboxdYear > 0){
+									// If matches the year
+									if (this.letterboxdYear >= filmarksYear - 3 && this.letterboxdYear <= filmarksYear + 3){
+										// if matches the title
+										if (filmarksTitle == this.letterboxdTitle || (this.letterboxdNativeTitle != null && filmarksTitle == this.letterboxdNativeTitle) || this.altTitleList.includes(filmarksTitle)){
+											this.filmarks.movie = movie;
+											break;
+										}
+									}
+								}
+							}
+						}
+
+						// Movie found, add to Letterboxd
+						if (this.filmarks.movie != null){
+							this.addFilmarks();
+						}
 					}
 				});
 			},
@@ -4653,53 +4736,6 @@ if (isChrome)
 				if (document.querySelector('.filmarks-ratings')) return;
 
 				if (!document.querySelector('.sidebar')) return;
-
-				// See if we can match from the API
-				//***************************************************************
-				if (this.filmarks.data.results != null){
-					var items = [];
-					if (this.filmarks.data.results.movies != null && this.filmarks.data.results.movies.length > 0){
-						items = this.filmarks.data.results.movies;
-					}
-					else if (this.filmarks.data.results.dramas != null && this.filmarks.data.results.dramas.length > 0){
-						items = this.filmarks.data.results.dramas;
-					}
-					else if (this.filmarks.data.results.animes != null && this.filmarks.data.results.animes.length > 0){
-						items = this.filmarks.data.results.animes;
-					}
-					
-					for (var i = 0; i < items.length; i++){
-						var movie = items[i];
-
-						// To hopefully get an accurate match, we will do the following:
-						//	- See if the filmark title is exactly the same as the letterboxd title (display or native)
-						//	- OR See if the filmark title is located in the array of alternative titles on letterboxed
-						//	- AND if filmark year is within 3 years of the letterboxd year
-						// This will likely not be 100%, but hopefully work decently?
-						var filmarksTitle = movie.title;
-						if (this.tmdbTV){
-							var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.release_date, /(\d{4})年/, 1, "0"));
-						}else{
-							var filmarksYear = parseInt(letterboxd.helpers.regexExtract(movie.screening_date, /(\d{4})年/, 1, "0"));
-						}
-						
-						var letterboxdYear = 0;
-						if (this.letterboxdYear != "")
-							letterboxdYear = parseInt(this.letterboxdYear);
-
-						if (filmarksTitle != null && filmarksTitle != '' && filmarksYear > 0 && letterboxdYear > 0){
-							// If matches the year
-							if (this.letterboxdYear >= filmarksYear - 3 && this.letterboxdYear <= filmarksYear + 3){
-								// if matches the title
-								if (filmarksTitle == this.letterboxdTitle || (this.letterboxdNativeTitle != null && filmarksTitle == this.letterboxdNativeTitle) || this.altTitleList.includes(filmarksTitle)){
-									this.filmarks.movie = movie;
-									break;
-								}
-							}
-						}
-					}
-				}
-
 
 				// Collect Date from the Filmark API
 				//***************************************************************
