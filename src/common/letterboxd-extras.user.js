@@ -5000,7 +5000,7 @@ if (isChrome)
 				//***************************************************************
 				const ratingSpan = letterboxd.helpers.createElement('span', {
 					class: 'filmarks-critic-score rt-score-div',
-					style: 'position: relative; display: block; height: 44px;'
+					style: 'position: relative; display: block; height: 20px;'
 				});
 				ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.isMobile));
 				ratingSpan.append(letterboxd.helpers.createAllocineStars(this.filmarks.rating));
@@ -5475,7 +5475,7 @@ if (isChrome)
 				// Check for cached list in the browser storage
 				let timestamp = letterboxd.storage.localGet('lost-films-timestamp');
 				this.lostFilms.list = letterboxd.storage.localGet('lost-films');
-				
+
 				let now = new Date();
 				const maxTime = 7 * 60 * 60 * 24 * 1000 // one week
 				if (timestamp == null || (now - timestamp) > maxTime || this.lostFilms.list == null){
