@@ -2592,14 +2592,15 @@ if (isChrome)
 				// Score and hover
 				var score = this.mubiData.rating;
 				var totalScore = "/10";
-				var hover = "Average of " + score.toFixed(1) + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
-				if (this.mubiData.num_ratings != 1)
-					hover += "s"
 
 				if (letterboxd.storage.get('convert-ratings') === "5") {
 					totalScore = "/5";
 					score = this.mubiData.ratingAlt;
 				}
+				
+				var hover = "Average of " + score.toFixed(1) + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
+				if (this.mubiData.num_ratings != 1)
+					hover += "s"
 
 				// If no ratings, display as N/A and change hover
 				if (score == null && this.mubiData.num_ratings == 0) {
@@ -2748,21 +2749,29 @@ if (isChrome)
 				});
 				if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
 
+				var rating = this.filmaffData.rating;
+				var suffix = "/10";
+
 				// Add the hoverover text and href
 				var tooltip = 'No score available';
-				if (this.filmaffData.num_ratings > 0 && this.filmaffData.rating == null) {
+				if (this.filmaffData.num_ratings > 0 && rating == null) {
 					tooltip = this.filmaffData.num_ratings.toLocaleString() + ' rating';
 					if (this.filmaffData.num_ratings > 1) tooltip += "s";
-					this.filmaffData.rating = "N/A";
+					rating = "N/A";
 
 				} else if (this.filmaffData.num_ratings > 0) {
-					tooltip = "Average of " + this.filmaffData.rating.toFixed(1).toLocaleString() + "/10 based on " + this.filmaffData.num_ratings.toLocaleString() + ' ratings';
+					if (letterboxd.storage.get('convert-ratings') === "5"){
+						suffix = "/5";
+						rating = rating / 2;
+					}
+					rating = rating.toFixed(1);
+					tooltip = "Average of " + rating.toLocaleString() + suffix + " based on " + this.filmaffData.num_ratings.toLocaleString() + ' ratings';
 				} else {
-					this.filmaffData.rating = "N/A";
+					rating = "N/A";
 				}
 				text.setAttribute('data-original-title', tooltip);
 				text.setAttribute('href', this.filmaffData.url);
-				text.innerText = this.filmaffData.rating.toFixed(1)
+				text.innerText = rating;
 				span.append(text);
 
 				container.append(span);
@@ -3674,6 +3683,8 @@ if (isChrome)
 					class: 'tooltip tooltip-extra display-rating -highlight sens-score'
 				});
 
+				var suffix = "/10";
+
 				// Add the hoverover text and href
 				var tooltip = 'No score available';
 				if (ratingCount > 0 && rating == null) {
@@ -3682,7 +3693,11 @@ if (isChrome)
 					rating = "N/A";
 
 				} else if (ratingCount > 0) {
-					tooltip = "Weighted average of " + rating + "/10 based on " + ratingCount.toLocaleString() + ' ratings';
+					if (letterboxd.storage.get('convert-ratings') === "5"){
+						suffix = "/5";
+						rating = Number(rating / 2).toFixed(1);
+					}
+					tooltip = "Weighted average of " + rating + suffix + " based on " + ratingCount.toLocaleString() + ' ratings';
 
 				} else {
 					rating = "N/A";
@@ -5809,15 +5824,30 @@ if (isChrome)
 				});
 				scoreDiv.append(imageSpan);
 
-				var scoreTotal = "";
+				var suffix = "";
+				var rating = data.rating;
 				if (type.includes("critic")) {
-					scoreTotal = "10";
+					suffix = "10";
 				} else {
-					scoreTotal = "5";
+					suffix = "5";
 				}
+
+				if (letterboxd.storage.get('convert-ratings') === "10"){
+					suffix = "/10";
+					if (type.includes("audience")) {
+						rating = Number(rating * 2).toFixed(1);
+					}
+
+				}else if (letterboxd.storage.get('convert-ratings') === "5"){
+					suffix = "/5";
+					if (type.includes("critic")) {
+						rating = Number(rating / 2).toFixed(1);
+					}
+				}
+
 				// The element that is the score itself
-				var hover = 'Average of ' + data.rating + '/' + scoreTotal + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' rating';
-				if (data.percent == "--" || data.rating == "")
+				var hover = 'Average of ' + rating + suffix + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' rating';
+				if (data.percent == "--" || rating == "")
 					hover = data.num_ratings + " " + display + " rating";
 				else
 					data.percent += "%";
@@ -6008,7 +6038,9 @@ if (isChrome)
 
 				// Create Tooltip
 				var tooltip = "";
-				if (data.num_ratings > 0 && data.rating == "tbd") {
+				var rating = data.rating;
+				var suffix = "";
+				if (data.num_ratings > 0 && rating == "tbd") {
 					tooltip = 'No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' review';
 					if (data.num_ratings == 1)
 						tooltip += ")";
@@ -6016,15 +6048,31 @@ if (isChrome)
 						tooltip += "s)";
 
 				} else if (data.num_ratings > 0) {
-					var totalScore = "/100";
+					suffix = "/100";
 					if (type == "user")
-						totalScore = "/10";
-					tooltip = "Weighted average of " + data.rating + totalScore + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' review';
+						suffix = "/10";
+
+					if ((letterboxd.storage.get('convert-ratings') === "5")){
+						suffix = "/5";
+						if (type == "critic"){
+							rating = Number(rating / 10 / 2).toFixed(1);
+						}else{
+							rating = Number(rating / 2).toFixed(1);
+						}
+					}
+					else if ((letterboxd.storage.get('convert-ratings') === "10")){
+						suffix = "/10";
+						if (type == "critic"){
+							rating = Number(rating / 10).toFixed(1);
+						}
+					}
+
+					tooltip = "Weighted average of " + rating + suffix + " based on " + data.num_ratings.toLocaleString() + ' ' + display + ' review';
 					if (data.num_ratings != 1)
 						tooltip += "s"
 					
 				} else if (url != "") {
-					if (data.rating == "N/A") {
+					if (rating == "N/A") {
 						tooltip = 'No score available';
 					} else {
 						tooltip = 'No score yet';
@@ -6040,7 +6088,7 @@ if (isChrome)
 					text.setAttribute('href', url);
 				}
 
-				text.innerText = data.rating;
+				text.innerText = rating;
 				span.append(text);
 
 				// Add the positive/mixed/negative bars
@@ -6257,7 +6305,7 @@ if (isChrome)
 						} else {
 							rating = (Number(rating) / 2).toFixed(1);
 						}
-						suffix = "";
+						suffix = "/5";
 					} else if (type == "al") {
 						suffix = "/100";
 					} else if (type == "allocine") {
