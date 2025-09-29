@@ -5230,10 +5230,15 @@ if (isChrome)
 					if (this.lostFilms.state == 0){
 						this.callWikiDataLostFilms();
 					}
-					if (this.lostFilms.state == 2 && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count .js-progress-count') != null && document.querySelector('.poster-grid ul li div div a span span span span.ajax-initialising') == null){
-						// To make sure all of the posters have loaded (required to see watched status), lets make sure there are as many posters as there are film items
-						if (document.querySelectorAll('div.poster-grid ul li').length == document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length){
+					if (this.lostFilms.state == 2){
+						// Collect films from the page and hide if set
+						this.updateLostFilms();
+					}
+					if (this.lostFilms.state == 3 && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter') != null){
+						if (document.querySelector('div.poster-grid ul li div.film-poster[data-watched]') != null && this.lostFilms.visibleCount == document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length){
+							// The posters (and the watched status) sometimes load later, lets run it again once all posters have properly loaded as well as the progress panel
 							this.updateLostFilms();
+							this.lostFilms.state = 4;
 						}
 					}
 				}
@@ -5534,6 +5539,8 @@ if (isChrome)
 					var film = films[i];
 					var filmID = film.querySelector('div').getAttribute('data-item-slug');
 					var filmWatched = film.querySelector('div.film-poster').getAttribute('data-watched');
+					if (filmWatched == null)
+						filmWatched = "";
 
 					if (this.lostFilms.list.includes(filmID) && hide == "hide"){
 						film.className += ' extras-lost-film';
