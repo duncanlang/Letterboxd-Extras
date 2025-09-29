@@ -5204,23 +5204,21 @@ if (isChrome)
 				}
 
 				// Add the filter
-				if (this.lostFilms.filterAdded == false && document.querySelector('.js-film-filters') != null){
-					this.lostFilms.filterAdded == true
+				if (this.lostFilms.filterAdded == false && document.querySelector('.js-film-filters') != null && letterboxd.storage.localInitilized == true){
+					this.lostFilms.filterAdded = true
 					this.addLostFilmFilter();
 				}
 
 				// Call WikiData for lost films
-				if (document.querySelector('.poster-grid') != null){
+				if (document.querySelector('.poster-grid') != null && letterboxd.storage.localInitilized == true){
 					if (this.lostFilms.state == 0){
 						this.callWikiDataLostFilms();
 					}
 					if (this.lostFilms.state == 2 && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter .progress-count .js-progress-count') != null && document.querySelector('.poster-grid ul li div div a span span span span.ajax-initialising') == null){
-						this.updateLostFilms();
-					}
-					if (document.querySelector('.tooltip.griditem.poster-container.film-watched') != null && this.lostFilms.watchedUpdated == false){
-						// The page can load the grid before the site has marked movies as watched, this should allow the watched percentage to be correctly calculated
-						this.lostFilms.watchedUpdated = true;
-						this.updateLostFilms();
+						// To make sure all of the posters have loaded (required to see watched status), lets make sure there are as many posters as there are film items
+						if (document.querySelectorAll('div.poster-grid ul li').length == document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length){
+							this.updateLostFilms();
+						}
 					}
 				}
 
@@ -5288,7 +5286,7 @@ if (isChrome)
 
 				// Set selected
 				var className = '';
-				if (letterboxd.storage.get('hide-lost-films') === "hide"){
+				if (letterboxd.storage.localGet('hide-lost-films') === "hide"){
 					className = ' smenu-subselected';
 					this.lostFilms.enabled = true;
 				}
@@ -5312,44 +5310,7 @@ if (isChrome)
 				unreleasedFilter.append(li);
 				
 				// Add click event
-				$(".extras-lost-filter span").on('click', function(event){
-					toggleLostFilms(event, letterboxd);
-				});
-			},
-
-			addLostFilmFilter(){
-				// Check if already added?
-				if (document.querySelector('.extras-lost-filter') != null){
-					return;
-				}
-
-				// Set selected
-				var className = '';
-				if (letterboxd.storage.get('hide-lost-films') === "hide"){
-					className = ' smenu-subselected';
-					this.lostFilms.enabled = true;
-				}
-
-				// Create filter element
-				const li = letterboxd.helpers.createElement('li', {
-					class: 'extras-lost-filter divider-line -inset' + className
-				});
-				const a = letterboxd.helpers.createElement('span', {
-					class: 'item'
-				});
-				li.append(a);
-				a.innerText = "Hide lost films"
-				const i = letterboxd.helpers.createElement('i', {
-					class: 'ir s icon'
-				});
-				a.prepend(i);
-
-				// Add to page
-				const unreleasedFilter = document.querySelector('.js-film-filters ul');
-				unreleasedFilter.append(li);
-				
-				// Add click event
-				$(".extras-lost-filter span").on('click', function(event){
+				li.addEventListener('click', event => {
 					toggleLostFilms(event, letterboxd);
 				});
 			},
@@ -5509,28 +5470,34 @@ if (isChrome)
 
 			callWikiDataLostFilms(){
 				this.lostFilms.state = 1;
-				var queryString = letterboxd.helpers.getWikiDataQuery('', '', 'LOSTFILMS', '');
+				var queryString = letterboxd.helpers.getWikiDataQuery('', '', '', this.tmdbTV, 'LOSTFILMS', 'en');
 
 				// Check for cached list in the browser storage
-				let timestamp = letterboxd.storage.get('lost-films-timestamp');
+				let timestamp = letterboxd.storage.localGet('lost-films-timestamp');
+				this.lostFilms.list = letterboxd.storage.localGet('lost-films');
+				
 				let now = new Date();
-				const oneDay = 60 * 60 * 24 * 1000
-				if (timestamp == null ||(now - timestamp) > oneDay){
+				const maxTime = 7 * 60 * 60 * 24 * 1000 // one week
+				if (timestamp == null || (now - timestamp) > maxTime || this.lostFilms.list == null){
 					// Get new list - Call WikiData
-					letterboxd.helpers.getData(queryString, "GET", null, null).then((value) =>{
-						value = JSON.parse(value.response);
+					browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryString }, (data) => {
+						if (letterboxd.helpers.ValidateResponse("WikiData", data) == false){
+							return;
+						}
+
+						var value = data.response;
 						if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0){
 							this.lostFilms.list = value.results.bindings.map(binding => binding.letterboxdID.value);
 							this.lostFilms.state = 2;
 
 							// Save list to browser storage
-							letterboxd.storage.set('lost-films', this.lostFilms.list);
-							letterboxd.storage.set('lost-films-timestamp', new Date());
+							letterboxd.storage.localSet('lost-films', this.lostFilms.list);
+							letterboxd.storage.localSet('lost-films-timestamp', new Date());
 						}
 					});
 				}else{
 					// Use cached list in the browser storage
-					this.lostFilms.list = letterboxd.storage.get('lost-films');
+					this.lostFilms.list = letterboxd.storage.localGet('lost-films');
 					this.lostFilms.state = 2;
 				}
 			},
@@ -5542,21 +5509,22 @@ if (isChrome)
 				this.lostFilms.watchedCount = 0;
 				this.lostFilms.totalCount = 0;
 
-				var hide = letterboxd.storage.get('hide-lost-films');
+				var hide = letterboxd.storage.localGet('hide-lost-films');
 				this.lostFilms.enabled = hide == "hide";
 
 				// Check and set hidden
 				const films = document.querySelectorAll('div.poster-grid ul li');
 				for (var i = 0; i < films.length; i++){
 					var film = films[i];
-					var filmID = film.querySelector('div').getAttribute('data-film-slug');
+					var filmID = film.querySelector('div').getAttribute('data-item-slug');
+					var filmWatched = film.querySelector('div.film-poster').getAttribute('data-watched');
 
 					if (this.lostFilms.list.includes(filmID) && hide == "hide"){
 						film.className += ' extras-lost-film';
 						this.lostFilms.lostFilmCount++;
 					}else{
 						this.lostFilms.visibleCount++;
-						if (film.className.includes('film-watched'))
+						if (filmWatched.toLowerCase() == "true")
 							this.lostFilms.watchedCount++;
 
 						if (film.className.includes('extras-lost-film'))
@@ -5590,13 +5558,13 @@ if (isChrome)
 					progressCount.prepend(jsProgress);
 					// Add the count to the counter
 					progressCounter.innerHTML = "";
-					if (originalTotal != this.lostFilms.totalCount || hide == "hide")
+					if (originalTotal != this.lostFilms.visibleCount)
 						progressCounter.append(" / " + originalTotal + " total");
 					progressCounter.prepend(progressCount);
 
 					// Update the percentage
 					var progressPercent = document.querySelector('.sidebar .actions .progress-panel .progress-status p .progress-percentage');
-					var percentage = Math.round(this.lostFilms.watchedCount / this.lostFilms.visibleCount * 100);
+					var percentage = Math.floor(this.lostFilms.watchedCount / this.lostFilms.visibleCount * 100);
 					progressPercent.innerText = percentage;
 
 					// Update the progress bar
@@ -5648,7 +5616,7 @@ if (isChrome)
 					// Append to page
 					document.querySelector('.poster-grid').before(extrasuiHeader);
 					
-					$(".extras-filter-header .ui-block-heading .js-film-filter-remover").on('click', function(event){
+					extrasuiHeader.addEventListener('click', event => {
 						removeFilters(event, letterboxd);
 					});
 				}
@@ -7128,9 +7096,11 @@ if (isChrome)
 
 				}else if (queryType == "LOSTFILMS"){
 					var sparqlQuery = "SELECT ?letterboxdID WHERE {\n" +
-					"  ?item wdt:P12020 wd:Q122238711;\n" +
-					"        wdt:P6127 ?letterboxdID.\n" +
-					"}";
+						"  VALUES ?filmtype {wd:Q11424 wd:Q24862 wd:Q20667187 wd:Q226730 wd:Q506240 wd:Q336144} .\n" +
+						"  ?item wdt:P31 ?filmtype.\n" +
+						"  ?item wdt:P12020 wd:Q122238711.\n" +
+						"  ?item wdt:P6127 ?letterboxdID.\n" +
+						"}";
 				} else {
 					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Country_Of_Origin ?Kinopoisk_ID ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
@@ -7344,23 +7314,46 @@ if (isChrome)
 
 		storage: {
 			data: {},
+			localData: {},
+
+			localInitilized: false,
+
 			async init() {
 				this.data = await browser.storage.sync.get('options').then(function (storedSettings) {
 					return storedSettings.options;
 				});
-
+				
 			},
+
+			async initLocal() {
+				this.localData = await browser.storage.local.get('options').then(function (storedSettings) {
+					return storedSettings.options;
+				});
+				this.localInitilized = true;
+			},
+
+			// Sync
 			get(key) {
 				return this.data[key];
 			},
 			set(key, value) {
 				this.data[key] = value;
 				browser.storage.sync.set(this.data);
+			},
+
+			// Local
+			localGet(key) {
+				return this.localData[key];
+			},
+			localSet(key, value) {
+				this.localData[key] = value;
+				return browser.storage.local.set({ options: this.localData });
 			}
 		}
 	};
 
 	letterboxd.storage.init();
+	letterboxd.storage.initLocal();
 
 	const observer = new MutationObserver(() => {
 
@@ -7654,12 +7647,12 @@ function toggleLostFilms(event, letterboxd){
 		enabled = "hide";
 	}
 
-	letterboxd.storage.set('hide-lost-films', enabled);
+	letterboxd.storage.localSet('hide-lost-films', enabled);
 
 	letterboxd.person.updateLostFilms();
 }
 
 function removeFilters(event, letterboxd){
 	// Run this before the page will be reloaded
-	letterboxd.storage.set('hide-lost-films', 'show');
+	letterboxd.storage.localSet('hide-lost-films', 'show');
 }

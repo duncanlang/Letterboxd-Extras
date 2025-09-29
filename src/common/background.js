@@ -185,6 +185,20 @@ async function InitDefaultSettings() {
     await browser.storage.sync.set({ options });
 }
 
+async function InitLocalStorage(){
+    // Get options from sync
+    var options = {};
+    const data = await browser.storage.local.get('options');
+    if (data != null && data.options != null) {
+        Object.assign(options, data.options);
+    }
+
+    if (options['hide-lost-films'] == null) options['hide-lost-films'] = 'show';
+    
+    // Save
+    await browser.storage.local.set({ options });
+}
+
 // Convert storage.local to storage.sync (Firefox)
 async function ConvertLocalToSync() {
     // Get from local
@@ -205,6 +219,7 @@ browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason == 'install') {
         // Init the default settings
         await InitDefaultSettings();
+        await InitLocalStorage();
     }
     else if (details.reason == 'update') {
         // Convert from previous versions
@@ -216,6 +231,7 @@ browser.runtime.onInstalled.addListener(async (details) => {
 
         // Init default settings
         await InitDefaultSettings();
+        await InitLocalStorage();
     }
     else if (details.reason == 'browser_update' || details.reason == 'chrome_update') {
         // Do nothing
