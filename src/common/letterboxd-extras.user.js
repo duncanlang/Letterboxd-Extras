@@ -5014,8 +5014,8 @@ if (isChrome)
 				// Score
 				//***************************************************************
 				const ratingSpan = letterboxd.helpers.createElement('span', {
-					class: 'filmarks-critic-score rt-score-div',
-					style: 'position: relative; display: block; height: 20px;'
+					class: 'filmarks-score rt-score-div',
+					style: 'position: relative; display: block;'
 				});
 				ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.isMobile));
 				ratingSpan.append(letterboxd.helpers.createAllocineStars(this.filmarks.rating));
@@ -5023,10 +5023,10 @@ if (isChrome)
 
 				// Add the tooltip as text for mobile
 				// Critic Rating Tooltip
-				var scoreSpan = section.querySelector(".filmarks-critic-score .filmarks-critic .tooltip");
+				var scoreSpan = section.querySelector(".filmarks-score .filmarks .tooltip");
 				if (scoreSpan != null) {
 					var tooltip = scoreSpan.getAttribute('data-original-title');
-					letterboxd.helpers.createDetailsText('filmarks', section.querySelector(".filmarks-critic-score"), tooltip, this.isMobile);
+					letterboxd.helpers.createDetailsText('filmarks', section.querySelector(".filmarks-score"), tooltip, this.isMobile);
 				}
 
 				// APPEND to the sidebar
@@ -5128,7 +5128,8 @@ if (isChrome)
 					['data-original-title']: tooltip
 				}, {
 					['display']: 'inline-block',
-					['width']: 'auto'
+					['width']: 'auto',
+					['padding-top']: '5px'
 				});
 
 				// The element that is the score itself
@@ -6474,8 +6475,12 @@ if (isChrome)
 					style = "display: block;"
 				}
 
+				var className = 'allocine-critic';
+				if (type == "filmarks")
+					className = 'filmarks';
+
 				const scoreSpan = letterboxd.helpers.createElement('span', {
-					class: 'allocine-critic',
+					class: className,
 					style: style
 				});
 
@@ -6499,7 +6504,7 @@ if (isChrome)
 				}
 
 				// The element that is the score itself
-				style = 'line-height: 25px;';
+				style = '';
 				if (type == "ratings-style") {
 					style = 'line-height: 28px; width: 100%; margin-left: 0px !important;';
 				}
