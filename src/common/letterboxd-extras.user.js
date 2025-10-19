@@ -631,6 +631,7 @@ if (isChrome)
 				FilmAffinity_ID: null, FilmAffinity_URL: null,
 				SensCritique_ID: null, SensCritique_URL: null,
 				Kinopoisk_ID: null,
+				StateOfTransmission: null,
 			},
 
 			// Rotten Tomatoes
@@ -693,6 +694,7 @@ if (isChrome)
 			metaAdded: false,
 			dateAdded: false,
 			durationAdded: false,
+			lostBadgeAdded: false,
 
 			ratingsSuffix: [],
 
@@ -1335,6 +1337,12 @@ if (isChrome)
 												this.addKinopoisk();
 											}
 										});
+									}
+
+									// Check for State of Transmission
+									this.wikiData.StateOfTransmission = letterboxd.helpers.parseWikiDataResult(this.wiki, "StateOfTransmission", this.wikiData.StateOfTransmission);
+									if (this.wikiData.StateOfTransmission != null && this.linksMoved && this.lostBadgeAdded == false){
+										this.addLostFilmBadge();
 									}
 								}
 							}else{
@@ -2978,6 +2986,11 @@ if (isChrome)
 						letterboxd.helpers.addTooltipEvents(footer);
 					}
 					this.linksMoved = true;
+
+					// Add Lost film badge
+					if (this.wikiData.StateOfTransmission != null && this.lostBadgeAdded == false){
+						this.addLostFilmBadge();
+					}
 				}
 			},
 
@@ -4851,7 +4864,7 @@ if (isChrome)
 
 			getFilmarks() {
 				this.filmarks.state = 1;
-				var apiURL = "https://markuapiz.onrender.com/" + this.filmarks.id;
+				var apiURL = "https://markuapi.apn.leapcell.app/" + this.filmarks.id;
 				
 				// Make Calls
 				browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
@@ -4878,13 +4891,13 @@ if (isChrome)
 				this.filmarks.state = 1;
 
 				var isAnime = (this.mal.id != null || this.al.id != null);
-				var apiURL = "https://markuapiz.onrender.com/search/";
+				var apiURL = "https://markuapi.apn.leapcell.app/search/";
 				if (this.tmdbTV && isAnime){
-					apiURL += "animes?limit=20&q=" + this.letterboxdTitle;
+					apiURL += "animes?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
 				}else if (this.tmdbTV){
-					apiURL += "dramas?limit=20&q=" + this.letterboxdTitle;
+					apiURL += "dramas?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
 				}else{
-					apiURL += "movies?limit=20&q=" + this.letterboxdTitle;
+					apiURL += "movies?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
 				}
 				
 				// Make Calls
@@ -5037,7 +5050,6 @@ if (isChrome)
 				//*****************************************************************
 				letterboxd.helpers.addTooltipEvents(section);
 			},
-			
 
 			addKinopoisk() {
 				if (document.querySelector('.kinopoisk-ratings')) return;
@@ -5159,6 +5171,35 @@ if (isChrome)
 				// Add the hover events
 				//*****************************************************************
 				letterboxd.helpers.addTooltipEvents(section);
+			},
+
+			addLostFilmBadge(){
+				this.lostBadgeAdded = true;
+
+				// Add if state is 'lost' (Q122238711)
+				if (this.wikiData.StateOfTransmission.includes("Q122238711")){
+					// Create badge
+					const badge = letterboxd.helpers.createElement('span', {
+						class: 'badge',
+						style: 'margin-right: 10px;'
+					});
+					badge.innerText = "Lost";
+
+					// Add to page
+					let durationNode = document.querySelector('.duration-extra');
+					let adultBadgeNode = document.querySelector('.badge.-adult')
+					let footerNode = document.querySelector('.text-link.text-footer')
+
+					if (durationNode != null){
+						durationNode.before(badge);
+					}
+					else if (adultBadgeNode != null){
+						adultBadgeNode.after(badge);
+					}
+					else if (footerNode != null){
+						footerNode.prepend(badge);
+					}
+				}
 			}
 		},
 
@@ -7162,7 +7203,7 @@ if (isChrome)
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 				} else {
-					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Country_Of_Origin ?Kinopoisk_ID ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia WHERE {\n" +
+					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"\n" +
 						sparqlQuery +
@@ -7187,6 +7228,7 @@ if (isChrome)
 						"  OPTIONAL { ?item wdt:P3818 ?KMRB_rating. }\n" +
 						"  OPTIONAL { ?item wdt:P3156 ?ACB_rating. }\n" +
 						"  OPTIONAL { ?item wdt:P3216 ?ClassInd_rating. }\n" +
+        				"  OPTIONAL { ?item wdt:P12020 ?StateOfTransmission. }\n" +
 						"  OPTIONAL {\n" +
 						"    ?item p:P2130 ?Budget_Entry.\n" +
 						"    ?Budget_Entry ps:P2130 ?Budget.\n" +
