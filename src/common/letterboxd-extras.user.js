@@ -1426,10 +1426,10 @@ if (isChrome)
 										this.wikiData.acb = letterboxd.helpers.parseWikiDataResult(this.wiki, "ACB_ratingLabel", this.wikiData.acb);
 										this.wikiData.classind = letterboxd.helpers.parseWikiDataResult(this.wiki, "ClassInd_ratingLabel", this.wikiData.classind);
 
-										// Get the Filmarks ID to use for later (ID property not yet in WikiData)
+										// Get the Filmarks ID to use for later
 										this.filmarks.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "Filmarks_ID", this.filmarks.id);
 
-										// Get the DDD ID to use for later  (ID property not yet in WikiData)
+										// Get the DDD ID to use for later
 										this.ddd.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "DDD_ID", this.ddd.id);
 
 										// Get Kinopoisk data
@@ -1476,7 +1476,7 @@ if (isChrome)
 								this.wikiData.state = 2;
 							});
 
-							// Call WikiData a second time for dates
+							// `Call `WikiData a second time for dates
 							browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryStringDate }, (data) => {
 								if (letterboxd.helpers.ValidateResponse("WikiData Dates", data) == false){
 									return;
@@ -1767,8 +1767,11 @@ if (isChrome)
 				}
 
 				// Add 'Does the dog die?' link
-				if (this.idsCollected == true && (this.imdbID != '' || this.tmdbID != '') && this.letterboxdTitle != null && document.querySelector('.micro-button') != null && this.linksMoved == true && letterboxd.storage.get('ddd-enabled') === true){
-					if (this.ddd.state == 0){
+				if (this.idsCollected == true && (this.imdbID != '' || this.tmdbID != '') && this.wikiData.state == 2 && this.letterboxdTitle != null && document.querySelector('.micro-button') != null && this.linksMoved == true && letterboxd.storage.get('ddd-enabled') === true){
+					if (this.ddd.id != null && this.ddd.id != ''){
+						this.addDDD();
+					}
+					else if (this.ddd.state == 0){
 						// Call API
 						this.initDDD();
 					}
@@ -4998,13 +5001,14 @@ if (isChrome)
 					this.ddd.state = 3;
 				}else{
 					// Add link to the page
+					this.ddd.id = this.ddd.data.id;
 					this.addDDD();
 				}
 			},
 
 			addDDD(){
-				if (this.ddd.data != null){
-					this.ddd.url = "https://www.doesthedogdie.com/media/" + this.ddd.data.id;
+				if (this.ddd.id != null){
+					this.ddd.url = "https://www.doesthedogdie.com/media/" + this.ddd.id;
 					this.addLink(this.ddd.url);
 				}
 
@@ -7352,7 +7356,7 @@ if (isChrome)
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 				} else {
-					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
+					sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 						"\n" +
 						sparqlQuery +
@@ -7368,6 +7372,8 @@ if (isChrome)
 						"  OPTIONAL { ?item wdt:P1267 ?Allocine_TV_ID }\n" +
 						"  OPTIONAL { ?item wdt:P4529 ?Douban_ID }\n" +
 						"  OPTIONAL { ?item wdt:P2603 ?Kinopoisk_ID }\n" +
+						"  OPTIONAL { ?item wdt:P13888 ?DDD_ID }\n" +
+						"  OPTIONAL { ?item wdt:P13904 ?Filmarks_ID }\n" +
 						"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 						"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 						"  OPTIONAL { ?item wdt:P2629 ?BBFC_rating. }\n" +
