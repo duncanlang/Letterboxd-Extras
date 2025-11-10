@@ -44,7 +44,7 @@
         <h3>Rotten Tomatoes</h3>
         <div>
             <label for="tomato-enabled">Display Rotten Tomatoes:</label>
-            <input type="checkbox" id="tomato-enabled" subid="tomato-div"class="setting"/>
+            <input type="checkbox" id="tomato-enabled" subid="tomato-div" class="setting"/>
         </div>
         <div id="tomato-div">
             <div>
@@ -179,7 +179,7 @@
             </div>
             <div>
                 <label for="allocine-style">Display Style:</label>
-                <select id="allocine-style" subid="allo-view-div" subidvalue="histogram" class="setting">
+                <select id="allocine-style" subid="allo-view-div" subidvalue="ratings" class="setting">
                     <option value="histogram">Histogram Graph</option>
                     <option value="ratings">Side-by-side Ratings</option>
                 </select>
@@ -337,18 +337,41 @@
             <label for="wiki-link-enabled">Display Wikipedia link:</label>
             <input type="checkbox" id="wiki-link-enabled" class="setting"/>
         </div>
+        <!-- Replace fans -->
         <div>
             <label for="replace-fans">Replace 'Fans' with Rating Count:</label>
-            <select id="replace-fans">
+            <select id="replace-fans" class="setting">
                 <option value="false">Leave unchanged</option>
                 <option value="replace">Replace</option>
                 <option value="both">Side-by-side</option>
             </select>
         </div>
+        <!-- Hide Ratings -->
         <div>
-            <label for="hide-ratings-enabled">Hide additional ratings behind a 'Show More' button:</label>
-            <input type="checkbox" id="hide-ratings-enabled" class="setting"/>
+            <label for="hide-ratings-enabled">Hide ratings:</label>
+            <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="false">
+                <option value="false">Leave unchanged</option>
+                <option value="additional">Hide additional ratings</option>
+                <option value="all">Hide all ratings</option>
+            </select>
+            <div id="div-ratings-unwatched" style="display: inline;">
+                <label for="hide-ratings-unwatched">Only when unwatched:</label>
+                <input type="checkbox" id="hide-ratings-unwatched" class="setting"/>
+            </div>
         </div>
+        <!-- Hide Reviews -->
+        <div>
+            <label for="hide-reviews-enabled">Hide reviews:</label>
+            <select id="hide-reviews-enabled" class="setting" subid="div-reviews-unwatched" subidvalue="false">
+                <option value="false">Leave unchanged</option>
+                <option value="all">Hide reviews</option>
+            </select>
+            <div id="div-reviews-unwatched" style="display: inline;">
+                <label for="hide-reviews-unwatched">Only when unwatched:</label>
+                <input type="checkbox" id="hide-reviews-unwatched" class="setting"/>
+            </div>
+        </div>
+        <!-- Display tooltips -->
         <div>
             <label for="tooltip-show-details">Display tooltips on page:</label>
             <input type="checkbox" id="tooltip-show-details" class="setting"/>

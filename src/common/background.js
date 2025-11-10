@@ -175,10 +175,18 @@ async function InitDefaultSettings() {
     if (options['kinopoisk-enabled'] == null) options['kinopoisk-enabled'] = false;
     if (options['kinopoisk-apikey'] == null) options['kinopoisk-apikey'] = '';
     if (options['filmarks-enabled'] == null) options['filmarks-enabled'] = false;
+    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'false';
+    if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
 
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
+
+    // Hide ratings setting
+    if (options["hide-ratings-enabled"] === true) {
+        options["hide-ratings-enabled"] = "additional";
+    }
+
 
 
     // Save
