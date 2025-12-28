@@ -5391,12 +5391,12 @@ if (isChrome)
 				var name = null;
 				var birth = null;
 				var birthPlace = null;
-				if (this.wiki.BirthName != null && this.wiki.BirthName.value != null) {
+				if (this.wiki.BirthName && this.wiki.BirthName.value != null) {
 					if (this.wiki.BirthName.value != this.wiki.itemLabel.value && this.wiki.BirthName.value != this.letterboxdName) {
 						name = this.wiki.BirthName.value;
 					}
 				}
-				if (this.wiki.Date_Of_Birth != null && this.wiki.Date_Of_Birth.value != null && this.wiki.Date_Of_Birth_Precision.value >= 9) {
+				if (this.wiki.Date_Of_Birth && this.wiki.Date_Of_Birth.value != null && this.wiki.Date_Of_Birth_Precision.value >= 9) {
 					var birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
 					if (isAlive == true) {
 						var age = letterboxd.helpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
@@ -5412,25 +5412,25 @@ if (isChrome)
 				// Death date
 				var death = null;
 				var deathPlace = null;
-				if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9) {
+				if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9) {
 					var death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
 
 					var age = letterboxd.helpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
 					death += " (aged " + age + ")";
 
-					if (this.wiki.DeathCityLabel != null && this.wiki.DeathCityLabel.value != null) {
+					if (this.wiki.DeathCityLabel && this.wiki.DeathCityLabel.value != null) {
 						deathPlace = this.wiki.DeathCityLabel.value;
-						if (this.wiki.DeathCountry != null && this.wiki.DeathCountry.value != null) {
+						if (this.wiki.DeathCountry && this.wiki.DeathCountry.value != null) {
 							deathPlace += ", " + this.wiki.DeathCountry.value;
 						}
 					}
 				}
 				// Years Active
-				if (this.wiki.Years_Start != null && this.wiki.Years_Start.value != null) {
+				if (this.wiki.Years_Start && this.wiki.Years_Start.value != null) {
 					var yearsActive = new Date(this.wiki.Years_Start.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
-					if (this.wiki.Years_End != null && this.wiki.Years_End.value != null) {
+					if (this.wiki.Years_End && this.wiki.Years_End.value != null) {
 						yearsActive += "–" + new Date(this.wiki.Years_End.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
-					} else if (this.wiki.Date_Of_Death != null && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9) {
+					} else if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value != null && this.wiki.Date_Of_Death_Precision.value >= 9) {
 						yearsActive += "–" + new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(9));
 					} else {
 						yearsActive += "–present";
@@ -5490,7 +5490,7 @@ if (isChrome)
 			addWikiButton() {
 				if (document.querySelector('.wiki-button')) return;
 
-				if (this.wiki.Wikipedia != null && this.wiki.Wikipedia.value != null) {
+				if (this.wiki.Wikipedia && this.wiki.Wikipedia.value != null) {
 					var url = this.wiki.Wikipedia.value;
 				} else if (this.wiki.WikipediaEN != null && this.wiki.WikipediaEN.value != null) {
 					var url = this.wiki.WikipediaEN.value;
