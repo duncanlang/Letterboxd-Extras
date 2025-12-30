@@ -19,8 +19,7 @@ if exist "%DIST_DIR%" (
 )
 mkdir "%DIST_DIR%"
 
-:: Copy common files
-xcopy /e /i /y "%COMMON_DIR%" "%DIST_DIR%"
+ROBOCOPY "%COMMON_DIR%" "%DIST_DIR%" /E /XD "node_modules"
 
 :: Copy manifest
 copy /y "%TARGET_DIR%" "%DIST_DIR%"
