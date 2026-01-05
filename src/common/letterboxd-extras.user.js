@@ -5859,6 +5859,67 @@ if (isChrome)
 
 		},
 
+		general: {
+			running: false,
+
+			stopRunning() {
+				this.running = false;
+			},
+
+			async init(){
+				this.running = true;
+
+				const portals = document.querySelectorAll('div[data-floating-ui-portal]:not([data-floating-ui-portal-extras])'); 
+				if (portals != null && portals.length > 0){
+					for (var i = 0; i < portals.length; i++){
+						var portal = portals[i];
+						portal.setAttribute('data-floating-ui-portal-extras', '');
+
+						this.addGoToFilm(portal);
+					}
+				}
+
+				// Stop
+				return this.stopRunning();
+			},
+
+			addGoToFilm(portal){
+				const ul = portal.querySelector('div ul');
+
+				var filmUrl = "";
+
+				// Get film URL
+				var items = ul.querySelectorAll('li a');
+				for (var i = 0; i < items.length; i++){
+					filmUrl = letterboxd.helpers.regexExtract(items[i].getAttribute("href"), "(\/film\/[A-Za-z0-9\-_'.,`]+\/)", 1, "");
+
+					if (filmUrl != "")
+						break;
+				}
+
+				if (filmUrl == ""){
+					console.error("Letterboxd Extras | Unable to find page URL for \"Go to film\" button!");
+					return;
+				}
+
+				// Create elements
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'popmenu-textitem -centered'
+				});
+				const a = letterboxd.helpers.createElement('a', {
+					href: filmUrl,
+					["data-tabindex"]: '',
+					tabindex: '-1'
+				});
+				a.innerText = "Go to film";
+				li.append(a);
+
+				// Add to page
+				ul.append(li);
+			}
+
+		},
+
 		helpers: {
 			ValidateResponse(name, value){
 				// Standard fetch response validation with standardized debug messages
@@ -7647,6 +7708,9 @@ if (isChrome)
 				window.location.pathname.startsWith('/choreography/')
 			) {
 				letterboxd.person.init();
+			}
+			else {
+				letterboxd.general.init();
 			}
 		}
 	});
