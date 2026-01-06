@@ -3,3 +3,6 @@ Letterboxd-Extras.zip
 ff android debug.txt
 /src/dist
 *.zip
+/src/common/node_modules
+/src/common/build
+package-lock.json
