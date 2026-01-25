@@ -1,6 +1,5 @@
 /* eslint-disable */
 
-import { Helper } from "./helpers/helper";
 import { LetterboxdPerson } from './letterboxd-person';
 
 GM_addStyle(`
