@@ -387,7 +387,7 @@ GM_addStyle(`
 			margin-top: 9px;
 		}
 		.extras-table .extras-header{
-			width: 40%;
+			width: 35%;
 		}
 		.extras-table .extras-value{
 			width: 60%;

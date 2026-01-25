@@ -3,6 +3,8 @@ Letterboxd-Extras.zip
 ff android debug.txt
 /src/dist
 *.zip
-/src/common/node_modules
 /src/common/build
+/testing/test-results
+/testing/playwright-report
+**/node_modules
 package-lock.json

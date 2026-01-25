@@ -17,7 +17,6 @@ export class LetterboxdPerson {
 			loadState: LOAD_STATES['Uninitialized'],
 			filterAdded: false,
 			enabled: false,
-			filmList: null,
 			lostFilmCount: 0,
 			visibleCount: 0,
 			watchedCount: 0,

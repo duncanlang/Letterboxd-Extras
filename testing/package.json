@@ -1,0 +1,47 @@
+{
+	"name": "letterboxd-extras-tests",
+	"version": "1.0.0",
+	"description": "Test Letterboxd Extras Extension",
+	"type": "module",
+	"engines": {
+		"node": ">=8.0.0"
+	},
+	"scripts": {
+		"record-test": "playwright codegen --load-extension=../src/dist/chrome --channel=chrome"
+	},
+	"devDependencies": {
+		"eslint": "8.57.1",
+		"eslint-config-aqua": "9.2.1",
+		"@playwright/test": "1.58.0",
+		"@typescript-eslint/parser": "8.53.1",
+		"playwright": "1.58.0",
+		"typescript": "5.9.3",
+		"typescript-eslint": "8.53.1"
+	},
+	"eslintConfig": {
+		"extends": [
+			"aqua"
+		],
+		"env": {
+			"browser": true,
+			"es6": true,
+			"webextensions": true
+		},
+		"rules": {
+			"func-names": 0,
+			"capitalized-comments": 0,
+			"max-len": 0,
+			"id-length": 0,
+			"no-warning-comments": 0,
+			"no-throw-literal": 0,
+			"no-invalid-this": 0,
+			"no-console": 0,
+			"padded-blocks": 0,
+			"quote-props": 0
+		}
+	},
+	"dependencies": {
+		"@types/node": "^25.0.10",
+		"dotenv": "^17.2.3"
+	}
+}
