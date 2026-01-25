@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 
@@ -135,7 +137,7 @@ async function InitDefaultSettings() {
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
     if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
     if (options['mal-enabled'] == null) options['mal-enabled'] = true;
-    if (options['al-enabled'] == null) options['al-enabled'] = true;
+    if (options['anilist-enabled'] == null) options['anilist-enabled'] = true;
     if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
     if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;

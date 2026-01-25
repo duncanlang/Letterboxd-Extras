@@ -1,4 +1,4 @@
-import { LOAD_STATES } from "./constants";
+import { LOAD_STATES } from './constants';
 
 export class LetterboxdPerson {
 
@@ -58,16 +58,32 @@ export class LetterboxdPerson {
 
 		// Call WikiData for lost films
 		if (document.querySelector('.poster-grid') !== null && this.extensionStorage.localInitilized == true) {
+<<<<<<< HEAD:src/user.js/letterboxd-person.js
 			if (this.lostFilms.loadState === LOAD_STATES["Uninitialized"]) {
+=======
+
+			if (this.lostFilms.loadState === LOAD_STATES['Uninitialized']) {
+
+>>>>>>> 60b95dd (init branch, add chart creation HTML helper, add AniListhelper sketch, replace 'al):src/common/letterboxd-person.js
 				this.callWikiDataLostFilms();
 			}
 
+<<<<<<< HEAD:src/user.js/letterboxd-person.js
 			if (this.lostFilms.loadState === LOAD_STATES["Success"]) {
+=======
+			if (this.lostFilms.loadState === LOAD_STATES['Success']) {
+
+>>>>>>> 60b95dd (init branch, add chart creation HTML helper, add AniListhelper sketch, replace 'al):src/common/letterboxd-person.js
 				// Collect films from the page and hide if set
 				this.updateLostFilms();
 			}
 
+<<<<<<< HEAD:src/user.js/letterboxd-person.js
 			if (this.lostFilms.loadState === LOAD_STATES["Failure"] && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter') !== null) {
+=======
+			if (this.lostFilms.loadState === LOAD_STATES['Failure'] && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter') !== null) {
+
+>>>>>>> 60b95dd (init branch, add chart creation HTML helper, add AniListhelper sketch, replace 'al):src/common/letterboxd-person.js
 				if (document.querySelector('div.poster-grid ul li div.film-poster[data-watched]') !== null && this.lostFilms.visibleCount == document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length) {
 					// The posters (and the watched status) sometimes load later, lets run it again once all posters have properly loaded as well as the progress panel
 					this.updateLostFilms();
