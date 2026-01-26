@@ -4,9 +4,11 @@ import { Helper } from './helper';
 
 export class AnilistHelper extends Helper {
 
-	constructor(helpers) {
+	constructor(storage, helpers, ratingsSuffix) {
 
-		super(helpers);
+		super(storage, helpers);
+
+		this.ratingsSuffix = ratingsSuffix;
 
 		this.id = null;
 		this.url = null;
@@ -95,9 +97,10 @@ export class AnilistHelper extends Helper {
 		}
 
 		this.al.num_ratings = 0;
+		let ii = 0;
 		// Loop first and determine highest votes and total
 		if (this.al.data.stats.scoreDistribution.length === 10) {
-			for (let ii = 0; ii < 10; ii++) {
+			for (ii = 0; ii < 10; ii++) {
 				const amount = this.al.data.stats.scoreDistribution[ii].amount;
 				if (amount > this.al.highest) { this.al.highest = amount; }
 
@@ -139,8 +142,8 @@ export class AnilistHelper extends Helper {
 			scoreSection.append(showDetails);
 		}
 
-		scoreSection.append(this.helpers.createHistogramScore(letterboxd, 'anilist', this.al.score, this.al.num_ratings, `${this.al.data.siteUrl}/reviews`, this.isMobile));
-		scoreSection.append(this.helpers.createHistogramGraph(letterboxd, 'anilist', '', this.al.num_ratings, this.al.data.stats.scoreDistribution, this.al.data.stats.scoreDistribution[ii], this.al.highest));
+		scoreSection.append(this.helpers.createHistogramScore(this.storage, 'anilist', this.al.score, this.al.num_ratings, `${this.al.data.siteUrl}/reviews`, this.isMobile));
+		scoreSection.append(this.helpers.createHistogramGraph(this.storage, 'anilist', '', this.al.num_ratings, this.al.data.stats.scoreDistribution, this.al.data.stats.scoreDistribution[ii], this.al.highest));
 
 		// Add the tooltip as text for mobile
 		const score = scoreSection.querySelector('.average-rating .tooltip');

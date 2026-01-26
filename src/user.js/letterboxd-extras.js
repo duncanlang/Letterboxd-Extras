@@ -1726,7 +1726,7 @@ const letterboxd = {
 						this.searchFilmarks();
 					}
 				}
-			}
+			} 
 
 			if (letterboxd.storage.get('convert-ratings') === "5") {
 				this.ratingsSuffix = ['half-★', '★', '★½', '★★', '★★½', '★★★', '★★★½', '★★★★', '★★★★½', '★★★★★'];
@@ -1899,8 +1899,24 @@ const letterboxd = {
 				imdbScoreSection.append(letterboxd.helpers.createShowDetailsButton("imdb", "imdb-score-details"));
 			}
 
-			imdbScoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "imdb", this.imdbData.rating, this.imdbData.num_ratings, this.imdbData.url.replace('ratings', 'reviews'), this.isMobile));
-			imdbScoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "imdb", this.imdbData.url, this.imdbData.num_ratings, this.imdbData.votes, this.imdbData.percents, this.imdbData.highest));
+			imdbScoreSection.append(letterboxd.helpers.createHistogramScore(
+				letterboxd.storage, 
+				"imdb", 
+				this.imdbData.rating, 
+				this.imdbData.num_ratings, 
+				this.imdbData.url.replace('ratings', 'reviews'), 
+				this.isMobile
+			));
+			
+			imdbScoreSection.append(letterboxd.helpers.createHistogramGraph(
+				letterboxd.storage,
+				"imdb", 
+				this.imdbData.url, 
+				this.imdbData.num_ratings, 
+				this.imdbData.votes, 
+				this.imdbData.percents, 
+				this.imdbData.highest
+			));
 
 			// Add the tooltip as text for mobile
 			var score = imdbScoreSection.querySelector(".average-rating .tooltip");
@@ -3559,8 +3575,24 @@ const letterboxd = {
 					this.mal.highest = this.mal.statistics.scores[ii].votes;
 			}
 
-			scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "mal", this.mal.score, this.mal.scored_by, this.mal.data.url + '/reviews', this.isMobile));
-			scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "mal", "", this.mal.scored_by, this.mal.statistics.scores, this.mal.statistics.scores, this.mal.highest));
+			scoreSection.append(letterboxd.helpers.createHistogramScore(
+				letterboxd.storage, 
+				"mal", 
+				this.mal.score, 
+				this.mal.scored_by, 
+				this.mal.data.url + '/reviews', 
+				this.isMobile
+			));
+
+			scoreSection.append(letterboxd.helpers.createHistogramGraph(
+				letterboxd.storage, 
+				"mal", 
+				"", 
+				this.mal.scored_by, 
+				this.mal.statistics.scores, 
+				this.mal.statistics.scores, 
+				this.mal.highest
+			));
 
 			// Add the tooltip as text for mobile
 			var score = scoreSection.querySelector(".average-rating .tooltip");
@@ -3641,8 +3673,24 @@ const letterboxd = {
 				scoreSection.append(showDetails);
 			}
 
-			scoreSection.append(letterboxd.helpers.createHistogramScore(letterboxd, "anilist", this.al.score, this.al.num_ratings, this.al.data.siteUrl + '/reviews', this.isMobile));
-			scoreSection.append(letterboxd.helpers.createHistogramGraph(letterboxd, "anilist", "", this.al.num_ratings, this.al.data.stats.scoreDistribution, this.al.data.stats.scoreDistribution[ii], this.al.highest));
+			scoreSection.append(letterboxd.helpers.createHistogramScore(
+				letterboxd.storage, 
+				"anilist", 
+				this.al.score, 
+				this.al.num_ratings, 
+				this.al.data.siteUrl + '/reviews', 
+				this.isMobile
+			));
+
+			scoreSection.append(letterboxd.helpers.createHistogramGraph(
+				letterboxd.storage, 
+				"anilist", 
+				"", 
+				this.al.num_ratings, 
+				this.al.data.stats.scoreDistribution, 
+				this.al.data.stats.scoreDistribution[ii], 
+				this.al.highest
+			));
 
 			// Add the tooltip as text for mobile
 			var score = scoreSection.querySelector(".average-rating .tooltip");
@@ -4821,8 +4869,26 @@ const letterboxd = {
 					class: 'allocine-user-score rt-score-div',
 					style: 'position: relative; display: block;'
 				});
-				userSpan.append(letterboxd.helpers.createHistogramScore(letterboxd, "allocine", this.allocine.user.rating, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
-				userSpan.append(letterboxd.helpers.createHistogramGraph(letterboxd, "allocine", this.allocine.urlUser, this.allocine.user.num_reviews, this.allocine.user.votes, this.allocine.user.percents, this.allocine.user.highest));
+
+				userSpan.append(letterboxd.helpers.createHistogramScore(
+					letterboxd.storage, 
+					"allocine", 
+					this.allocine.user.rating, 
+					this.allocine.user.num_reviews, 
+					this.allocine.urlUser, 
+					this.isMobile
+				));
+
+				userSpan.append(letterboxd.helpers.createHistogramGraph(
+					letterboxd.storage, 
+					"allocine", 
+					this.allocine.urlUser, 
+					this.allocine.user.num_reviews, 
+					this.allocine.user.votes, 
+					this.allocine.user.percents, 
+					this.allocine.user.highest
+				));
+
 				section.append(userSpan);
 
 				if (letterboxd.storage.get('allocine-critic-enabled') === false) {
@@ -6053,21 +6119,21 @@ const letterboxd = {
 			}
 		},
 
-		createHistogramScore(letterboxd, type, rating, count, url, isMobile) {
+		createHistogramScore(storage, type, rating, count, url, isMobile) {
 			// The span that holds the score
 			var style = "";
-			if (letterboxd.overview.isMobile == true) {
+			if (isMobile) {
 				style = "left: auto;";
 			} else {
 				style = "left: 188px;";
 			}
-			const scoreSpan = letterboxd.helpers.createElement('span', {
+			const scoreSpan = this.createElement('span', {
 				class: 'average-rating',
 				style: style + ' position:absolute;'
 			});
 
-			var convertRatings = (letterboxd.storage.get('convert-ratings') === "5");
-			var convert10Point = (letterboxd.storage.get('convert-ratings') === "10");
+			var convertRatings = (storage.get('convert-ratings') === "5");
+			var convert10Point = (storage.get('convert-ratings') === "10");
 			var suffix = "/10";
 			var tooltip = "";
 			if (rating != "N/A") {
@@ -6099,7 +6165,7 @@ const letterboxd = {
 			}
 
 			// The element that is the score itself
-			const scoreElement = letterboxd.helpers.createElement('a', {
+			const scoreElement = this.createElement('a', {
 				class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
 				href: url,
 				['data-original-title']: tooltip
@@ -6119,31 +6185,33 @@ const letterboxd = {
 		},
 
 
-		createHistogramGraph(letterboxd, type, url, count, votes, percents, highest) {
+		createHistogramGraph(storage, type, url, count, votes, percents, highest) {
 			// Add the bars for the rating
+			let histogramType = "rating-histogram-condensed";
+
 			if (votes.length == 10) {
-				var histogramType = "rating-histogram-exploded"
-			} else {
-				var histogramType = "rating-histogram-condensed"
+				histogramType = "rating-histogram-exploded"
 			}
-			const histogram = letterboxd.helpers.createElement('div', {
+
+			const histogram = this.createElement('div', {
 				class: 'rating-histogram clear ' + histogramType + ' rating-histogram-extras',
 				style: 'position: relative;'
 			});
-			const ul = letterboxd.helpers.createElement('ul', {
+			const ul = this.createElement('ul', {
 			});
 			histogram.append(ul);
 
-			var width = 15;
+			let width = 15;
 			if (votes.length == 6) {
 				width = 26;
 			} else if (votes.length == 5) {
 				width = 35;
 			}
+
 			// Loop for each bar
 			for (var ii = 0; ii < votes.length; ii++) {
 				var left = (ii * (width + 1)).toString() + "px;";
-				const il = letterboxd.helpers.createElement('li', {
+				const il = this.createElement('li', {
 					class: 'rating-histogram-bar',
 					style: 'width: ' + width + 'px; left: ' + left
 				});
@@ -6162,22 +6230,22 @@ const letterboxd = {
 				}
 
 				// Determine rating type (rating vs review)
-				var ratingType = "ratings";
+				let ratingType = "ratings";
 				if (type == "allocine") {
 					ratingType = "reviews";
 				}
 
 				// Determine Suffixes
-				var ratingSuffix = letterboxd.overview.ratingsSuffix;
-				if (type === "anilist" && letterboxd.storage.get('convert-ratings') === false) {
-					ratingSuffix = ['10/100', '20/100', '30/100', '40/100', '50/100', '60/100', '70/100', '80/100', '90/100', '100/100'];
-				} else if (type == "allocine") {
-					ratingSuffix = ['0-★', '★', '★★', '★★★', '★★★★', '★★★★★'];
+				let currentRatingsSuffix = letterboxd.overview.ratingsSuffix.map((x) => x);
+				if (type === "anilist" && storage.get('convert-ratings') === false) {
+					currentRatingsSuffix = ['10/100', '20/100', '30/100', '40/100', '50/100', '60/100', '70/100', '80/100', '90/100', '100/100'];
+				} else if (type === "allocine") {
+					currentRatingsSuffix = ['0-★', '★', '★★', '★★★', '★★★★', '★★★★★'];
 				}
 
-				const a = letterboxd.helpers.createElement('a', {
+				const a = this.createElement('a', {
 					class: 'ir tooltip ' + type + ' tooltip-extra',
-					['data-original-title']: voteCount.toLocaleString() + " " + ratingSuffix[ii] + ' ' + ratingType + ' (' + percentage.toString() + '%)'
+					['data-original-title']: voteCount.toLocaleString() + " " + currentRatingsSuffix[ii] + ' ' + ratingType + ' (' + percentage.toString() + '%)'
 				});
 				il.append(a);
 
@@ -6193,12 +6261,13 @@ const letterboxd = {
 				var percent = voteCount / highest;
 				var height = (max * percent);
 
-				if (height < min)
+				if (height < min) {
 					height = min;
+				}
 
 				height = height.toString() + "px;";
 
-				const i = letterboxd.helpers.createElement('i', {
+				const i = this.createElement('i', {
 					style: 'height: ' + height
 				});
 				a.append(i);
@@ -6206,7 +6275,7 @@ const letterboxd = {
 
 			// Extra class for mobile
 			var starClass = "";
-			if (letterboxd.overview.isMobile == true) {
+			if (letterboxd.overview.isMobile) {
 				starClass = " rating-star-extra-mobile"
 			}
 
@@ -6215,20 +6284,20 @@ const letterboxd = {
 			// See: https://stackoverflow.com/questions/42966641/how-to-transform-black-into-any-given-color-using-only-css-filters/43960991#43960991
 			// Also: https://codepen.io/sosuke/pen/Pjoqqp
 			// 1 Star
-			const span1Star = letterboxd.helpers.createElement('span', {
+			const span1Star = this.createElement('span', {
 				class: 'rating-green rating-green-tiny rating-1'
 			});
-			const span1StarInner = letterboxd.helpers.createElement('span', {
+			const span1StarInner = this.createElement('span', {
 				class: 'rating rated-2 rating-star-' + type + starClass
 			});
 			span1StarInner.innerText = "★";
 			span1Star.append(span1StarInner);
 
 			// 5 Star
-			const span5Star = letterboxd.helpers.createElement('span', {
+			const span5Star = this.createElement('span', {
 				class: 'rating-green rating-green-tiny rating-5'
 			});
-			const span5StarInner = letterboxd.helpers.createElement('span', {
+			const span5StarInner = this.createElement('span', {
 				class: 'rating rated-10 rating-star-' + type + starClass
 			});
 			span5StarInner.innerText = "★★★★★";

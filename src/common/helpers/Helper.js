@@ -2,11 +2,13 @@ import { LOAD_STATES } from '../constants';
 
 export class Helper {
 
-	constructor(helpers) {
+	constructor(storage, helpers) {
+
+		this.storage = storage;
+		this.helpers = helpers;
 
 		this.loadState = 0;
 		this.data = null;
-		this.helpers = helpers;
 
 	}
 
