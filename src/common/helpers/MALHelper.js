@@ -2,7 +2,7 @@
 import { LOAD_STATES } from '../constants';
 import { Helper } from '../helpers/Helper';
 
-export class AnilistHelper extends Helper {
+export class MALHelper extends Helper {
 
 	constructor(storage, helpers, ratingsSuffix) {
 
@@ -86,13 +86,9 @@ export class AnilistHelper extends Helper {
 			return;
 		}
 
-		console.log('can populate sidebar with anilist');
-
 		if (document.querySelector('.anilist-ratings')) {
 			return;
 		}
-
-		console.log('has not found existing anlist-ratings');
 
 		if (this.data.averageScore !== null) {
 			this.score = this.data.averageScore;

@@ -1,5 +1,7 @@
 /* eslint-disable */
 
+import { LOAD_STATES } from './constants';
+import { AnilistHelper } from './helpers/AnilistHelper';
 import { LetterboxdPerson } from './letterboxd-person';
 import { LetterboxdGeneral } from './letterboxd-general';
 
@@ -673,6 +675,9 @@ const letterboxd = {
 
 		// AniList
 		al: { state: 0, id: null, url: null, data: null, highest: 0, num_ratings: 0 },
+
+		// Anilist Helper
+		anilistHelper: 'test',
 
 		// SensCritique
 		sensCritique: { state: 0, id: null, url: null, data: null },
@@ -1362,60 +1367,13 @@ const letterboxd = {
 										}
 									}
 
-									// Get AniList data
-									if (this.wiki != null && this.wiki.Anilist_ID != null && this.wiki.Anilist_ID.value != null && letterboxd.storage.get('al-enabled') === true) {
-										if (this.al.data == null && this.al.state < 1) {
-											this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
-											this.al.id = this.wiki.Anilist_ID.value;
+								// Get AniList data
+								if (this.wiki !== null && this.wiki.Anilist_ID !== null && this.wiki.Anilist_ID.value !== null && letterboxd.storage.get('anilist-enabled') === true) {
+										
+									this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
+									this.anilistHelper.getData(this.wiki.Anilist_ID.value);
 
-											var url = 'https://graphql.anilist.co';
-											const query = letterboxd.helpers.getAniListQuery();
-											const options = {
-												method: 'POST',
-												headers: {
-													'content-type': 'application/json',
-													accept: 'application/json'
-												},
-												body: JSON.stringify({
-													query: query,
-													variables: { id: this.al.id }
-												})
-											}
-
-											try {
-												this.al.state = 1;
-												browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-													if (letterboxd.helpers.ValidateResponse("AniList API", value) == false){
-														return;
-													}
-														
-													var al = value.response;
-													if (al != null && al.data != null) {
-														this.al.data = al.data.Media;
-
-														if (this.al.data != null) {
-															this.al.url = this.al.data.siteUrl;
-															this.addLink(this.al.data.siteUrl);
-
-															this.al.state = 2;
-															this.addAL();
-														} else {
-															this.al.state = 3;
-														}
-													} else {
-														this.al.state = 3;
-														if (value.errors != null)
-															console.error("Letterboxd Extras | AniList API Error: " + value.errors[0].message);
-														else
-															console.error("Letterboxd Extras | AniList Unknown API Error. Status: " + value.status);
-													}
-												});
-											} catch {
-												console.error("Letterboxd Extras | Unable to parse AniList URL");
-												this.al.state = 3;
-											}
-										}
-									}
+								}
 
 									// Get Content Ratings (MPAA, BBFC, etc)
 									this.wikiData.mpaa = letterboxd.helpers.parseWikiDataResult(this.wiki, "MPAA_film_ratingLabel", this.wikiData.mpaa);
@@ -2928,7 +2886,7 @@ const letterboxd = {
 		},
 
 		addLink(url) {
-			if (url == null || url == "") {
+			if (url === null || url === "") {
 				return;
 			}
 
