@@ -51,13 +51,13 @@ export class LetterboxdPerson {
 		}
 
 		// Add the filter
-		if (this.lostFilms.filterAdded === false && document.querySelector('.js-film-filters') !== null && this.extensionStorage.localInitilized == true) {
+		if (this.lostFilms.filterAdded === false && document.querySelector('.js-film-filters') !== null && this.extensionStorage.localInitilized === true) {
 			this.lostFilms.filterAdded = true;
 			this.addLostFilmFilter();
 		}
 
 		// Call WikiData for lost films
-		if (document.querySelector('.poster-grid') !== null && this.extensionStorage.localInitilized == true) {
+		if (document.querySelector('.poster-grid') !== null && this.extensionStorage.localInitilized === true) {
 			if (this.lostFilms.loadState === LOAD_STATES['Uninitialized']) {
 				this.callWikiDataLostFilms();
 			}
@@ -68,7 +68,7 @@ export class LetterboxdPerson {
 			}
 
 			if (this.lostFilms.loadState === LOAD_STATES['Failure'] && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter') !== null) {
-				if (document.querySelector('div.poster-grid ul li div.film-poster[data-watched]') !== null && this.lostFilms.visibleCount == document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length) {
+				if (document.querySelector('div.poster-grid ul li div.film-poster[data-watched]') !== null && this.lostFilms.visibleCount === document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length) {
 					// The posters (and the watched status) sometimes load later, lets run it again once all posters have properly loaded as well as the progress panel
 					this.updateLostFilms();
 					this.lostFilms.loadState = LOAD_STATES['Reload'];
@@ -90,7 +90,7 @@ export class LetterboxdPerson {
 		}
 
 		// Determine mobile
-		if (this.isMobile == null) {
+		if (this.isMobile === null) {
 			if (document.querySelector('html')) {
 				const htmlEl = document.querySelector('html');
 				if (htmlEl.getAttribute('class').includes('no-mobile')) {
@@ -114,7 +114,7 @@ export class LetterboxdPerson {
 		const queryString = this.extensionHelpers.getWikiDataQuery('', this.tmdbID, '', false, 'PERSON', lang);
 		// Call WikiData
 		browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString }, data => {
-			if (this.extensionHelpers.ValidateResponse('WikiData', data) == false) {
+			if (this.extensionHelpers.ValidateResponse('WikiData', data) === false) {
 				return;
 			}
 
@@ -179,7 +179,7 @@ export class LetterboxdPerson {
 
 		// Collect basic info
 		//* ****************************************
-		const isAlive = this.wiki.Date_Of_Death == null || this.wiki.Date_Of_Death.value == null;
+		const isAlive = this.wiki.Date_Of_Death === null || this.wiki.Date_Of_Death.value === null;
 
 		// const options = { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
 		// const options2 = { year: 'numeric', timeZone: 'UTC' };
@@ -189,14 +189,14 @@ export class LetterboxdPerson {
 		let birth = null;
 		let birthPlace = null;
 		if (this.wiki.BirthName && this.wiki.BirthName.value !== null) {
-			if (this.wiki.BirthName.value != this.wiki.itemLabel.value && this.wiki.BirthName.value != this.letterboxdName) {
+			if (this.wiki.BirthName.value !== this.wiki.itemLabel.value && this.wiki.BirthName.value !== this.letterboxdName) {
 				name = this.wiki.BirthName.value;
 			}
 		}
 
 		if (this.wiki.Date_Of_Birth && this.wiki.Date_Of_Birth.value !== null && this.wiki.Date_Of_Birth_Precision.value >= 9) {
-		 	birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
-			if (isAlive == true) {
+			birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
+			if (isAlive === true) {
 				const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
 				birth += ` (age ${age})`;
 			}
@@ -213,7 +213,7 @@ export class LetterboxdPerson {
 		let death = null;
 		let deathPlace = null;
 		if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value !== null && this.wiki.Date_Of_Death_Precision.value >= 9) {
-		 	death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
+			death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
 
 			const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
 			death += ` (aged ${age})`;
@@ -280,7 +280,7 @@ export class LetterboxdPerson {
 
 		// Add to page
 		//* ****************************************
-		if (empty == false) {
+		if (empty === false) {
 			if (this.isMobile) {
 				if (document.querySelector('.progress-panel') !== null) {
 					document.querySelector('.progress-panel').before(table);
@@ -328,12 +328,11 @@ export class LetterboxdPerson {
 	addIMDbButton() {
 		if (document.querySelector('.imdb-button')) return;
 
+		let url = '';
 		if (this.wiki.IMDb_ID && this.wiki.IMDb_ID.value !== null) {
-			var url = this.wiki.IMDb_ID.value;
-
+			url = this.wiki.IMDb_ID.value;
 		} else {
 			return;
-
 		}
 
 		url = `https://www.imdb.com/name/${url}`;
@@ -360,11 +359,11 @@ export class LetterboxdPerson {
 
 		const now = new Date();
 		const maxTime = 7 * 60 * 60 * 24 * 1000; // one week
-		if (timestamp == null || (now - timestamp) > maxTime || this.lostFilms.list == null) {
+		if (timestamp === null || (now - timestamp) > maxTime || this.lostFilms.list === null) {
 
 			// Get new list - Call WikiData
 			browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString }, data => {
-				if (this.extensionHelpers.ValidateResponse('WikiData', data) == false) {
+				if (this.extensionHelpers.ValidateResponse('WikiData', data) === false) {
 					return;
 				}
 
@@ -393,7 +392,7 @@ export class LetterboxdPerson {
 		this.lostFilms.totalCount = 0;
 
 		const hide = this.extensionStorage.localGet('hide-lost-films');
-		this.lostFilms.enabled = hide == 'hide';
+		this.lostFilms.enabled = hide === 'hide';
 
 		// Check and set hidden
 		const films = document.querySelectorAll('div.poster-grid ul li');
@@ -402,19 +401,19 @@ export class LetterboxdPerson {
 			const film = films[i];
 			const filmID = film.querySelector('div').getAttribute('data-item-slug');
 			let filmWatched = film.querySelector('div.film-poster').getAttribute('data-watched');
-			if (filmWatched == null) {
+			if (filmWatched === null) {
 
 				filmWatched = '';
 
 			}
 
-			if (this.lostFilms.list.includes(filmID) && hide == 'hide') {
+			if (this.lostFilms.list.includes(filmID) && hide === 'hide') {
 				film.className += ' extras-lost-film';
 				this.lostFilms.lostFilmCount++;
 
 			} else {
 				this.lostFilms.visibleCount++;
-				if (filmWatched.toLowerCase() == 'true') {
+				if (filmWatched.toLowerCase() === 'true') {
 					this.lostFilms.watchedCount++;
 				}
 
@@ -452,7 +451,7 @@ export class LetterboxdPerson {
 			progressCount.prepend(jsProgress);
 			// Add the count to the counter
 			progressCounter.innerHTML = '';
-			if (originalTotal != this.lostFilms.visibleCount) {
+			if (originalTotal !== this.lostFilms.visibleCount) {
 				progressCounter.append(` / ${originalTotal} total`);
 
 			}
@@ -482,7 +481,7 @@ export class LetterboxdPerson {
 		// Update ui heading
 		let prefix = 'There are ';
 		let suffix = ' films ';
-		if (this.lostFilms.visibleCount == 1) {
+		if (this.lostFilms.visibleCount === 1) {
 			prefix = 'There is ';
 			suffix = ' film ';
 		}
@@ -497,7 +496,7 @@ export class LetterboxdPerson {
 		}
 
 		// Create custom heading if one does not already exist
-		if (extrasuiHeader == null) {
+		if (extrasuiHeader === null) {
 			extrasuiHeader = this.extensionHelpers.createElement('section', {
 				class: 'ui-block-header filtered-message body-text -small message-text extras-filter-header'
 			}, {
