@@ -2,8 +2,12 @@
 	"name": "letterboxd-extras",
 	"version": "1.0.0",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
+	"type": "module",
 	"scripts": {
-		"test": "eslint ."
+		"test": "eslint .",
+		"build-all": "rollup -c user.js/rollup.config.js && build.bat chrome && build.bat firefox",
+		"build-chrome": "rollup -c user.js/rollup.config.js && build.bat chrome",
+		"build-firefox": "rollup -c user.js/rollup.config.js && build.bat firefox"
 	},
 	"repository": "https://github.com/duncanlang/Letterboxd-Extras.git",
 	"author": "Duncan Lang (https://github.com/duncanlang)",
@@ -13,7 +17,9 @@
 	},
 	"devDependencies": {
 		"eslint": "^6.5.1",
-		"eslint-config-aqua": "^7.0.1"
+		"eslint-config-aqua": "^7.0.1",
+		"rollup": "^4.6.0",
+		"magic-string": "^0.30.0"
 	},
 	"eslintConfig": {
 		"extends": [
