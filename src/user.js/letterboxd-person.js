@@ -282,8 +282,8 @@ export class LetterboxdPerson {
 		//* ****************************************
 		if (empty == false) {
 			if (this.isMobile) {
-				if (document.querySelector('.progress-panel') !== null) {
-					document.querySelector('.progress-panel').before(table);
+				if (document.querySelector('.sidebar .actions') !== null) {
+					document.querySelector('.sidebar .actions').prepend(table);
 				}
 
 			} else if (document.querySelector('.bio') !== null) {
@@ -293,9 +293,7 @@ export class LetterboxdPerson {
 				document.querySelector('.avatar.person-image').after(table);
 
 			}
-
 		}
-
 	}
 
 	addWikiButton() {
