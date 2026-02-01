@@ -30,9 +30,11 @@ if (isChrome)
 			height: 13px !important;
 		}
 		.tomato-ratings .section-heading-extras,
-		.meta-ratings .section-heading-extras,
-		.sens-ratings .section-heading-extras{
+		.meta-ratings .section-heading-extras{
 			height: 20px !important;
+		}
+		.sens-ratings .section-heading-extras{
+			height: 15px !important;
 		}
 		.tomato-ratings .show-details,
 		.meta-ratings .show-details,
@@ -366,7 +368,7 @@ if (isChrome)
 			font-size: 12px;
 			color: #89a;
 		}
-		.sens-score{
+		.sens-score, .sens-score:hover{
 			display: flex;
 			flex-direction: row;
 			border: 1px solid white;
@@ -377,14 +379,27 @@ if (isChrome)
 			font-family: "Sora", sans-serif;
 			align-items: center;
 			justify-content: center;
-			height: 26px;
-			width: 45px;
+			height: 32px;
+			width: 57px;
 			margin-left: 1px;
 			margin-top: 5px;
+			text-decoration: none;
 		}
-		.sens-score:hover{
-			color: white;
-			text-decoration: underline;
+		.sens-score.green, .sens-score.green:hover{
+			border: 1px solid rgb(47, 196, 111);
+			color: rgb(47, 196, 111);
+		}
+		.sens-score span{
+			pointer-events: none;
+		}
+		.sens-score-icon{
+			display: inline-block !important;
+			width: 22px;
+			height: 22px;
+			scale: 0.8;
+		}
+		.sens-score-icon.green{
+			filter: invert(72%) sepia(37%) saturate(821%) hue-rotate(89deg) brightness(83%) contrast(89%);
 		}
 		.sens-text{
 			font-size: 14px;
@@ -392,6 +407,8 @@ if (isChrome)
 			width: auto;
 			display: inline-block;
 			margin-left: 10px;
+			margin-top: 10px;
+			margin-bottom: 0px !important;
 		}
 		.sens-flex flex-container{
 			display: flex;
@@ -1136,7 +1153,7 @@ if (isChrome)
 							});
 
 							// Call BoxOfficeMojo
-							var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID;
+							var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID + '/';
 							if (letterboxd.storage.get('mojo-link-enabled') === true) {
 								this.addLink(mojoURL);
 							}
@@ -1844,7 +1861,7 @@ if (isChrome)
 							imdbLink = imdbLink.replace('www.', 'm.');
 						}
 
-						this.imdbData.url = imdbLink;
+						this.imdbData.url = imdbLink + '/';
 
 					} else if (links[i].innerHTML === "TMDB") {
 						// Grab the tmdb link
@@ -3786,7 +3803,7 @@ if (isChrome)
 				const logoHolder = letterboxd.helpers.createElement('a', {
 					class: "logo-sens",
 					href: url,
-					style: 'height: 25px; width: 75px; position: absolute; background-image: url("' + browser.runtime.getURL("images/sens-logo.png") + '");'
+					style: 'height: 25px; width: 110px; position: absolute; background-image: url("' + browser.runtime.getURL("images/senscritique-logo.svg") + '");'
 				});
 				heading.append(logoHolder);
 
@@ -3820,9 +3837,19 @@ if (isChrome)
 				});
 
 				// The element that is the score itself
-				const text = letterboxd.helpers.createElement('a', {
-					class: 'tooltip tooltip-extra display-rating -highlight sens-score'
+				const ratingHolder = letterboxd.helpers.createElement('a', {
+					class: 'tooltip tooltip-extra sens-score'
 				});
+
+				const ratingIcon = letterboxd.helpers.createElement('span', {
+					class: 'sens-score-icon'
+				});
+				ratingHolder.append(ratingIcon);
+
+				const ratingText = letterboxd.helpers.createElement('span', {
+					class: 'display-rating -highlight'
+				});
+				ratingHolder.append(ratingText);
 
 				var suffix = "/10";
 
@@ -3843,11 +3870,19 @@ if (isChrome)
 				} else {
 					rating = "N/A";
 				}
-				text.setAttribute('data-original-title', tooltip);
-				text.setAttribute('href', url + "/critiques");
-				text.innerText = rating
-				span.append(text);
+				ratingHolder.setAttribute('data-original-title', tooltip);
+				ratingHolder.setAttribute('href', url + "/critiques");
 
+				ratingText.innerText = rating;
+				
+				if (rating >= 6.5){
+					ratingHolder.className += ' green';
+					ratingIcon.style['background-image'] = 'url("' + browser.runtime.getURL("images/senscritique-icon-green.svg") + '")';
+				}else{
+					ratingIcon.style['background-image'] = 'url("' + browser.runtime.getURL("images/senscritique-icon-white.svg") + '")';
+				}
+
+				span.append(ratingHolder);
 				container.append(span);
 
 				// Number of ratings and likes text
@@ -3855,7 +3890,7 @@ if (isChrome)
 				const textSpan = letterboxd.helpers.createElement('div', {}, {
 					['display']: 'inline-block',
 					['width']: 'auto',
-					['height']: '20px'
+					['vertical-align']: 'top'
 				});
 
 				if (letterboxd.storage.get('sens-favorites-enabled') === true) {
@@ -5934,6 +5969,8 @@ if (isChrome)
 					// Something went really wrong with the fetch
 					console.error("Letterboxd Extras | There was an error with the " + name + " call. Error unknown");
 					output = false;
+				}else if (value.status == 202 && (value.response == null || value.response == "")){
+					console.error("Letterboxd Extras | There was an error with the " + name + " call. Site returned a 202 without a body.");
 				}else if (value.status > 299 || value.status == 0){
 					// Something went wrong, check for errors in the response
 					if (value.errors != null && value.errors.length > 0){
@@ -6090,9 +6127,9 @@ if (isChrome)
 				var suffix = "";
 				var rating = data.rating;
 				if (type.includes("critic")) {
-					suffix = "10";
+					suffix = "/10";
 				} else {
-					suffix = "5";
+					suffix = "/5";
 				}
 
 				if (letterboxd.storage.get('convert-ratings') === "10"){
