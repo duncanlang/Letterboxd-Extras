@@ -1,6 +1,6 @@
 
 import { LOAD_STATES } from '../constants';
-import { Helper } from '../helpers/Helper';
+import { Helper } from './Helper';
 
 export class MALHelper extends Helper {
 

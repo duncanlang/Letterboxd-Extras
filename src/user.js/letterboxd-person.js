@@ -58,32 +58,16 @@ export class LetterboxdPerson {
 
 		// Call WikiData for lost films
 		if (document.querySelector('.poster-grid') !== null && this.extensionStorage.localInitilized == true) {
-<<<<<<< HEAD:src/user.js/letterboxd-person.js
-			if (this.lostFilms.loadState === LOAD_STATES["Uninitialized"]) {
-=======
-
 			if (this.lostFilms.loadState === LOAD_STATES['Uninitialized']) {
-
->>>>>>> 60b95dd (init branch, add chart creation HTML helper, add AniListhelper sketch, replace 'al):src/common/letterboxd-person.js
 				this.callWikiDataLostFilms();
 			}
 
-<<<<<<< HEAD:src/user.js/letterboxd-person.js
-			if (this.lostFilms.loadState === LOAD_STATES["Success"]) {
-=======
 			if (this.lostFilms.loadState === LOAD_STATES['Success']) {
-
->>>>>>> 60b95dd (init branch, add chart creation HTML helper, add AniListhelper sketch, replace 'al):src/common/letterboxd-person.js
 				// Collect films from the page and hide if set
 				this.updateLostFilms();
 			}
 
-<<<<<<< HEAD:src/user.js/letterboxd-person.js
-			if (this.lostFilms.loadState === LOAD_STATES["Failure"] && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter') !== null) {
-=======
 			if (this.lostFilms.loadState === LOAD_STATES['Failure'] && document.querySelector('.sidebar .actions .progress-panel .progress-status .progress-counter') !== null) {
-
->>>>>>> 60b95dd (init branch, add chart creation HTML helper, add AniListhelper sketch, replace 'al):src/common/letterboxd-person.js
 				if (document.querySelector('div.poster-grid ul li div.film-poster[data-watched]') !== null && this.lostFilms.visibleCount == document.querySelectorAll('div.poster-grid ul li div.film-poster[data-watched]').length) {
 					// The posters (and the watched status) sometimes load later, lets run it again once all posters have properly loaded as well as the progress panel
 					this.updateLostFilms();
@@ -211,7 +195,7 @@ export class LetterboxdPerson {
 		}
 
 		if (this.wiki.Date_Of_Birth && this.wiki.Date_Of_Birth.value !== null && this.wiki.Date_Of_Birth_Precision.value >= 9) {
-		 	birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString("en-UK", this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
+		 	birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
 			if (isAlive == true) {
 				const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
 				birth += ` (age ${age})`;
@@ -229,7 +213,7 @@ export class LetterboxdPerson {
 		let death = null;
 		let deathPlace = null;
 		if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value !== null && this.wiki.Date_Of_Death_Precision.value >= 9) {
-		 	death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
+		 	death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
 
 			const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
 			death += ` (aged ${age})`;
@@ -527,7 +511,7 @@ export class LetterboxdPerson {
 				class: 'js-film-filter-remover',
 				href: '#'
 			});
-			removeLink.innerText = 'Remove filters';
+			removeLink.innerText = 'Remove filters';
 			extrasuiHeading.append(removeLink);
 
 			// Append to page

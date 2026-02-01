@@ -11,7 +11,7 @@ GM_addStyle(`
 		}
 		.tomato-ratings .section-heading-extras,
 		.meta-ratings .section-heading-extras{
-			height: 20px !important;
+			height: 20px !important; 
 		}
 		.sens-ratings .section-heading-extras{
 			height: 15px !important;
@@ -7262,6 +7262,10 @@ if (typeof LetterboxdPerson !== 'undefined') {
 
 if (typeof LetterboxdGeneral !== 'undefined') {
 	letterboxd.general = new LetterboxdGeneral(letterboxd.storage, letterboxd.helpers);
+}
+
+if (typeof AnilistHelper !== 'undefined') {
+	letterboxd.overview.anilistHelper = new AnilistHelper(letterboxd.storage, letterboxd.helpers, letterboxd.overview.ratingsSuffix)
 }
 
 letterboxd.storage.init();

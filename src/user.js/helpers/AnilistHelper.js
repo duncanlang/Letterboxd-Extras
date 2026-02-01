@@ -1,6 +1,6 @@
 
 import { LOAD_STATES } from '../constants';
-import { Helper } from '../helpers/Helper';
+import { Helper } from './Helper';
 
 export class AnilistHelper extends Helper {
 
@@ -25,7 +25,7 @@ export class AnilistHelper extends Helper {
 			this.id = anilistID;
 
 			const url = 'https://graphql.anilist.co';
-			const query = this.helpers.getAniListQuery();
+			const query = this._getAniListQuery();
 			const options = {
 				method: 'POST',
 				headers: {

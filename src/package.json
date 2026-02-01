@@ -6,15 +6,9 @@
 	
 	"scripts": {
 		"test": "eslint .",
-<<<<<<< HEAD:src/package.json
 		"build-all": "rollup -c user.js/rollup.config.js && build.bat chrome && build.bat firefox",
 		"build-chrome": "rollup -c user.js/rollup.config.js && build.bat chrome",
 		"build-firefox": "rollup -c user.js/rollup.config.js && build.bat firefox"
-=======
-		"build-chrome": "rollup -c rollup.config.js && ..\\build.bat chrome",
-		"build-code": "rollup -c rollup.config.js --watch && ..\\build.bat.chrome",
-		"build-firefox": "rollup -c rollup.config.js && ..\\build.bat firefox"
->>>>>>> 911bb35 (modify rollup to watch and build):src/common/package.json
 	},
 	"repository": "https://github.com/duncanlang/Letterboxd-Extras.git",
 	"author": "Duncan Lang (https://github.com/duncanlang)",

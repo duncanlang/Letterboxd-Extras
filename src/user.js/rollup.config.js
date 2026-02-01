@@ -114,11 +114,7 @@ const builds = [
 			{
 				format: 'iife',
 				name: 'LETTERBOXD_EXTRAS',
-<<<<<<< HEAD:src/user.js/rollup.config.js
 				file: 'user.js/build/letterboxd-extras.user.js',
-=======
-				file: 'build/letterboxd-extras.user.js'
->>>>>>> 911bb35 (modify rollup to watch and build):src/common/rollup.config.js
 			}
 		]
 	}
