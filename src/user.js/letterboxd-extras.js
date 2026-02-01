@@ -117,6 +117,7 @@ GM_addStyle(`
 
 		.ratings-extras{
 			margin-top: 20px !important;
+			padding-bottom: 0px !important;
 		}
 		
 		.ratings-extras.extras-chart .section-heading-extras{
