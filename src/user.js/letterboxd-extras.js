@@ -5321,7 +5321,6 @@ const letterboxd = {
 		},
 
 		createElement(tag, attrs, styles) {
-			console.log('test createElement')
 			const element = document.createElement(tag);
 			for (const aKey in attrs) {
 				if (!Object.prototype.hasOwnProperty.call(attrs, aKey)) continue;
@@ -5335,8 +5334,6 @@ const letterboxd = {
 		},
 
 		createTomatoScore(type, display, url, data, visibility, isMobile, addTooltip) {
-
-			console.log('createTomatoScore')
 			const baseType = type.split('-')[0];
 
 			const scoreDiv = letterboxd.helpers.createElement('div', {
@@ -5464,7 +5461,6 @@ const letterboxd = {
 		},
 
 		changeTomatoScoreMobile(event) {
-			console.log('changing tomato score mobile');
 			// Get the parent node
 			const parent = event.target.parentNode.parentNode;
 			// Grab the target score div and then the other non-target score div
@@ -5493,7 +5489,6 @@ const letterboxd = {
 		},
 
 		changeTomatoScore(event) {
-			console.log('changing tomato score');
 			// Get the target class stored in the 'target' attribute of the clicked button
 			const target = `.${event.target.getAttribute('target')}`;
 			let parent = event.target.parentNode.parentNode;
@@ -5535,7 +5530,6 @@ const letterboxd = {
 		},
 
 		createTomatoButton(type, text, target, selected, disabled, isMobile) {
-			console.log('createTomatoButton', { type, isMobile, disabled });
 			if (target.includes(',')) {
 				var targets = target.split(',');
 				target = targets[0];

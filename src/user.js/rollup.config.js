@@ -79,7 +79,7 @@ if (isChrome) {
  */
 const builds = [
 	{
-		input: 'letterboxd-extras.js',
+		input: 'user.js/letterboxd-extras.js',
 		plugins: [
 			browserSwitchPlugin(),
 			userScriptHeaderPlugin(),
@@ -88,7 +88,7 @@ const builds = [
 			{
 				format: 'iife',
 				name: 'LETTERBOXD_EXTRAS',
-				file: 'build/letterboxd-extras.user.js',
+				file: 'user.js/build/letterboxd-extras.user.js',
 			}
 		]
 	}

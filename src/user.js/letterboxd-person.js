@@ -253,9 +253,8 @@ export class LetterboxdPerson {
 
 		}
 
-		if (this.wiki.Date_Of_Birth && this.wiki.Date_Of_Birth.value !== null) { // && this.wiki.Date_Of_Birth_Precision.value >= 9) {
-
-			birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString('en-UK');
+		if (this.wiki.Date_Of_Birth && this.wiki.Date_Of_Birth.value !== null && this.wiki.Date_Of_Birth_Precision.value >= 9) {
+		 	birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString("en-UK", this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
 			if (isAlive == true) {
 
 				const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
@@ -279,9 +278,8 @@ export class LetterboxdPerson {
 		// Death date
 		let death = null;
 		let deathPlace = null;
-		if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value !== null) { // && this.wiki.Date_Of_Death_Precision.value >= 9) {
-
-			death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString('en-UK');
+		if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value !== null && this.wiki.Date_Of_Death_Precision.value >= 9) {
+		 	death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString("en-UK", this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
 
 			const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
 			death += ` (aged ${age})`;
