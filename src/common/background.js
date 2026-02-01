@@ -70,6 +70,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
                 }
             })();
         } catch (exception){
+            console.log(exception);
             response({ response: null, url: null, status: 0 })
         }
 

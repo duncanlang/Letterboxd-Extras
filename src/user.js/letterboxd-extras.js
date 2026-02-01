@@ -404,10 +404,15 @@ GM_addStyle(`
 			margin-top: 9px;
 		}
 		.extras-table .extras-header{
+			font-weight: bold;
 			width: 35%;
 		}
 		.extras-table .extras-value{
 			width: 60%;
+		}
+		.extras-table .extras-header,
+		.extras-table .extras-value{
+			font-size: 12px !important;
 		}
 		.extras-table td{
 			padding-bottom: 10px;
@@ -5398,7 +5403,7 @@ const letterboxd = {
 			// Standard fetch response validation with standardized debug messages
 			// should catch any issues and prevent any catastrophic errors
 
-			if (letterboxd.storage.get('console-log') === true && value.url != null && value.status != null) {
+			if (letterboxd.storage.get('console-log') === true && value != null && value.url != null && value.status != null) {
 				console.log("Letterboxd Extras | Fetch made to URL: " + value.url + "\nResponse status: " + value.status);
 			}
 
@@ -5407,7 +5412,10 @@ const letterboxd = {
 				// Something went really wrong with the fetch
 				console.error("Letterboxd Extras | There was an error with the " + name + " call. Error unknown");
 				output = false;
-			}else if (value.status > 299 || value.status == 0){
+			} else if (value.status == 202 && (value.response == null || value.response == "")){
+				console.error("Letterboxd Extras | There was an error with the " + name + " call. Site returned a 202 without a body, this is likely some anti-bot measures.");
+				output = false;
+			} else if (value.status > 299 || value.status == 0){
 				// Something went wrong, check for errors in the response
 				if (value.errors != null && value.errors.length > 0){
 					console.error("Letterboxd Extras | There was an error with the " + name + " call. Message: " + value.errors[0]);
@@ -6856,7 +6864,7 @@ const letterboxd = {
 
 			} else if (queryType == "PERSON") {
 				sparqlQuery = "SELECT DISTINCT ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
-						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
+						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }\n" +
 						"  \n" +
 						"  ?item p:P4985 ?statement0.\n" +
 						"  ?statement0 ps:P4985 \"" + tmdbId + "\".\n" +
@@ -6882,7 +6890,7 @@ const letterboxd = {
 						"  OPTIONAL { ?item wdt:P2031 ?Years_Start. }\n" +
 						"  OPTIONAL { ?item wdt:P2032 ?Years_End. }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+						"    VALUES ?locationType {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603 wd:Q18663566 wd:Q486972}\n" +
 						"    ?item p:P19 ?Entry.\n" +
 						"    ?Entry ps:P19 ?BirthCity.  \n" +
 						"    ?BirthCity wdt:P31/wdt:P279* ?locationType.\n" +
@@ -6896,7 +6904,7 @@ const letterboxd = {
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+						"    VALUES ?locationType2 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603 wd:Q18663566 wd:Q486972}\n" +
 						"    ?item p:P19 ?Entry.\n" +
 						"    ?Entry ps:P19 ?BirthTemp.  \n" +
 						"    ?BirthTemp wdt:P131 ?BirthCity.\n" +
@@ -6911,7 +6919,7 @@ const letterboxd = {
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+						"    VALUES ?locationType3 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603 wd:Q18663566 wd:Q486972}\n" +
 						"    ?item p:P20 ?Entry2.\n" +
 						"    ?Entry2 ps:P20 ?DeathCity.\n" +
 						"    ?DeathCity wdt:P31/wdt:P279* ?locationType3.\n" +
@@ -6925,7 +6933,7 @@ const letterboxd = {
 						"    }\n" +
 						"  }\n" +
 						"  OPTIONAL { \n" +
-						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603}\n" +
+						"    VALUES ?locationType4 {wd:Q532 wd:Q515 wd:Q3957 wd:Q1549591 wd:Q179872 wd:Q7830213 wd:Q2755753 wd:Q769603 wd:Q18663566 wd:Q486972}\n" +
 						"    ?item p:P20 ?Entry2.\n" +
 						"    ?Entry2 ps:P20 ?DeathTemp.  \n" +
 						"    ?DeathTemp wdt:P131 ?DeathCity.\n" +
