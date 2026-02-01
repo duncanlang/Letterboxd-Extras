@@ -67,14 +67,18 @@ function checkSubIDToDisable(element) {
 
         if (targetValue != null) {
             if (element.value == targetValue) {
-                target.className = target.className.replace("disabled", "");
-            } else if (!target.className.includes("disabled")) {
+                // Disable
                 target.className += " disabled";
+            } else if (target.className.includes("disabled")) {
+                // Enable
+                target.className = target.className.replace("disabled", "");
             }
         } else {
             if (element.checked) {
+                // Enable
                 target.className = target.className.replace("disabled", "");
             } else if (!target.className.includes("disabled")) {
+                // Disable
                 target.className += " disabled";
             }
         }
