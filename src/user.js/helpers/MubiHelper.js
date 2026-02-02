@@ -14,6 +14,11 @@ export class MubiHelper extends Helper {
 
 	}
 
+	/**
+	 * Get Mubi data using the provided url. .
+	 *
+	 * @param {string} mubiURL - The MUBI url for the current film.
+	 */
 	getData(mubiURL) {
 
 		if (!this._canLoadData()) {
@@ -57,8 +62,6 @@ export class MubiHelper extends Helper {
 	 * @param {string[]} altDirectors - A list of directors who are credited for the film.
 	 */
 	searchData(movieTitle, releaseYear, altDirectors) {
-
-		console.log('searchData function accessed');
 
 		if (!this._canLoadData()) {
 			return;
