@@ -653,36 +653,72 @@ async function RequestAllMissingPermissions(){
 
 // Sortable List
 // https://www.geeksforgeeks.org/html/create-a-drag-and-drop-sortable-list-using-html-css-javascript/
+// modified to work with touch
 const list = document.querySelector('.sortable-list');
 let draggingItem = null;
 
+// Mouse Events
 list.addEventListener('dragstart', (e) => {
     draggingItem = e.target;
     e.target.classList.add('dragging');
 });
-list.addEventListener('dragend', (e) => {
-    e.target.classList.remove('dragging');
-    document.querySelectorAll('.sortable-item')
-        .forEach(item => item.classList.remove('over'));
-    draggingItem = null;
 
-    SaveSortableList(e.target.parentNode);
+list.addEventListener('dragend', (e) => {
+    handleDragEnd(e.target);
 });
+
 list.addEventListener('dragover', (e) => {
     e.preventDefault();
-    const draggingOverItem = getDragAfterElement(list, e.clientY);
-    document.querySelectorAll('.sortable-item').forEach
-        (item => item.classList.remove('over'));
-    if (draggingOverItem) {
-        draggingOverItem.classList.add('over');
-        list.insertBefore(draggingItem, draggingOverItem);
-    } else {
-        list.appendChild(draggingItem); 
-    }
+    const afterElement = getDragAfterElement(list, e.clientY);
+    updateListPosition(afterElement);
 });
+
+// Touch Events
+list.addEventListener('touchstart', (e) => {
+    // We target the closest sortable-item in case the handle was touched
+    draggingItem = e.target.closest('.sortable-item');
+    if (!draggingItem) return;
+    
+    draggingItem.classList.add('dragging');
+    // Prevent scrolling while dragging
+    e.preventDefault(); 
+}, { passive: false });
+
+list.addEventListener('touchmove', (e) => {
+    if (!draggingItem) return;
+    e.preventDefault();
+
+    // Get the finger position
+    const touch = e.touches[0];
+    const afterElement = getDragAfterElement(list, touch.clientY);
+    
+    updateListPosition(afterElement);
+}, { passive: false });
+
+list.addEventListener('touchend', (e) => {
+    if (!draggingItem) return;
+    handleDragEnd(draggingItem);
+});
+
+function updateListPosition(afterElement) {
+    if (afterElement) {
+        list.insertBefore(draggingItem, afterElement);
+    } else {
+        list.appendChild(draggingItem);
+    }
+}
+
+function handleDragEnd(item) {
+    item.classList.remove('dragging');
+    document.querySelectorAll('.sortable-item')
+        .forEach(i => i.classList.remove('over'));
+    
+    SaveSortableList(list);
+    draggingItem = null;
+}
+
 function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll
-        ('.sortable-item:not(.dragging)')];
+    const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;

@@ -128,7 +128,7 @@ label {
 .sortable-list {
     list-style: none;
     padding: 0;
-    width: 350px;
+    width: 250px;
     margin-left: 15px;
     border-radius: 10px;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
