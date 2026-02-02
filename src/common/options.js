@@ -8,6 +8,9 @@ if (isChrome)
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
 
+if (isPopup)
+    document.body.classList.add("popup");
+
 if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
 
@@ -57,6 +60,52 @@ async function set() {
             }
         }
         checkSubIDToDisable(element);
+    }
+
+
+    var ratingsOrder = options['ratings-order'];
+    if (ratingsOrder == null){
+        browser.runtime.sendMessage({ name: "GETDEFAULTRATINGSORDER" }, (value) => {
+            ratingsOrder = value.value;
+            options['ratings-order'] = value.value;;
+            SetRatingsOrder(ratingsOrder);
+            save();
+        });
+    }else{
+        SetRatingsOrder(ratingsOrder);
+    }
+}
+
+function SetRatingsOrder(ratingsOrder){
+    var ratingIdMapping = [
+        { key: "imdb-ratings", value: "IMDb"},
+        { key: "mal-ratings", value: "MyAnimeList"},
+        { key: "al-ratings", value: "AniList"},
+        { key: "allocine-ratings", value: "AlloCiné"},
+        { key: "tomato-ratings", value: "Rotten Tomatoes"},
+        { key: "meta-ratings", value: "Metacritic"},
+        { key: "sens-ratings", value: "SensCritique"},
+        { key: "mubi-ratings", value: "Mubi"},
+        { key: "filmaff-ratings", value: "FilmAffinity"},
+        { key: "simkl-ratings", value: "Simkl"},
+        { key: "kinopoisk-ratings", value: "Kinopoisk"},
+        { key: "filmarks-ratings", value: "Filmarks"},
+        { key: "cinemascore", value: "CinemaScore"},
+    ];
+
+    var listElement = document.querySelector('ul#ratings-order');
+    listElement.textContent = '';
+    for (var i = 0; i < ratingsOrder.length; i++){
+        var key = ratingsOrder[i];
+        var name = ratingIdMapping.find(x => x.key == key).value;
+
+        var li = document.createElement('li');
+        li.innerText = name;
+        li.classList.add('sortable-item');
+        li.setAttribute('draggable', 'true');
+        li.setAttribute('rating-id', key);
+        
+        listElement.append(li);
     }
 }
 
@@ -146,6 +195,10 @@ document.addEventListener('change', event => {
                     checkSubIDToDisable(element);
                 });
             }
+        }
+
+        if (element.id == 'override-ratings-order' && element.checked == false){
+            ResetRatingsOrder();
         }
     }
 });
@@ -264,6 +317,9 @@ document.addEventListener('click', event => {
             break;
         case "requestall":
             RequestAllMissingPermissions();
+            break;
+        case "reset-rating-order":
+            ResetRatingsOrder();
             break;
     }
 });
@@ -593,4 +649,64 @@ async function RequestAllMissingPermissions(){
         }
     }
     await set();
+}
+
+// Sortable List
+// https://www.geeksforgeeks.org/html/create-a-drag-and-drop-sortable-list-using-html-css-javascript/
+const list = document.querySelector('.sortable-list');
+let draggingItem = null;
+
+list.addEventListener('dragstart', (e) => {
+    draggingItem = e.target;
+    e.target.classList.add('dragging');
+});
+list.addEventListener('dragend', (e) => {
+    e.target.classList.remove('dragging');
+    document.querySelectorAll('.sortable-item')
+        .forEach(item => item.classList.remove('over'));
+    draggingItem = null;
+
+    SaveSortableList(e.target.parentNode);
+});
+list.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const draggingOverItem = getDragAfterElement(list, e.clientY);
+    document.querySelectorAll('.sortable-item').forEach
+        (item => item.classList.remove('over'));
+    if (draggingOverItem) {
+        draggingOverItem.classList.add('over');
+        list.insertBefore(draggingItem, draggingOverItem);
+    } else {
+        list.appendChild(draggingItem); 
+    }
+});
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll
+        ('.sortable-item:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function SaveSortableList(list){
+    var key = list.id;
+    var items = list.querySelectorAll('.sortable-item');
+    var newArray = Array.from(items).map(child => child.getAttribute('rating-id'));
+
+    options[key] = newArray;
+    save();
+}
+
+function ResetRatingsOrder(){
+    browser.runtime.sendMessage({ name: "GETDEFAULTRATINGSORDER" }, (value) => {
+        options['ratings-order'] = value.value;
+        set();
+        save();
+    });
 }

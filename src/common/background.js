@@ -87,6 +87,12 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             var permissions = await browser.permissions.getAll();
             return permissions;
         })();
+
+    } else if (msg.name == "GETDEFAULTRATINGSORDER") {
+        (async () => {
+            var ratingsOrder = getDefaultRatingsOrder();
+            response({ value: ratingsOrder });
+        })();
     }
 
     return true;
@@ -183,15 +189,58 @@ async function InitDefaultSettings() {
         options["convert-ratings"] = "5";
     }
 
-    // Hide ratings setting
     if (options["hide-ratings-enabled"] === true) {
         options["hide-ratings-enabled"] = "additional";
     }
+    else if (options["hide-ratings-enabled"] === false){
+        options['hide-ratings-enabled'] = 'false';
+    }
 
+    if (options["override-ratings-order"] == null) options["override-ratings-order"] = false;
 
+    if (options["override-ratings-order"] === false || options["ratings-order"] == null) {
+        options["ratings-order"] = getDefaultRatingsOrder();
+    } else {
+        options["ratings-order"] = UpdateRatingsOrder(options["ratings-order"]);
+    }
 
     // Save
     await browser.storage.sync.set({ options });
+}
+
+function getDefaultRatingsOrder(){
+    var defaultOrder = [
+        'imdb-ratings',
+        'mal-ratings',
+        'al-ratings',
+        'allocine-ratings',
+        'tomato-ratings',
+        'meta-ratings',
+        'sens-ratings',
+        'mubi-ratings',
+        'filmaff-ratings',
+        'simkl-ratings',
+        'kinopoisk-ratings',
+        'filmarks-ratings',
+        'cinemascore'
+    ];
+
+    return defaultOrder;
+}
+
+function UpdateRatingsOrder(currentOrder){
+    if (currentOrder == null)
+        currentOrder = [];
+
+    var defaultOrder = getDefaultRatingsOrder();
+
+    for (var i = 0; i < defaultOrder.length; i++){
+        if (!currentOrder.includes(defaultOrder[i])){
+            currentOrder.push(defaultOrder[i]);
+        }
+    }
+
+    return currentOrder;
 }
 
 async function InitLocalStorage(){

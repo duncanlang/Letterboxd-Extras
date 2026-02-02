@@ -759,7 +759,7 @@ const letterboxd = {
 			}
 
 			// Determine watch status and hide status
-			if (this.filmWatched == null && this.loggedIn != null){
+			if (this.filmWatched == null && this.loggedIn != null && letterboxd.storage.syncInitilized == true){
 				if (this.loggedIn == false){
 					// If not logged in, only base the hiding on the addon settings
 					this.filmWatched = false;
@@ -3902,24 +3902,9 @@ const letterboxd = {
 		},
 
 		appendRating(rating, className) {
-			var order = [
-				'.imdb-ratings',
-				'.mal-ratings',
-				'.al-ratings',
-				'.allocine-ratings',
-				'.tomato-ratings',
-				'.meta-ratings',
-				'.sens-ratings',
-				'.mubi-ratings',
-				'.filmaff-ratings',
-				'.simkl-ratings',
-				'.kinopoisk-ratings',
-				'.anidb-ratings',
-				'.filmarks-ratings',
-				'.cinemascore'
-			];
+			var order = letterboxd.storage.get('ratings-order');
 
-			var index = order.indexOf('.' + className);
+			var index = order.indexOf(className);
 			var sidebar = document.querySelector('.sidebar');
 
 			if (this.hideRatings == true) {
@@ -3932,7 +3917,7 @@ const letterboxd = {
 
 			// First
 			for (var i = index + 1; i < order.length; i++) {
-				var temp = sidebar.querySelector(order[i]);
+				var temp = sidebar.querySelector('.' + order[i]);
 				if (temp != null) {
 					temp.before(rating);
 					return;
@@ -3941,7 +3926,7 @@ const letterboxd = {
 
 			// Second
 			for (var i = index - 1; i >= 0; i--) {
-				var temp = sidebar.querySelector(order[i]);
+				var temp = sidebar.querySelector('.' + order[i]);
 				if (temp != null) {
 					temp.after(rating);
 					return;
@@ -7185,13 +7170,14 @@ const letterboxd = {
 		data: {},
 		localData: {},
 
+		syncInitilized: false,
 		localInitilized: false,
 
 		async init() {
 			this.data = await browser.storage.sync.get('options').then(function (storedSettings) {
 				return storedSettings.options;
 			});
-				
+			this.syncInitilized = true;
 		},
 
 		async initLocal() {
