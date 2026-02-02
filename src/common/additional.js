@@ -153,3 +153,15 @@ function toggleAllRatings(event) {
 		event.target.innerText = 'Show more ratings';
 	}
 }
+
+function toggleReviews(event, letterboxd) {
+	var element = document.querySelector(".film-recent-reviews");
+
+	if (element.style.display == "none") {
+		element.style.display = "block";
+		event.target.innerText = "Hide reviews";
+	} else {
+		element.style.display = "none";
+		event.target.innerText = "Show reviews";
+	}
+}
