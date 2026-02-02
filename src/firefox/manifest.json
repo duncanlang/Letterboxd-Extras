@@ -21,12 +21,18 @@
 		"default_icon": {
 			"16": "icon16.png",
 			"32": "icon32.png",
-			"128": "icon128.png"
+			"128": "icon128.png",
+			"256": "icon256.png",
+			"512": "icon512.png"
 		}
 	},
 
 	"icons": {
-		"128": "icon128.png"
+		"16": "icon16.png",
+		"32": "icon32.png",
+		"128": "icon128.png",
+		"256": "icon256.png",
+		"512": "icon512.png"
 	},
 
 	"options_ui": {

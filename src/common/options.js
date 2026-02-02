@@ -8,6 +8,9 @@ if (isChrome)
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
 
+if (isAndroid)
+    document.body.classList.add("android");
+
 if (isPopup)
     document.body.classList.add("popup");
 
@@ -321,6 +324,10 @@ document.addEventListener('click', event => {
         case "reset-rating-order":
             ResetRatingsOrder();
             break;
+    }
+
+    if (event.target.className == 'nav-item'){
+        scrollToSection(event.target.getAttribute('sectionId'));
     }
 });
 
@@ -745,4 +752,9 @@ function ResetRatingsOrder(){
         set();
         save();
     });
+}
+
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    section.scrollIntoView({ behavior: 'smooth' });
 }

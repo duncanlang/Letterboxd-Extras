@@ -19,15 +19,37 @@ body {
 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-    min-width: 450px;
     margin: 0px;
+}
+
+body.android{
+    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
+}
+
+body.firefox:not(.android.popup){
+    min-width: 350px;
+}
+
+body.firefox.popup:not(.android){
+    min-width: 450px;
+    max-width: 500px;
+}
+
+body.chrome{
+    min-width: 500px;
 }
 
 hr {
     width: 98%;
 }
 
-body div{
+body.android div{
+    margin-left: 5px;
+    margin-right: 5px;
+}
+body:not(.android) div{
     margin-left: 15px;
     margin-right: 15px;
 }
@@ -108,7 +130,7 @@ label {
     font-size: 11px;
 }
 
-.topnav a {
+.topnav p {
     color: var(--body-text-color);
     text-align: center;
     padding: 5px;
@@ -117,9 +139,13 @@ label {
     display: inline-block;
     width: auto;
     border-radius: 4px;
+    margin: 3px;
+}
+.topnav p:hover {
+    cursor: pointer;
 }
 
-.topnav a:hover {
+.topnav p:hover {
     color: var(--body-text-alt2-color);
     background-color: var(--color-accent-primary);
 }
