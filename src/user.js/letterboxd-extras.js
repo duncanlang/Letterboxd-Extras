@@ -2,6 +2,7 @@
 
 import { LOAD_STATES } from './constants';
 import { AnilistHelper } from './helpers/AnilistHelper';
+import {MubiHelper} from './helpers/MubiHelper';
 import { LetterboxdPerson } from './letterboxd-person';
 import { LetterboxdGeneral } from './letterboxd-general';
 
@@ -658,6 +659,8 @@ const letterboxd = {
 
 		// Mubi
 		mubiData: { state: 0, data: null, raw: null, url: null, rating: null, ratingAlt: null, num_ratings: 0, popularity: 0 },
+
+		mubiHelper: null,
 
 		// Film Affinity
 		filmaffData: { state: 0, data: null, raw: null, url: null, rating: null, num_ratings: 0 },
@@ -1368,7 +1371,7 @@ const letterboxd = {
 									}
 
 								// Get AniList data
-								if (this.wiki !== null && this.wiki.Anilist_ID !== null && this.wiki.Anilist_ID.value !== null && letterboxd.storage.get('anilist-enabled') === true) {
+								if (this.wiki !== null && this.wiki.Anilist_ID && this.wiki.Anilist_ID.value && letterboxd.storage.get('anilist-enabled') === true) {
 										
 									this.wikiData.Anilist_ID = this.wiki.Anilist_ID.value;
 									this.anilistHelper.getData(this.wiki.Anilist_ID.value);
@@ -1432,7 +1435,7 @@ const letterboxd = {
 								console.log("Letterboxd Extras | No WikiData results found.");
 							}
 
-							this.wikiData.state = 2;
+							this.wikiData.state = LOAD_STATES['Success'];
 						});
 
 						// Call WikiData a second time for dates
@@ -1562,12 +1565,17 @@ const letterboxd = {
 				}
 
 				// Add Mubi
-				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2 && this.mubiData.state < 1) {
-					if (this.wikiData.Mubi_ID != null && this.wikiData.Mubi_ID != "") {
+				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2) {
+					if (this.wikiData.Mubi_ID) {
+
 						// ID found in WikiData
 						this.mubiData.state = 1;
-						this.initMubi();
+
+						this.mubiHelper.getData(this.wikiData.Mubi_URL);
+						
+						//this.initMubi();
 					} else {
+						console.log('searching')
 						// No ID from Wikidata, search using the API instead
 						var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
 						this.mubiSearch(url);
@@ -7266,6 +7274,10 @@ if (typeof LetterboxdGeneral !== 'undefined') {
 
 if (typeof AnilistHelper !== 'undefined') {
 	letterboxd.overview.anilistHelper = new AnilistHelper(letterboxd.storage, letterboxd.helpers, letterboxd.overview.ratingsSuffix)
+}
+
+if(typeof MubiHelper !== 'undefined') {
+	letterboxd.overview.mubiHelper = new MubiHelper(letterboxd.storage, letterboxd.helpers);
 }
 
 letterboxd.storage.init();

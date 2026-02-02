@@ -18,23 +18,50 @@ const buttonLinkOrder = [
 	'.ddd-button'
 ];
 
+/**
+ * A generic class used to unify how references sources are accessed and how their data is appended to the webpage.
+ */
 export class Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, selectorPrefix) {
 
 		this.storage = storage;
 		this.helpers = helpers;
 
+		/**
+		 * A string defining the prefix of a class or id selector on an HTML Element.
+		 *
+		 * @type {string}
+		 */
+		this.selectorPrefix = selectorPrefix;
+
+		/**
+		 * A flag indicating what our current loading progress during an API call to an external data source.
+		 *
+		 * @type {number}
+		 * @default 0
+		 */
 		this.loadState = LOAD_STATES['Uninitialized'];
+
+		/**
+		 * The data returned by the external data source.
+		 *
+		 * @type {any | null}
+		 * @default null
+		 */
 		this.data = null;
+
+
 		this.linkAdded = false;
 
 	}
 
-	// TODO: Could possibly be placed in letterboxd.helpers
-	// since it doesn't really have to do with fetching data from
-	// an arbitrary API.
-	appendSidebarRating(rating, className) {
+	/**
+	 * Adds html to the ratings sidebar for a given reference source.
+	 *
+	 * @param {HTMLElement} rating - The html that will be appending to the ratings sidebar
+	 */
+	appendSidebarRating(rating) {
 		const order = [
 			'.imdb-ratings',
 			'.mal-ratings',
@@ -51,6 +78,12 @@ export class Helper {
 			'.filmarks-ratings',
 			'.cinemascore'
 		];
+
+
+		let className = this.selectorPrefix;
+		if (this.selectorPrefix !== 'cinemascore') {
+			className = `${this.selectorPrefix}-button`;
+		}
 
 		const index = order.indexOf(`.${className}`);
 		let sidebar = document.querySelector('.sidebar');
@@ -101,11 +134,20 @@ export class Helper {
 
 	}
 
-	addLink(url, text, className) {
+
+	/**
+	 * Adds a link to an external reference source on a film's overview page.
+	 *
+	 * @param {string} url - The url the button will redirect the user to .
+	 * @param {text} string - The text to be displayed on the button.
+	 */
+	addButtonLink(url, text) {
 
 		if (url === null || url === '') {
 			return;
 		}
+
+		const className = `${this.selectorPrefix}-button`;
 
 		// Check if already added
 		if (!this.linkAdded) {
@@ -127,6 +169,8 @@ export class Helper {
 				button.setAttribute('target', '_blank');
 			}
 
+			console.log('test');
+
 			const index = buttonLinkOrder.indexOf(`.${className}`);
 			// First Attempt
 			for (let i = index + 1; i < buttonLinkOrder.length; i++) {
@@ -146,6 +190,8 @@ export class Helper {
 				}
 			}
 
+			console.log('fix');
+
 			// Third Attempt
 			const buttons = document.querySelectorAll('.micro-button');
 			const lastButton = buttons[buttons.length - 1];
@@ -154,12 +200,25 @@ export class Helper {
 
 	}
 
-	_canPopulateSidebar() {
+	/**
+	 * Determines whether the ratings sidebar can be populated with data.
+	 *
+	 * @returns {boolean}
+	 * @protected
+	 */
+	_canPopulateRatingsSidebar() {
 
-		return document.querySelector('.sidebar') !== null && this.data !== null;
+		return document.querySelector('.sidebar') !== null && this.data !== null && !document.querySelector(`${this.selectorPrefix}-ratings`);
 
 	}
 
+
+	/**
+	 * Determines whether we can load date by checking if the load process has already been initialized.
+	 *
+	 * @returns {boolean}
+	 * @protected
+	 */
 	_canLoadData() {
 
 		// No data present and have not started to load already

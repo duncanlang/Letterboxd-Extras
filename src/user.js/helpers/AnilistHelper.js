@@ -2,11 +2,17 @@
 import { LOAD_STATES } from '../constants';
 import { Helper } from './Helper';
 
+
+/**
+ * A class that helps access and display data from Anilist.
+ *
+ * @augments Helper
+ */
 export class AnilistHelper extends Helper {
 
 	constructor(storage, helpers, ratingsSuffix) {
 
-		super(storage, helpers);
+		super(storage, helpers, 'anilist');
 
 		this.ratingsSuffix = ratingsSuffix;
 
@@ -25,21 +31,11 @@ export class AnilistHelper extends Helper {
 			this.id = anilistID;
 
 			const url = 'https://graphql.anilist.co';
-			const query = this._getAniListQuery();
-			const options = {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/json',
-					accept: 'application/json'
-				},
-				body: JSON.stringify({
-					query: query,
-					variables: { id: this.id }
-				})
-			};
+			const options = this._getHeaders();
+
+			this.loadState = LOAD_STATES['Loading'];
 
 			try {
-				this.loadState = LOAD_STATES['Loading'];
 				browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: url, options: options }, value => {
 					if (this.helpers.ValidateResponse('AniList API', value) === false) {
 						return;
@@ -65,7 +61,7 @@ export class AnilistHelper extends Helper {
 					}
 
 					this.url = this.data.siteUrl;
-					this.addLink(this.data.siteUrl, 'AL', 'anilist-button');
+					this.addButtonLink(this.data.siteUrl, 'AL');
 
 					this.loadState = LOAD_STATES['Success'];
 					this.populateSidebar();
@@ -82,17 +78,9 @@ export class AnilistHelper extends Helper {
 
 	populateSidebar() {
 
-		if (!this._canPopulateSidebar()) {
+		if (!this._canPopulateRatingsSidebar()) {
 			return;
 		}
-
-		console.log('can populate sidebar with anilist');
-
-		if (document.querySelector('.anilist-ratings')) {
-			return;
-		}
-
-		console.log('has not found existing anlist-ratings');
 
 		if (this.data.averageScore !== null) {
 			this.score = this.data.averageScore;
@@ -126,7 +114,7 @@ export class AnilistHelper extends Helper {
 			style: 'width: 100%;',
 			href: `${this.data.siteUrl}/stats`
 		});
-		// heading.append(logoHolder);
+		heading.append(logoHolder);
 
 		const logo = this.helpers.createElement('span', {
 			class: 'logo-anilist',
@@ -159,15 +147,33 @@ export class AnilistHelper extends Helper {
 			this.helpers.createDetailsText('anilist', scoreSection, tooltip, this.isMobile);
 		}
 
-		console.log('appending sidebar');
-
 		// Append to the sidebar
 		//* ****************************************************************
-		this.appendSidebarRating(scoreSection, 'al-ratings');
+		this.appendSidebarRating(scoreSection);
 
 		// Add the hover events
 		//* ****************************************************************
 		this.helpers.addTooltipEvents(scoreSection);
+
+	}
+
+	_getHeaders() {
+
+		const query = this._getAniListQuery();
+
+		const options = {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+				accept: 'application/json'
+			},
+			body: JSON.stringify({
+				query: query,
+				variables: { id: this.id }
+			})
+		};
+
+		return options;
 
 	}
 

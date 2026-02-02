@@ -36,6 +36,7 @@
 		},
 		"rules": {
 			"func-names": 0,
+			"radix": 0,
 			"capitalized-comments": 0,
 			"max-len": 0,
 			"id-length": 0,

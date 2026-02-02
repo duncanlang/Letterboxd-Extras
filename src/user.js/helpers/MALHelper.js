@@ -6,7 +6,7 @@ export class MALHelper extends Helper {
 
 	constructor(storage, helpers, ratingsSuffix) {
 
-		super(storage, helpers);
+		super(storage, helpers, 'mal');
 
 		this.ratingsSuffix = ratingsSuffix;
 
@@ -155,11 +155,9 @@ export class MALHelper extends Helper {
 			this.helpers.createDetailsText('anilist', scoreSection, tooltip, this.isMobile);
 		}
 
-		console.log('appending sidebar');
-
 		// Append to the sidebar
 		//* ****************************************************************
-		this.appendSidebarRating(scoreSection, 'al-ratings');
+		this.appendSidebarRating(scoreSection);
 
 		// Add the hover events
 		//* ****************************************************************
