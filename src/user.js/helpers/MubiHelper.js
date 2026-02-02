@@ -48,10 +48,24 @@ export class MubiHelper extends Helper {
 		}
 	}
 
-	searchData(query) {
+
+	/**
+	 * Search Mubi for the specified film using the title, release year, and directors.
+	 *
+	 * @param {string} movieTitle - The title of the film
+	 * @param {string | number} releaseYear - The year the film was first released.
+	 * @param {string[]} altDirectors - A list of directors who are credited for the film.
+	 */
+	searchData(movieTitle, releaseYear, altDirectors) {
+
+		console.log('searchData function accessed');
+
+		if (!this._canLoadData()) {
+			return;
+		}
 
 		// No ID from Wikidata, search using the API instead
-		const url = `https://api.mubi.com/v3/search/films?query=${query}&page=1&per_page=24`;
+		const url = `https://api.mubi.com/v3/search/films?query=${movieTitle}&page=1&per_page=24`;
 		this.loadState = LOAD_STATES['Loading'];
 
 		try {
@@ -65,15 +79,18 @@ export class MubiHelper extends Helper {
 					const films = mubi.films;
 
 					let index = -1;
-					const i = 0;
 					for (let i = 0; i < films.length; i++) {
 						// If TV, must have TV genres
 						if (this.tmdbTV === true && !(films[i].genres.includes('TV Series') || films[i].genres.includes('TV Mini-series'))) {
 							continue;
 						}
 
+						if (typeof releaseYear === 'string') {
+							releaseYear = parseInt(releaseYear);
+						}
+
 						// Check if the year and name is exact match
-						if (this.letterboxdYear === films[i].year && (this.letterboxdTitle.toUpperCase() === films[i].title.toUpperCase() || this.letterboxdTitle.toUpperCase() === films[i].original_title)) {
+						if (releaseYear === films[i].year && (movieTitle.toUpperCase() === films[i].title.toUpperCase() || movieTitle.toUpperCase() === films[i].original_title)) {
 							index = i;
 							break;
 						}
@@ -82,7 +99,7 @@ export class MubiHelper extends Helper {
 						for (let k = 0; k < films[i].directors.length; k++) {
 							// Director name to lowercase and removed diacritics
 							const director = films[i].directors[k].name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-							if (this.letterboxdDirectorsAlt.includes(director)) {
+							if (altDirectors.includes(director)) {
 								// Check to see if film is within 5 years
 								const score = Math.abs(parseInt(this.year) - films[i].year);
 								if (score < 5) {
@@ -96,13 +113,18 @@ export class MubiHelper extends Helper {
 						}
 					}
 
+					console.log(index);
+
 					if (index >= 0) {
 						this.data = films[index];
+						console.log(films[index]);
 						this.loadState = LOAD_STATES['Success'];
 
 						this.addMubi();
 
 						this.addButtonLink(this.url, 'MUBI');
+					} else {
+						this.loadState === LOAD_STATES['Failure'];
 					}
 				}
 			});

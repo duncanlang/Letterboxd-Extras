@@ -2,7 +2,8 @@
 
 import { LOAD_STATES } from './constants';
 import { AnilistHelper } from './helpers/AnilistHelper';
-import {MubiHelper} from './helpers/MubiHelper';
+import { MubiHelper} from './helpers/MubiHelper';
+import { FilmAffinityHelper } from './helpers/FilmAffinityHelper';
 import { LetterboxdPerson } from './letterboxd-person';
 import { LetterboxdGeneral } from './letterboxd-general';
 
@@ -579,8 +580,6 @@ const letterboxd = {
 		running: false,
 		isMobile: null,
 
-		browserLocale: null,
-
 		// Letterboxd
 		letterboxdID: '',
 		letterboxdYear: null,
@@ -657,13 +656,9 @@ const letterboxd = {
 		// Metacritic
 		metaData: { state: 0, data: null, raw: null, mustSee: false, critic: { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0 }, user: { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0 } },
 
-		// Mubi
-		mubiData: { state: 0, data: null, raw: null, url: null, rating: null, ratingAlt: null, num_ratings: 0, popularity: 0 },
-
 		mubiHelper: null,
 
-		// Film Affinity
-		filmaffData: { state: 0, data: null, raw: null, url: null, rating: null, num_ratings: 0 },
+		filmAffinityHelper: null,
 
 		// Content ratings (MPA, BBFC, FSK, etc)
 		contentRating: null,
@@ -759,11 +754,6 @@ const letterboxd = {
 						this.isMobile = true;
 					}
 				}
-			}
-
-			// Get Browser Locale
-			if (this.browserLocale == null) {
-				this.browserLocale = window.navigator.language.substring(3, 5);
 			}
 
 			// Determine watch status and hide status
@@ -1303,18 +1293,7 @@ const letterboxd = {
 									// Get and add FilmAffinity
 									if (letterboxd.storage.get('filmaff-enabled') === true) {
 										if (this.wiki != null && this.wiki.FilmAffinity_ID != null && this.wiki.FilmAffinity_ID.value != null) {
-											var validLocales = ['us', 'ca', 'mx', 'es', 'uk', 'ie', 'au', 'ar', 'cl', 'co', 'uy', 'py', 'pe', 'ec', 've', 'cr', 'hn', 'gt', 'bo', 'do'];
-											var locale = "us";
-											if (validLocales.includes(this.browserLocale.toLowerCase())) {
-												locale = this.browserLocale.toLowerCase();
-											}
-
-											var url = "https://www.filmaffinity.com/" + locale + "/film" + this.wiki.FilmAffinity_ID.value + ".html";
-
-											this.wikiData.FilmAffinity_ID = this.wiki.FilmAffinity_ID.value;
-											this.wikiData.FilmAffinity_URL = url;
-											this.filmaffData.url = url;
-											this.initFilmAffinity();
+											this.filmAffinityHelper.getData(this.wiki.FilmAffinity_ID.value);
 										}
 									}
 
@@ -1567,18 +1546,9 @@ const letterboxd = {
 				// Add Mubi
 				if (letterboxd.storage.get('mubi-enabled') === true && this.wikiData.state == 2) {
 					if (this.wikiData.Mubi_ID) {
-
-						// ID found in WikiData
-						this.mubiData.state = 1;
-
 						this.mubiHelper.getData(this.wikiData.Mubi_URL);
-						
-						//this.initMubi();
 					} else {
-						console.log('searching')
-						// No ID from Wikidata, search using the API instead
-						var url = "https://api.mubi.com/v3/search/films?query=" + this.letterboxdTitle + "&page=1&per_page=24";
-						this.mubiSearch(url);
+						this.mubiHelper.searchData(this.letterboxdTitle, this.letterboxdYear, this.letterboxdDirectorsAlt);
 					}
 				}
 
@@ -2528,369 +2498,6 @@ const letterboxd = {
 			letterboxd.helpers.addTooltipEvents(section);
 
 			this.metaAdded = true;
-		},
-
-		initMubi() {
-			if (this.wikiData.Mubi_URL != null && this.wikiData.Mubi_URL != "") {
-				if (this.mubiData.data == null) {
-					try {
-						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: this.wikiData.Mubi_URL, options: letterboxd.helpers.getMubiHeaders() }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("Mubi", value) == false){
-								return;
-							}
-								
-							var mubi = value.response;
-							if (mubi != "") {
-								this.mubiData.raw = mubi;
-								this.mubiData.data = mubi;
-
-								this.addMubi();
-								this.mubiData.state = 2;
-
-								this.addLink(this.mubiData.url);
-							}
-						});
-					} catch {
-						console.error("Letterboxd Extras | Unable to parse MUBI URL");
-						this.mubiData.state = 3;
-					}
-				} else if (this.mubiData.state < 1) {
-					this.mubiData.state = 3;
-				}
-			}
-		},
-
-		mubiSearch(url) {
-			// Use the API search to find and match the movie
-			try {
-				this.mubiData.state = 1;
-				browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: letterboxd.helpers.getMubiHeaders() }, (value) => {
-					if (letterboxd.helpers.ValidateResponse("Mubi search", value) == false){
-						return;
-					}
-						
-					var mubi = value.response;
-					if (mubi != null) {
-						var films = mubi.films;
-
-						var index = -1;
-						for (var i = 0; i < films.length; i++) {
-							// If TV, must have TV genres
-							if (this.tmdbTV == true && !(films[i].genres.includes("TV Series") || films[i].genres.includes("TV Mini-series"))) {
-								continue;
-							}
-
-							// Check if the year and name is exact match
-							if (this.letterboxdYear == films[i].year && (this.letterboxdTitle.toUpperCase() == films[i].title.toUpperCase() || this.letterboxdTitle.toUpperCase() == films[i].original_title)) {
-								index = i;
-								break;
-							}
-
-							// Match based on directors and within 5 years (to account for differences in listed year)
-							for (var k = 0; k < films[i].directors.length; k++) {
-								// Director name to lowercase and removed diacritics
-								var director = films[i].directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-								if (this.letterboxdDirectorsAlt.includes(director)) {
-									// Check to see if film is within 5 years
-									var score = Math.abs((parseInt(this.letterboxdYear)) - films[i].year)
-									if (score < 5) {
-										index = i
-										break;
-									}
-								}
-							}
-							if (index != -1) {
-								break;
-							}
-						}
-
-						if (index >= 0) {
-							this.mubiData.data = films[i];
-
-							this.addMubi();
-							this.mubiData.state = 2;
-
-							this.addLink(this.mubiData.url);
-						}
-					}
-				});
-			} catch {
-				console.error("Letterboxd Extras | Unable to parse MUBI search URL");
-				this.mubiData.state = 3;
-			}
-		},
-
-		addMubi() {
-			if (document.querySelector('.mubi-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			// Collect Date from MUBI response
-			//***************************************************************
-			this.mubiData.rating = this.mubiData.data.average_rating_out_of_ten;
-			this.mubiData.ratingAlt = this.mubiData.data.average_rating;
-			if (this.mubiData.data.number_of_ratings != null) {
-				this.mubiData.num_ratings = this.mubiData.data.number_of_ratings;
-			}
-			if (this.mubiData.data.popularity != null) {
-				this.mubiData.popularity = this.mubiData.data.popularity;
-			}
-			this.mubiData.url = this.mubiData.data.web_url;
-
-			// Do not display if there is no score or ratings
-			if (this.mubiData.rating == null && this.mubiData.num_ratings == 0) return;
-
-			// Add to Letterboxd
-			//***************************************************************
-			// Add the section to the page
-			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart mubi-ratings ratings-extras'
-			});
-
-			// Add the Header
-			const heading = letterboxd.helpers.createElement('h2', {
-				class: 'section-heading section-heading-extras'
-			});
-			section.append(heading);
-
-			const logo = letterboxd.helpers.createElement('a', {
-				class: 'logo-mubi'
-			});
-			logo.innerHTML = '<svg viewBox="0 0 800 240" width="48px" class: "mubi-star" style="vertical-align:top"><g fill="#FFFFFF"><path d="M444.53,171.29a45.66,45.66,0,0,0-15.67-14.69,39.3,39.3,0,0,0,11.78-12.32q4.42-7.34,4.43-17.94a40.2,40.2,0,0,0-3.46-16.85,38.1,38.1,0,0,0-9.61-13,43.34,43.34,0,0,0-14.7-8.32,57.32,57.32,0,0,0-18.69-2.92H324.07V236.54h78.86a56.74,56.74,0,0,0,19.34-3.14,44.75,44.75,0,0,0,15-8.74A38.58,38.58,0,0,0,447,211a44,44,0,0,0,3.46-17.71Q450.47,180.36,444.53,171.29Zm-92.37-62.23h44.29q9.72,0,15.13,4.65t5.4,13.72q0,9.06-5.4,14.26t-15.13,5.18H352.16Zm65.14,98q-5.07,5.73-16.53,5.73H352.16V170.64h48.61q11.24,0,16.43,6.37a23.43,23.43,0,0,1,5.18,15.24Q422.38,201.33,417.3,207Z"></path><path d="M268.53,235.24a58,58,0,0,0,19.77-12.42,53.71,53.71,0,0,0,12.42-18.58,60.11,60.11,0,0,0,4.33-22.8V85.29H277v96.15A39.87,39.87,0,0,1,274.47,196a30,30,0,0,1-7,10.8,30.73,30.73,0,0,1-10.91,6.81,43.43,43.43,0,0,1-28.3,0,30.77,30.77,0,0,1-10.92-6.81,30.25,30.25,0,0,1-7-10.8,40.09,40.09,0,0,1-2.48-14.59V85.29H179.73v96.15a60.3,60.3,0,0,0,4.32,22.8,53.71,53.71,0,0,0,12.42,18.58,58.33,58.33,0,0,0,19.67,12.42,77.84,77.84,0,0,0,52.39,0"></path><path d="M80.13,236.54l34.36-65.9q3-5.61,5.39-10.59t4.54-9.83q2.16-4.86,4.22-9.94t4.43-10.69h.86q-.44,6-.86,11.34c-.3,3.53-.51,6.95-.65,10.26s-.25,6.74-.33,10.27-.11,7.31-.11,11.34v63.74h28.09V85.29H128.75L99.36,142.76q-3,5.85-5.51,10.81c-1.66,3.31-3.24,6.56-4.75,9.72s-3,6.41-4.43,9.73-3,6.84-4.54,10.58Q77.75,178,75.59,173t-4.43-9.73c-1.51-3.16-3.1-6.41-4.75-9.72s-3.49-6.91-5.51-10.81L31.51,85.29H.19V236.54H28.27V172.8q0-6-.1-11.34t-.33-10.27q-.21-5-.65-10.26t-.86-11.34h.86q2.16,5.61,4.32,10.69t4.33,9.94c1.43,3.24,2.95,6.52,4.53,9.83s3.39,6.85,5.4,10.59Z"></path><rect x="468.61" y="85.29" width="28.09" height="151.25"></rect><g fill="#FFFFFF"><circle cx="766.5" cy="118.11" r="33.13"></circle><circle cx="595.89" cy="118.11" r="33.13"></circle><circle cx="681.2" cy="118.11" r="33.13"></circle><circle cx="595.89" cy="33.13" r="33.13"></circle><circle cx="681.2" cy="33.13" r="33.13"></circle><circle cx="595.89" cy="203.1" r="33.13"></circle><circle cx="681.2" cy="203.1" r="33.13"></circle></g></g></svg>';
-			logo.setAttribute('href', this.mubiData.url);
-			heading.append(logo);
-
-			var showDetails = null;
-			if (this.isMobile) {
-				showDetails = letterboxd.helpers.createShowDetailsButton("mubi", "mubi-score-details");
-				section.append(showDetails);
-			}
-
-			// Score
-			//***************************************************************
-			// Create a span that holds the entire 
-			const mubiSpan = letterboxd.helpers.createElement('span', {
-			}, {
-				display: "block",
-				['margin-bottom']: '10px',
-				['margin-top']: '5px'
-			});
-			section.append(mubiSpan);
-
-			// Add the star SVG (taken from MUBI)
-			mubiSpan.innerHTML = '<svg viewBox="0 0 22 20" fill="#FFFFFF" width="20px"><path d="M21.15 7.6a.64.64 0 0 0-.6-.45l-7.05-.14L11.2.43a.63.63 0 0 0-1.2 0L7.67 7l-7.05.14a.63.63 0 0 0-.59.44c-.08.26 0 .54.22.7l5.62 4.22-2.04 6.67a.64.64 0 0 0 .97.71l5.79-3.99 5.8 3.99a.64.64 0 0 0 .73-.01c.22-.16.3-.44.23-.7l-2.04-6.67 5.62-4.21c.21-.17.3-.45.22-.7"></path></svg>';
-
-			// The span that holds the score
-			const scoreSpan = letterboxd.helpers.createElement('span', {
-				class: 'mubi-score'
-			}, {
-				display: 'inline-block'
-			});
-			mubiSpan.append(scoreSpan);
-
-			// The element that is the score itself
-			const scoreText = letterboxd.helpers.createElement('a', {
-				class: 'tooltip tooltip-extra display-rating -highlight mubi-score'
-			});
-			scoreSpan.append(scoreText);
-
-			// Score and hover
-			var score = this.mubiData.rating;
-			var totalScore = "/10";
-
-			if (letterboxd.storage.get('convert-ratings') === "5") {
-				totalScore = "/5";
-				score = this.mubiData.ratingAlt;
-			}
-				
-			var hover = "Average of " + score.toFixed(1) + totalScore + " based on " + this.mubiData.num_ratings.toLocaleString() + ' rating';
-			if (this.mubiData.num_ratings != 1)
-				hover += "s"
-
-			// If no ratings, display as N/A and change hover
-			if (score == null && this.mubiData.num_ratings == 0) {
-				score = "N/A";
-				hover = "No score available";
-			} else if (this.mubiData.num_ratings == 0) {
-				score = "N/A";
-				hover = this.mubiData.num_ratings.toLocaleString() + ' rating';
-				if (this.mubiData.num_ratings != 1)
-					hover += "s"
-			} else {
-				score = score.toFixed(1)
-			}
-
-			scoreText.innerText = score;
-			scoreText.setAttribute('data-original-title', hover);
-			scoreText.setAttribute('href', this.mubiData.url + "/ratings");
-
-			// Add the element /10 or /5 depending on score
-			const scoreTotal = letterboxd.helpers.createElement('p', {
-				style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
-			});
-			scoreTotal.innerText = totalScore;
-			scoreSpan.append(scoreTotal);
-
-			// Add the tooltip as text for mobile
-			letterboxd.helpers.createDetailsText('mubi', section, hover, this.isMobile);
-
-			// APPEND to the sidebar
-			//************************************************************
-			this.appendRating(section, 'mubi-ratings');
-
-			// Add Hover events
-			//************************************************************
-			letterboxd.helpers.addTooltipEvents(section);
-		},
-
-		initFilmAffinity() {
-			if (this.wikiData.FilmAffinity_URL != null && this.wikiData.FilmAffinity_URL != "") {
-
-				if (this.filmaffData.data == null && this.filmaffData.state < 1) {
-					try {
-						this.filmaffData.state = 1;
-						browser.runtime.sendMessage({ name: "GETDATA", url: this.wikiData.FilmAffinity_URL }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("FilmAffinity", value) == false){
-								return;
-							}
-
-							var filmaff = value.response;
-							if (filmaff != "") {
-								this.filmaffData.raw = filmaff;
-								this.filmaffData.data = letterboxd.helpers.parseHTML(filmaff);
-
-								this.addFilmAffinity();
-								this.filmaffData.state = 2;
-
-								this.addLink(this.filmaffData.url);
-							}
-						});
-					} catch {
-						console.error("Letterboxd Extras | Unable to parse FilmAffinity URL");
-						this.filmaffData.state = 3;
-					}
-				} else if (this.filmaffData.state < 1) {
-					this.filmaffData.state = 3;
-				}
-			}
-		},
-
-		addFilmAffinity() {
-			if (document.querySelector('.filmaff-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			// Collect Date from the FilmAffinity Page
-			//***************************************************************
-			if (this.isMobile == true) {
-				// Get score from mobile site
-				if (this.filmaffData.data.querySelector('span[itemprop="ratingValue"]') != null) {
-					this.filmaffData.rating = this.filmaffData.data.querySelector('span[itemprop="ratingValue"]').getAttribute("content");
-					this.filmaffData.rating = parseFloat(this.filmaffData.rating);
-				}
-				if (this.filmaffData.data.querySelector('span[itemprop="ratingValue"]') != null) {
-					this.filmaffData.num_ratings = this.filmaffData.data.querySelector('span[itemprop="ratingCount"]').getAttribute("content");
-					this.filmaffData.num_ratings = parseFloat(this.filmaffData.num_ratings);
-				}
-			} else {
-				// Get score from desktop site
-				if (this.filmaffData.data.querySelector("#movie-rat-avg") != null) {
-					this.filmaffData.rating = this.filmaffData.data.querySelector("#movie-rat-avg").getAttribute("content");
-					this.filmaffData.rating = parseFloat(this.filmaffData.rating);
-				}
-				if (this.filmaffData.data.querySelector("#movie-count-rat span") != null) {
-					this.filmaffData.num_ratings = this.filmaffData.data.querySelector("#movie-count-rat span").getAttribute("content");
-					this.filmaffData.num_ratings = parseFloat(this.filmaffData.num_ratings);
-				}
-			}
-
-			// Do not display if there is no score or ratings
-			if (this.filmaffData.rating == null && this.filmaffData.num_ratings == 0) return;
-
-			// Add to Letterboxd
-			//***************************************************************
-			// Add the section to the page
-			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart filmaff-ratings ratings-extras'
-			});
-
-			// Add the Header
-			const heading = letterboxd.helpers.createElement('h2', {
-				class: 'section-heading section-heading-extras'
-			});
-			section.append(heading);
-
-			const logo = letterboxd.helpers.createElement('a', {
-				class: 'logo-filmaff',
-				style: 'height: 20px; width: 75px; background-image: url("https://www.filmaffinity.com/images/logo4.png");'
-			});
-			logo.setAttribute('href', this.filmaffData.url);
-			heading.append(logo);
-
-			var showDetails = null;
-			if (this.isMobile) {
-				// Add the Show Details button
-				showDetails = letterboxd.helpers.createShowDetailsButton("filmaff", "filmaff-score-details");
-				section.append(showDetails);
-			}
-
-			// Score
-			//***************************************************************
-			const container = letterboxd.helpers.createElement('span', {}, {
-				['display']: 'block',
-				['margin-bottom']: '10px'
-			});
-			section.append(container);
-
-			// The span that holds the score
-			const span = letterboxd.helpers.createElement('div', {}, {
-				['display']: 'inline-block',
-				['width']: 'auto'
-			});
-
-			// The element that is the score itself
-			const text = letterboxd.helpers.createElement('a', {
-				class: 'tooltip tooltip-extra display-rating -highlight filmaff-score'
-			});
-			if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
-
-			var rating = this.filmaffData.rating;
-			var suffix = "/10";
-
-			// Add the hoverover text and href
-			var tooltip = 'No score available';
-			if (this.filmaffData.num_ratings > 0 && rating == null) {
-				tooltip = this.filmaffData.num_ratings.toLocaleString() + ' rating';
-				if (this.filmaffData.num_ratings > 1) tooltip += "s";
-				rating = "N/A";
-
-			} else if (this.filmaffData.num_ratings > 0) {
-				if (letterboxd.storage.get('convert-ratings') === "5"){
-					suffix = "/5";
-					rating = rating / 2;
-				}
-				rating = rating.toFixed(1);
-				tooltip = "Average of " + rating.toLocaleString() + suffix + " based on " + this.filmaffData.num_ratings.toLocaleString() + ' ratings';
-			} else {
-				rating = "N/A";
-			}
-			text.setAttribute('data-original-title', tooltip);
-			text.setAttribute('href', this.filmaffData.url);
-			text.innerText = rating;
-			span.append(text);
-
-			container.append(span);
-
-			// Add the tooltip as text for mobile
-			letterboxd.helpers.createDetailsText('filmaff', section, tooltip, this.isMobile);
-
-			// APPEND to the sidebar
-			//************************************************************
-			this.appendRating(section, 'filmaff-ratings');
-
-			// Add Hover events
-			//************************************************************
-			letterboxd.helpers.addTooltipEvents(section);
 		},
 
 		addLink(url) {
@@ -7278,6 +6885,11 @@ if (typeof AnilistHelper !== 'undefined') {
 
 if(typeof MubiHelper !== 'undefined') {
 	letterboxd.overview.mubiHelper = new MubiHelper(letterboxd.storage, letterboxd.helpers);
+}
+
+if(typeof FilmAffinityHelper !== 'undefined') {
+
+	letterboxd.overview.filmAffinityHelper = new FilmAffinityHelper(letterboxd.storage, letterboxd.helpers)
 }
 
 letterboxd.storage.init();

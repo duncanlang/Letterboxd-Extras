@@ -1,0 +1,174 @@
+import { LOAD_STATES } from '../constants';
+import { MUBI_LOGO_SVG, MUBI_STAR_SVG } from '../SVG';
+import { Helper } from './Helper';
+
+export class FilmAffinityHelper extends Helper {
+
+	constructor(storage, helpers) {
+
+		super(storage, helpers, 'filmaff');
+		this.rating = null;
+		this.num_ratings = 0;
+		this.isMobile = false;
+
+	}
+
+	getData(filmAffID) {
+
+		if (!this._canLoadData()) {
+
+			return;
+
+		}
+
+		const validLocales = ['us', 'ca', 'mx', 'es', 'uk', 'ie', 'au', 'ar', 'cl', 'co', 'uy', 'py', 'pe', 'ec', 've', 'cr', 'hn', 'gt', 'bo', 'do'];
+		let locale = 'us';
+		const browserLocale = window.navigator.language.substring(3, 5).toLowerCase();
+		if (validLocales.includes(browserLocale)) {
+			locale = browserLocale;
+		}
+
+		this.url = `https://www.filmaffinity.com/${locale}/film${filmAffID}.html`;
+		try {
+			this.loadState = LOAD_STATES['Loading'];
+			browser.runtime.sendMessage({ name: 'GETDATA', url: this.url }, value => {
+				if (this.helpers.ValidateResponse('FilmAffinity', value) === false) {
+					return;
+				}
+
+				const filmaffData = value.response;
+				if (filmaffData !== '') {
+					this.data = this.helpers.parseHTML(filmaffData);
+
+					this.loadState = LOAD_STATES['Success'];
+
+					this.populateSidebar();
+					this.addButtonLink(this.url, 'Affinity');
+				}
+			});
+		} catch {
+			console.error('Letterboxd Extras | Unable to parse FilmAffinity URL');
+			this.loadState = LOAD_STATES['Failure'];
+		}
+	}
+
+	populateSidebar() {
+
+		if (!this._canPopulateRatingsSidebar()) {
+			return;
+		}
+
+		// Collect Date from the FilmAffinity Page
+		//* **************************************************************
+		if (this.isMobile === true) {
+			// Get score from mobile site
+			if (this.data.querySelector('span[itemprop="ratingValue"]') !== null) {
+				this.rating = this.data.querySelector('span[itemprop="ratingValue"]').getAttribute('content');
+				this.rating = parseFloat(this.rating);
+			}
+			if (this.data.querySelector('span[itemprop="ratingValue"]') !== null) {
+				this.num_ratings = this.data.querySelector('span[itemprop="ratingCount"]').getAttribute('content');
+				this.num_ratings = parseFloat(this.num_ratings);
+			}
+		} else {
+			// Get score from desktop site
+			if (this.data.querySelector('#movie-rat-avg') !== null) {
+				this.rating = this.data.querySelector('#movie-rat-avg').getAttribute('content');
+				this.rating = parseFloat(this.rating);
+			}
+			if (this.data.querySelector('#movie-count-rat span') !== null) {
+				this.num_ratings = this.data.querySelector('#movie-count-rat span').getAttribute('content');
+				this.num_ratings = parseFloat(this.num_ratings);
+			}
+		}
+
+		// Do not display if there is no score or ratings
+		if (this.rating === null && this.num_ratings === 0) return;
+
+		// Add to Letterboxd
+		//* **************************************************************
+		// Add the section to the page
+		const section = this.helpers.createElement('section', {
+			class: 'section ratings-histogram-chart filmaff-ratings ratings-extras'
+		});
+
+		// Add the Header
+		const heading = this.helpers.createElement('h2', {
+			class: 'section-heading section-heading-extras'
+		});
+		section.append(heading);
+
+		const logo = this.helpers.createElement('a', {
+			class: 'logo-filmaff',
+			style: 'height: 20px; width: 75px; background-image: url("https://www.filmaffinity.com/images/logo4.png");'
+		});
+		logo.setAttribute('href', this.url);
+		heading.append(logo);
+
+		let showDetails = null;
+		if (this.isMobile) {
+			// Add the Show Details button
+			showDetails = this.helpers.createShowDetailsButton('filmaff', 'filmaff-score-details');
+			section.append(showDetails);
+		}
+
+		// Score
+		//* **************************************************************
+		const container = this.helpers.createElement('span', {}, {
+			'display': 'block',
+			'margin-bottom': '10px'
+		});
+		section.append(container);
+
+		// The span that holds the score
+		const span = this.helpers.createElement('div', {}, {
+			'display': 'inline-block',
+			'width': 'auto'
+		});
+
+		// The element that is the score itself
+		const text = this.helpers.createElement('a', {
+			class: 'tooltip tooltip-extra display-rating -highlight filmaff-score'
+		});
+		if (this.isMobile === true) text.setAttribute('class', `${text.getAttribute('class')} extras-mobile`);
+
+		let rating = this.rating;
+		let suffix = '/10';
+
+		// Add the hoverover text and href
+		let tooltip = 'No score available';
+		if (this.num_ratings > 0 && rating === null) {
+			tooltip = `${this.num_ratings.toLocaleString()} rating`;
+			if (this.num_ratings > 1) tooltip += 's';
+			rating = 'N/A';
+
+		} else if (this.num_ratings > 0) {
+			if (this.storage.get('convert-ratings') === '5') {
+				suffix = '/5';
+				rating /= 2;
+			}
+			rating = rating.toFixed(1);
+			tooltip = `Average of ${rating.toLocaleString()}${suffix} based on ${this.num_ratings.toLocaleString()} ratings`;
+		} else {
+			rating = 'N/A';
+		}
+		text.setAttribute('data-original-title', tooltip);
+		text.setAttribute('href', this.url);
+		text.innerText = rating;
+		span.append(text);
+
+		container.append(span);
+
+		// Add the tooltip as text for mobile
+		this.helpers.createDetailsText('filmaff', section, tooltip, this.isMobile);
+
+		// APPEND to the sidebar
+		//* ***********************************************************
+		this.appendSidebarRating(section);
+
+		// Add Hover events
+		//* ***********************************************************
+		this.helpers.addTooltipEvents(section);
+	}
+
+}
