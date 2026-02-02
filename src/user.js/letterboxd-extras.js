@@ -765,12 +765,27 @@ const letterboxd = {
 					this.filmWatched = false;
 					this.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "false";
 					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "false";
-				}else{
+				}else if (this.filmWatched == null){
 					// If logged in, we need to check the watched status against the addon settings
-					var filmPosterDiv = document.querySelector('div.poster.film-poster');
-					if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.filmWatched == null){
-						this.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
+					var found = false;
 
+					if (this.isMobile && document.querySelector('.production-masthead') != null){
+						// Mobile - for whatever reason, the poster seems to load in last so I'm instead checking the action strip
+						var actionStrip = document.querySelector('a.actions-strip span.js-user-actions-menu-text span.prompt');
+						if (actionStrip != null){
+							this.filmWatched = actionStrip.innerText.includes("You’ve watched this");
+							found = true;
+						}
+					}else{
+						// Desktop - check if the poster has the attribute
+						var filmPosterDiv = document.querySelector('#js-poster-col div.poster.film-poster');
+						if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.filmWatched == null){
+							this.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
+							found = true;
+						}
+					}
+
+					if (found){
 						// Determine if ratings should be hidden
 						this.hideRatings = false;
 						if (letterboxd.storage.get('hide-ratings-enabled') !== "false"){
