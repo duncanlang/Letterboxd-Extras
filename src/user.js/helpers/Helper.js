@@ -35,13 +35,22 @@ export class Helper {
 		 */
 		this.selectorPrefix = selectorPrefix;
 
+
 		/**
-		 * A flag indicating what our current loading progress during an API call to an external data source.
+		 * A string defining the prefix of a class or id selector on an HTML Element.
+		 *
+		 * @type {?'load' | 'render' | 'complete'}
+		 */
+		this.buildStage = null;
+
+		/**
+		 * A flag indicating what our current data loading progress during an API call to an external data source.
 		 *
 		 * @type {number}
 		 * @default 0
 		 */
 		this.loadState = LOAD_STATES['Uninitialized'];
+
 
 		/**
 		 * The data returned by the external data source.
@@ -52,7 +61,127 @@ export class Helper {
 		this.data = null;
 
 
+		/**
+		 * A link to the film's page on the data source.
+		 *
+		 * @type {string | null}
+		 * @default null
+		 */
+		this.linkURL = null;
+
+		/**
+		 * The API Link that returns the film's information.
+		 * Only populate this field if it's necessary to access the same api endpoint multiple times.
+		 *
+		 * @type {string | null}
+		 * @default null
+		 */
+		this.apiURL = null;
+
+		/**
+		 * A flag indicating whether the web page is being viewed in its mobile configuration.
+		 *
+		 * @type {boolean}
+		 * @default false
+		 */
+		this.isMobile = false;
+
+		/**
+		 * A flag indicating whether a button link to the data source has been added.
+		 *
+		 * @type {boolean}
+		 * @default false
+		 */
 		this.linkAdded = false;
+
+		/**
+		 * A flag indicating whether a ratings section has been added to the sidebar.
+		 *
+		 * @type {boolean}
+		 * @default false
+		 */
+		this.ratingsAdded = false;
+
+	}
+
+	/**
+	 * Runs the data extraction step of pulling from a data source.
+	 * @param {string} id - The id or url of the resource.
+	 */
+	getData(id) {
+
+		if (!this._canLoadData()) {
+
+			return;
+
+		}
+
+		this.loadState = LOAD_STATES['Loading'];
+
+		this._loadData(id);
+
+	}
+
+	/**
+	 * Gets the requested data for a film's data source.
+	 * @param {string} id - The id or url of the resource.
+	 */
+	_loadData(id) {
+
+		throw new Error(`Letterboxd Extras | Error! The function Helper._loadData' must be overriden by a subclass`);
+
+	}
+
+	/**
+	 * Makes an API request to an external data source and handles the response via a callback.
+	 *
+	 * @param {string} errorHeader - The name of the service for error logging (e.g., "AniList API", "MyAnimeList API")
+	 * @param {string} url - The API endpoint URL to request data from
+	 * @param {Object} [options] - Optional request options (headers, method, body, etc.) to be passed to the fetch request
+	 * @param {function(Object): void} dataLoadCallback - Callback function to process the successful API response
+	 * @protected
+	 */
+	_apiRequestCallback(errorHeader, url, options, dataLoadCallback) {
+		try {
+
+			const request = {
+				name: 'GETDATA',
+				type: 'JSON',
+				url: url
+			};
+
+			if (Object.keys(options).length !== 0) {
+				request.options = options;
+			}
+
+			browser.runtime.sendMessage(request, value => {
+
+				if (this.helpers.ValidateResponse(errorHeader, value) === false) {
+					this.loadState = LOAD_STATES['Failure'];
+					return;
+				}
+
+				dataLoadCallback(value.response);
+
+			});
+
+		} catch (error) {
+
+			console.error(`Letterboxd Extras | Unable to parse ${errorHeader} URL`);
+			this.loadState = LOAD_STATES['Failure'];
+
+		}
+
+	}
+
+
+	/**
+	 * Populates the ratings sidebar with information from the data source.
+	 * @abstract
+	 */
+	populateRatingsSidebar() {
+
+		throw new Error(`Letterboxd Extras | Error! The function 'populateRatingsSidebar' must be overriden by a subclass`);
 
 	}
 
@@ -134,7 +263,6 @@ export class Helper {
 
 	}
 
-
 	/**
 	 * Adds a link to an external reference source on a film's overview page.
 	 *
@@ -190,8 +318,6 @@ export class Helper {
 				}
 			}
 
-			console.log('fix');
-
 			// Third Attempt
 			const buttons = document.querySelectorAll('.micro-button');
 			const lastButton = buttons[buttons.length - 1];
@@ -212,7 +338,6 @@ export class Helper {
 
 	}
 
-
 	/**
 	 * Determines whether we can load date by checking if the load process has already been initialized.
 	 *
@@ -224,6 +349,30 @@ export class Helper {
 		// No data present and have not started to load already
 		return this.data === null && this.loadState === LOAD_STATES['Uninitialized'];
 
+	}
+
+	/**
+	 * Creates tooltip text below the generated ratings section.
+	 *
+	 * @returns {boolean}
+	 * @protected
+	 */
+	_createRatingDetailsText(section, tooltip) {
+		const detailsSpan = this.helpers.createElement('span', {
+			class: `${this.selectorPrefix}-score-details mobile-details-text`
+		});
+
+		if (this.storage.get('tooltip-show-details') != true) {
+			detailsSpan.style.display = 'none';
+		}
+
+		const detailsText = this.helpers.createElement('p', {});
+		detailsText.innerText = tooltip;
+		detailsSpan.append(detailsText);
+
+		if (this.isMobile || this.storage.get('tooltip-show-details') === true) {
+			section.append(detailsSpan);
+		}
 	}
 
 }

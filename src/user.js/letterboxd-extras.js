@@ -6,6 +6,7 @@ import { MubiHelper} from './helpers/MubiHelper';
 import { FilmAffinityHelper } from './helpers/FilmAffinityHelper';
 import { LetterboxdPerson } from './letterboxd-person';
 import { LetterboxdGeneral } from './letterboxd-general';
+//import { MyAnimeListHelper } from './helpers/MyAnimeListHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -652,9 +653,11 @@ const letterboxd = {
 
 		// Rotten Tomatoes
 		tomatoData: { state: 0, data: null, raw: null, found: false, hideDetailButton: false, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null },
+		tomatoHelper: null,
 
 		// Metacritic
 		metaData: { state: 0, data: null, raw: null, mustSee: false, critic: { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0 }, user: { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0 } },
+		metaHelper: null,
 
 		mubiHelper: null,
 
@@ -671,38 +674,46 @@ const letterboxd = {
 		// MAL
 		mal: { state: 0, id: null, url: null, data: null, statistics: null, highest: 0 },
 
-		// AniList
-		al: { state: 0, id: null, url: null, data: null, highest: 0, num_ratings: 0 },
+		myAnimeListHelper: null,
 
 		// Anilist Helper
-		anilistHelper: 'test',
+		anilistHelper: null,
 
 		// SensCritique
 		sensCritique: { state: 0, id: null, url: null, data: null },
+		sensHelper: null,
 
 		// They Shoot Pictures ranking
 		tspdt: { state: 0, data: null, raw: null, found: false, ranking: null, listURL: null },
+		theyShootPicturesHelper: null,
 
 		// BFI Sight and Sound
 		bfi: { state: 0, data: null, raw: null, found: false, ranking: null, listIndex: null },
+		bfiHelper: null,
 
 		// Allocine
 		allocine: { state: 0, user: { data: null, raw: null, rating: null, num_ratings: 0, num_reviews: 0, highest: 0, votes: new Array(6), percents: new Array(6) }, critic: { data: null, raw: null, rating: null, num_ratings: 0 }, url: null, urlUser: null, urlCritic: null },
+		allocineHelper: null,
 
 		// Douban
 		douban: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
+		doubanHelper: null,
 
 		// SIMKL
 		simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
+		simklHelper: null,
 
 		// Does the Dog Die (ddd)
 		ddd: { state: 0, data: null, id: null, url: null, added: false },
+		doesTheDogDieHelper: null,
 
 		// Filmarks
 		filmarks: { state: 0, data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
+		filmarksHelper: null,
 
 		// Kinopoisk
 		kinopoisk: { state: 0, status_code: 0, data: null, id: null, url: null, api_url: null, rating: null, num_ratings: 0 },
+		kinopoiskHelper: null,
 
 
 		linksAdded: [],
@@ -1077,7 +1088,7 @@ const letterboxd = {
 			// First Get the IMDb link 
 			if (this.idsCollected == false && document.querySelector('.micro-button') != null && document.querySelector('.block-flag-wrapper')) {
 				// Gets the IMDb link and ID, and also TMDB id
-				this.getIMDbLink();
+				this.resolveExistingButtonLinks();
 				if (this.linksMoved == false)
 					this.moveLinks();
 
@@ -1087,6 +1098,7 @@ const letterboxd = {
 
 			}
 
+			// TODO: Ensure data population is not dependent on state of filmWatched
 			if (this.filmWatched != null){
 				// Add Cinema Score
 				if (this.cinemascore.data == null && this.letterboxdTitle != null && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null) {
@@ -1293,6 +1305,7 @@ const letterboxd = {
 									// Get and add FilmAffinity
 									if (letterboxd.storage.get('filmaff-enabled') === true) {
 										if (this.wiki != null && this.wiki.FilmAffinity_ID != null && this.wiki.FilmAffinity_ID.value != null) {
+											console.log(this.wiki.FilmAffinity_ID)
 											this.filmAffinityHelper.getData(this.wiki.FilmAffinity_ID.value);
 										}
 									}
@@ -1301,6 +1314,7 @@ const letterboxd = {
 									if (this.wiki != null && this.wiki.MAL_ID != null && this.wiki.MAL_ID.value != null && letterboxd.storage.get('mal-enabled') === true) {
 										this.wikiData.MAL_ID = this.wiki.MAL_ID.value;
 										this.mal.id = this.wiki.MAL_ID.value;
+										
 
 										var url = 'https://api.jikan.moe/v4/anime/' + this.mal.id;
 										this.mal.url = url;
@@ -1369,12 +1383,14 @@ const letterboxd = {
 
 									// Get the Filmarks ID to use for later
 									this.filmarks.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "Filmarks_ID", this.filmarks.id);
+									console.log(this.wiki)
 
 									// Get the DDD ID to use for later
 									this.ddd.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "DDD_ID", this.ddd.id);
 
 									// Get Kinopoisk data
-									if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
+									if (this.wiki != null && this.wiki.Kinopoisk_ID !== null && letterboxd.storage.get('kinopoisk-enabled') === true){
+										console.log(this.kinopoisk);
 										this.kinopoisk.id = this.wiki.Kinopoisk_ID.value;
 										this.kinopoisk.api_url = "https://kinopoiskapiunofficial.tech/api/v2.2/films/" + this.kinopoisk.id;
 										this.kinopoisk.state = 1;
@@ -1579,13 +1595,6 @@ const letterboxd = {
 					}
 				}
 
-				// Add MAL
-				if (this.mal.data != null && this.mal.statistics != null && this.mal.state < 2) {
-					this.mal.state = 2;
-					this.addLink(this.mal.url);
-					this.addMAL();
-				}
-
 				// Cinemascore alt titles and years
 				if (this.cinemascore.data != null && this.wikiData.state == 2 && this.cinemascoreAlt == false && this.cinemascore.state != 2) {
 					this.cinemascoreAlt = true;
@@ -1655,6 +1664,7 @@ const letterboxd = {
 					
 				// Add Filmarks
 				if (this.filmarks.state == 0 && this.wikiData.state == 2 && letterboxd.storage.get('filmarks-enabled') === true ){
+					console.log('test filmarks')
 					if (this.filmarks.id != null && this.filmarks.id != ''){
 						this.getFilmarks();
 					}
@@ -1760,7 +1770,7 @@ const letterboxd = {
 			this.addLink(url);
 		},
 
-		getIMDbLink() {
+		resolveExistingButtonLinks() {
 			// Get the two links (imdb and tmdb)
 			const links = document.querySelectorAll('.micro-button.track-event');
 
@@ -3184,104 +3194,6 @@ const letterboxd = {
 			letterboxd.helpers.addTooltipEvents(scoreSection);
 		},
 
-		addAnilist() {
-			if (document.querySelector('.anilist-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			if (this.al.data == null) return;
-
-			// Init
-			this.al.score = "N/A";
-			if (this.al.data.averageScore != null)
-				this.al.score = this.al.data.averageScore;
-
-			this.al.num_ratings = 0;
-			// Loop first and determine highest votes and total
-			if (this.al.data.stats.scoreDistribution.length == 10) {
-				for (var ii = 0; ii < 10; ii++) {
-					var amount = this.al.data.stats.scoreDistribution[ii].amount;
-					if (amount > this.al.highest)
-						this.al.highest = amount;
-
-					this.al.num_ratings += amount;
-				}
-			}
-
-			// Return if there are no ratings
-			if (this.al.num_ratings == 0)
-				return;
-
-
-			// Create and Add
-			// Add the section to the page
-			const scoreSection = letterboxd.helpers.createChartSectionElement('anilist');
-			const heading = letterboxd.helpers.createChartSectionHeader();
-			scoreSection.append(heading)
-
-			const logoHolder = letterboxd.helpers.createChartSectionLogoHolder('holder-anilist', {
-				class: 'logo-holder-anilist',
-				style: 'width: 100%;',
-				href: this.al.data.siteUrl + '/stats'
-			});
-			heading.append(logoHolder);
-
-			const logo = letterboxd.helpers.createElement('span', {
-				class: 'logo-anilist',
-				style: 'height: 20px; width: 20px; background-image: url("https://graphql.anilist.co/img/icons/icon.svg");'
-			});
-			logoHolder.append(logo);
-
-			const logoText = letterboxd.helpers.createElement('span', {
-				class: 'text-anilist',
-				style: 'vertical-align: super;'
-			});
-			logoText.innerText = "AniList"
-			logoHolder.append(logoText);
-
-			var showDetails = null;
-			if (this.isMobile) {
-				// Add the Show Details button
-				showDetails = letterboxd.helpers.createShowDetailsButton("anilist", "anilist-score-details");
-				scoreSection.append(showDetails);
-			}
-
-			scoreSection.append(letterboxd.helpers.createHistogramScore(
-				letterboxd.storage, 
-				"anilist", 
-				this.al.score, 
-				this.al.num_ratings, 
-				this.al.data.siteUrl + '/reviews', 
-				this.isMobile
-			));
-
-			scoreSection.append(letterboxd.helpers.createHistogramGraph(
-				letterboxd.storage, 
-				"anilist", 
-				"", 
-				this.al.num_ratings, 
-				this.al.data.stats.scoreDistribution, 
-				this.al.data.stats.scoreDistribution[ii], 
-				this.al.highest
-			));
-
-			// Add the tooltip as text for mobile
-			var score = scoreSection.querySelector(".average-rating .tooltip");
-			var tooltip = "";
-			if (score != null) {
-				tooltip = score.getAttribute('data-original-title');
-				letterboxd.helpers.createDetailsText('anilist', scoreSection, tooltip, this.isMobile);
-			}
-
-			// Append to the sidebar
-			//*****************************************************************
-			this.appendRating(scoreSection, 'anilist-ratings');
-
-			// Add the hover events
-			//*****************************************************************
-			letterboxd.helpers.addTooltipEvents(scoreSection);
-		},
-
 		searchSensCritique() {
 			this.sensCritique.state = 1;
 
@@ -3363,22 +3275,14 @@ const letterboxd = {
 			// Lets add it to the page
 			//***************************************************************
 			// Add the section to the page
-			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart sens-ratings ratings-extras'
-			});
 
-			// Add the Header
-			const heading = letterboxd.helpers.createElement('h2', {
-				class: 'section-heading section-heading-extras'
-			});
-			section.append(heading);
-
-			const logoHolder = letterboxd.helpers.createElement('a', {
-				class: "logo-sens",
-				href: url,
-				style: 'height: 25px; width: 110px; position: absolute; background-image: url("' + browser.runtime.getURL("images/senscritique-logo.svg") + '");'
-			});
-			heading.append(logoHolder);
+			const section = letterboxd.helpers.createChartSection(
+				'sens', 
+				{
+					href: url,
+					style: 'height: 25px; width: 110px; position: absolute; background-image: url("' + browser.runtime.getURL("images/senscritique-logo.svg") + '");'
+				}
+			)
 
 			var showDetails = null;
 			if (this.isMobile) {
@@ -4639,6 +4543,7 @@ const letterboxd = {
 			// Make Calls
 			browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
 				if (letterboxd.helpers.ValidateResponse("Filmarks", value) == false){
+					console.log('invlaid filmarks')
 					return;
 				}
 
@@ -4652,6 +4557,7 @@ const letterboxd = {
 
 				if (this.filmarks.state == 2 && this.filmarks.data != null){
 					this.filmarks.movie = this.filmarks.data.data;
+					console.log(this.filmarks)
 					this.addFilmarks();
 				}
 			});
@@ -4660,7 +4566,7 @@ const letterboxd = {
 		searchFilmarks() {
 			this.filmarks.state = 1;
 
-			var isAnime = (this.mal.id != null || this.al.id != null);
+			var isAnime = (this.mal.id != null || this.anilistHelper.id != null);
 			var apiURL = "https://markuapi.apn.leapcell.app/search/";
 			if (this.tmdbTV && isAnime){
 				apiURL += "animes?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
@@ -6871,26 +6777,23 @@ const letterboxd = {
 	}
 };
 
-if (typeof LetterboxdPerson !== 'undefined') {
-	letterboxd.person = new LetterboxdPerson(letterboxd.storage, letterboxd.helpers, letterboxd.wiki);
-}
+const defaultArgs = [letterboxd.storage, letterboxd.helpers];
 
-if (typeof LetterboxdGeneral !== 'undefined') {
-	letterboxd.general = new LetterboxdGeneral(letterboxd.storage, letterboxd.helpers);
-}
+// Initialize helpers and modules
+const moduleConfigs = [
+	{ class: LetterboxdPerson, target: letterboxd, property: 'person', args: [letterboxd.wiki] },
+	{ class: LetterboxdGeneral, target: letterboxd, property: 'general', args: [] },
+	{ class: AnilistHelper, target: letterboxd.overview, property: 'anilistHelper', args: [letterboxd.overview.ratingsSuffix] },
+	{ class: MubiHelper, target: letterboxd.overview, property: 'mubiHelper', args: [] },
+	{ class: FilmAffinityHelper, target: letterboxd.overview, property: 'filmAffinityHelper', args: [] },
+	//{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [] }
+];
 
-if (typeof AnilistHelper !== 'undefined') {
-	letterboxd.overview.anilistHelper = new AnilistHelper(letterboxd.storage, letterboxd.helpers, letterboxd.overview.ratingsSuffix)
-}
-
-if(typeof MubiHelper !== 'undefined') {
-	letterboxd.overview.mubiHelper = new MubiHelper(letterboxd.storage, letterboxd.helpers);
-}
-
-if(typeof FilmAffinityHelper !== 'undefined') {
-
-	letterboxd.overview.filmAffinityHelper = new FilmAffinityHelper(letterboxd.storage, letterboxd.helpers)
-}
+moduleConfigs.forEach(config => {
+	if (typeof config.class !== 'undefined') {
+		config.target[config.property] = new config.class(...defaultArgs, ...config.args);
+	}
+});
 
 letterboxd.storage.init();
 letterboxd.storage.initLocal();

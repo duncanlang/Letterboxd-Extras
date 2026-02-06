@@ -1,5 +1,4 @@
 import { LOAD_STATES } from '../constants';
-import { MUBI_LOGO_SVG, MUBI_STAR_SVG } from '../SVG';
 import { Helper } from './Helper';
 
 export class FilmAffinityHelper extends Helper {
@@ -13,13 +12,9 @@ export class FilmAffinityHelper extends Helper {
 
 	}
 
-	getData(filmAffID) {
+	_loadData(id) {
 
-		if (!this._canLoadData()) {
-
-			return;
-
-		}
+		this.id = id;
 
 		const validLocales = ['us', 'ca', 'mx', 'es', 'uk', 'ie', 'au', 'ar', 'cl', 'co', 'uy', 'py', 'pe', 'ec', 've', 'cr', 'hn', 'gt', 'bo', 'do'];
 		let locale = 'us';
@@ -28,31 +23,25 @@ export class FilmAffinityHelper extends Helper {
 			locale = browserLocale;
 		}
 
-		this.url = `https://www.filmaffinity.com/${locale}/film${filmAffID}.html`;
-		try {
-			this.loadState = LOAD_STATES['Loading'];
-			browser.runtime.sendMessage({ name: 'GETDATA', url: this.url }, value => {
-				if (this.helpers.ValidateResponse('FilmAffinity', value) === false) {
-					return;
-				}
+		this.linkURL = `https://www.filmaffinity.com/${locale}/film${id}.html`;
+		this._apiRequestCallback('FilmAffinity', this.linkURL, {}, response => {
 
-				const filmaffData = value.response;
-				if (filmaffData !== '') {
-					this.data = this.helpers.parseHTML(filmaffData);
+			const filmaffData = response;
+			console.log(filmaffData);
+			if (filmaffData !== '') {
+				this.data = this.helpers.parseHTML(filmaffData);
 
-					this.loadState = LOAD_STATES['Success'];
+				this.loadState = LOAD_STATES['Success'];
 
-					this.populateSidebar();
-					this.addButtonLink(this.url, 'Affinity');
-				}
-			});
-		} catch {
-			console.error('Letterboxd Extras | Unable to parse FilmAffinity URL');
-			this.loadState = LOAD_STATES['Failure'];
-		}
+				this.addButtonLink(this.linkURL, 'Affinity');
+				this.populateRatingsSidebar();
+			}
+
+		});
+
 	}
 
-	populateSidebar() {
+	populateRatingsSidebar() {
 
 		if (!this._canPopulateRatingsSidebar()) {
 			return;
@@ -102,7 +91,7 @@ export class FilmAffinityHelper extends Helper {
 			class: 'logo-filmaff',
 			style: 'height: 20px; width: 75px; background-image: url("https://www.filmaffinity.com/images/logo4.png");'
 		});
-		logo.setAttribute('href', this.url);
+		logo.setAttribute('href', this.linkURL);
 		heading.append(logo);
 
 		let showDetails = null;
@@ -152,15 +141,17 @@ export class FilmAffinityHelper extends Helper {
 		} else {
 			rating = 'N/A';
 		}
+
+
 		text.setAttribute('data-original-title', tooltip);
-		text.setAttribute('href', this.url);
+		text.setAttribute('href', this.linkURL);
 		text.innerText = rating;
 		span.append(text);
 
 		container.append(span);
 
 		// Add the tooltip as text for mobile
-		this.helpers.createDetailsText('filmaff', section, tooltip, this.isMobile);
+		this._createRatingDetailsText(section, tooltip);
 
 		// APPEND to the sidebar
 		//* ***********************************************************

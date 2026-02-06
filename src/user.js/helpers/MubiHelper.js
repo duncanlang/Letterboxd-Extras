@@ -19,38 +19,21 @@ export class MubiHelper extends Helper {
 	 *
 	 * @param {string} mubiURL - The MUBI url for the current film.
 	 */
-	getData(mubiURL) {
-
-		if (!this._canLoadData()) {
-
-			return;
-
-		}
+	_loadData(mubiURL) {
 
 		const options = this._getMubiHeaders();
 
-		try {
-			this.loadState = LOAD_STATES['Loading'];
-			browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: mubiURL, options: options }, value => {
+		this._apiRequestCallback('Mubi', mubiURL, options, response => {
 
-				if (!this.helpers.ValidateResponse('Mubi', value)) {
-					return;
-				}
+			if (response !== '') {
+				this.data = response;
+				this.loadState = LOAD_STATES['Success'];
+				this.addButtonLink(this.url, 'MUBI');
+				this.populateRatingsSidebar();
+			}
 
-				const mubiData = value.response;
-				if (mubiData !== '') {
-					this.data = mubiData;
-					this.loadState = LOAD_STATES['Success'];
-					this.addMubi();
-					this.addButtonLink(this.url, 'MUBI');
-				}
+		});
 
-			});
-
-		} catch {
-			console.error('Letterboxd Extras | Unable to parse MUBI URL');
-			this.loadState = LOAD_STATES['Failure'];
-		}
 	}
 
 
@@ -120,12 +103,11 @@ export class MubiHelper extends Helper {
 
 					if (index >= 0) {
 						this.data = films[index];
-						console.log(films[index]);
+
 						this.loadState = LOAD_STATES['Success'];
 
-						this.addMubi();
-
 						this.addButtonLink(this.url, 'MUBI');
+						this.populateRatingsSidebar();
 					} else {
 						this.loadState === LOAD_STATES['Failure'];
 					}
@@ -137,10 +119,11 @@ export class MubiHelper extends Helper {
 		}
 	}
 
-	addMubi() {
+	populateRatingsSidebar() {
 
 		// Collect Date from MUBI response
 		//* **************************************************************
+		console.log(this.data);
 		this.rating = this.data.average_rating_out_of_ten;
 		this.ratingAlt = this.data.average_rating;
 		if (this.data.number_of_ratings !== null) {
@@ -157,6 +140,10 @@ export class MubiHelper extends Helper {
 		// Add to Letterboxd
 		//* **************************************************************
 		// Add the section to the page
+		this.helpers.createChartSection(
+			this.selectorPrefix,
+			{}
+		);
 		const section = this.helpers.createElement('section', {
 			class: 'section ratings-histogram-chart mubi-ratings ratings-extras'
 		});
@@ -244,7 +231,7 @@ export class MubiHelper extends Helper {
 		scoreSpan.append(scoreTotal);
 
 		// Add the tooltip as text for mobile
-		this.helpers.createDetailsText('mubi', section, hover, this.isMobile);
+		this._createRatingDetailsText(section, hover);
 
 		// APPEND to the sidebar
 		//* ***********************************************************

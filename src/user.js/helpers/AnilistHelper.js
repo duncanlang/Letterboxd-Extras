@@ -17,7 +17,7 @@ export class AnilistHelper extends Helper {
 		this.ratingsSuffix = ratingsSuffix;
 
 		this.id = null;
-		this.url = null;
+		this.linkURL = null;
 		this.data = null;
 		this.highest = 0;
 		this.num_ratings = 0;
@@ -25,58 +25,43 @@ export class AnilistHelper extends Helper {
 
 	}
 
-	getData(anilistID) {
+	_loadData(id) {
 
-		if (this._canLoadData()) {
-			this.id = anilistID;
+		this.id = id;
 
-			const url = 'https://graphql.anilist.co';
-			const options = this._getHeaders();
+		const url = 'https://graphql.anilist.co';
+		const options = this._getHeaders();
 
-			this.loadState = LOAD_STATES['Loading'];
+		this.loadState = LOAD_STATES['Loading'];
 
-			try {
-				browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: url, options: options }, value => {
-					if (this.helpers.ValidateResponse('AniList API', value) === false) {
-						return;
-					}
+		this._apiRequestCallback('Anilist API', url, options, response => {
 
-					const anilistResponse = value.response;
+			const anilistResponse = response;
 
-					if (!anilistResponse || !anilistResponse.data) {
-						this.loadState = LOAD_STATES['Failure'];
-						if (value.errors !== null) {
-							console.error(`Letterboxd Extras | AniList API Error: ${value.errors[0].message}`);
-						} else {
-							console.error(`Letterboxd Extras | AniList Unknown API Error. Status: ${value.status}`);
-						}
-						return;
-					}
-
-					this.data = anilistResponse.data.Media;
-
-					if (!this.data) {
-						this.loadState = this.LOAD_STATES['Failure'];
-						return;
-					}
-
-					this.url = this.data.siteUrl;
-					this.addButtonLink(this.data.siteUrl, 'AL');
-
-					this.loadState = LOAD_STATES['Success'];
-					this.populateSidebar();
-
-				});
-			} catch {
-				console.error('Letterboxd Extras | Unable to parse AniList URL');
+			if (!anilistResponse || !anilistResponse.data) {
 				this.loadState = LOAD_STATES['Failure'];
+				return;
 			}
-		}
+
+			this.data = anilistResponse.data.Media;
+
+			if (!this.data) {
+				this.loadState = this.LOAD_STATES['Failure'];
+				return;
+			}
+
+			this.loadState = LOAD_STATES['Success'];
+
+			this.url = this.data.siteUrl;
+			this.addButtonLink(this.data.siteUrl, 'AL');
+
+			this.populateRatingsSidebar();
+
+		});
 
 	}
 
-
-	populateSidebar() {
+	populateRatingsSidebar() {
 
 		if (!this._canPopulateRatingsSidebar()) {
 			return;
@@ -144,7 +129,7 @@ export class AnilistHelper extends Helper {
 		let tooltip = '';
 		if (score !== null) {
 			tooltip = score.getAttribute('data-original-title');
-			this.helpers.createDetailsText('anilist', scoreSection, tooltip, this.isMobile);
+			this._createRatingDetailsText(scoreSection, tooltip);
 		}
 
 		// Append to the sidebar

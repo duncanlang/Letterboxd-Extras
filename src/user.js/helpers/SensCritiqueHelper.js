@@ -1,3 +1,4 @@
+import { LOAD_STATES } from '../constants';
 import { Helper } from './Helper';
 
 export class SensCritiqueHelper extends Helper {
@@ -5,7 +6,6 @@ export class SensCritiqueHelper extends Helper {
 	constructor(storage, helpers) {
 
 		super(storage, helpers, 'senscritique');
-
 
 	}
 
@@ -15,17 +15,17 @@ export class SensCritiqueHelper extends Helper {
 		this.sensCritique.state = 1;
 
 		const url = 'https://apollo.senscritique.com/';
-		const options = letterboxd.helpers.getSensIDQuery(this.wikiData.SensCritique_ID);
+		const options = this._getSensIDOptions(sensCritiqueID);
 
 		browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: url, options: options }, value => {
-			if (letterboxd.helpers.ValidateResponse('SensCritique API', value) == false) {
+			if (this.helpers.ValidateResponse('SensCritique API', value) === false) {
 				return;
 			}
 
-			this.sensCritique.state = 2;
-			const sens = value.response;
-			if (sens.data != null) {
-				this.sensCritique.data = sens.data;
+			this.loadState = LOAD_STATES['Success'];
+			const sensCritiqueResponse = value.response;
+			if (sensCritiqueResponse.data !== null) {
+				this.data = sensCritiqueResponse.data;
 				this.addSensCritique();
 			}
 		});
@@ -54,6 +54,7 @@ export class SensCritiqueHelper extends Helper {
 						}
 					}
 				`;
+
 		const options = {
 			method: 'POST',
 			headers: {
@@ -72,4 +73,5 @@ export class SensCritiqueHelper extends Helper {
 
 
 	}
+
 }
