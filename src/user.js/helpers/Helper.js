@@ -102,6 +102,14 @@ export class Helper {
 		 */
 		this.ratingsAdded = false;
 
+		/**
+		 * Description of the data displayed in the sidebar.
+		 *
+		 * @type {string}
+		 * @default false
+		 */
+		this.tooltip = '';
+
 	}
 
 	/**
@@ -159,6 +167,13 @@ export class Helper {
 				if (this.helpers.ValidateResponse(errorHeader, value) === false) {
 					this.loadState = LOAD_STATES['Failure'];
 					return;
+				}
+
+				if (!value.response) {
+
+					this.loadState = LOAD_STATES['Failure'];
+					return;
+
 				}
 
 				dataLoadCallback(value.response);
@@ -354,7 +369,6 @@ export class Helper {
 	/**
 	 * Creates tooltip text below the generated ratings section.
 	 *
-	 * @returns {boolean}
 	 * @protected
 	 */
 	_createRatingDetailsText(section, tooltip) {
@@ -362,7 +376,7 @@ export class Helper {
 			class: `${this.selectorPrefix}-score-details mobile-details-text`
 		});
 
-		if (this.storage.get('tooltip-show-details') != true) {
+		if (this.storage.get('tooltip-show-details') !== true) {
 			detailsSpan.style.display = 'none';
 		}
 
@@ -373,6 +387,90 @@ export class Helper {
 		if (this.isMobile || this.storage.get('tooltip-show-details') === true) {
 			section.append(detailsSpan);
 		}
+	}
+
+
+	/**
+	 * Creates tooltip text below the generated ratings section.
+	 *
+	 * default param of altScore which is when the api passes us
+	 * its own calculated 5-point score
+	 * @returns {string}
+	 * @protected
+	 */
+	_handleAverageScore(score, altScore) {
+
+		let totalScore = '/10';
+
+		if (score !== null && this.storage.get('convert-ratings') === '5') {
+			totalScore = '/5';
+			score = altScore ? altScore : score / 2;
+		}
+
+		let tooltip = 'No score available';
+		const ratingsText = `rating${this.num_ratings > 0 ? 's' : ''}`;
+
+		if (score === null && this.num_ratings === 0) {
+
+			score = 'N/A';
+			return { tooltip, score, totalScore };
+
+		}
+
+		if (this.num_ratings > 0 && this.rating === null) {
+
+			tooltip = `${this.num_ratings} ${ratingsText}`;
+			score = 'N/A';
+			return { tooltip, score, totalScore };
+
+		}
+
+		score = score.toFixed(1);
+		tooltip = `Average of ${score.toLocaleString()}${totalScore} based on ${this.num_ratings.toLocaleString()} ${ratingsText}`;
+
+		return { tooltip, score, totalScore };
+
+	}
+
+	/**
+	 * Helper functions that generates a span containing the film's rating on a 5-point or 10-point scale.
+	 * @param {string} href - The url that the score link will redirect to.
+	 * @returns {HTMLSpanElement}
+	 * @protected
+	 */
+	_generateScoreSpan({ href }) {
+
+		// The span that holds the score
+		const scoreSpan = this.helpers.createElement('span', {
+			class: `${this.selectorPrefix}-score`
+		}, {
+			display: 'inline-block'
+		});
+
+		const { tooltip, score, totalScore } = this._handleAverageScore(this.rating, this.ratingAlt);
+		this.tooltip = tooltip;
+
+		// The element that is the score itself
+		const scoreText = this.helpers.createElement('a', {
+			class: `tooltip tooltip-extra display-rating -highlight ${this.selectorPrefix}-score`
+		});
+
+		if (this.isMobile === true) scoreText.setAttribute('class', `${scoreText.getAttribute('class')} extras-mobile`);
+		scoreText.innerText = score;
+		scoreText.setAttribute('data-original-title', tooltip);
+		scoreText.setAttribute('href', href);
+
+		scoreSpan.append(scoreText);
+
+		// Create score denominator
+		const scoreTotal = this.helpers.createElement('p', {
+			style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
+		});
+		scoreTotal.innerText = totalScore;
+		scoreSpan.append(scoreTotal);
+
+		return scoreSpan;
+
 	}
 
 }

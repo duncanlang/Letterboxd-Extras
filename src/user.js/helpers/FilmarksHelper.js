@@ -94,7 +94,7 @@ export class FilmarksHelper extends Helper {
 
 		// APPEND to the sidebar
 		//* ***********************************************************
-		this.appendSidebarRating(section, 'filmarks-ratings');
+		this.appendSidebarRating(section);
 
 		// Add the hover events
 		//* ****************************************************************

@@ -170,8 +170,7 @@ export class MubiHelper extends Helper {
 		// Score
 		//* **************************************************************
 		// Create a span that holds the entire
-		const mubiSpan = this.helpers.createElement('span', {
-		}, {
+		const mubiSpan = this.helpers.createElement('span', {}, {
 			display: 'block',
 			'margin-bottom': '10px',
 			'margin-top': '5px'
@@ -181,61 +180,16 @@ export class MubiHelper extends Helper {
 		// Add the star SVG (taken from MUBI)
 		mubiSpan.innerHTML = MUBI_STAR_SVG;
 
-		// The span that holds the score
-		const scoreSpan = this.helpers.createElement('span', {
-			class: 'mubi-score'
-		}, {
-			display: 'inline-block'
-		});
-		mubiSpan.append(scoreSpan);
-
-		// The element that is the score itself
-		const scoreText = this.helpers.createElement('a', {
-			class: 'tooltip tooltip-extra display-rating -highlight mubi-score'
-		});
-		scoreSpan.append(scoreText);
-
-		// Score and hover
-		let score = this.rating;
-		let totalScore = '/10';
-
-		if (this.storage.get('convert-ratings') === '5') {
-			totalScore = '/5';
-			score = this.ratingAlt;
-		}
-
-		let hover = `Average of ${score.toFixed(1)}${totalScore} based on ${this.num_ratings.toLocaleString()} rating`;
-		if (this.num_ratings !== 1) { hover += 's'; }
-
-		// If no ratings, display as N/A and change hover
-		if (score === null && this.num_ratings === 0) {
-			score = 'N/A';
-			hover = 'No score available';
-		} else if (this.num_ratings === 0) {
-			score = 'N/A';
-			hover = `${this.num_ratings.toLocaleString()} rating`;
-			if (this.num_ratings !== 1) { hover += 's'; }
-		} else {
-			score = score.toFixed(1);
-		}
-
-		scoreText.innerText = score;
-		scoreText.setAttribute('data-original-title', hover);
-		scoreText.setAttribute('href', `${this.url}/ratings`);
-
-		// Add the element /10 or /5 depending on score
-		const scoreTotal = this.helpers.createElement('p', {
-			style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
-		});
-		scoreTotal.innerText = totalScore;
-		scoreSpan.append(scoreTotal);
+		mubiSpan.append(this._generateScoreSpan({
+			href: `${this.url}/ratings`
+		}));
 
 		// Add the tooltip as text for mobile
-		this._createRatingDetailsText(section, hover);
+		this._createRatingDetailsText(section, this.tooltip);
 
 		// APPEND to the sidebar
 		//* ***********************************************************
-		this.appendSidebarRating(section, 'mubi-ratings');
+		this.appendSidebarRating(section);
 
 		// Add Hover events
 		//* ***********************************************************
