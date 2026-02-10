@@ -7,7 +7,9 @@ import { FilmAffinityHelper } from './helpers/FilmAffinityHelper';
 import { LetterboxdPerson } from './letterboxd-person';
 import { LetterboxdGeneral } from './letterboxd-general';
 import { KinopoiskHelper } from './helpers/KinopoiskHelper';
-//import { MyAnimeListHelper } from './helpers/MyAnimeListHelper';
+import { SimklHelper } from './helpers/SimklHelper';
+import { MyAnimeListHelper } from './helpers/MyAnimeListHelper';
+import { DoubanHelper } from './helpers/DoubanHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -79,7 +81,7 @@ GM_addStyle(`
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban {
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -136,7 +138,7 @@ GM_addStyle(`
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover, .logo-douban:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -423,7 +425,7 @@ GM_addStyle(`
 		.extras-table td{
 			padding-bottom: 10px;
 		}
-		.mubi-score, .simkl-score, .kinopoisk-score {
+		.mubi-score, .simkl-score, .kinopoisk-score, .douban-score {
 			color: #FFF;
 			font-size: 18px;
 		}
@@ -556,6 +558,15 @@ GM_addStyle(`
 		.kinopoisk-score {
 			color: #bbbbbb !important;
 		}
+		.logo-douban {
+			width: auto;
+		}
+		.text-douban {
+			color: #01B636;
+			font-weight: bold;
+			font-size: 14px;
+			vertical-align: super;
+		}
 
 		.extras-lost-film{
 			display: none !important;
@@ -672,9 +683,8 @@ const letterboxd = {
 		// Date
 		filmDate: { date: null, precision: null },
 
-		// MAL
-		mal: { state: 0, id: null, url: null, data: null, statistics: null, highest: 0 },
-
+		// MAL - state replaced by MyAnimeListHelper
+		// mal: { state: 0, id: null, url: null, data: null, statistics: null, highest: 0 },
 		myAnimeListHelper: null,
 
 		// Anilist Helper
@@ -697,11 +707,9 @@ const letterboxd = {
 		allocineHelper: null,
 
 		// Douban
-		douban: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 		doubanHelper: null,
 
 		// SIMKL
-		simkl: { state: 0, data: null, url: null, rating: null, num_ratings: 0 },
 		simklHelper: null,
 
 		// Does the Dog Die (ddd)
@@ -1299,12 +1307,14 @@ const letterboxd = {
 									// Get the Douban ID to use for later
 									if (this.wiki != null && this.wiki.Douban_ID != null && this.wiki.Douban_ID.value != null) {
 										this.wikiData.Douban_ID = this.wiki.Douban_ID.value;
+										if (letterboxd.storage.get('douban-enabled') === true) {
+											this.doubanHelper.getData(this.wiki.Douban_ID.value);
+										}
 									}
 
 									// Get and add FilmAffinity
 									if (letterboxd.storage.get('filmaff-enabled') === true) {
 										if (this.wiki != null && this.wiki.FilmAffinity_ID != null && this.wiki.FilmAffinity_ID.value != null) {
-											console.log(this.wiki.FilmAffinity_ID)
 											this.filmAffinityHelper.getData(this.wiki.FilmAffinity_ID.value);
 										}
 									}
@@ -1312,54 +1322,7 @@ const letterboxd = {
 									// Get MAL data
 									if (this.wiki != null && this.wiki.MAL_ID != null && this.wiki.MAL_ID.value != null && letterboxd.storage.get('mal-enabled') === true) {
 										this.wikiData.MAL_ID = this.wiki.MAL_ID.value;
-										this.mal.id = this.wiki.MAL_ID.value;
-										
-
-										var url = 'https://api.jikan.moe/v4/anime/' + this.mal.id;
-										this.mal.url = url;
-
-										if (this.mal.data == null && this.mal.state < 1) {
-											try {
-												this.mal.state = 1;
-												browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
-													if (letterboxd.helpers.ValidateResponse("Jikan (MAL API)", value) == false){
-														return;
-													}
-
-													var mal = value.response;
-													if (mal != "") {
-														this.mal.data = JSON.parse(mal);
-
-														if (this.mal.data.data != null) {
-															this.mal.data = this.mal.data.data;
-															this.mal.url = this.mal.data.url;
-														} else {
-															this.mal.state = 3;
-														}
-													}
-												});
-
-												browser.runtime.sendMessage({ name: "GETDATA", url: url + "/statistics" }, (value) => {
-													if (letterboxd.helpers.ValidateResponse("Jikan (MAL API) ratings", value) == false){
-														return;
-													}
-														
-													var mal = value.response;
-													if (mal != "") {
-														this.mal.statistics = JSON.parse(mal);
-
-														if (this.mal.statistics.data != null) {
-															this.mal.statistics = this.mal.statistics.data;
-														} else {
-															this.mal.state = 3;
-														}
-													}
-												});
-											} catch {
-												console.error("Letterboxd Extras | Unable to parse MAL URL");
-												this.mal.state = 3;
-											}
-										}
+										this.myAnimeListHelper.getData(this.wiki.MAL_ID.value);
 									}
 
 								// Get AniList data
@@ -1602,16 +1565,12 @@ const letterboxd = {
 				}
 
 				// Add SIMKL
-				if (letterboxd.storage.get('simkl-enabled') === true && this.simkl.state < 3 && (this.imdbID != "" || this.tmdbID != "")) {
-					if (this.simkl.state == 0) {
-						// Make call
-						this.initSIMKL();
-					}
-					if (this.simkl.state == 2 && this.simkl.data != null) {
-						// Add to page
-						this.addSIMKL();
-						this.addLink(this.simkl.url);
-					}
+				if (letterboxd.storage.get('simkl-enabled') === true && (this.imdbID != "" || this.tmdbID != "")) {
+					this.simklHelper.getData({
+						imdbID: this.imdbID,
+						tmdbID: this.tmdbID,
+						tmdbTV: this.tmdbTV
+					})
 				}
 
 				// Add Allocine
@@ -1636,7 +1595,6 @@ const letterboxd = {
 					
 				// Add Filmarks
 				if (this.filmarks.state == 0 && this.wikiData.state == 2 && letterboxd.storage.get('filmarks-enabled') === true ){
-					console.log('test filmarks')
 					if (this.filmarks.id != null && this.filmarks.id != ''){
 						this.getFilmarks();
 					}
@@ -2523,18 +2481,12 @@ const letterboxd = {
 				} else if (url.includes("wikipedia")) {
 					text = "WIKI";
 					className = "wiki-button";
-				} else if (url.includes("simkl")) {
-					text = "SIMKL";
-					className = "simkl-button";
 				} else if (url.includes("allocine")) {
 					text = "ALLO";
 					className = "allo-button";
 				} else if (url.includes("filmarks")) {
 					text = "FILMARKS";
 					className = "filmarks-button";
-				} else if (url.includes("kinopoisk")) {
-					text = "KINOPOISK";
-					className = "kinopoisk-button";
 				} else if (url.includes("doesthedogdie")) {
 					text = "DOG";
 					className = "ddd-button";
@@ -3092,6 +3044,7 @@ const letterboxd = {
 			}
 		},
 
+		/* addMAL() - Replaced by MyAnimeListHelper
 		addMAL() {
 			if (document.querySelector('.mal-ratings')) return;
 
@@ -3110,7 +3063,7 @@ const letterboxd = {
 			if (this.mal.scored_by == 0)
 				return;
 
-			// Create and Add				
+			// Create and Add
 			// Add the section to the page
 			const scoreSection = letterboxd.helpers.createChartSection("mal", {
 				href: this.mal.data.url + '/stats',
@@ -3131,21 +3084,21 @@ const letterboxd = {
 			}
 
 			scoreSection.append(letterboxd.helpers.createHistogramScore(
-				letterboxd.storage, 
-				"mal", 
-				this.mal.score, 
-				this.mal.scored_by, 
-				this.mal.data.url + '/reviews', 
+				letterboxd.storage,
+				"mal",
+				this.mal.score,
+				this.mal.scored_by,
+				this.mal.data.url + '/reviews',
 				this.isMobile
 			));
 
 			scoreSection.append(letterboxd.helpers.createHistogramGraph(
-				letterboxd.storage, 
-				"mal", 
-				"", 
-				this.mal.scored_by, 
-				this.mal.statistics.scores, 
-				this.mal.statistics.scores, 
+				letterboxd.storage,
+				"mal",
+				"",
+				this.mal.scored_by,
+				this.mal.statistics.scores,
+				this.mal.statistics.scores,
 				this.mal.highest
 			));
 
@@ -3165,6 +3118,7 @@ const letterboxd = {
 			//*****************************************************************
 			letterboxd.helpers.addTooltipEvents(scoreSection);
 		},
+		*/
 
 		searchSensCritique() {
 			this.sensCritique.state = 1;
@@ -3927,174 +3881,6 @@ const letterboxd = {
 			extrasStats.append(ranking);
 		},
 
-		initSIMKL() {
-			// Call the SIMKL API
-			this.simkl.state = 1;
-
-			// Configure URL
-			// The current API requires a client_id? I don't believe it did before
-			// Annoying because this does have a daily limit and now this client id is available online, but you can't have the secret!
-			var url = "https://api.simkl.com/ratings?client_id=05e838d7230a966313e654449100038628f7a89b840e3fcfaf4d4da94999213a";
-			if (this.imdbID != "") {
-				url += "&imdb=" + this.imdbID;
-			}
-			if (this.tmdbID != "" && this.tmdbID != "0") {
-				url += "&tmdb=" + this.tmdbID;
-			}
-			if (this.tmdbTV) {
-				url += "&type=show";
-			}
-			var regex = new RegExp("letterboxd.com\\/film\\/(.+)\\/");
-			var letterboxdUrl = window.location.href;
-			if (letterboxdUrl.match(regex)) {
-				letterboxdUrl = letterboxdUrl.match(regex)[1];
-				url += "&letterboxd=" + letterboxdUrl;
-			}
-			url += "&fields=rank,simkl";
-
-			// Make Call
-			browser.runtime.sendMessage({ name: "GETDATA", url: url, type: "JSON" }, (value) => {
-				if (letterboxd.helpers.ValidateResponse("Simkl", value) == false){
-					return;
-				}
-
-				this.simkl.data = value.response;
-
-				if (this.simkl.data == null || this.simkl.data == 'null'){
-					this.simkl.state = 3;
-					console.error("Letterboxd Extras | Simkl API error: null response");
-
-				} else if (this.simkl.data.error != null) {
-					this.simkl.state = 3;
-					console.error("Letterboxd Extras | Simkl API error: " + this.simkl.data.code + " " + this.simkl.data.message);
-
-				} else {
-					this.simkl.state = 2;
-				}
-			});
-		},
-
-		addSIMKL() {
-			if (document.querySelector('.simkl-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			this.simkl.state = 3;
-
-			// Collect Date from the SIMKL API
-			//***************************************************************
-			if (this.simkl.data != null) {
-				if (this.simkl.data.simkl != null && this.simkl.data.simkl.rating != null) {
-					this.simkl.rating = this.simkl.data.simkl.rating;
-				}
-				if (this.simkl.data.simkl != null && this.simkl.data.simkl.votes != null) {
-					this.simkl.num_ratings = this.simkl.data.simkl.votes;
-				}
-				if (this.simkl.data.link != null) {
-					this.simkl.url = this.simkl.data.link;
-				}
-			}
-
-			// Do not display if there is no score or ratings
-			if (this.simkl.rating == null && this.simkl.num_ratings == 0) return;
-
-			// Add to Letterboxd
-			//***************************************************************
-			// Add the section to the page
-			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart simkl-ratings ratings-extras'
-			});
-
-			// Add the Header
-			const heading = letterboxd.helpers.createElement('h2', {
-				class: 'section-heading section-heading-extras',
-				style: 'height: 13px;'
-			});
-			section.append(heading);
-
-			const logoHolder = letterboxd.helpers.createElement('a', {
-				class: "logo-simkl",
-				href: this.simkl.url,
-				style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/simkl-logo.png") + '");'
-			});
-			heading.append(logoHolder);
-
-			if (this.isMobile) {
-				// Add the Show Details button			
-				const showDetails = letterboxd.helpers.createShowDetailsButton("simkl", "simkl-score-details");
-				section.append(showDetails);
-			}
-
-			// Score
-			//***************************************************************
-			const container = letterboxd.helpers.createElement('span', {}, {
-				['display']: 'block',
-				['margin-bottom']: '10px'
-			});
-			section.append(container);
-
-			// Setup Score and Tooltip
-			var score = this.simkl.rating;
-			var totalScore = "/10";
-			if (letterboxd.storage.get('convert-ratings') === "5") {
-				totalScore = "/5";
-				score = (score / 2);
-			}
-			score = score.toFixed(1).toLocaleString();
-			var num_ratings = this.simkl.num_ratings.toLocaleString();
-
-			// Add the hoverover text and href
-			var tooltip = 'No score available';
-			if (this.simkl.num_ratings > 0 && this.simkl.rating == null) {
-				tooltip = num_ratings + ' rating';
-				if (this.simkl.num_ratings > 1) tooltip += "s";
-				score = "N/A";
-
-			} else if (this.simkl.num_ratings > 0) {
-				tooltip = "Average of " + score.toLocaleString() + totalScore + " based on " + num_ratings + ' ratings';
-			} else {
-				score = "N/A";
-			}
-
-			// The span that holds the score
-			const span = letterboxd.helpers.createElement('a', {
-				class: "simkl-box tooltip tooltip-extra",
-				['href']: this.simkl.url,
-				['data-original-title']: tooltip
-			}, {
-				['display']: 'inline-block',
-				['width']: 'auto'
-			});
-
-			// The element that is the score itself
-			const text = letterboxd.helpers.createElement('span', {
-				class: 'display-rating -highlight simkl-score'
-			});
-			if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
-			text.innerText = score;
-			span.append(text);
-
-			// Add the element /10 or /5 depending on score
-			const scoreTotal = letterboxd.helpers.createElement('p', {
-				style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
-			});
-			scoreTotal.innerText = totalScore;
-			span.append(scoreTotal);
-
-			container.append(span);
-
-			// Add the tooltip as text for mobile
-			letterboxd.helpers.createDetailsText('simkl', section, tooltip, this.isMobile);
-
-			// APPEND to the sidebar
-			//************************************************************
-			this.appendRating(section, 'simkl-ratings');
-
-			// Add the hover events
-			//*****************************************************************
-			letterboxd.helpers.addTooltipEvents(section);
-		},
-
 		initAllocine(id, type) {
 			// Call the Allocine page
 			this.allocine.state = 1;
@@ -4515,7 +4301,6 @@ const letterboxd = {
 			// Make Calls
 			browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
 				if (letterboxd.helpers.ValidateResponse("Filmarks", value) == false){
-					console.log('invlaid filmarks')
 					return;
 				}
 
@@ -4538,7 +4323,7 @@ const letterboxd = {
 		searchFilmarks() {
 			this.filmarks.state = 1;
 
-			var isAnime = (this.mal.id != null || this.anilistHelper.id != null);
+			var isAnime = (this.myAnimeListHelper.id != null || this.anilistHelper.id != null);
 			var apiURL = "https://markuapi.apn.leapcell.app/search/";
 			if (this.tmdbTV && isAnime){
 				apiURL += "animes?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
@@ -4817,39 +4602,6 @@ const letterboxd = {
 			showDetails.addEventListener('click', event => { toggleDetails(event, letterboxd); });
 
 			return showDetails;
-		},
-
-		getMubiHeaders() {
-			var headers = {
-				method: 'GET',
-				headers: {
-					'content-type': 'application/json',
-					accept: 'application/json',
-					'client_country': 'US',
-					'client': 'web'
-				}
-			}
-			return headers;
-		},
-
-		getAniListQuery() {
-			var query = `
-					query ($id: Int!) {
-						Media(id: $id, type: ANIME) {
-							averageScore
-							meanScore
-							popularity
-							stats {
-								scoreDistribution {
-								score
-								amount
-								}
-							}
-							siteUrl
-							}
-					}
-				`;
-			return query;
 		},
 
 		getSensFilmQuery() {
@@ -5547,7 +5299,7 @@ const letterboxd = {
 				ul.append(il);
 
 				// Determine vote counts and percentages
-				if (type == "mal") {
+				if (type === "mal") {
 					var voteCount = votes[ii].votes;
 					var percentage = votes[ii].percentage;
 				} else if (type === "anilist") {
@@ -5838,6 +5590,12 @@ const letterboxd = {
 
 			const logoHolder = this.createChartSectionLogoHolder(sectionID, logoProps);
 			heading.append(logoHolder);
+
+			if (this.isMobile) {
+				// Add the Show Details button
+				const showDetails = this._createShowDetailsButton();
+				chartSection.append(showDetails);
+			}
 
 			return chartSection;
 
@@ -6637,7 +6395,9 @@ const moduleConfigs = [
 	{ class: MubiHelper, target: letterboxd.overview, property: 'mubiHelper', args: [] },
 	{ class: FilmAffinityHelper, target: letterboxd.overview, property: 'filmAffinityHelper', args: [] },
 	{ class: KinopoiskHelper, target: letterboxd.overview, property: 'kinopoiskHelper', args: [] },
-	//{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [] }
+	{ class: DoubanHelper, target: letterboxd.overview, property: 'doubanHelper', args: [] },
+	{ class: SimklHelper, target: letterboxd.overview, property: 'simklHelper', args: []},
+	{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [letterboxd.overview.ratingsSuffix] }
 ];
 
 moduleConfigs.forEach(config => {

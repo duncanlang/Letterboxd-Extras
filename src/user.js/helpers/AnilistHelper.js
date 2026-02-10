@@ -90,8 +90,8 @@ export class AnilistHelper extends Helper {
 
 		// Create and Add
 		// Add the section to the page
-		const scoreSection = this.helpers.createChartSectionElement('anilist');
-		const heading = this.helpers.createChartSectionHeader();
+		const scoreSection = this._createChartSectionElement();
+		const heading = this._createChartSectionHeader();
 		scoreSection.append(heading);
 
 		const logoHolder = this.helpers.createElement('a', {
@@ -114,11 +114,8 @@ export class AnilistHelper extends Helper {
 		logoText.innerText = 'AniList';
 		logoHolder.append(logoText);
 
-		let showDetails = null;
 		if (this.isMobile) {
-			// Add the Show Details button
-			showDetails = this.helpers.createShowDetailsButton('anilist', 'anilist-score-details');
-			scoreSection.append(showDetails);
+			scoreSection.append(this._createShowDetailsButton());
 		}
 
 		scoreSection.append(this.helpers.createHistogramScore(this.storage, 'anilist', this.score, this.num_ratings, `${this.data.siteUrl}/reviews`, this.isMobile));

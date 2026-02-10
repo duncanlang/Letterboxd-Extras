@@ -158,6 +158,7 @@ async function InitDefaultSettings() {
     if (options['meta-default-view'] == null) options['meta-default-view'] = "hide";
     if (options['senscritique-enabled'] == null) options['senscritique-enabled'] = false;
     if (options['mubi-enabled'] == null) options['mubi-enabled'] = false;
+    if (options['douban-enabled'] == null) options['douban-enabled'] = false;
     if (options['filmaff-enabled'] == null) options['filmaff-enabled'] = false;
     if (options['simkl-enabled'] == null) options['simkl-enabled'] = false;
     if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;

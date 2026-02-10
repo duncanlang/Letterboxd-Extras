@@ -21,66 +21,38 @@ export class MyAnimeListHelper extends Helper {
 
 	_loadData(id) {
 
-		this.id = myAnimeListID;
+		const apiHeader = 'Jikan (MAL API)';
 
-		const url = `https://api.jikan.moe/v4/anime/${myAnimeListID}`;
-		this.url = url;
+		const url = `https://api.jikan.moe/v4/anime/${id}`;
+		this._apiRequestCallback(apiHeader, url, {}, response => {
 
-		try {
-			this.loadState = LOAD_STATES['Loading'];
-			browser.runtime.sendMessage({ name: 'GETDATA', url: url }, value => {
-				if (this.ValidateResponse('Jikan (MAL API)', value) === false) {
-					return;
-				}
+			if (!response.data) {
+				this.loadState = LOAD_STATES['Failure'];
+				return;
+			}
 
-				const malResponse = value.response;
+			this.data = response.data;
+			console.log(this.data);
+			this.linkURL = this.data.url;
 
-				if (malResponse === '') {
+			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, {}, response => {
+
+				if (!response.data) {
+
 					this.loadState = LOAD_STATES['Failure'];
 					return;
+
 				}
 
-				const tempJSON = JSON.parse(malResponse);
+				this.statistics = response.data;
+				this.loadState = LOAD_STATES['Success'];
 
-				if (!tempJSON.data) {
-					this.loadState = LOAD_STATES['Failure'];
-					return;
-				}
-
-				this.data = tempJSON.data;
-				this.url = tempJSON.url;
+				this.addButtonLink(this.linkURL, 'MAL');
+				this.populateRatingsSidebar();
 
 			});
 
-			browser.runtime.sendMessage({ name: 'GETDATA', url: `${url}/statistics` }, value => {
-				if (this.helpers.ValidateResponse('Jikan (MAL API) ratings', value) === false) {
-					return;
-				}
-
-				const malResponse = value.response;
-				if (malResponse === '') {
-					this.loadState = LOAD_STATES['Failure'];
-					return;
-				}
-
-				const tempJSON = JSON.parse(malResponse);
-				if (!tempJSON.data) {
-					this.loadState = LOAD_STATES['Failure'];
-					return;
-				}
-
-				this.statistics = tempJSON.data;
-
-			});
-
-			this.loadState = LOAD_STATES['Success'];
-			this.addButtonLink(this.url, 'MAL');
-			this.populateRatingsSidebar();
-
-		} catch {
-			console.error('Letterboxd Extras | Unable to parse MAL URL');
-			this.loadState = LOAD_STATES['Failure'];
-		}
+		});
 	}
 
 
@@ -90,41 +62,36 @@ export class MyAnimeListHelper extends Helper {
 			return;
 		}
 
-		// Init
-		this.score = 'N/A';
-		this.scored_by = 0;
-
-		if (this.data.score !== null) { this.score = this.data.score; }
-		if (this.data.scored_by !== null) { this.scored_by = this.data.scored_by; }
+		if (this.data.score !== null) {
+			this.rating = this.data.score;
+		}
+		if (this.data.scored_by !== null) {
+			this.num_ratings = this.data.scored_by;
+		}
 
 		// Return if there are no ratings
-		if (this.scored_by === 0) { return; }
+		if (this.num_ratings === 0) { return; }
 
 		// Create and Add
 		// Add the section to the page
-		const scoreSection = this.helpers.createChartSection('mal', {
-			href: `${this.mal.data.url}/stats`,
+		const scoreSection = this._createChartSection({
+			href: `${this.data.url}/stats`,
 			style: `position: absolute; background-image: url("${browser.runtime.getURL('images/mal-logo.png')}");`
 		});
 
-		let showDetails = null;
-		if (this.isMobile) {
-			// Add the Show Details button
-			showDetails = this.helpers.createShowDetailsButton('mal', 'mal-score-details');
-			scoreSection.append(showDetails);
-		}
-
 		// Loop first and determine highest votes
 		for (let ii = 0; ii < 10; ii++) {
-			if (this.statistics.scores[ii].votes > this.mal.highest) { this.highest = this.statistics.scores[ii].votes; }
+			if (this.statistics.scores[ii].votes > this.highest) {
+				this.highest = this.statistics.scores[ii].votes;
+			}
 		}
 
 		scoreSection.append(this.helpers.createHistogramScore(
 			this.storage,
 			'mal',
-			this.score,
-			this.scored_by,
-			`${this.mal.data.url}/reviews`,
+			this.rating,
+			this.num_ratings,
+			`${this.data.url}/reviews`,
 			this.isMobile
 		));
 
@@ -132,7 +99,7 @@ export class MyAnimeListHelper extends Helper {
 			this.storage,
 			'mal',
 			'',
-			this.scored_by,
+			this.num_ratings,
 			this.statistics.scores,
 			this.statistics.scores,
 			this.highest
@@ -143,7 +110,7 @@ export class MyAnimeListHelper extends Helper {
 		let tooltip = '';
 		if (score !== null) {
 			tooltip = score.getAttribute('data-original-title');
-			this._createRatingDetailsText('mal', scoreSection, tooltip, this.isMobile);
+			this._createRatingDetailsText(scoreSection, tooltip);
 		}
 
 		// Append to the sidebar

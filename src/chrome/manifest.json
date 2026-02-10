@@ -54,7 +54,8 @@
 		"https://www.google.com/search*",
 		"https://www.doesthedogdie.com/*",
 		"https://markuapi.apn.leapcell.app/*",
-		"https://kinopoiskapiunofficial.tech/api/*"
+		"https://kinopoiskapiunofficial.tech/api/*",
+		"https://api.douban.com/*"
 	],
 
 	"background": {

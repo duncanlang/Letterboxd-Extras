@@ -54,7 +54,14 @@ function HideTwipsy(event) {
 	}
 }
 
-function toggleDetails(event, letterboxd) {
+/**
+ * Toggles the visibility of rating detail sections and updates the button text.
+ *
+ * @param {Event} event - The click event from the show/hide details button
+ * @param {Object} letterboxdStorage - The storage object used to persist detail visibility state
+ * @param {boolean} isMobile - Whether the page is being viewed in its mobile configuration
+ */
+function toggleDetails(event, letterboxdStorage, isMobile) {
 	// Get the target class stored in the 'target' attribute of the clicked button
 	const target = `.${event.target.getAttribute('target')}`;
 	const elements = document.querySelectorAll(target);
@@ -68,7 +75,7 @@ function toggleDetails(event, letterboxd) {
 	});
 
 	// Move the Rotten Tomatoes tooltip text depending on the details visibility
-	if (event.target.className.includes('rt-show-details') && !letterboxd.overview.isMobile) {
+	if (event.target.className.includes('rt-show-details') && !isMobile) {
 		const tomatoDiv = document.querySelector('.tomato-ratings.ratings-extras');
 
 		const criticAllText = document.querySelector('.mobile-details-text.score-critic-all');
@@ -135,10 +142,10 @@ function toggleDetails(event, letterboxd) {
 
 	if (event.target.innerText.includes('SHOW')) {
 		event.target.innerText = 'HIDE DETAILS';
-		letterboxd.storage.set(target.replace('.', ''), 'show');
+		letterboxdStorage.set(target.replace('.', ''), 'show');
 	} else {
 		event.target.innerText = 'SHOW DETAILS';
-		letterboxd.storage.set(target.replace('.', ''), 'hide');
+		letterboxdStorage.set(target.replace('.', ''), 'hide');
 	}
 }
 

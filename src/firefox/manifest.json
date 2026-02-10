@@ -60,7 +60,7 @@
 		"https://www.doesthedogdie.com/*",
 		"https://markuapi.apn.leapcell.app/*",
 		"https://kinopoiskapiunofficial.tech/api/*",
-		"tabs"
+		"https://api.douban.com/*"
 	],
 
 	"content_scripts": [

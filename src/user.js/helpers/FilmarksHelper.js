@@ -45,34 +45,15 @@ export class FilmarksHelper extends Helper {
 	populateRatingsSidebar() {
 
 		// Do not display if there is no score or ratings
-		if (this.filmarks.rating == null && this.filmarks.num_ratings == 0) return;
+		if (this.rating === null && this.num_ratings === 0) return;
 
 		// Add to Letterboxd
 		//* **************************************************************
 		// Add the section to the page
-		const section = this.helpers.createElement('section', {
-			class: 'section ratings-histogram-chart filmarks-ratings ratings-extras'
-		});
-
-		// Add the Header
-		const heading = this.helpers.createElement('h2', {
-			class: 'section-heading section-heading-extras',
-			style: 'height: 20px !important;'
-		});
-		section.append(heading);
-
-		const logoHolder = this.helpers.createElement('a', {
-			class: 'logo-filmarks',
-			href: this.filmarks.url,
+		const section = this._createChartSection({
+			href: this.url,
 			style: `position: absolute; background-image: url("${browser.runtime.getURL('images/filmarks-logo.svg')}");`
-		});
-		heading.append(logoHolder);
-
-		if (this.isMobile) {
-			// Add the Show Details button
-			const showDetails = this.helpers.createShowDetailsButton('filmarks', 'filmarks-score-details');
-			section.append(showDetails);
-		}
+		}, 'height: 20px !important;');
 
 		// Score
 		//* **************************************************************

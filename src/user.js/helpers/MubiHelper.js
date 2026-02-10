@@ -123,7 +123,6 @@ export class MubiHelper extends Helper {
 
 		// Collect Date from MUBI response
 		//* **************************************************************
-		console.log(this.data);
 		this.rating = this.data.average_rating_out_of_ten;
 		this.ratingAlt = this.data.average_rating;
 		if (this.data.number_of_ratings !== null) {
@@ -140,32 +139,12 @@ export class MubiHelper extends Helper {
 		// Add to Letterboxd
 		//* **************************************************************
 		// Add the section to the page
-		this.helpers.createChartSection(
-			this.selectorPrefix,
-			{}
+		const section = this._createChartSection(
+			{
+				innerHTML: MUBI_LOGO_SVG,
+				href: this.url
+			}
 		);
-		const section = this.helpers.createElement('section', {
-			class: 'section ratings-histogram-chart mubi-ratings ratings-extras'
-		});
-
-		// Add the Header
-		const heading = this.helpers.createElement('h2', {
-			class: 'section-heading section-heading-extras'
-		});
-		section.append(heading);
-
-		const logo = this.helpers.createElement('a', {
-			class: 'logo-mubi'
-		});
-		logo.innerHTML = MUBI_LOGO_SVG;
-		logo.setAttribute('href', this.url);
-		heading.append(logo);
-
-		let showDetails = null;
-		if (this.isMobile) {
-			showDetails = this.helpers.createShowDetailsButton('mubi', 'mubi-score-details');
-			section.append(showDetails);
-		}
 
 		// Score
 		//* **************************************************************

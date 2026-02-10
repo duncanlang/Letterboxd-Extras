@@ -8,6 +8,7 @@ const buttonLinkOrder = [
 	'.filmaff-button',
 	'.simkl-button',
 	'.kinopoisk-button',
+	'.douban-button',
 	'.allo-button',
 	'.mal-button',
 	'.anilist-button',
@@ -41,7 +42,7 @@ export class Helper {
 		 *
 		 * @type {?'load' | 'render' | 'complete'}
 		 */
-		this.buildStage = null;
+		/* this.buildStage = null; */
 
 		/**
 		 * A flag indicating what our current data loading progress during an API call to an external data source.
@@ -106,7 +107,7 @@ export class Helper {
 		 * Description of the data displayed in the sidebar.
 		 *
 		 * @type {string}
-		 * @default false
+		 * @default ''
 		 */
 		this.tooltip = '';
 
@@ -218,6 +219,7 @@ export class Helper {
 			'.filmaff-ratings',
 			'.simkl-ratings',
 			'.kinopoisk-ratings',
+			'.douban-ratings',
 			'.anidb-ratings',
 			'.filmarks-ratings',
 			'.cinemascore'
@@ -282,7 +284,7 @@ export class Helper {
 	 * Adds a link to an external reference source on a film's overview page.
 	 *
 	 * @param {string} url - The url the button will redirect the user to .
-	 * @param {text} string - The text to be displayed on the button.
+	 * @param {string} text - The text to be displayed on the button.
 	 */
 	addButtonLink(url, text) {
 
@@ -369,6 +371,8 @@ export class Helper {
 	/**
 	 * Creates tooltip text below the generated ratings section.
 	 *
+	 * @param {HTMLElement} section - The sidebar section element to append the details text to
+	 * @param {string} tooltip - The tooltip text to display
 	 * @protected
 	 */
 	_createRatingDetailsText(section, tooltip) {
@@ -391,11 +395,11 @@ export class Helper {
 
 
 	/**
-	 * Creates tooltip text below the generated ratings section.
+	 * Calculates the display score, tooltip text, and score denominator for a rating.
 	 *
-	 * default param of altScore which is when the api passes us
-	 * its own calculated 5-point score
-	 * @returns {string}
+	 * @param {number | null} score - The rating score on a 10-point scale
+	 * @param {number | null} [altScore] - An optional pre-calculated 5-point score from the API
+	 * @returns {{ tooltip: string, score: string | number, totalScore: string }}
 	 * @protected
 	 */
 	_handleAverageScore(score, altScore) {
@@ -433,8 +437,10 @@ export class Helper {
 	}
 
 	/**
-	 * Helper functions that generates a span containing the film's rating on a 5-point or 10-point scale.
-	 * @param {string} href - The url that the score link will redirect to.
+	 * Generates a span containing the film's rating on a 5-point or 10-point scale.
+	 *
+	 * @param {Object} options
+	 * @param {string} options.href - The URL that the score link will redirect to
 	 * @returns {HTMLSpanElement}
 	 * @protected
 	 */
@@ -470,6 +476,120 @@ export class Helper {
 		scoreSpan.append(scoreTotal);
 
 		return scoreSpan;
+
+	}
+
+	/**
+	 * Creates a section element that will be used on the Letterboxd sidebar.
+	 * @returns {HTMLSectionElement}
+	 * @protected
+	 */
+	_createChartSectionElement() {
+
+		return this.helpers.createElement('section', {
+			class: `section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras extras-chart`
+		});
+
+	}
+
+	/**
+	 * Creates a header for a Letterboxd sidebar section.
+	 *
+	 * @param {Object} [headerStyle] - Optional style properties for the header element
+	 * @param {string} [headerStyle.style] - CSS style string to apply to the heading
+	 * @returns {HTMLHeadingElement}
+	 * @protected
+	 */
+	_createChartSectionHeader(headerStyle) {
+
+		const headerProps = {
+			class: 'section-heading section-heading-extras',
+			...(headerStyle ? { style: headerStyle } : {})
+		};
+
+		const heading = this.helpers.createElement('h2', headerProps);
+		return heading;
+
+	}
+
+	/**
+	 * Creates a holder for the data source's logo on the sidebar section.
+	 *
+	 * @param {Object} logoProps
+	 * @param {string} logoProps.href - The URL the logo links to
+	 * @param {string} [logoProps.style] - CSS style string for the logo element
+	 * @param {string} [logoProps.innerHTML] - HTML string to set as the logo's inner content
+	 * @returns {HTMLAnchorElement}
+	 * @protected
+	 */
+	_createChartSectionLogoHolder(logoProps) {
+
+		const logoHolder = this.helpers.createElement('a', {
+			class: `logo-${this.selectorPrefix}`,
+			href: logoProps.href,
+			style: logoProps.style
+		});
+
+		if (logoProps.innerHTML) {
+			logoHolder.innerHTML += logoProps.innerHTML;
+		}
+
+		return logoHolder;
+
+	}
+
+	/**
+	 * Creates a "SHOW DETAILS" button for mobile views.
+	 *
+	 * @returns {HTMLAnchorElement}
+	 * @protected
+	 */
+	_createShowDetailsButton() {
+
+		// Add the Show Details button
+		const showDetails = this.helpers.createElement('a', {
+			class: `all-link more-link show-details ${this.selectorPrefix}-show-details`,
+			'target': `${this.selectorPrefix}-score-details`
+		});
+		showDetails.innerText = 'SHOW DETAILS';
+
+		// Add click event
+		showDetails.addEventListener('click', event => {
+			toggleDetails(event, this.storage, this.isMobile);
+		});
+
+		return showDetails;
+	}
+
+
+	/**
+	 * Creates the base section element for the data source's sidebar ratings element.
+	 *
+	 * @param {Object} logoProps
+	 * @param {string} logoProps.href - The URL the logo links to
+	 * @param {string} [logoProps.style] - CSS style string for the logo element
+	 * @param {string} [logoProps.innerHTML] - HTML string to set as the logo's inner content
+	 * @param {Object} [headerStyle] - Optional style properties for the header element
+	 * @param {string} [headerStyle.style] - CSS style string to apply to the heading
+	 * @returns {HTMLSectionElement}
+	 * @protected
+	 */
+	_createChartSection(logoProps, headerStyle) {
+
+		const chartSection = this._createChartSectionElement();
+		const heading = this._createChartSectionHeader(headerStyle);
+		chartSection.append(heading);
+
+		const logoHolder = this._createChartSectionLogoHolder(logoProps);
+		heading.append(logoHolder);
+
+		if (this.isMobile) {
+			// Add the Show Details button
+			const showDetails = this._createShowDetailsButton();
+			chartSection.append(showDetails);
+		}
+
+		return chartSection;
 
 	}
 

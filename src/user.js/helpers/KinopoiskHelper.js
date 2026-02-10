@@ -54,8 +54,7 @@ export class KinopoiskHelper extends Helper {
 		//* **************************************************************
 		// Add the section to the page
 
-		const section = this.helpers.createChartSection(
-			this.selectorPrefix,
+		const section = this._createChartSection(
 			{
 				href: this.url,
 				style: `position: absolute; background-image: url("${browser.runtime.getURL('images/kinopoisk-logo-rus.svg')}")`
@@ -64,12 +63,6 @@ export class KinopoiskHelper extends Helper {
 				style: 'height: 13px'
 			}
 		);
-
-		if (this.isMobile) {
-			// Add the Show Details button
-			const showDetails = this.helpers.createShowDetailsButton(this.selectorPrefix, 'kinopoisk-score-details');
-			section.append(showDetails);
-		}
 
 		// Score
 		//* **************************************************************
