@@ -614,6 +614,12 @@ GM_addStyle(`
 			text-decoration: none;
 			line-height: 1;
 		}
+		.extras-spine-indicator .spine-number.spine-digits-1 {
+			font-size: 15px;
+		}
+		.extras-spine-indicator .spine-number.spine-digits-2 {
+			font-size: 11px;
+		}
 		.extras-spine-indicator:hover .criterion-logo-path {
 			fill: #ffffff;
 		}

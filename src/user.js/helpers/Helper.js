@@ -754,8 +754,11 @@ export class Helper {
 		logoContainer.innerHTML = logoSVG;
 		spineLink.append(logoContainer);
 
+		const spineStr = String(spineID);
+		const digitCount = spineStr.length;
+		const spineClass = digitCount <= 2 ? `spine-number spine-digits-${digitCount}` : 'spine-number';
 		const spineNumber = this.helpers.createElement('span', {
-			class: 'spine-number'
+			class: spineClass
 		});
 		spineNumber.innerText = spineID;
 		spineLink.append(spineNumber);
