@@ -55,7 +55,8 @@
 		"https://www.doesthedogdie.com/*",
 		"https://markuapi.apn.leapcell.app/*",
 		"https://kinopoiskapiunofficial.tech/api/*",
-		"https://api.douban.com/*"
+		"https://api.douban.com/*",
+		"https://api.mydramalist.com/*"
 	],
 
 	"background": {

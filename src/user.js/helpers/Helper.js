@@ -9,11 +9,13 @@ const buttonLinkOrder = [
 	'.simkl-button',
 	'.kinopoisk-button',
 	'.douban-button',
-	'.allo-button',
+	'.allocine-button',
+	'.mdl-button',
 	'.mal-button',
 	'.anilist-button',
 	'.anidb-button',
 	'.filmarks-button',
+	'.criterion-button',
 	'.mojo-button',
 	'.wiki-button',
 	'.ddd-button'
@@ -111,13 +113,15 @@ export class Helper {
 		 */
 		this.tooltip = '';
 
+		this.spineAdded = false;
+
 	}
 
 	/**
 	 * Runs the data extraction step of pulling from a data source.
-	 * @param {string} id - The id or url of the resource.
+	 * @param {any} data - The id or url of the resource.
 	 */
-	getData(id) {
+	getData(data) {
 
 		if (!this._canLoadData()) {
 
@@ -127,15 +131,15 @@ export class Helper {
 
 		this.loadState = LOAD_STATES['Loading'];
 
-		this._loadData(id);
+		this._loadData(data);
 
 	}
 
 	/**
 	 * Gets the requested data for a film's data source.
-	 * @param {string} id - The id or url of the resource.
+	 * @param {any} data - The id or url of the resource.
 	 */
-	_loadData(id) {
+	_loadData(data) {
 
 		throw new Error(`Letterboxd Extras | Error! The function Helper._loadData' must be overriden by a subclass`);
 
@@ -209,6 +213,7 @@ export class Helper {
 	appendSidebarRating(rating) {
 		const order = [
 			'.imdb-ratings',
+			'.mdl-ratings',
 			'.mal-ratings',
 			'.anilist-ratings',
 			'.allocine-ratings',
@@ -591,6 +596,172 @@ export class Helper {
 
 		return chartSection;
 
+	}
+
+	/**
+	 * Creates the base section element for the data source's sidebar ratings element.
+	 *
+	 * @param {Object} options
+	 * @param {string} options.sourceID - Id of the HTMLElement for the newly created service
+	 * @param {string} options.title - Descriptor for the data-original-title
+	 * @param {string} options.link - Link for the movie
+	 * @returns {HTMLSectionElement}
+	 * @protected
+	 */
+	_createWatchLink(options) {
+
+		const watchSection = document.getElementById('watch');
+
+		if (watchSection === null) {
+			console.log('unable to find watch section');
+			return;
+		}
+
+		let sections = watchSection.querySelector('.services');
+
+		if (sections === null) {
+			sections = this.helpers.createElement('div', {
+				class: 'services'
+			});
+			watchSection.append(sections);
+		}
+
+		const serviceParagraph = this.helpers.createElement('p', {
+			class: 'service extras-service',
+			id: `source-${options.sourceID}`
+		});
+
+
+		serviceParagraph.append(this._createWatchLinkDisplay(options));
+		serviceParagraph.append(this._createWatchLinkPurchaseOptions(
+			[{ text: 'Buy', link: options.link }], { sourceID: options.sourceID, sourceName: options.title }
+		));
+
+		sections.append(serviceParagraph);
+
+	}
+
+	_createWatchLinkDisplay(options) {
+
+		const watchLinkDisplay = this.helpers.createElement('a', {
+			class: 'label track-event tooltip',
+			'data-track-action': 'availability',
+			target: '_blank',
+			rel: 'nofollow noopener noreferrer',
+			'data-original-title': `View on ${options.title}`,
+			'data-track-params': `{"service": "${options.sourceID}"}`,
+			href: options.link
+		});
+		watchLinkDisplay.setAttribute('data-track-action', 'availability');
+		watchLinkDisplay.setAttribute('data-original-title', `View on ${options.title}`);
+		watchLinkDisplay.setAttribute('data-track-params', `{"service": "${options.sourceID}"}`);
+
+		const brandElement = this.helpers.createElement('span', {
+			class: 'brand'
+		});
+
+		brandElement.innerHTML += '<svg></svg>';
+
+		const titleElement = this.helpers.createElement('span', {
+			class: 'title'
+		});
+		const nameSpan = this.helpers.createElement('span', {
+			class: 'name'
+		});
+		nameSpan.innerText = options.title;
+		titleElement.append(nameSpan);
+
+		watchLinkDisplay.append(brandElement);
+		watchLinkDisplay.append(titleElement);
+
+		return watchLinkDisplay;
+
+
+	}
+
+	/**
+	 * Creates a purchase option button on a watch service row in the watch section.
+	 *
+	 * @param {Object} purchaseOption - Options related to the purchasing action itself.
+	 * @param {string} purchaseOption.text - Verb for the purchase action.
+	 * @param {string} purchaseOption.link - Link directing the user to the purchase option (in most cases is just the link to the film itself)
+	 * @param {Object} sourceOption - Options related to the source for the purchase action.
+	 * @param {string} sourceOption.sourceName - Name of the source.
+	 * @param {string} sourceOption.sourceID - The id of the source
+	 * @returns {HTMLSpanElement}
+	 * @protected
+	 */
+	_createWatchLinkPurchaseButton(purchaseOption, sourceOptions) {
+
+		const purchaseButton = this.helpers.createElement('a', {
+			class: `link -${purchaseOption.text.toLowerCase()} track-event`,
+			'data-track-action': 'availability',
+			'data-track-params': `{"service": "${sourceOptions.sourceID}"}`,
+			href: purchaseOption.link,
+			title: `${purchaseOption.text} from ${sourceOptions.sourceName}`,
+			target: '_blank',
+			rel: 'nofollow noopener noreferrer'
+		});
+
+		const textSpan = this.helpers.createElement('span', {
+			class: 'extended'
+		});
+		textSpan.innerText = purchaseOption.text;
+
+		purchaseButton.append(textSpan);
+
+		return purchaseButton;
+
+	}
+
+	_createWatchLinkPurchaseOptions(purchaseOptions, sourceOptions) {
+
+		const purchaseOptionsSpan = this.helpers.createElement('span', {
+			class: 'options js-film-availability-options'
+		});
+
+		for (const purchaseOption of purchaseOptions) {
+
+			purchaseOptionsSpan.append(
+				this._createWatchLinkPurchaseButton(purchaseOption, sourceOptions)
+			);
+
+		}
+
+		return purchaseOptionsSpan;
+
+	}
+
+	_addSpineIndicator({ logoSVG, title, spineID }) {
+		if (this.spineAdded) return;
+
+		const posterSection = document.querySelector('section.poster-list.-p230.-single');
+		if (posterSection === null) return;
+
+		if (posterSection.querySelector('.extras-spine-indicator') !== null) return;
+
+		const spineLink = this.helpers.createElement('a', {
+			class: 'extras-spine-indicator criterion-spine',
+			href: this.linkURL,
+			title: `${title} - Spine #${spineID}`,
+			target: '_blank',
+			rel: 'noopener noreferrer'
+		});
+
+		const logoContainer = this.helpers.createElement('span', {
+			class: 'spine-logo'
+		});
+		logoContainer.innerHTML = logoSVG;
+		spineLink.append(logoContainer);
+
+		const spineNumber = this.helpers.createElement('span', {
+			class: 'spine-number'
+		});
+		spineNumber.innerText = spineID;
+		spineLink.append(spineNumber);
+
+		posterSection.prepend(spineLink);
+		this.spineAdded = true;
 	}
 
 }

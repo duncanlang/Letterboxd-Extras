@@ -19,8 +19,15 @@ export class DoubanHelper extends Helper {
 		this.id = id;
 		this.linkURL = `https://movie.douban.com/subject/${id}/`;
 
+		const apiKey = this.storage.get('douban-apikey');
+		if (!apiKey) {
+			this.addButtonLink(this.linkURL, 'DOUBAN');
+			this.loadState = LOAD_STATES['Failure'];
+			return;
+		}
+
 		const url = `https://api.douban.com/v2/movie/subject/${id}`;
-		const options = this._getHeaders('');
+		const options = this._getHeaders(apiKey);
 
 		this._apiRequestCallback('Douban', url, options, response => {
 
@@ -51,6 +58,7 @@ export class DoubanHelper extends Helper {
 			return;
 		}
 
+		console.log('populating ratings sidebar');
 
 		if (this.data.rating.average !== null) {
 			this.rating = this.data.rating.average;
@@ -92,6 +100,7 @@ export class DoubanHelper extends Helper {
 	}
 
 	_getHeaders(apiKey) {
+
 		return {
 			method: 'POST',
 			headers: {

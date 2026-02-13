@@ -109,49 +109,12 @@ export class FilmAffinityHelper extends Helper {
 		});
 		section.append(container);
 
-		// The span that holds the score
-		const span = this.helpers.createElement('div', {}, {
-			'display': 'inline-block',
-			'width': 'auto'
-		});
-
-		// The element that is the score itself
-		const text = this.helpers.createElement('a', {
-			class: 'tooltip tooltip-extra display-rating -highlight filmaff-score'
-		});
-		if (this.isMobile === true) text.setAttribute('class', `${text.getAttribute('class')} extras-mobile`);
-
-		let rating = this.rating;
-		let suffix = '/10';
-
-		// Add the hoverover text and href
-		let tooltip = 'No score available';
-		if (this.num_ratings > 0 && rating === null) {
-			tooltip = `${this.num_ratings.toLocaleString()} rating`;
-			if (this.num_ratings > 1) tooltip += 's';
-			rating = 'N/A';
-
-		} else if (this.num_ratings > 0) {
-			if (this.storage.get('convert-ratings') === '5') {
-				suffix = '/5';
-				rating /= 2;
-			}
-			rating = rating.toFixed(1);
-			tooltip = `Average of ${rating.toLocaleString()}${suffix} based on ${this.num_ratings.toLocaleString()} ratings`;
-		} else {
-			rating = 'N/A';
-		}
-
-
-		text.setAttribute('data-original-title', tooltip);
-		text.setAttribute('href', this.linkURL);
-		text.innerText = rating;
-		span.append(text);
-
-		container.append(span);
+		container.append(this._generateScoreSpan({
+			href: this.linkUrl
+		}));
 
 		// Add the tooltip as text for mobile
-		this._createRatingDetailsText(section, tooltip);
+		this._createRatingDetailsText(section, this.tooltip);
 
 		// APPEND to the sidebar
 		//* ***********************************************************

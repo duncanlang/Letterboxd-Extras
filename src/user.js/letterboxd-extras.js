@@ -10,6 +10,7 @@ import { KinopoiskHelper } from './helpers/KinopoiskHelper';
 import { SimklHelper } from './helpers/SimklHelper';
 import { MyAnimeListHelper } from './helpers/MyAnimeListHelper';
 import { DoubanHelper } from './helpers/DoubanHelper';
+import { CriterionHelper } from './helpers/CriterionHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -81,7 +82,7 @@ GM_addStyle(`
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban, .logo-mdl {
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -241,7 +242,7 @@ GM_addStyle(`
 			line-height: 18px;
 			margin-top: 4px;
 		}
-		.allo-buttons{
+		.allocine-buttons{
 			display: block;
 			margin-bottom: 5px;
 		}
@@ -399,6 +400,11 @@ GM_addStyle(`
 		.sens-flex flex-container{
 			display: flex;
 			flex-direction: row;
+		}
+		.extras-service {
+			display: flex;
+			flex-direction: row;
+			hidden: false !important;
 		}
 		.extras-table{
 			width: 100%;
@@ -578,7 +584,44 @@ GM_addStyle(`
 			user-select: none; /* Standard syntax */
 		}
 		.extras-lost-filter span i {
-    		pointer-events:none;
+    	pointer-events:none;
+		}
+		/* Poster spine styling */
+		section.poster-list.-p230.-single {
+			position: relative;
+		}
+		.extras-spine-indicator {
+			position: absolute;
+			right: 100%;
+			top: 8px;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			padding-right: 6px;
+			text-decoration: none;
+			max-height: 15%;
+		}
+		.extras-spine-indicator .spine-logo {
+			display: block;
+			margin-right: 2px;
+		}
+		.extras-spine-indicator .spine-number {
+			writing-mode: vertical-rl;
+			text-orientation: upright;
+			font-family: 'Graphik-Regular-Web', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+			font-size: 9px;
+			color: #989898;
+			text-decoration: none;
+			line-height: 1;
+		}
+		.extras-spine-indicator:hover .criterion-logo-path {
+			fill: #ffffff;
+		}
+		.extras-spine-indicator:hover .spine-number {
+			color: #ffffff;
+		}
+		.extras-spine-indicator:hover {
+			filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
 		}
 	`);
 
@@ -660,6 +703,7 @@ const letterboxd = {
 			FilmAffinity_ID: null, FilmAffinity_URL: null,
 			SensCritique_ID: null, SensCritique_URL: null,
 			Kinopoisk_ID: null,
+			MDL_ID: null,
 			StateOfTransmission: null,
 		},
 
@@ -708,6 +752,12 @@ const letterboxd = {
 
 		// Douban
 		doubanHelper: null,
+
+		// MyDramaList
+		myDramaListHelper: null,
+
+		// Criterion
+		criterionHelper: null,
 
 		// SIMKL
 		simklHelper: null,
@@ -1274,7 +1324,12 @@ const letterboxd = {
 									}
 
 									// Get and add Rotten Tomatoes
-									if (this.wiki != null && this.wiki.Rotten_Tomatoes_ID != null && this.wiki.Rotten_Tomatoes_ID.value != null && letterboxd.storage.get('tomato-enabled') === true) {
+									if (
+										this.wiki != null && 
+										this.wiki.Rotten_Tomatoes_ID != null && 
+										this.wiki.Rotten_Tomatoes_ID.value != null && 
+										letterboxd.storage.get('tomato-enabled') === true
+									) {
 										var url = "https://www.rottentomatoes.com/" + this.wiki.Rotten_Tomatoes_ID.value;
 										if (url.includes('/tv/') && !url.match(/s[0-9]{2}/i))
 											url += "/s01"
@@ -1349,6 +1404,27 @@ const letterboxd = {
 
 									// Get the DDD ID to use for later
 									this.ddd.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "DDD_ID", this.ddd.id);
+
+									// Get Criterion data
+									if (this.wiki != null && this.wiki.Criterion_ID != null && this.wiki.Criterion_ID.value != null) {
+										if (this.wiki.Criterion_Spine_ID != null && this.wiki.Criterion_Spine_ID.value != null) {
+											this.criterionHelper.getData({
+												websiteID: this.wiki.Criterion_ID.value, 
+												spineID: this.wiki.Criterion_Spine_ID.value
+											});
+										} else {
+											this.criterionHelper.getData({ 
+												websiteID: this.wiki.Criterion_ID.value
+											});
+										}
+						
+									}
+
+									// Get MyDramaList data
+									if (this.wiki != null && this.wiki.MDL_ID != null && this.wiki.MDL_ID.value != null && letterboxd.storage.get('mdl-enabled') === true) {
+										this.wikiData.MDL_ID = this.wiki.MDL_ID.value;
+										this.myDramaListHelper.getData(this.wiki.MDL_ID.value);
+									}
 
 									// Get Kinopoisk data
 									if (this.wiki != null && this.wiki.Kinopoisk_ID !== null && letterboxd.storage.get('kinopoisk-enabled') === true){
@@ -2483,7 +2559,7 @@ const letterboxd = {
 					className = "wiki-button";
 				} else if (url.includes("allocine")) {
 					text = "ALLO";
-					className = "allo-button";
+					className = "allocine-button";
 				} else if (url.includes("filmarks")) {
 					text = "FILMARKS";
 					className = "filmarks-button";
@@ -2516,7 +2592,7 @@ const letterboxd = {
 					'.filmaff-button',
 					'.simkl-button',
 					'.kinopoisk-button',
-					'.allo-button',
+					'.allocine-button',
 					'.mal-button',
 					'.anilist-button',
 					'.anidb-button',
@@ -4088,13 +4164,13 @@ const letterboxd = {
 				// Add the div to hold the toggle buttons
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
-					class: 'allo-buttons',
+					class: 'allocine-buttons',
 					style: 'display: block;'
 				});
 				section.append(buttonDiv);
 
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-button allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allo-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
+				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
+				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
 				if (letterboxd.storage.get('allocine-users-enabled') != true || letterboxd.storage.get('allocine-critic-enabled') != true) {
 					buttonDiv.style['display'] = "none";
 				}
@@ -6132,7 +6208,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -6150,6 +6226,9 @@ const letterboxd = {
 					"  OPTIONAL { ?item wdt:P2603 ?Kinopoisk_ID }\n" +
 					"  OPTIONAL { ?item wdt:P13888 ?DDD_ID }\n" +
 					"  OPTIONAL { ?item wdt:P13904 ?Filmarks_ID }\n" +
+				"  OPTIONAL { ?item wdt:P3868 ?MDL_ID }\n" +
+					"  OPTIONAL { ?item wdt:P9584 ?Criterion_ID }\n" +
+					"  OPTIONAL { ?item wdt:P12279 ?Criterion_Spine_ID }\n" +
 					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 					"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P2629 ?BBFC_rating. }\n" +
@@ -6397,7 +6476,8 @@ const moduleConfigs = [
 	{ class: KinopoiskHelper, target: letterboxd.overview, property: 'kinopoiskHelper', args: [] },
 	{ class: DoubanHelper, target: letterboxd.overview, property: 'doubanHelper', args: [] },
 	{ class: SimklHelper, target: letterboxd.overview, property: 'simklHelper', args: []},
-	{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [letterboxd.overview.ratingsSuffix] }
+	{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [letterboxd.overview.ratingsSuffix] },
+	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] }
 ];
 
 moduleConfigs.forEach(config => {

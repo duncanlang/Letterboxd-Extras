@@ -34,6 +34,22 @@
         </div>
     </div>
     <div>
+        <h3>MyDramaList</h3>
+        <div>
+            <label for="mdl-enabled">Display MyDramaList:</label>
+            <input type="checkbox" id="mdl-enabled" permission="https://api.mydramalist.com/*" class="setting"/>
+        </div>
+        <div class="div-request-permission">
+            <label style="color: red;">! Missing Permission !</label>
+            <input type="button" id="mdl-permissions" class="request-permission" permissionTarget="mdl-enabled" value="Request Permission"/>
+        </div>
+        <div>
+            <label for="mdl-apikey">API Key:</label>
+            <input type="text" id="mdl-apikey" class="setting"/>
+            <a class="hyperlink" href="https://mydramalist.com/api_request" target="_blank">Request an API key from MyDramaList</a>
+        </div>
+    </div>
+    <div>
         <h3>AniList</h3>
         <div>
             <label for="anilist-enabled">Display AniList:</label>
@@ -145,6 +161,11 @@
         <div class="div-request-permission">
             <label style="color: red;">! Missing Permission !</label>
             <input type="button" id="douban-permissions" class="request-permission" permissionTarget="douban-enabled" value="Request Permission"/>
+        </div>
+        <div>
+            <label for="douban-apikey">API Key:</label>
+            <input type="text" id="douban-apikey" class="setting"/>
+            <p>The Douban API requires an API key to fetch ratings.</p>
         </div>
     </div>
     <div>
