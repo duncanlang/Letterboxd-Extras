@@ -25,7 +25,7 @@ export class CriterionHelper extends Helper {
 			link: this.linkURL
 		});
 
-		if (this.spineID !== null || this.spineID !== undefined) {
+		if (this.spineID !== null && this.spineID !== undefined) {
 			this._addSpineIndicator({
 				logoSVG: CRITERION_LOGO_SVG,
 				title: 'Criterion Collection',
