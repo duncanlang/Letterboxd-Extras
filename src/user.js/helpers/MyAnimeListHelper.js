@@ -4,9 +4,9 @@ import { Helper } from './Helper';
 
 export class MyAnimeListHelper extends Helper {
 
-	constructor(storage, helpers, ratingsSuffix) {
+	constructor(storage, helpers, pageState, ratingsSuffix) {
 
-		super(storage, helpers, 'mal');
+		super(storage, helpers, pageState, 'mal');
 
 		this.ratingsSuffix = ratingsSuffix;
 
@@ -32,7 +32,6 @@ export class MyAnimeListHelper extends Helper {
 			}
 
 			this.data = response.data;
-			console.log(this.data);
 			this.linkURL = this.data.url;
 
 			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, {}, response => {
@@ -61,6 +60,8 @@ export class MyAnimeListHelper extends Helper {
 		if (!this._canPopulateRatingsSidebar()) {
 			return;
 		}
+
+		const { isMobile } = this.pageState;
 
 		if (this.data.score !== null) {
 			this.rating = this.data.score;
@@ -92,7 +93,7 @@ export class MyAnimeListHelper extends Helper {
 			this.rating,
 			this.num_ratings,
 			`${this.data.url}/reviews`,
-			this.isMobile
+			isMobile
 		));
 
 		scoreSection.append(this.helpers.createHistogramGraph(

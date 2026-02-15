@@ -4,9 +4,9 @@ import { Helper } from './Helper';
 
 export class MubiHelper extends Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, 'mubi');
+		super(storage, helpers, pageState, 'mubi');
 		this.rating = null;
 		this.ratingAlt = null;
 		this.num_ratings = 0;
@@ -98,8 +98,6 @@ export class MubiHelper extends Helper {
 							break;
 						}
 					}
-
-					console.log(index);
 
 					if (index >= 0) {
 						this.data = films[index];

@@ -20,6 +20,18 @@
         <hr width="100%">
     </div>
     <div>
+        <h3>Criterion</h3>
+        <div id="criterion-div">
+            <label for="criterion-spine-default-view">Spine Number View:</label>
+            <select id="criterion-spine-default-view"class="setting">
+                <option value="Row">Row</option>
+                <option value="Column">Column</option>
+                <option value="Left/Right">Left/Right</option>
+            </select>
+            <p></p>
+        </div>
+    </div>
+    <div>
         <h3>IMDb</h3>
         <div>
             <label for="imdb-enabled">Display IMDb:</label>
@@ -31,22 +43,6 @@
         <div>
             <label for="mal-enabled">Display MyAnimeList:</label>
             <input type="checkbox" id="mal-enabled" class="setting"/>
-        </div>
-    </div>
-    <div>
-        <h3>MyDramaList</h3>
-        <div>
-            <label for="mdl-enabled">Display MyDramaList:</label>
-            <input type="checkbox" id="mdl-enabled" permission="https://api.mydramalist.com/*" class="setting"/>
-        </div>
-        <div class="div-request-permission">
-            <label style="color: red;">! Missing Permission !</label>
-            <input type="button" id="mdl-permissions" class="request-permission" permissionTarget="mdl-enabled" value="Request Permission"/>
-        </div>
-        <div>
-            <label for="mdl-apikey">API Key:</label>
-            <input type="text" id="mdl-apikey" class="setting"/>
-            <a class="hyperlink" href="https://mydramalist.com/api_request" target="_blank">Request an API key from MyDramaList</a>
         </div>
     </div>
     <div>
@@ -153,7 +149,7 @@
         </div>
     </div>
     <div>
-        <h3>DOUBAN</h3>
+        <h3>Douban</h3>
         <div>
             <label for="douban-enabled">Display Douban:</label>
             <input type="checkbox" id="douban-enabled" permission="https://api.douban.com/*" class="setting"/>
@@ -381,8 +377,8 @@
         <!-- Hide Ratings -->
         <div>
             <label for="hide-ratings-enabled">Hide ratings:</label>
-            <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="false">
-                <option value="false">Leave unchanged</option>
+            <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="unchanged">
+                <option value="unchanged">Leave unchanged</option>
                 <option value="additional">Hide additional ratings</option>
                 <option value="all">Hide all ratings</option>
             </select>

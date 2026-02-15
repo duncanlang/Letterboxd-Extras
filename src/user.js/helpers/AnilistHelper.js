@@ -10,9 +10,9 @@ import { Helper } from './Helper';
  */
 export class AnilistHelper extends Helper {
 
-	constructor(storage, helpers, ratingsSuffix) {
+	constructor(storage, helpers, pageState, ratingsSuffix) {
 
-		super(storage, helpers, 'anilist');
+		super(storage, helpers, pageState, 'anilist');
 
 		this.ratingsSuffix = ratingsSuffix;
 
@@ -67,6 +67,8 @@ export class AnilistHelper extends Helper {
 			return;
 		}
 
+		const { isMobile } = this.pageState;
+
 		if (this.data.averageScore !== null) {
 			this.score = this.data.averageScore;
 		}
@@ -114,12 +116,27 @@ export class AnilistHelper extends Helper {
 		logoText.innerText = 'AniList';
 		logoHolder.append(logoText);
 
-		if (this.isMobile) {
+		if (isMobile) {
 			scoreSection.append(this._createShowDetailsButton());
 		}
 
-		scoreSection.append(this.helpers.createHistogramScore(this.storage, 'anilist', this.score, this.num_ratings, `${this.data.siteUrl}/reviews`, this.isMobile));
-		scoreSection.append(this.helpers.createHistogramGraph(this.storage, 'anilist', '', this.num_ratings, this.data.stats.scoreDistribution, this.data.stats.scoreDistribution[ii], this.highest));
+		scoreSection.append(this.helpers.createHistogramScore(
+			this.storage,
+			'anilist',
+			this.score,
+			this.num_ratings,
+			`${this.data.siteUrl}/reviews`,
+			isMobile
+		));
+
+		scoreSection.append(this.helpers.createHistogramGraph(
+			this.storage,
+			'anilist', '',
+			this.num_ratings,
+			this.data.stats.scoreDistribution,
+			this.data.stats.scoreDistribution[ii],
+			this.highest
+		));
 
 		// Add the tooltip as text for mobile
 		const score = scoreSection.querySelector('.average-rating .tooltip');

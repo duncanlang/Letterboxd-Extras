@@ -3,9 +3,9 @@ import { Helper } from './Helper';
 
 export class KinopoiskHelper extends Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, 'kinopoisk');
+		super(storage, helpers, pageState, 'kinopoisk');
 
 		this.id = null;
 

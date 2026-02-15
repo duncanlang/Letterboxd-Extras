@@ -170,7 +170,6 @@ async function InitDefaultSettings() {
     if (options['mpa-convert'] == null) options['mpa-convert'] = false;
     if (options['open-same-tab'] == null) options['open-same-tab'] = false;
     if (options['replace-fans'] == null) options['replace-fans'] = "false";
-    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
     if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
     if (options['google'] == null) options['google'] = false;
     if (options['boxoffice-enabled'] == null) options['boxoffice-enabled'] = false;
@@ -179,19 +178,16 @@ async function InitDefaultSettings() {
     if (options['kinopoisk-enabled'] == null) options['kinopoisk-enabled'] = false;
     if (options['kinopoisk-apikey'] == null) options['kinopoisk-apikey'] = '';
     if (options['filmarks-enabled'] == null) options['filmarks-enabled'] = false;
-    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'false';
+    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'unchanged';
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
+
+    if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
+        options['hide-ratings-enabled'] = 'unchanged';
+    }
 
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
-
-    // Hide ratings setting
-    if (options["hide-ratings-enabled"] === true) {
-        options["hide-ratings-enabled"] = "additional";
-    }
-
-
 
     // Save
     await browser.storage.sync.set({ options });

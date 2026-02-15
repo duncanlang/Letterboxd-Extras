@@ -26,10 +26,11 @@ const buttonLinkOrder = [
  */
 export class Helper {
 
-	constructor(storage, helpers, selectorPrefix) {
+	constructor(storage, helpers, pageState, selectorPrefix) {
 
 		this.storage = storage;
 		this.helpers = helpers;
+		this.pageState = pageState;
 
 		/**
 		 * A string defining the prefix of a class or id selector on an HTML Element.
@@ -80,14 +81,6 @@ export class Helper {
 		 * @default null
 		 */
 		this.apiURL = null;
-
-		/**
-		 * A flag indicating whether the web page is being viewed in its mobile configuration.
-		 *
-		 * @type {boolean}
-		 * @default false
-		 */
-		this.isMobile = false;
 
 		/**
 		 * A flag indicating whether a button link to the data source has been added.
@@ -205,6 +198,32 @@ export class Helper {
 
 	}
 
+	_createRatingsHolder() {
+		if (document.querySelector('.extras-ratings-holder') !== null) {
+			return document.querySelector('.extras-ratings-holder');
+		}
+
+		const currentSidebar = document.querySelector('.sidebar');
+
+		const sidebar = this.helpers.createElement('div', {
+			class: 'extras-ratings-holder',
+			style: 'display: none'
+		});
+		currentSidebar.append(sidebar);
+
+		const moreButton = this.helpers.createElement('a', {
+			class: 'text-slug extras-show-more'
+		});
+		moreButton.innerText = 'Show ratings';
+		currentSidebar.append(moreButton);
+
+		moreButton.addEventListener('click', event => {
+			toggleAllRatings(event);
+		});
+
+		return sidebar;
+	}
+
 	/**
 	 * Adds html to the ratings sidebar for a given reference source.
 	 *
@@ -233,32 +252,22 @@ export class Helper {
 
 		let className = this.selectorPrefix;
 		if (this.selectorPrefix !== 'cinemascore') {
-			className = `${this.selectorPrefix}-button`;
+			className = `${this.selectorPrefix}-ratings`;
 		}
 
 		const index = order.indexOf(`.${className}`);
 		let sidebar = document.querySelector('.sidebar');
 
-		if (this.storage.get('hide-ratings-enabled') === true) {
-			const currentSidebar = sidebar;
+		const { hideRatings } = this.pageState;
+
+		console.log(hideRatings);
+		console.log(this.storage.get('hide-ratings-enabled'));
+
+		if (hideRatings) {
 			sidebar = document.querySelector('.extras-ratings-holder');
 
 			if (sidebar === null) {
-				sidebar = this.helpers.createElement('div', {
-					class: 'extras-ratings-holder',
-					style: 'display: none'
-				});
-				currentSidebar.append(sidebar);
-
-				const moreButton = this.helpers.createElement('a', {
-					class: 'text-slug extras-show-more'
-				});
-				moreButton.innerText = 'Show more ratings';
-				currentSidebar.append(moreButton);
-
-				moreButton.addEventListener('click', event => {
-					toggleAllRatings(event);
-				});
+				sidebar = this._createRatingsHolder();
 			}
 		}
 
@@ -318,8 +327,6 @@ export class Helper {
 			if (this.storage.get('open-same-tab') !== true) {
 				button.setAttribute('target', '_blank');
 			}
-
-			console.log('test');
 
 			const index = buttonLinkOrder.indexOf(`.${className}`);
 			// First Attempt
@@ -381,6 +388,9 @@ export class Helper {
 	 * @protected
 	 */
 	_createRatingDetailsText(section, tooltip) {
+
+		const { isMobile } = this.pageState;
+
 		const detailsSpan = this.helpers.createElement('span', {
 			class: `${this.selectorPrefix}-score-details mobile-details-text`
 		});
@@ -393,7 +403,7 @@ export class Helper {
 		detailsText.innerText = tooltip;
 		detailsSpan.append(detailsText);
 
-		if (this.isMobile || this.storage.get('tooltip-show-details') === true) {
+		if (isMobile || this.storage.get('tooltip-show-details') === true) {
 			section.append(detailsSpan);
 		}
 	}
@@ -451,6 +461,8 @@ export class Helper {
 	 */
 	_generateScoreSpan({ href }) {
 
+		const { isMobile } = this.pageState;
+
 		// The span that holds the score
 		const scoreSpan = this.helpers.createElement('span', {
 			class: `${this.selectorPrefix}-score`
@@ -466,7 +478,7 @@ export class Helper {
 			class: `tooltip tooltip-extra display-rating -highlight ${this.selectorPrefix}-score`
 		});
 
-		if (this.isMobile === true) scoreText.setAttribute('class', `${scoreText.getAttribute('class')} extras-mobile`);
+		if (isMobile === true) scoreText.setAttribute('class', `${scoreText.getAttribute('class')} extras-mobile`);
 		scoreText.innerText = score;
 		scoreText.setAttribute('data-original-title', tooltip);
 		scoreText.setAttribute('href', href);
@@ -551,6 +563,8 @@ export class Helper {
 	 */
 	_createShowDetailsButton() {
 
+		const { isMobile } = this.pageState;
+
 		// Add the Show Details button
 		const showDetails = this.helpers.createElement('a', {
 			class: `all-link more-link show-details ${this.selectorPrefix}-show-details`,
@@ -560,7 +574,7 @@ export class Helper {
 
 		// Add click event
 		showDetails.addEventListener('click', event => {
-			toggleDetails(event, this.storage, this.isMobile);
+			toggleDetails(event, this.storage, isMobile);
 		});
 
 		return showDetails;
@@ -581,6 +595,8 @@ export class Helper {
 	 */
 	_createChartSection(logoProps, headerStyle) {
 
+		const { isMobile } = this.pageState;
+
 		const chartSection = this._createChartSectionElement();
 		const heading = this._createChartSectionHeader(headerStyle);
 		chartSection.append(heading);
@@ -588,7 +604,7 @@ export class Helper {
 		const logoHolder = this._createChartSectionLogoHolder(logoProps);
 		heading.append(logoHolder);
 
-		if (this.isMobile) {
+		if (isMobile) {
 			// Add the Show Details button
 			const showDetails = this._createShowDetailsButton();
 			chartSection.append(showDetails);
@@ -613,7 +629,6 @@ export class Helper {
 		const watchSection = document.getElementById('watch');
 
 		if (watchSection === null) {
-			console.log('unable to find watch section');
 			return;
 		}
 
@@ -740,13 +755,22 @@ export class Helper {
 
 		if (posterSection.querySelector('.extras-spine-indicator') !== null) return;
 
-		const spineLink = this.helpers.createElement('a', {
+		const spineLinkAttrs = {
 			class: 'extras-spine-indicator criterion-spine',
 			href: this.linkURL,
 			title: `${title} - Spine #${spineID}`,
 			target: '_blank',
 			rel: 'noopener noreferrer'
-		});
+		};
+
+		const viewMode = this.storage.get('criterion-spine-default-view');
+		if (viewMode === 'Row') {
+			spineLinkAttrs['data-view'] = 'row';
+		} else if (viewMode === 'Left/Right') {
+			spineLinkAttrs['data-view'] = 'left-right';
+		}
+
+		const spineLink = this.helpers.createElement('a', spineLinkAttrs);
 
 		const logoContainer = this.helpers.createElement('span', {
 			class: 'spine-logo'
@@ -754,17 +778,36 @@ export class Helper {
 		logoContainer.innerHTML = logoSVG;
 		spineLink.append(logoContainer);
 
-		const spineStr = String(spineID);
-		const digitCount = spineStr.length;
-		const spineClass = digitCount <= 2 ? `spine-number spine-digits-${digitCount}` : 'spine-number';
-		const spineNumber = this.helpers.createElement('span', {
-			class: spineClass
-		});
-		spineNumber.innerText = spineID;
-		spineLink.append(spineNumber);
+		if (spineID) {
+
+			const spineStr = String(spineID);
+			const digitCount = spineStr.length;
+			const spineClass = digitCount <= 2 ? `spine-number spine-digits-${digitCount}` : 'spine-number';
+			const spineNumber = this.helpers.createElement('span', {
+				class: spineClass
+			});
+			spineNumber.innerText = spineID;
+			spineLink.append(spineNumber);
+
+		}
 
 		posterSection.prepend(spineLink);
 		this.spineAdded = true;
+
+		browser.storage.onChanged.addListener((changes, area) => {
+			if (area !== 'sync' || !changes.options) return;
+			const newView = changes.options.newValue['criterion-spine-default-view'];
+			const spine = document.querySelector('.extras-spine-indicator');
+			if (!spine) return;
+
+			if (newView === 'Row') {
+				spine.setAttribute('data-view', 'row');
+			} else if (newView === 'Left/Right') {
+				spine.setAttribute('data-view', 'left-right');
+			} else {
+				spine.removeAttribute('data-view');
+			}
+		});
 	}
 
 }

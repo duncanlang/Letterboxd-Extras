@@ -3,12 +3,11 @@ import { Helper } from './Helper';
 
 export class FilmAffinityHelper extends Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, 'filmaff');
+		super(storage, helpers, pageState, 'filmaff');
 		this.rating = null;
 		this.num_ratings = 0;
-		this.isMobile = false;
 
 	}
 
@@ -27,7 +26,6 @@ export class FilmAffinityHelper extends Helper {
 		this._apiRequestCallback('FilmAffinity', this.linkURL, {}, response => {
 
 			const filmaffData = response;
-			console.log(filmaffData);
 			if (filmaffData !== '') {
 				this.data = this.helpers.parseHTML(filmaffData);
 
@@ -47,9 +45,11 @@ export class FilmAffinityHelper extends Helper {
 			return;
 		}
 
+		const { isMobile } = this.pageState;
+
 		// Collect Date from the FilmAffinity Page
 		//* **************************************************************
-		if (this.isMobile === true) {
+		if (isMobile === true) {
 			// Get score from mobile site
 			if (this.data.querySelector('span[itemprop="ratingValue"]') !== null) {
 				this.rating = this.data.querySelector('span[itemprop="ratingValue"]').getAttribute('content');
@@ -95,7 +95,7 @@ export class FilmAffinityHelper extends Helper {
 		heading.append(logo);
 
 		let showDetails = null;
-		if (this.isMobile) {
+		if (isMobile) {
 			// Add the Show Details button
 			showDetails = this.helpers.createShowDetailsButton('filmaff', 'filmaff-score-details');
 			section.append(showDetails);

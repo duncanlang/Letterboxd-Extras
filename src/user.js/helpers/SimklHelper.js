@@ -3,9 +3,9 @@ import { Helper } from './Helper';
 
 export class SimklHelper extends Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, 'simkl');
+		super(storage, helpers, pageState, 'simkl');
 
 	}
 
@@ -35,8 +35,6 @@ export class SimklHelper extends Helper {
 		this._apiRequestCallback('Simkl', url, {}, response => {
 
 			this.data = response;
-
-			console.log(this.data);
 
 			if (this.data === null || this.data === 'null') {
 

@@ -586,7 +586,7 @@ GM_addStyle(`
 		.extras-lost-filter span i {
     	pointer-events:none;
 		}
-		/* Poster spine styling */
+		/* POSTER SPINE STYLING (default: column view, to left of poster) */
 		section.poster-list.-p230.-single {
 			position: relative;
 		}
@@ -595,30 +595,23 @@ GM_addStyle(`
 			right: 100%;
 			top: 8px;
 			display: flex;
-			flex-direction: row;
+			flex-direction: column;
 			align-items: center;
+			justify-content: flex-start;
 			padding-right: 6px;
 			text-decoration: none;
 			max-height: 15%;
 		}
 		.extras-spine-indicator .spine-logo {
 			display: block;
-			margin-right: 2px;
+			margin-bottom: 2px;
 		}
 		.extras-spine-indicator .spine-number {
-			writing-mode: vertical-rl;
-			text-orientation: upright;
 			font-family: 'Graphik-Regular-Web', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 			font-size: 9px;
 			color: #989898;
 			text-decoration: none;
 			line-height: 1;
-		}
-		.extras-spine-indicator .spine-number.spine-digits-1 {
-			font-size: 15px;
-		}
-		.extras-spine-indicator .spine-number.spine-digits-2 {
-			font-size: 11px;
 		}
 		.extras-spine-indicator:hover .criterion-logo-path {
 			fill: #ffffff;
@@ -628,6 +621,69 @@ GM_addStyle(`
 		}
 		.extras-spine-indicator:hover {
 			filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+		}
+		/* POSTER SPINE ROW VIEW */
+		.extras-spine-indicator[data-view="row"] {
+			flex-direction: row;
+		}
+		.extras-spine-indicator[data-view="row"] .spine-logo {
+			margin-bottom: 0;
+			margin-right: 2px;
+		}
+		/* POSTER SPINE LEFT/RIGHT VIEW */
+		.extras-spine-indicator[data-view="left-right"] {
+			left: 50%;
+			right: auto;
+			transform: translateX(-50%);
+			flex-direction: row;
+			justify-content: space-between;
+			width: 123%;
+		}
+		.extras-spine-indicator[data-view="left-right"] .spine-logo {
+			margin-bottom: 0;
+			margin-right: 2px;
+		}
+		.extras-spine-indicator[data-view="left-right"] .spine-number {
+			writing-mode: vertical-rl;
+			text-orientation: upright;
+			padding-right: 5px;
+		}
+		.extras-spine-indicator[data-view="left-right"] .spine-number.spine-digits-1 {
+			font-size: 15px;
+		}
+		.extras-spine-indicator[data-view="left-right"] .spine-number.spine-digits-2 {
+			font-size: 11px;
+		}
+		@media (max-width: 1020px) {
+			.extras-spine-indicator {
+				right: auto;
+				left: 100%;
+				padding-right: 0;
+				padding-left: 6px;
+			}
+			.extras-spine-indicator[data-view] {
+				flex-direction: column;
+				width: auto;
+				right: auto;
+				left: 100%;
+				transform: none;
+				padding-right: 0;
+				padding-left: 6px;
+				justify-content: flex-start;
+			}
+			.extras-spine-indicator[data-view] .spine-logo {
+				margin-right: 0;
+				margin-bottom: 2px;
+			}
+			.extras-spine-indicator[data-view] .spine-number {
+				writing-mode: horizontal-tb;
+				text-orientation: initial;
+				padding-right: 0;
+			}
+			.extras-spine-indicator[data-view] .spine-number.spine-digits-1,
+			.extras-spine-indicator[data-view] .spine-number.spine-digits-2 {
+				font-size: 9px;
+			}
 		}
 	`);
 
@@ -656,6 +712,10 @@ const letterboxd = {
 		titleError: false,
 
 		loggedIn: null,
+
+		// Shared page state for the helper classes
+		// Currently not replacing existing values to prevent unwanted errors
+		pageState: { isMobile: null, hideRatings: null, filmWatched: null },
 
 		filmWatched: null,
 		hideRatings: null,
@@ -778,7 +838,6 @@ const letterboxd = {
 
 		kinopoiskHelper: null,
 
-
 		linksAdded: [],
 
 		rtAdded: false,
@@ -809,12 +868,12 @@ const letterboxd = {
 				this.loggedIn = document.documentElement.innerHTML.includes('person.loggedIn = true');
 			}
 
-			if (this.loggedIn == null && letterboxd.storage.get('hide-ratings-enabled') === "false" && letterboxd.storage.get('hide-reviews-enabled') === "false"){
+			if (this.loggedIn == null && letterboxd.storage.get('hide-ratings-enabled') === "unchanged" && letterboxd.storage.get('hide-reviews-enabled') === "false"){
 				// Just in case, set these now if the relevant settings aren't enabled.
 				// this is a backup just in case the site changes in the future in a way where the addon won't be able to set these normally
 				this.loggedIn = false;
-				this.filmWatched = false;
-				this.hideRatings = false;
+				this.filmWatched = this.pageState.filmWatched = false;
+				this.hideRatings = this.pageState.hideRatings = false;
 				this.hideReviews = false;
 			}
 
@@ -823,9 +882,11 @@ const letterboxd = {
 				if (document.querySelector("html")) {
 					var htmlEl = document.querySelector("html");
 					if (htmlEl.getAttribute("class").includes("no-mobile")) {
-						this.isMobile = false;
+						this.isMobile = this.pageState.isMobile = false;
 					} else {
-						this.isMobile = true;
+						// TODO: Have Helpers accessed shared state passed through on initialization
+						// after storage and page type is parsed.
+						this.isMobile = this.pageState.isMobile = true;
 					}
 				}
 			}
@@ -834,28 +895,28 @@ const letterboxd = {
 			if (this.filmWatched == null && this.loggedIn != null){
 				if (this.loggedIn == false){
 					// If not logged in, only base the hiding on the addon settings
-					this.filmWatched = false;
-					this.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "false";
-					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "false";
+					this.filmWatched = this.pageState.filmWatched = false;
+					this.hideRatings = this.pageState.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "unchanged";
+					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "unchanged";
 				}else{
 					// If logged in, we need to check the watched status against the addon settings
 					var filmPosterDiv = document.querySelector('div.poster.film-poster');
 					if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.filmWatched == null){
-						this.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
+						this.filmWatched = this.pageState.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
 
 						// Determine if ratings should be hidden
-						this.hideRatings = false;
-						if (letterboxd.storage.get('hide-ratings-enabled') !== "false"){
-							this.hideRatings = true;
+						this.hideRatings = this.pageState.hideRatings = false;
+						if (letterboxd.storage.get('hide-ratings-enabled') !== "unchanged"){
+							this.hideRatings = this.pageState.hideRatings = true;
 
 							if (letterboxd.storage.get('hide-ratings-unwatched') === true && this.filmWatched == true){
-								this.hideRatings = false;
+								this.hideRatings = this.pageState.hideRatings = false;
 							}
 						}
 						
 						// Determine if reviews should be hidden
 						this.hideReviews = false;
-						if (letterboxd.storage.get('hide-reviews-enabled') !== "false"){
+						if (letterboxd.storage.get('hide-reviews-enabled') !== "unchanged"){
 							this.hideReviews = true;
 
 							if (letterboxd.storage.get('hide-reviews-unwatched') === true && this.filmWatched == true){
@@ -1406,7 +1467,6 @@ const letterboxd = {
 
 									// Get the Filmarks ID to use for later
 									this.filmarks.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "Filmarks_ID", this.filmarks.id);
-									console.log(this.wiki)
 
 									// Get the DDD ID to use for later
 									this.ddd.id = letterboxd.helpers.parseWikiDataResult(this.wiki, "DDD_ID", this.ddd.id);
@@ -3423,7 +3483,7 @@ const letterboxd = {
 			var index = order.indexOf('.' + className);
 			var sidebar = document.querySelector('.sidebar');
 
-			if (this.hideRatings == true) {
+			if (this.hideRatings === true) {
 				sidebar = document.querySelector('.extras-ratings-holder');
 
 				if (sidebar == null) {
@@ -4396,7 +4456,6 @@ const letterboxd = {
 
 				if (this.filmarks.state == 2 && this.filmarks.data != null){
 					this.filmarks.movie = this.filmarks.data.data;
-					console.log(this.filmarks)
 					this.addFilmarks();
 				}
 			});
@@ -6470,7 +6529,7 @@ const letterboxd = {
 	}
 };
 
-const defaultArgs = [letterboxd.storage, letterboxd.helpers];
+const defaultArgs = [letterboxd.storage, letterboxd.helpers, letterboxd.overview.pageState];
 
 // Initialize helpers and modules
 const moduleConfigs = [

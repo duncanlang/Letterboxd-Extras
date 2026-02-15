@@ -4,9 +4,10 @@ import { Helper } from './Helper';
 
 export class CriterionHelper extends Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, 'criterion');
+		super(storage, helpers, pageState, 'criterion');
+
 		this.spineID = null;
 		this.spineAdded = false;
 		this._stylesInjected = false;
@@ -19,18 +20,18 @@ export class CriterionHelper extends Helper {
 		this.loadState = LOAD_STATES['Success'];
 
 		this.addButtonLink(this.linkURL, 'CRITERION');
-		this._createWatchLink({
+
+		/* this._createWatchLink({
 			sourceID: 'criterion',
 			title: 'Criterion',
 			link: this.linkURL
+		}); */
+
+		this._addSpineIndicator({
+			logoSVG: CRITERION_LOGO_SVG,
+			title: 'Criterion Collection',
+			spineID: spineID ? spineID : null
 		});
 
-		if (spineID !== null && spineID !== undefined) {
-			this._addSpineIndicator({
-				logoSVG: CRITERION_LOGO_SVG,
-				title: 'Criterion Collection',
-				spineID: spineID
-			});
-		}
 	}
 }

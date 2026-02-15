@@ -4,17 +4,15 @@ import { Helper } from './Helper';
 
 export class DoubanHelper extends Helper {
 
-	constructor(storage, helpers) {
+	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, 'douban');
+		super(storage, helpers, pageState, 'douban');
 
 		this.id = null;
 
 	}
 
 	_loadData(id) {
-
-		console.log(id);
 
 		this.id = id;
 		this.linkURL = `https://movie.douban.com/subject/${id}/`;
@@ -32,7 +30,6 @@ export class DoubanHelper extends Helper {
 		this._apiRequestCallback('Douban', url, options, response => {
 
 			this.data = response;
-			console.log(this.data);
 
 			if (!this.data.rating) {
 				this.loadState = LOAD_STATES['Failure'];
@@ -57,8 +54,6 @@ export class DoubanHelper extends Helper {
 		if (!this._canPopulateRatingsSidebar()) {
 			return;
 		}
-
-		console.log('populating ratings sidebar');
 
 		if (this.data.rating.average !== null) {
 			this.rating = this.data.rating.average;
