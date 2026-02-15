@@ -3,10 +3,11 @@
 	"version": "1.0.0",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
 	"type": "module",
+	
 	"scripts": {
 		"test": "eslint .",
 		"build-all": "rollup -c user.js/rollup.config.js && build.bat chrome && build.bat firefox",
-		"build-chrome": "rollup -c user.js/rollup.config.js && build.bat chrome",
+		"build-chrome": "rollup -c user.js/rollup.config.js --watch && build.bat chrome",
 		"build-firefox": "rollup -c user.js/rollup.config.js && build.bat firefox"
 	},
 	"repository": "https://github.com/duncanlang/Letterboxd-Extras.git",
@@ -30,8 +31,12 @@
 			"es6": true,
 			"webextensions": true
 		},
+		"parserOptions": {
+			"sourceType": "module"
+		},
 		"rules": {
 			"func-names": 0,
+			"radix": 0,
 			"capitalized-comments": 0,
 			"max-len": 0,
 			"id-length": 0,
@@ -39,6 +44,7 @@
 			"no-throw-literal": 0,
 			"no-invalid-this": 0,
 			"no-console": 0,
+			"no-negated-condition": 0,
 			"padded-blocks": 0,
 			"quote-props": 0
 		}
