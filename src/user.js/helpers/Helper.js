@@ -260,9 +260,6 @@ export class Helper {
 
 		const { hideRatings } = this.pageState;
 
-		console.log(hideRatings);
-		console.log(this.storage.get('hide-ratings-enabled'));
-
 		if (hideRatings) {
 			sidebar = document.querySelector('.extras-ratings-holder');
 
@@ -417,7 +414,7 @@ export class Helper {
 	 * @returns {{ tooltip: string, score: string | number, totalScore: string }}
 	 * @protected
 	 */
-	_handleAverageScore(score, altScore) {
+	_getAverageScore(score, altScore) {
 
 		let totalScore = '/10';
 
@@ -470,7 +467,7 @@ export class Helper {
 			display: 'inline-block'
 		});
 
-		const { tooltip, score, totalScore } = this._handleAverageScore(this.rating, this.ratingAlt);
+		const { tooltip, score, totalScore } = this._getAverageScore(this.rating, this.ratingAlt);
 		this.tooltip = tooltip;
 
 		// The element that is the score itself

@@ -93,16 +93,48 @@ export class SimklHelper extends Helper {
 			style: `position: absolute; background-image: url("${browser.runtime.getURL('images/simkl-logo.png')}");`
 		}, 'height: 13px');
 
+		const { isMobile } = this.pageState;
+
 		// Score
 		//* **************************************************************
 		const container = this.helpers.createElement('span', {}, {
 			'display': 'block',
-			'margin-bottom': '10px',
-			'margin-top': '5px'
+			'margin-bottom': '10px'
 		});
 		section.append(container);
 
-		container.append(this._generateScoreSpan(this.linkURL));
+
+		const { tooltip, score, totalScore } = this._getAverageScore(this.rating);
+
+		// The span that holds the score
+		const span = this.helpers.createElement('a', {
+			class: 'simkl-box tooltip tooltip-extra',
+			'href': this.linkURL,
+			'data-original-title': tooltip
+		}, {
+			'display': 'inline-block',
+			'width': 'auto'
+		});
+
+		// The element that is the score itself
+		const text = this.helpers.createElement('span', {
+			class: 'display-rating -highlight simkl-score'
+		});
+
+		if (isMobile === true) {
+			text.setAttribute('class', `${text.getAttribute('class')} extras-mobile`);
+		}
+		text.innerText = score;
+		span.append(text);
+
+		// Add the element /10 or /5 depending on score
+		const scoreTotal = this.helpers.createElement('p', {
+			style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
+		});
+		scoreTotal.innerText = totalScore;
+		span.append(scoreTotal);
+
+		container.append(span);
 
 		// Add the tooltip as text for mobile
 		this._createRatingDetailsText(section, this.tooltip);
@@ -119,62 +151,3 @@ export class SimklHelper extends Helper {
 	}
 
 }
-
-/* Simkl Accurate Ratings Area
-			const container = letterboxd.helpers.createElement('span', {}, {
-				['display']: 'block',
-				['margin-bottom']: '10px'
-			});
-			section.append(container);
-
-			// Setup Score and Tooltip
-			var score = this.simkl.rating;
-			var totalScore = "/10";
-			if (letterboxd.storage.get('convert-ratings') === "5") {
-				totalScore = "/5";
-				score = (score / 2);
-			}
-			score = score.toFixed(1).toLocaleString();
-			var num_ratings = this.simkl.num_ratings.toLocaleString();
-
-			// Add the hoverover text and href
-			var tooltip = 'No score available';
-			if (this.simkl.num_ratings > 0 && this.simkl.rating == null) {
-				tooltip = num_ratings + ' rating';
-				if (this.simkl.num_ratings > 1) tooltip += "s";
-				score = "N/A";
-
-			} else if (this.simkl.num_ratings > 0) {
-				tooltip = "Average of " + score.toLocaleString() + totalScore + " based on " + num_ratings + ' ratings';
-			} else {
-				score = "N/A";
-			}
-
-			// The span that holds the score
-			const span = letterboxd.helpers.createElement('a', {
-				class: "simkl-box tooltip tooltip-extra",
-				['href']: this.simkl.url,
-				['data-original-title']: tooltip
-			}, {
-				['display']: 'inline-block',
-				['width']: 'auto'
-			});
-
-			// The element that is the score itself
-			const text = letterboxd.helpers.createElement('span', {
-				class: 'display-rating -highlight simkl-score'
-			});
-			if (this.isMobile == true) text.setAttribute("class", text.getAttribute("class") + " extras-mobile");
-			text.innerText = score;
-			span.append(text);
-
-			// Add the element /10 or /5 depending on score
-			const scoreTotal = letterboxd.helpers.createElement('p', {
-				style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
-			});
-			scoreTotal.innerText = totalScore;
-			span.append(scoreTotal);
-
-			container.append(span);
-
-			*/
