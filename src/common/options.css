@@ -1,26 +1,55 @@
+html {
+  scroll-padding-top: 60px;
+}
+
 body {
     --body-text-color: #000;
     --body-back-color: #ffffff;
     --body-text-alt-color: #7d7d7d;
+    --body-text-alt2-color: #f4f4f4;
+    --border-color: #bfbfc9;
+    --box-shadow-level-1: 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --background-color-canvas: #f0f0f4;
+    --color-accent-primary: oklch(55% 0.24 260);
+    --color-accent-primary-hover: oklch(48% 0.2 260);
+    --color-accent-primary-active: oklch(41% 0.17 260);
 
     color: var(--body-text-color);
     background-color: var(--body-back-color);
 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-    min-width: 450px;
+    margin: 0px;
 }
 
-h3,
-label,
-p,
-a,
-input#export,
-input#import,
-input#reset,
-input#importbutton,
-input#importpicker,
-input#requestall {
+body.android{
+    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
+}
+
+body.firefox:not(.android.popup){
+    min-width: 350px;
+}
+
+body.firefox.popup:not(.android){
+    min-width: 450px;
+    max-width: 500px;
+}
+
+body.chrome{
+    min-width: 500px;
+}
+
+hr {
+    width: 98%;
+}
+
+body.android div{
+    margin-left: 5px;
+    margin-right: 5px;
+}
+body:not(.android) div{
     margin-left: 15px;
     margin-right: 15px;
 }
@@ -34,7 +63,7 @@ input#reset {
     margin-top: 25px;
 }
 
-p {
+p.info-tip {
     margin-top: 0px;
     font-style: italic;
     font-size: 11px;
@@ -56,7 +85,7 @@ a:hover {
 
 label {
     display: inline-block;
-    width: 175px;
+    width: 200px;
     margin-bottom: 10px;
 }
 
@@ -77,4 +106,74 @@ label {
 
 .hyperlink {
     color: rgb(51, 167, 255);
+    display: block;
+}
+
+/* Top navigation bar */
+.topnav {
+    background-color: var(--background-color-canvas);
+    border-color: var(--border-color);
+    border-width: 1px;
+    border-style: none none solid none;
+    box-shadow: var(--box-shadow-level-1);
+    overflow: hidden;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    position: sticky;
+    z-index: 100;
+    top: 0px;
+}
+
+.topnav div {
+    display: inline;
+    margin-left: 10px;
+    font-size: 11px;
+}
+
+.topnav p {
+    color: var(--body-text-color);
+    text-align: center;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    display: inline-block;
+    width: auto;
+    border-radius: 4px;
+    margin: 3px;
+}
+.topnav p:hover {
+    cursor: pointer;
+}
+
+.topnav p:hover {
+    color: var(--body-text-alt2-color);
+    background-color: var(--color-accent-primary);
+}
+
+/* Sortable list */
+.sortable-list {
+    list-style: none;
+    padding: 0;
+    width: 250px;
+    margin-left: 15px;
+    border-radius: 10px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+.sortable-item {
+    padding: 3px 5px;
+    margin: 3px 0;
+    background: color-mix(in srgb, currentColor 7%, transparent);
+    border-radius: 3px;
+    color: var(--body-text-color);
+    cursor: grab;
+    box-shadow: var(--box-shadow-level-1);
+    transition: background 0.2s, transform 0.2s;
+}
+.sortable-item:hover {
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    transform: scale(1.01);
+}
+.sortable-item.dragging {
+    border: 2px dashed var(--color-accent-primary);
+    background: color-mix(in srgb, currentColor 21%, transparent);
 }

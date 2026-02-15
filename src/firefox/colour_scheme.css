@@ -3,6 +3,11 @@
         --body-text-color: #000;
         --body-back-color: #ffffff;
         --body-text-alt-color: #7d7d7d;
+        --body-text-alt2-color: #f4f4f4;
+        --border-color: #bfbfc9;
+        --box-shadow-level-1: 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2);
+        --background-color-canvas: #f0f0f4;
+        --color-accent-primary: oklch(55% 0.24 260);
     }
 }
 
@@ -11,5 +16,10 @@
         --body-text-color: #f4f4f4;
         --body-back-color: #23222b;
         --body-text-alt-color: #a3a2a7;
+        --body-text-alt2-color: #000;
+        --border-color: #5b5b66;
+        --box-shadow-level-1: 0 0 1px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.4);
+        --background-color-canvas: #1c1b22;
+        --color-accent-primary: oklch(76% 0.14 205);
     }
 }

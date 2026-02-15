@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
-	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
+	"description": "Adds extra features to Letterboxd.",
 	"version": "3.18.0",
 	"minimum_chrome_version": "88",
 	
@@ -11,12 +11,24 @@
 		"default_icon": {
 			"16": "icon16.png",
 			"32": "icon32.png",
-			"128": "icon128.png"
+			"48": "icon48.png",
+			"64": "icon64.png",
+			"96": "icon96.png",
+			"128": "icon128.png",
+			"256": "icon256.png",
+			"512": "icon512.png"
 		}
 	},
 
 	"icons": {
-		"128": "icon128.png"
+		"16": "icon16.png",
+		"32": "icon32.png",
+		"48": "icon48.png",
+		"64": "icon64.png",
+		"96": "icon96.png",
+		"128": "icon128.png",
+		"256": "icon256.png",
+		"512": "icon512.png"
 	},
 
 	"options_ui": {

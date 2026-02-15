@@ -89,6 +89,12 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             var permissions = await browser.permissions.getAll();
             return permissions;
         })();
+
+    } else if (msg.name == "GETDEFAULTRATINGSORDER") {
+        (async () => {
+            var ratingsOrder = getDefaultRatingsOrder();
+            response({ value: ratingsOrder });
+        })();
     }
 
     return true;
@@ -188,9 +194,47 @@ async function InitDefaultSettings() {
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
+    else if (options["hide-ratings-enabled"] === false){
+        options['hide-ratings-enabled'] = 'false';
+    }
 
     // Save
     await browser.storage.sync.set({ options });
+}
+
+function getDefaultRatingsOrder(){
+    var defaultOrder = [
+        'imdb-ratings',
+        'mal-ratings',
+        'al-ratings',
+        'allocine-ratings',
+        'tomato-ratings',
+        'meta-ratings',
+        'sens-ratings',
+        'mubi-ratings',
+        'filmaff-ratings',
+        'simkl-ratings',
+        'kinopoisk-ratings',
+        'filmarks-ratings',
+        'cinemascore'
+    ];
+
+    return defaultOrder;
+}
+
+function UpdateRatingsOrder(currentOrder){
+    if (currentOrder == null)
+        currentOrder = [];
+
+    var defaultOrder = getDefaultRatingsOrder();
+
+    for (var i = 0; i < defaultOrder.length; i++){
+        if (!currentOrder.includes(defaultOrder[i])){
+            currentOrder.push(defaultOrder[i]);
+        }
+    }
+
+    return currentOrder;
 }
 
 async function InitLocalStorage(){

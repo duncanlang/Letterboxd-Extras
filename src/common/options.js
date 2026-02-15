@@ -8,6 +8,12 @@ if (isChrome)
 let isAndroid = (navigator.userAgent.includes('Android'));
 let isPopup = window.location.search.includes('type=action');
 
+if (isAndroid)
+    document.body.classList.add("android");
+
+if (isPopup)
+    document.body.classList.add("popup");
+
 if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
 
@@ -57,6 +63,52 @@ async function set() {
             }
         }
         checkSubIDToDisable(element);
+    }
+
+
+    var ratingsOrder = options['ratings-order'];
+    if (ratingsOrder == null){
+        browser.runtime.sendMessage({ name: "GETDEFAULTRATINGSORDER" }, (value) => {
+            ratingsOrder = value.value;
+            options['ratings-order'] = value.value;;
+            SetRatingsOrder(ratingsOrder);
+            save();
+        });
+    }else{
+        SetRatingsOrder(ratingsOrder);
+    }
+}
+
+function SetRatingsOrder(ratingsOrder){
+    var ratingIdMapping = [
+        { key: "imdb-ratings", value: "IMDb"},
+        { key: "mal-ratings", value: "MyAnimeList"},
+        { key: "al-ratings", value: "AniList"},
+        { key: "allocine-ratings", value: "AlloCiné"},
+        { key: "tomato-ratings", value: "Rotten Tomatoes"},
+        { key: "meta-ratings", value: "Metacritic"},
+        { key: "sens-ratings", value: "SensCritique"},
+        { key: "mubi-ratings", value: "Mubi"},
+        { key: "filmaff-ratings", value: "FilmAffinity"},
+        { key: "simkl-ratings", value: "Simkl"},
+        { key: "kinopoisk-ratings", value: "Kinopoisk"},
+        { key: "filmarks-ratings", value: "Filmarks"},
+        { key: "cinemascore", value: "CinemaScore"},
+    ];
+
+    var listElement = document.querySelector('ul#ratings-order');
+    listElement.textContent = '';
+    for (var i = 0; i < ratingsOrder.length; i++){
+        var key = ratingsOrder[i];
+        var name = ratingIdMapping.find(x => x.key == key).value;
+
+        var li = document.createElement('li');
+        li.innerText = name;
+        li.classList.add('sortable-item');
+        li.setAttribute('draggable', 'true');
+        li.setAttribute('rating-id', key);
+        
+        listElement.append(li);
     }
 }
 
@@ -146,6 +198,10 @@ document.addEventListener('change', event => {
                     checkSubIDToDisable(element);
                 });
             }
+        }
+
+        if (element.id == 'override-ratings-order' && element.checked == false){
+            ResetRatingsOrder();
         }
     }
 });
@@ -265,6 +321,13 @@ document.addEventListener('click', event => {
         case "requestall":
             RequestAllMissingPermissions();
             break;
+        case "reset-rating-order":
+            ResetRatingsOrder();
+            break;
+    }
+
+    if (event.target.className == 'nav-item'){
+        scrollToSection(event.target.getAttribute('sectionId'));
     }
 });
 
@@ -593,4 +656,105 @@ async function RequestAllMissingPermissions(){
         }
     }
     await set();
+}
+
+// Sortable List
+// https://www.geeksforgeeks.org/html/create-a-drag-and-drop-sortable-list-using-html-css-javascript/
+// modified to work with touch
+const list = document.querySelector('.sortable-list');
+let draggingItem = null;
+
+// Mouse Events
+list.addEventListener('dragstart', (e) => {
+    draggingItem = e.target;
+    e.target.classList.add('dragging');
+});
+
+list.addEventListener('dragend', (e) => {
+    handleDragEnd(e.target);
+});
+
+list.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(list, e.clientY);
+    updateListPosition(afterElement);
+});
+
+// Touch Events
+list.addEventListener('touchstart', (e) => {
+    // We target the closest sortable-item in case the handle was touched
+    draggingItem = e.target.closest('.sortable-item');
+    if (!draggingItem) return;
+    
+    draggingItem.classList.add('dragging');
+    // Prevent scrolling while dragging
+    e.preventDefault(); 
+}, { passive: false });
+
+list.addEventListener('touchmove', (e) => {
+    if (!draggingItem) return;
+    e.preventDefault();
+
+    // Get the finger position
+    const touch = e.touches[0];
+    const afterElement = getDragAfterElement(list, touch.clientY);
+    
+    updateListPosition(afterElement);
+}, { passive: false });
+
+list.addEventListener('touchend', (e) => {
+    if (!draggingItem) return;
+    handleDragEnd(draggingItem);
+});
+
+function updateListPosition(afterElement) {
+    if (afterElement) {
+        list.insertBefore(draggingItem, afterElement);
+    } else {
+        list.appendChild(draggingItem);
+    }
+}
+
+function handleDragEnd(item) {
+    item.classList.remove('dragging');
+    document.querySelectorAll('.sortable-item')
+        .forEach(i => i.classList.remove('over'));
+    
+    SaveSortableList(list);
+    draggingItem = null;
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function SaveSortableList(list){
+    var key = list.id;
+    var items = list.querySelectorAll('.sortable-item');
+    var newArray = Array.from(items).map(child => child.getAttribute('rating-id'));
+
+    options[key] = newArray;
+    save();
+}
+
+function ResetRatingsOrder(){
+    browser.runtime.sendMessage({ name: "GETDEFAULTRATINGSORDER" }, (value) => {
+        options['ratings-order'] = value.value;
+        set();
+        save();
+    });
+}
+
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    section.scrollIntoView({ behavior: 'smooth' });
 }

@@ -126,6 +126,7 @@ GM_addStyle(`
 
 		.ratings-extras{
 			margin-top: 20px !important;
+			padding-bottom: 0px !important;
 		}
 		
 		.ratings-extras.extras-chart .section-heading-extras{
@@ -892,18 +893,33 @@ const letterboxd = {
 			}
 
 			// Determine watch status and hide status
-			if (this.filmWatched == null && this.loggedIn != null){
+			if (this.filmWatched == null && this.loggedIn != null && letterboxd.storage.syncInitilized == true){
 				if (this.loggedIn == false){
 					// If not logged in, only base the hiding on the addon settings
-					this.filmWatched = this.pageState.filmWatched = false;
-					this.hideRatings = this.pageState.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "unchanged";
-					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "unchanged";
-				}else{
+					this.filmWatched = false;
+					this.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "false";
+					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "false";
+				}else if (this.filmWatched == null){
 					// If logged in, we need to check the watched status against the addon settings
-					var filmPosterDiv = document.querySelector('div.poster.film-poster');
-					if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.filmWatched == null){
-						this.filmWatched = this.pageState.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
+					var found = false;
 
+					if (this.isMobile && document.querySelector('.production-masthead') != null){
+						// Mobile - for whatever reason, the poster seems to load in last so I'm instead checking the action strip
+						var actionStrip = document.querySelector('a.actions-strip span.js-user-actions-menu-text span.prompt');
+						if (actionStrip != null){
+							this.filmWatched = actionStrip.innerText.includes("You’ve watched this");
+							found = true;
+						}
+					}else{
+						// Desktop - check if the poster has the attribute
+						var filmPosterDiv = document.querySelector('#js-poster-col div.poster.film-poster');
+						if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.filmWatched == null){
+							this.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
+							found = true;
+						}
+					}
+
+					if (found){
 						// Determine if ratings should be hidden
 						this.hideRatings = this.pageState.hideRatings = false;
 						if (letterboxd.storage.get('hide-ratings-enabled') !== "unchanged"){
@@ -3463,24 +3479,9 @@ const letterboxd = {
 		},
 
 		appendRating(rating, className) {
-			var order = [
-				'.imdb-ratings',
-				'.mal-ratings',
-				'.anilist-ratings',
-				'.allocine-ratings',
-				'.tomato-ratings',
-				'.meta-ratings',
-				'.sens-ratings',
-				'.mubi-ratings',
-				'.filmaff-ratings',
-				'.simkl-ratings',
-				'.kinopoisk-ratings',
-				'.anidb-ratings',
-				'.filmarks-ratings',
-				'.cinemascore'
-			];
+			var order = letterboxd.storage.get('ratings-order');
 
-			var index = order.indexOf('.' + className);
+			var index = order.indexOf(className);
 			var sidebar = document.querySelector('.sidebar');
 
 			if (this.hideRatings === true) {
@@ -3493,7 +3494,7 @@ const letterboxd = {
 
 			// First
 			for (var i = index + 1; i < order.length; i++) {
-				var temp = sidebar.querySelector(order[i]);
+				var temp = sidebar.querySelector('.' + order[i]);
 				if (temp != null) {
 					temp.before(rating);
 					return;
@@ -3502,7 +3503,7 @@ const letterboxd = {
 
 			// Second
 			for (var i = index - 1; i >= 0; i--) {
-				var temp = sidebar.querySelector(order[i]);
+				var temp = sidebar.querySelector('.' + order[i]);
 				if (temp != null) {
 					temp.after(rating);
 					return;
@@ -6493,13 +6494,14 @@ const letterboxd = {
 		data: {},
 		localData: {},
 
+		syncInitilized: false,
 		localInitilized: false,
 
 		async init() {
 			this.data = await browser.storage.sync.get('options').then(function (storedSettings) {
 				return storedSettings.options;
 			});
-				
+			this.syncInitilized = true;
 		},
 
 		async initLocal() {
