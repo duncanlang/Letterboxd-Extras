@@ -1825,7 +1825,7 @@ const letterboxd = {
 			if (this.wikiData.state == 2 && this.mojoData.state >= 2 && this.contentRatingAdded == false){
 				if (letterboxd.storage.get('content-ratings') === null || letterboxd.storage.get('content-ratings') === 'none'){
 					// Disabled, add nothing
-					this.contentRatingAdded == true;
+					this.contentRatingAdded = true;
 				}else{
 					// Enabled, get rating from data
 					this.contentRatingSystem = letterboxd.storage.get('content-ratings');
@@ -2825,7 +2825,7 @@ const letterboxd = {
 				durationElement.className += " extras-duration";
 
 			}
-			this.durationAdded == true;
+			this.durationAdded = true;
 		},
 
 		addDate(date) {
@@ -3217,82 +3217,6 @@ const letterboxd = {
 				this.appendRating(section, 'cinemascore');
 			}
 		},
-
-		/* addMAL() - Replaced by MyAnimeListHelper
-		addMAL() {
-			if (document.querySelector('.mal-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			// Init
-			this.mal.score = "N/A";
-			this.mal.scored_by = 0;
-
-			if (this.mal.data.score != null)
-				this.mal.score = this.mal.data.score;
-			if (this.mal.data.scored_by != null)
-				this.mal.scored_by = this.mal.data.scored_by;
-
-			// Return if there are no ratings
-			if (this.mal.scored_by == 0)
-				return;
-
-			// Create and Add
-			// Add the section to the page
-			const scoreSection = letterboxd.helpers.createChartSection("mal", {
-				href: this.mal.data.url + '/stats',
-				style: 'position: absolute; background-image: url("' + browser.runtime.getURL("images/mal-logo.png") + '");'
-			});
-
-			var showDetails = null;
-			if (this.isMobile) {
-				// Add the Show Details button
-				showDetails = letterboxd.helpers.createShowDetailsButton("mal", "mal-score-details");
-				scoreSection.append(showDetails);
-			}
-
-			// Loop first and determine highest votes
-			for (var ii = 0; ii < 10; ii++) {
-				if (this.mal.statistics.scores[ii].votes > this.mal.highest)
-					this.mal.highest = this.mal.statistics.scores[ii].votes;
-			}
-
-			scoreSection.append(letterboxd.helpers.createHistogramScore(
-				letterboxd.storage,
-				"mal",
-				this.mal.score,
-				this.mal.scored_by,
-				this.mal.data.url + '/reviews',
-				this.isMobile
-			));
-
-			scoreSection.append(letterboxd.helpers.createHistogramGraph(
-				letterboxd.storage,
-				"mal",
-				"",
-				this.mal.scored_by,
-				this.mal.statistics.scores,
-				this.mal.statistics.scores,
-				this.mal.highest
-			));
-
-			// Add the tooltip as text for mobile
-			var score = scoreSection.querySelector(".average-rating .tooltip");
-			var tooltip = "";
-			if (score != null) {
-				tooltip = score.getAttribute('data-original-title');
-				letterboxd.helpers.createDetailsText('mal', scoreSection, tooltip, this.isMobile);
-			}
-
-			// Append to the sidebar
-			//*****************************************************************
-			this.appendRating(scoreSection, 'mal-ratings');
-
-			// Add the hover events
-			//*****************************************************************
-			letterboxd.helpers.addTooltipEvents(scoreSection);
-		},
-		*/
 
 		searchSensCritique() {
 			this.sensCritique.state = 1;
