@@ -179,7 +179,7 @@ export class LetterboxdPerson {
 
 		// Collect basic info
 		//* ****************************************
-		const isAlive = this.wiki.Date_Of_Death === null || this.wiki.Date_Of_Death.value === null;
+		const isAlive = this.wiki.Date_Of_Death == null || this.wiki.Date_Of_Death.value == null;
 
 		// const options = { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' };
 		// const options2 = { year: 'numeric', timeZone: 'UTC' };

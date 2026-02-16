@@ -24,7 +24,7 @@ export class MyAnimeListHelper extends Helper {
 		const apiHeader = 'Jikan (MAL API)';
 
 		const url = `https://api.jikan.moe/v4/anime/${id}`;
-		this._apiRequestCallback(apiHeader, url, {}, response => {
+		this._apiRequestCallback(apiHeader, url, 'JSON', {}, response => {
 
 			if (!response.data) {
 				this.loadState = LOAD_STATES['Failure'];
@@ -34,7 +34,7 @@ export class MyAnimeListHelper extends Helper {
 			this.data = response.data;
 			this.linkURL = this.data.url;
 
-			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, {}, response => {
+			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, 'JSON', {}, response => {
 
 				if (!response.data) {
 
@@ -75,10 +75,13 @@ export class MyAnimeListHelper extends Helper {
 
 		// Create and Add
 		// Add the section to the page
-		const scoreSection = this._createChartSection({
-			href: `${this.data.url}/stats`,
-			style: `position: absolute; background-image: url("${browser.runtime.getURL('images/mal-logo.png')}");`
-		});
+		const scoreSection = this._createChartSection(
+			{
+				href: `${this.data.url}/stats`,
+				style: `position: absolute; background-image: url("${browser.runtime.getURL('images/mal-logo.png')}");`
+			},
+			"margin-bottom: 15px !important;"
+		);
 
 		// Loop first and determine highest votes
 		for (let ii = 0; ii < 10; ii++) {

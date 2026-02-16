@@ -13,6 +13,7 @@
 <body>
     <section class="topnav">
         <p class="nav-item" sectionId="ratings">Ratings</p>
+        <p class="nav-item" sectionId="spines">Spines</p>
         <p class="nav-item" sectionId="reorder">Reorder</p>
         <p class="nav-item" sectionId="search">Search</p>
         <p class="nav-item" sectionId="rankings">Rankings</p>
@@ -53,8 +54,8 @@
         <div>
             <h4>AniList</h4>
             <div>
-                <label for="anilist-enabled">Display AniList:</label>
-                <input type="checkbox" id="anilist-enabled" class="setting"/>
+                <label for="al-enabled">Display AniList:</label>
+                <input type="checkbox" id="al-enabled" class="setting"/>
             </div>
         </div>
         <div>
@@ -269,6 +270,7 @@
 
     <hr width="100%">
 
+    <!-- Spines -->
     <div id="spines">
         <h3>Physical Media Spines</h3>
         <div>
@@ -276,6 +278,7 @@
             <div id="criterion-div">
                 <label for="criterion-spine-default-view">Spine Number View:</label>
                 <select id="criterion-spine-default-view"class="setting">
+                    <option value="None">None</option>
                     <option value="Row">Row</option>
                     <option value="Column">Column</option>
                     <option value="Left/Right">Left/Right</option>

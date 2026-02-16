@@ -23,7 +23,7 @@ export class MubiHelper extends Helper {
 
 		const options = this._getMubiHeaders();
 
-		this._apiRequestCallback('Mubi', mubiURL, options, response => {
+		this._apiRequestCallback('Mubi', mubiURL, 'JSON', options, response => {
 
 			if (response !== '') {
 				this.data = response;

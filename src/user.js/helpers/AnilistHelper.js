@@ -34,7 +34,7 @@ export class AnilistHelper extends Helper {
 
 		this.loadState = LOAD_STATES['Loading'];
 
-		this._apiRequestCallback('Anilist API', url, options, response => {
+		this._apiRequestCallback('Anilist API', url, 'JSON', options, response => {
 
 			const anilistResponse = response;
 
@@ -92,7 +92,7 @@ export class AnilistHelper extends Helper {
 
 		// Create and Add
 		// Add the section to the page
-		const scoreSection = this._createChartSectionElement();
+		const scoreSection = this._createChartSectionElement(true);
 		const heading = this._createChartSectionHeader();
 		scoreSection.append(heading);
 

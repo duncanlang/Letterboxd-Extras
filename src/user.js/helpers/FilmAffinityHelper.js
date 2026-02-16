@@ -23,7 +23,7 @@ export class FilmAffinityHelper extends Helper {
 		}
 
 		this.linkURL = `https://www.filmaffinity.com/${locale}/film${id}.html`;
-		this._apiRequestCallback('FilmAffinity', this.linkURL, {}, response => {
+		this._apiRequestCallback('FilmAffinity', this.linkURL, 'HTML', {}, response => {
 
 			const filmaffData = response;
 			if (filmaffData !== '') {
@@ -110,7 +110,7 @@ export class FilmAffinityHelper extends Helper {
 		section.append(container);
 
 		container.append(this._generateScoreSpan({
-			href: this.linkUrl
+			href: this.linkURL
 		}));
 
 		// Add the tooltip as text for mobile

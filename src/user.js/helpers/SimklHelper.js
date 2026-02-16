@@ -32,7 +32,7 @@ export class SimklHelper extends Helper {
 		}
 		url += '&fields=rank,simkl';
 
-		this._apiRequestCallback('Simkl', url, {}, response => {
+		this._apiRequestCallback('Simkl', url, 'JSON', {}, response => {
 
 			this.data = response;
 

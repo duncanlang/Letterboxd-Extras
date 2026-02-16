@@ -94,6 +94,7 @@ function SetRatingsOrder(ratingsOrder){
         { key: "kinopoisk-ratings", value: "Kinopoisk"},
         { key: "filmarks-ratings", value: "Filmarks"},
         { key: "cinemascore", value: "CinemaScore"},
+        { key: "douban-ratings", value: "Douban"},
     ];
 
     var listElement = document.querySelector('ul#ratings-order');

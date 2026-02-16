@@ -16,7 +16,7 @@ export class KinopoiskHelper extends Helper {
 		const options = this._getHeaders();
 		const apiURL = `https://kinopoiskapiunofficial.tech/api/v2.2/films/${kinopoiskID}`;
 
-		this._apiRequestCallback('Kinopoisk', apiURL, options, response => {
+		this._apiRequestCallback('Kinopoisk', apiURL, 'JSON', options, response => {
 
 			this.data = response;
 			this.loadState = LOAD_STATES['Success'];
@@ -37,7 +37,7 @@ export class KinopoiskHelper extends Helper {
 			return;
 		}
 
-		// Collect Date from the SIMKL API
+		// Collect Date from the Kinopoisk API
 		//* **************************************************************
 
 		if (this.data.ratingKinopoisk !== null) {

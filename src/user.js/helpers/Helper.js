@@ -147,12 +147,12 @@ export class Helper {
 	 * @param {function(Object): void} dataLoadCallback - Callback function to process the successful API response
 	 * @protected
 	 */
-	_apiRequestCallback(errorHeader, url, options, dataLoadCallback) {
+	_apiRequestCallback(errorHeader, url, type, options, dataLoadCallback) {
 		try {
 
 			const request = {
 				name: 'GETDATA',
-				type: 'JSON',
+				type: type,
 				url: url
 			};
 
@@ -483,11 +483,17 @@ export class Helper {
 		scoreSpan.append(scoreText);
 
 		// Create score denominator
-		const scoreTotal = this.helpers.createElement('p', {
-			style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
-		});
-		scoreTotal.innerText = totalScore;
-		scoreSpan.append(scoreTotal);
+		// Only add the denominator to match the styles of specific sites
+		if (this.selectorPrefix === 'mubi' ||
+			this.selectorPrefix === 'kinopoisk' ||
+			this.selectorPrefix === 'simkl'
+		){
+			const scoreTotal = this.helpers.createElement('p', {
+				style: 'display: inline-block; font-size: 10px; color: darkgray; margin-bottom: 0px;'
+			});
+			scoreTotal.innerText = totalScore;
+			scoreSpan.append(scoreTotal);
+		}
 
 		return scoreSpan;
 
@@ -498,11 +504,17 @@ export class Helper {
 	 * @returns {HTMLSectionElement}
 	 * @protected
 	 */
-	_createChartSectionElement() {
+	_createChartSectionElement(isChart) {
 
-		return this.helpers.createElement('section', {
-			class: `section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras extras-chart`
-		});
+		if (isChart){
+			return this.helpers.createElement('section', {
+				class: `section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras extras-chart`
+			});
+		}else{
+			return this.helpers.createElement('section', {
+				class: `section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras`
+			});
+		}
 
 	}
 
@@ -594,7 +606,7 @@ export class Helper {
 
 		const { isMobile } = this.pageState;
 
-		const chartSection = this._createChartSectionElement();
+		const chartSection = this._createChartSectionElement(false);
 		const heading = this._createChartSectionHeader(headerStyle);
 		chartSection.append(heading);
 
@@ -745,15 +757,22 @@ export class Helper {
 	}
 
 	_addSpineIndicator({ logoSVG, title, spineID }) {
+		const { isMobile } = this.pageState;
+
 		if (this.spineAdded) return;
 
-		const posterSection = document.querySelector('section.poster-list.-p230.-single');
+		var posterSection = null;
+		if (isMobile){
+			posterSection = document.querySelector('div.poster-list.-p230.-single');
+		}else{
+			posterSection = document.querySelector('section.poster-list.-p230.-single');
+		}
 		if (posterSection === null) return;
 
 		if (posterSection.querySelector('.extras-spine-indicator') !== null) return;
 
 		const spineLinkAttrs = {
-			class: 'extras-spine-indicator criterion-spine',
+			class: `extras-spine-indicator criterion-spine${isMobile ? ' mobile' : ''}`,
 			href: this.linkURL,
 			title: `${title} - Spine #${spineID}`,
 			target: '_blank',
@@ -761,7 +780,10 @@ export class Helper {
 		};
 
 		const viewMode = this.storage.get('criterion-spine-default-view');
-		if (viewMode === 'Row') {
+		if (viewMode === 'None'){
+			this.spineAdded = true;
+			return;
+		} else if (viewMode === 'Row') {
 			spineLinkAttrs['data-view'] = 'row';
 		} else if (viewMode === 'Left/Right') {
 			spineLinkAttrs['data-view'] = 'left-right';
@@ -788,7 +810,11 @@ export class Helper {
 
 		}
 
-		posterSection.prepend(spineLink);
+		if (isMobile){
+			posterSection.append(spineLink);
+		}else{
+			posterSection.prepend(spineLink);
+		}
 		this.spineAdded = true;
 
 		browser.storage.onChanged.addListener((changes, area) => {

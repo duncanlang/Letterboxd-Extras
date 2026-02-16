@@ -143,7 +143,7 @@ async function InitDefaultSettings() {
     if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
     if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
     if (options['mal-enabled'] == null) options['mal-enabled'] = true;
-    if (options['anilist-enabled'] == null) options['anilist-enabled'] = true;
+    if (options['al-enabled'] == null) options['al-enabled'] = true;
     if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
     if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
@@ -186,6 +186,7 @@ async function InitDefaultSettings() {
     if (options['filmarks-enabled'] == null) options['filmarks-enabled'] = false;
     if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'unchanged';
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
+    if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';
@@ -194,8 +195,13 @@ async function InitDefaultSettings() {
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
     }
-    else if (options["hide-ratings-enabled"] === false){
-        options['hide-ratings-enabled'] = 'false';
+
+    if (options["override-ratings-order"] == null) options["override-ratings-order"] = false;
+
+    if (options["override-ratings-order"] === false || options["ratings-order"] == null) {
+        options["ratings-order"] = getDefaultRatingsOrder();
+    } else {
+        options["ratings-order"] = UpdateRatingsOrder(options["ratings-order"]);
     }
 
     // Save
@@ -216,6 +222,7 @@ function getDefaultRatingsOrder(){
         'simkl-ratings',
         'kinopoisk-ratings',
         'filmarks-ratings',
+        'douban-ratings',
         'cinemascore'
     ];
 
