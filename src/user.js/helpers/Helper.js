@@ -240,8 +240,6 @@ export class Helper {
 		const index = order.indexOf(className);
 		let sidebar = document.querySelector('.sidebar');
 
-		console.log(`Rating classname: ${className} | Index: ${index}`)
-
 		const { hideRatings } = this.pageState;
 
 		if (hideRatings) {
