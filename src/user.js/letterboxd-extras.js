@@ -907,7 +907,7 @@ const letterboxd = {
 				if (this.loggedIn == false){
 					// If not logged in, only base the hiding on the addon settings
 					this.filmWatched = this.pageState.filmWatched = false;
-					this.hideRatings = this.pageState.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "false";
+					this.hideRatings = this.pageState.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "unchanged";
 					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "false";
 				}else if (this.filmWatched == null){
 					// If logged in, we need to check the watched status against the addon settings
