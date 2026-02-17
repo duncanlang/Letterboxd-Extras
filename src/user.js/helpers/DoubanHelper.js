@@ -55,14 +55,14 @@ export class DoubanHelper extends Helper {
 			return;
 		}
 
-		if (this.data.rating.average !== null) {
+		if (this.data.rating.average != null && this.data.rating.average > 0) {
 			this.rating = this.data.rating.average;
 		}
-		if (this.data.rating.numRaters !== null) {
+		if (this.data.ratings_count != null) {
 			this.num_ratings = this.data.ratings_count;
 		}
 
-		if (this.rating === null && this.num_ratings === 0) return;
+		if (this.rating == null && this.num_ratings === 0) return;
 
 
 		const section = this._createChartSection(

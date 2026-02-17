@@ -40,15 +40,15 @@ export class KinopoiskHelper extends Helper {
 		// Collect Date from the Kinopoisk API
 		//* **************************************************************
 
-		if (this.data.ratingKinopoisk !== null) {
+		if (this.data.ratingKinopoisk != null) {
 			this.rating = this.data.ratingKinopoisk;
 		}
-		if (this.data.ratingKinopoiskVoteCount !== null) {
+		if (this.data.ratingKinopoiskVoteCount != null) {
 			this.num_ratings = this.data.ratingKinopoiskVoteCount;
 		}
 
 		// Do not display if there is no score or ratings
-		if (this.rating === null && this.num_ratings === 0) return;
+		if (this.rating == null && this.num_ratings === 0) return;
 
 		// Add to Letterboxd
 		//* **************************************************************

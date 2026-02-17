@@ -36,7 +36,7 @@ export class SimklHelper extends Helper {
 
 			this.data = response;
 
-			if (this.data === null || this.data === 'null') {
+			if (this.data == null || this.data === 'null') {
 
 				this.loadState = LOAD_STATES['Failure'];
 				console.error('Letterboxd Extras | Simkl API error: null response');
@@ -44,7 +44,7 @@ export class SimklHelper extends Helper {
 
 			}
 
-			if (this.data.error && this.date.error !== null) {
+			if (this.data.error && this.date.error != null) {
 
 				this.loadState = LOAD_STATES['Failure'];
 				console.error(`Letterboxd Extras | Simkl API error: ${this.data.code} ${this.data.message}`);
@@ -54,7 +54,7 @@ export class SimklHelper extends Helper {
 
 			this.loadState = LOAD_STATES['Success'];
 
-			if (this.data.link !== null) {
+			if (this.data.link != null) {
 
 				this.linkURL = this.data.link;
 				this.addButtonLink(this.linkURL, 'SIMKL');
@@ -73,15 +73,15 @@ export class SimklHelper extends Helper {
 			return;
 		}
 
-		if (this.data.simkl !== null && this.data.simkl.rating !== null) {
+		if (this.data.simkl != null && this.data.simkl.rating != null) {
 			this.rating = this.data.simkl.rating;
 		}
-		if (this.data.simkl !== null && this.data.simkl.votes !== null) {
+		if (this.data.simkl != null && this.data.simkl.votes != null) {
 			this.num_ratings = this.data.simkl.votes;
 		}
 
 		// Do not display if there is no score or ratings
-		if (this.rating === null && this.num_ratings === 0) {
+		if (this.rating == null && (this.num_ratings == null || this.num_ratings === 0)) {
 			return;
 		}
 
@@ -137,7 +137,7 @@ export class SimklHelper extends Helper {
 		container.append(span);
 
 		// Add the tooltip as text for mobile
-		this._createRatingDetailsText(section, this.tooltip);
+		this._createRatingDetailsText(section, tooltip);
 
 		// APPEND to the sidebar
 		//* ***********************************************************

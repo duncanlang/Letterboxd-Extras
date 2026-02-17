@@ -132,7 +132,7 @@ export class MubiHelper extends Helper {
 		this.url = this.data.web_url;
 
 		// Do not display if there is no score or ratings
-		if (this.rating === null && this.num_ratings === 0) return;
+		if (this.rating == null && this.num_ratings === 0) return;
 
 		// Add to Letterboxd
 		//* **************************************************************

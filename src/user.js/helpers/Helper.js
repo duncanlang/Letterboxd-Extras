@@ -230,33 +230,17 @@ export class Helper {
 	 * @param {HTMLElement} rating - The html that will be appending to the ratings sidebar
 	 */
 	appendSidebarRating(rating) {
-		const order = [
-			'.imdb-ratings',
-			'.mdl-ratings',
-			'.mal-ratings',
-			'.anilist-ratings',
-			'.allocine-ratings',
-			'.tomato-ratings',
-			'.meta-ratings',
-			'.sens-ratings',
-			'.mubi-ratings',
-			'.filmaff-ratings',
-			'.simkl-ratings',
-			'.kinopoisk-ratings',
-			'.douban-ratings',
-			'.anidb-ratings',
-			'.filmarks-ratings',
-			'.cinemascore'
-		];
-
+		var order = this.storage.get('ratings-order');
 
 		let className = this.selectorPrefix;
 		if (this.selectorPrefix !== 'cinemascore') {
 			className = `${this.selectorPrefix}-ratings`;
 		}
 
-		const index = order.indexOf(`.${className}`);
+		const index = order.indexOf(className);
 		let sidebar = document.querySelector('.sidebar');
+
+		console.log(`Rating classname: ${className} | Index: ${index}`)
 
 		const { hideRatings } = this.pageState;
 
@@ -270,7 +254,7 @@ export class Helper {
 
 		// First
 		for (let i = index + 1; i < order.length; i++) {
-			const temp = sidebar.querySelector(order[i]);
+			const temp = sidebar.querySelector(`.${order[i]}`);
 			if (temp !== null) {
 				temp.before(rating);
 				return;
@@ -279,7 +263,7 @@ export class Helper {
 
 		// Second
 		for (let i = index - 1; i >= 0; i--) {
-			const temp = sidebar.querySelector(order[i]);
+			const temp = sidebar.querySelector(`.${order[i]}`);
 			if (temp !== null) {
 				temp.after(rating);
 				return;
@@ -426,14 +410,14 @@ export class Helper {
 		let tooltip = 'No score available';
 		const ratingsText = `rating${this.num_ratings > 0 ? 's' : ''}`;
 
-		if (score === null && this.num_ratings === 0) {
+		if (score == null && this.num_ratings === 0) {
 
 			score = 'N/A';
 			return { tooltip, score, totalScore };
 
 		}
 
-		if (this.num_ratings > 0 && this.rating === null) {
+		if (this.num_ratings > 0 && this.rating == null) {
 
 			tooltip = `${this.num_ratings} ${ratingsText}`;
 			score = 'N/A';
@@ -441,8 +425,14 @@ export class Helper {
 
 		}
 
-		score = score.toFixed(1);
-		tooltip = `Average of ${score.toLocaleString()}${totalScore} based on ${this.num_ratings.toLocaleString()} ${ratingsText}`;
+		try{
+			score = score.toFixed(1);
+			tooltip = `Average of ${score.toLocaleString()}${totalScore} based on ${this.num_ratings.toLocaleString()} ${ratingsText}`;
+		}
+		catch (e){
+			console.error(this.selectorPrefix);
+		}
+
 
 		return { tooltip, score, totalScore };
 

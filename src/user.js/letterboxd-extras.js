@@ -1518,7 +1518,7 @@ const letterboxd = {
 									}
 
 									// Get Kinopoisk data
-									if (this.wiki != null && this.wiki.Kinopoisk_ID !== null && letterboxd.storage.get('kinopoisk-enabled') === true){
+									if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
 										this.kinopoiskHelper.getData(this.wiki.Kinopoisk_ID.value);
 									}
 
@@ -3435,7 +3435,7 @@ const letterboxd = {
 
 			// First
 			for (var i = index + 1; i < order.length; i++) {
-				var temp = sidebar.querySelector('.' + order[i]);
+				var temp = sidebar.querySelector(`.${order[i]}`);
 				if (temp != null) {
 					temp.before(rating);
 					return;
@@ -3444,7 +3444,7 @@ const letterboxd = {
 
 			// Second
 			for (var i = index - 1; i >= 0; i--) {
-				var temp = sidebar.querySelector('.' + order[i]);
+				var temp = sidebar.querySelector(`.${order[i]}`);
 				if (temp != null) {
 					temp.after(rating);
 					return;
@@ -3651,13 +3651,13 @@ const letterboxd = {
 			}
 
 			// Regex match - include match with director (for HISTOIRE(S) DU CINÉMA) or year (for  LOS OLVIDADOS)
-			var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ") (\\((" + director + "),|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",.+\\))");
+			var regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\) (" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ") (\\((" + director + "),|\\([A-Za-zÀ-ÖØ-öø-ÿ&.\\- ]+, " + this.letterboxdYear + ",)");
 			if (list.match(regex)) {
 				this.tspdt.found = true;
 				this.tspdt.ranking = list.match(regex)[1];
 			}
 			// Alternate match - looser with the title, stricter with requiring BOTH director and year - to account for THE MAN WITH A MOVIE CAMERA
-			regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\)  .*(" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ").* (\\(" + director + ", " + this.letterboxdYear + ",.+\\))");
+			regex = new RegExp("([0-9]{1,4})\\. \\(([0-9]{1,4}|—|—-)\\) .*(" + title + nativeTitle + altTitle + nfdTitle + shortTitle + altTitle2 + ").* (\\(" + director + ", " + this.letterboxdYear + ",)");
 			if (list.match(regex)) {
 				this.tspdt.found = true;
 				this.tspdt.ranking = list.match(regex)[1];

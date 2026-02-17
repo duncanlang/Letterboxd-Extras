@@ -212,7 +212,7 @@ function getDefaultRatingsOrder(){
     var defaultOrder = [
         'imdb-ratings',
         'mal-ratings',
-        'al-ratings',
+        'anilist-ratings',
         'allocine-ratings',
         'tomato-ratings',
         'meta-ratings',

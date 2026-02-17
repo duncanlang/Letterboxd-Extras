@@ -83,7 +83,7 @@ function SetRatingsOrder(ratingsOrder){
     var ratingIdMapping = [
         { key: "imdb-ratings", value: "IMDb"},
         { key: "mal-ratings", value: "MyAnimeList"},
-        { key: "al-ratings", value: "AniList"},
+        { key: "anilist-ratings", value: "AniList"},
         { key: "allocine-ratings", value: "AlloCiné"},
         { key: "tomato-ratings", value: "Rotten Tomatoes"},
         { key: "meta-ratings", value: "Metacritic"},
