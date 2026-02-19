@@ -19,7 +19,9 @@ export class CriterionHelper extends Helper {
 		this.linkURL = `https://www.criterion.com/films/${websiteID}`;
 		this.loadState = LOAD_STATES['Success'];
 
-		this.addButtonLink(this.linkURL, 'CRITERION');
+		if (this.storage.get('criterion-link-enabled') === true){
+			this.addButtonLink(this.linkURL, 'CRITERION');
+		}
 
 		/* this._createWatchLink({
 			sourceID: 'criterion',

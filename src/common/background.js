@@ -156,6 +156,9 @@ async function InitDefaultSettings() {
     if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
     if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
     if (options['content-ratings'] == null) options['content-ratings'] = 'mpaa';
+    if (options['criterion-link-enabled'] == null) options['criterion-link-enabled'] = true;
+    if (options['bluray-link-enabled'] == null) options['bluray-link-enabled'] = true;
+    if (options['ebert-link-enabled'] == null) options['ebert-link-enabled'] = true;
 
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";

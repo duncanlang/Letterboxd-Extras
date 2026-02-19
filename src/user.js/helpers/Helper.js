@@ -18,7 +18,9 @@ const buttonLinkOrder = [
 	'.criterion-button',
 	'.mojo-button',
 	'.wiki-button',
-	'.ddd-button'
+	'.ddd-button',
+	'.bluray-button',
+	'.ebert-button'
 ];
 
 /**

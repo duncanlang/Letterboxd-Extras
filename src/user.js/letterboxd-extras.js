@@ -847,6 +847,12 @@ const letterboxd = {
 		filmarks: { state: 0, data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
 		filmarksHelper: null,
 
+		// Blu-ray.com
+		bluray: { id: null, url: null },
+
+		// RogerEbert.com
+		ebert: { id: null, url: null },
+
 		kinopoiskHelper: null,
 
 		linksAdded: [],
@@ -1520,6 +1526,20 @@ const letterboxd = {
 									// Get Kinopoisk data
 									if (this.wiki != null && this.wiki.Kinopoisk_ID != null && letterboxd.storage.get('kinopoisk-enabled') === true){
 										this.kinopoiskHelper.getData(this.wiki.Kinopoisk_ID.value);
+									}
+
+									// Get Blu-ray.com ID
+									if (this.wiki && this.wiki.Bluray_ID && letterboxd.storage.get('bluray-link-enabled') === true){
+										this.bluray.id = this.wiki.Bluray_ID.value;
+										this.bluray.url = 'https://www.blu-ray.com/_/' + this.bluray.id;
+										this.addLink(this.bluray.url);
+									}
+
+									// Get RogerEbert.com ID
+									if (this.wiki && this.wiki.Ebert_ID && letterboxd.storage.get('ebert-link-enabled') === true){
+										this.ebert.id = this.wiki.Ebert_ID.value;
+										this.ebert.url = 'https://www.rogerebert.com/reviews/' + this.ebert.id;
+										this.addLink(this.ebert.url);
 									}
 
 									// Check for State of Transmission
@@ -2661,6 +2681,12 @@ const letterboxd = {
 				} else if (url.includes("doesthedogdie")) {
 					text = "DOG";
 					className = "ddd-button";
+				} else if (url.includes("blu-ray.com")) {
+					text = "Blu-ray.com";
+					className = "bluray-button";
+				} else if (url.includes("rogerebert.com")) {
+					text = "Ebert";
+					className = "ebert-button";
 				}
 
 				if (document.querySelector('.' + className)) {
@@ -2697,7 +2723,9 @@ const letterboxd = {
 					'.criterion-button',
 					'.mojo-button',
 					'.wiki-button',
-					'.ddd-button'
+					'.ddd-button',
+					'.bluray-button',
+					'.ebert-button'
 				];
 
 				var index = order.indexOf('.' + className);
@@ -6209,7 +6237,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -6230,6 +6258,8 @@ const letterboxd = {
 					"  OPTIONAL { ?item wdt:P3868 ?MDL_ID }\n" +
 					"  OPTIONAL { ?item wdt:P9584 ?Criterion_ID }\n" +
 					"  OPTIONAL { ?item wdt:P12279 ?Criterion_Spine_ID }\n" +
+        			"  OPTIONAL { ?item wdt:P13992 ?Bluray_ID }\n" +
+        			"  OPTIONAL { ?item wdt:P6932 ?Ebert_ID }\n" +
 					"  OPTIONAL { ?item wdt:P495 ?Country_Of_Origin. }\n" +
 					"  OPTIONAL { ?item wdt:P1657 ?MPAA_film_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P2629 ?BBFC_rating. }\n" +
