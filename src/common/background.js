@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 
@@ -154,6 +156,9 @@ async function InitDefaultSettings() {
     if (options['allocine-critic-enabled'] == null) options['allocine-critic-enabled'] = true;
     if (options['allocine-users-enabled'] == null) options['allocine-users-enabled'] = true;
     if (options['content-ratings'] == null) options['content-ratings'] = 'mpaa';
+    if (options['criterion-link-enabled'] == null) options['criterion-link-enabled'] = true;
+    if (options['bluray-link-enabled'] == null) options['bluray-link-enabled'] = true;
+    if (options['ebert-link-enabled'] == null) options['ebert-link-enabled'] = true;
 
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
@@ -162,6 +167,7 @@ async function InitDefaultSettings() {
     if (options['meta-default-view'] == null) options['meta-default-view'] = "hide";
     if (options['senscritique-enabled'] == null) options['senscritique-enabled'] = false;
     if (options['mubi-enabled'] == null) options['mubi-enabled'] = false;
+    if (options['douban-enabled'] == null) options['douban-enabled'] = false;
     if (options['filmaff-enabled'] == null) options['filmaff-enabled'] = false;
     if (options['simkl-enabled'] == null) options['simkl-enabled'] = false;
     if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
@@ -173,7 +179,6 @@ async function InitDefaultSettings() {
     if (options['mpa-convert'] == null) options['mpa-convert'] = false;
     if (options['open-same-tab'] == null) options['open-same-tab'] = false;
     if (options['replace-fans'] == null) options['replace-fans'] = "false";
-    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = false;
     if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
     if (options['google'] == null) options['google'] = false;
     if (options['boxoffice-enabled'] == null) options['boxoffice-enabled'] = false;
@@ -182,18 +187,16 @@ async function InitDefaultSettings() {
     if (options['kinopoisk-enabled'] == null) options['kinopoisk-enabled'] = false;
     if (options['kinopoisk-apikey'] == null) options['kinopoisk-apikey'] = '';
     if (options['filmarks-enabled'] == null) options['filmarks-enabled'] = false;
-    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'false';
+    if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'unchanged';
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
+    if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
+
+    if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
+        options['hide-ratings-enabled'] = 'unchanged';
+    }
 
     if (options["convert-ratings"] === true) {
         options["convert-ratings"] = "5";
-    }
-
-    if (options["hide-ratings-enabled"] === true) {
-        options["hide-ratings-enabled"] = "additional";
-    }
-    else if (options["hide-ratings-enabled"] === false){
-        options['hide-ratings-enabled'] = 'false';
     }
 
     if (options["override-ratings-order"] == null) options["override-ratings-order"] = false;
@@ -212,7 +215,7 @@ function getDefaultRatingsOrder(){
     var defaultOrder = [
         'imdb-ratings',
         'mal-ratings',
-        'al-ratings',
+        'anilist-ratings',
         'allocine-ratings',
         'tomato-ratings',
         'meta-ratings',
@@ -222,6 +225,7 @@ function getDefaultRatingsOrder(){
         'simkl-ratings',
         'kinopoisk-ratings',
         'filmarks-ratings',
+        'douban-ratings',
         'cinemascore'
     ];
 

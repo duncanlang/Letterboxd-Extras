@@ -13,6 +13,7 @@
 <body>
     <section class="topnav">
         <p class="nav-item" sectionId="ratings">Ratings</p>
+        <p class="nav-item" sectionId="spines">Spines</p>
         <p class="nav-item" sectionId="reorder">Reorder</p>
         <p class="nav-item" sectionId="search">Search</p>
         <p class="nav-item" sectionId="rankings">Rankings</p>
@@ -63,7 +64,7 @@
                 <label for="tomato-enabled">Display Rotten Tomatoes:</label>
                 <input type="checkbox" id="tomato-enabled" subid="tomato-div" class="setting"/>
             </div>
-            <div id="tomato-div">
+            <div id="tomato-div" class="subsetting">
                 <div>
                     <label for="tomato-critic-enabled">Display critic ratings:</label>
                     <input type="checkbox" id="tomato-critic-enabled" class="setting"/>
@@ -102,7 +103,7 @@
                 <label for="metacritic-enabled">Display Metacritic:</label>
                 <input type="checkbox" id="metacritic-enabled" subid="meta-div"class="setting"/>
             </div>
-            <div id="meta-div">
+            <div id="meta-div" class="subsetting">
                 <div>
                     <label for="metacritic-critic-enabled">Display critic ratings:</label>
                     <input type="checkbox" id="metacritic-critic-enabled" class="setting"/>
@@ -135,7 +136,7 @@
                 <label style="color: red;">! Missing Permission !</label>
                 <input type="button" id="senscritique-permissions" class="request-permission" permissionTarget="senscritique-enabled" value="Request Permission"/>
             </div>
-            <div id="sens-div" class="disabled">
+            <div id="sens-div" class="disabled subsetting">
                 <div>
                     <label for="sens-favorites-enabled">Display recommended count:</label>
                     <input type="checkbox" id="sens-favorites-enabled" class="setting"/>
@@ -153,6 +154,24 @@
                 <input type="button" id="mubi-permissions" class="request-permission" permissionTarget="mubi-enabled" value="Request Permission"/>
             </div>
         </div>
+
+        <div>
+            <h4>Douban</h4>
+            <div>
+                <label for="douban-enabled">Display Douban:</label>
+                <input type="checkbox" id="douban-enabled" permission="https://api.douban.com/*" class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="douban-permissions" class="request-permission" permissionTarget="douban-enabled" value="Request Permission"/>
+            </div>
+            <div>
+                <label for="douban-apikey">API Key:</label>
+                <input type="text" id="douban-apikey" class="setting"/>
+                <p class="info-tip">The Douban API requires an API key to fetch ratings.</p>
+            </div>
+        </div>
+
         <div>
             <h4>FilmAffinity</h4>
             <div>
@@ -185,7 +204,7 @@
                 <label style="color: red;">! Missing Permission !</label>
                 <input type="button" id="allocine-permissions" class="request-permission" permissionTarget="allocine-enabled" value="Request Permission"/>
             </div>
-            <div id="allo-div" class="disabled">
+            <div id="allo-div" class="disabled subsetting">
                 <div>
                     <label for="allocine-users-enabled">Display user ratings:</label>
                     <input type="checkbox" id="allocine-users-enabled" class="setting"/>
@@ -251,6 +270,26 @@
 
     <hr width="100%">
 
+    <!-- Spines -->
+    <div id="spines">
+        <h3>Physical Media Spines</h3>
+        <div>
+            <h4>Criterion</h3>
+            <div id="criterion-div">
+                <label for="criterion-spine-default-view">Spine Number View:</label>
+                <select id="criterion-spine-default-view"class="setting">
+                    <option value="None">None</option>
+                    <option value="Row">Row</option>
+                    <option value="Column">Column</option>
+                    <option value="Left/Right">Left/Right</option>
+                </select>
+                <p class="info-tip">Changes how the Criterion Spine number is displayed.</p>
+            </div>
+        </div>
+    </div>
+
+    <hr width="100%">
+
     <!-- Reorder Ratings -->
     <div id="reorder">
         <h3>Reorder Ratings</h3>
@@ -258,7 +297,7 @@
         <label for="override-ratings-order">Override default order:</label>
         <input type="checkbox" id="override-ratings-order" subid="rating-order-div" class="setting"/>
 
-        <div id="rating-order-div">
+        <div id="rating-order-div" class="subsetting">
             <ul id="ratings-order" class="sortable-list">
                 <li class="sortable-item" draggable="true" rating-id="imdb-ratings">IMDb</li>
                 <li class="sortable-item" draggable="true" rating-id="mal-ratings">MyAnimeList</li>
@@ -375,6 +414,21 @@
             <label for="wiki-link-enabled">Display Wikipedia link:</label>
             <input type="checkbox" id="wiki-link-enabled" class="setting"/>
         </div>
+        <div>
+            <h4>Criterion</h4>
+            <label for="criterion-link-enabled">Display Criterion link:</label>
+            <input type="checkbox" id="criterion-link-enabled" class="setting"/>
+        </div>
+        <div>
+            <h4>Blu-ray.com</h4>
+            <label for="bluray-link-enabled">Display Blu-ray.com link:</label>
+            <input type="checkbox" id="bluray-link-enabled" class="setting"/>
+        </div>
+        <div>
+            <h4>RogerEbert.com</h4>
+            <label for="ebert-link-enabled">Display RogerEbert.com link:</label>
+            <input type="checkbox" id="ebert-link-enabled" class="setting"/>
+        </div>
     </div>
 
     <hr width="100%">
@@ -407,12 +461,12 @@
         <!-- Hide Ratings -->
         <div>
             <label for="hide-ratings-enabled">Hide ratings:</label>
-            <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="false">
-                <option value="false">Leave unchanged</option>
+            <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="unchanged">
+                <option value="unchanged">Leave unchanged</option>
                 <option value="additional">Hide additional ratings</option>
                 <option value="all">Hide all ratings</option>
             </select>
-            <div id="div-ratings-unwatched">
+            <div id="div-ratings-unwatched" class="subsetting">
                 <label for="hide-ratings-unwatched">Only when unwatched:</label>
                 <input type="checkbox" id="hide-ratings-unwatched" class="setting"/>
             </div>
@@ -424,7 +478,7 @@
                 <option value="false">Leave unchanged</option>
                 <option value="all">Hide reviews</option>
             </select>
-            <div id="div-reviews-unwatched">
+            <div id="div-reviews-unwatched" class="subsetting">
                 <label for="hide-reviews-unwatched">Only when unwatched:</label>
                 <input type="checkbox" id="hide-reviews-unwatched" class="setting"/>
             </div>

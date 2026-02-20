@@ -45,13 +45,15 @@ hr {
     width: 98%;
 }
 
-body.android div{
+body.android{
     margin-left: 5px;
     margin-right: 5px;
 }
-body:not(.android) div{
+body:not(.android){
     margin-left: 15px;
-    margin-right: 15px;
+}
+div.subsetting{
+    margin-left: 15px;
 }
 
 input#export,
@@ -124,6 +126,13 @@ label {
     top: 0px;
 }
 
+body.androidpup .topnav{
+    margin-left: -5px;
+}
+body:not(.android) .topnav{
+    margin-left: -15px;
+}
+
 .topnav div {
     display: inline;
     margin-left: 10px;
@@ -155,7 +164,6 @@ label {
     list-style: none;
     padding: 0;
     width: 250px;
-    margin-left: 15px;
     border-radius: 10px;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }

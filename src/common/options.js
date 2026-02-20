@@ -83,7 +83,7 @@ function SetRatingsOrder(ratingsOrder){
     var ratingIdMapping = [
         { key: "imdb-ratings", value: "IMDb"},
         { key: "mal-ratings", value: "MyAnimeList"},
-        { key: "al-ratings", value: "AniList"},
+        { key: "anilist-ratings", value: "AniList"},
         { key: "allocine-ratings", value: "AlloCiné"},
         { key: "tomato-ratings", value: "Rotten Tomatoes"},
         { key: "meta-ratings", value: "Metacritic"},
@@ -94,6 +94,7 @@ function SetRatingsOrder(ratingsOrder){
         { key: "kinopoisk-ratings", value: "Kinopoisk"},
         { key: "filmarks-ratings", value: "Filmarks"},
         { key: "cinemascore", value: "CinemaScore"},
+        { key: "douban-ratings", value: "Douban"},
     ];
 
     var listElement = document.querySelector('ul#ratings-order');

@@ -1,6 +1,14 @@
 import MagicString from 'magic-string';
 
-import {CONNECTION_DOMAINS, LETTERBOXD_EXTRAS_AUTHORS, LETTERBOXD_EXTRAS_VERSION} from './constants.js';
+import { exec } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+// Get the directory of this config file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import { CONNECTION_DOMAINS, LETTERBOXD_EXTRAS_AUTHORS, LETTERBOXD_EXTRAS_VERSION } from './constants.js';
 
 // Rollup Plugin that configures output
 function userScriptHeaderPlugin() {
@@ -9,17 +17,13 @@ function userScriptHeaderPlugin() {
 
 	const maxIndentSpace = 14;
 	let spacing = '';
-	let connectionDecorator = '@connect';
-	let indentSpace = maxIndentSpace - connectionDecorator.length;
+	const connectionDecorator = '@connect';
+	const indentSpace = maxIndentSpace - connectionDecorator.length;
 	for (let i = 0; i < indentSpace; i++) {
-		spacing += ' '
+		spacing += ' ';
 	}
 
-	const connectionDomains = CONNECTION_DOMAINS.map(domain => {
-
-		return `// @connect${spacing}${domain}`
-
-	}).join('\n')
+	const connectionDomains = CONNECTION_DOMAINS.map(domain => `// @connect${spacing}${domain}`).join('\n');
 
 	return {
 
@@ -38,15 +42,15 @@ ${connectionDomains}
 // @grant        GM_addStyle
 // @supportURL   https://github.com/duncanlang/Letterboxd-Extras/issues
 // @run-at       document-start
-// ==/UserScript==\n\n`)
+// ==/UserScript==\n\n`);
 
-				return {
-					code: code.toString(),
-					map: code.generateMap()
-				}
+			return {
+				code: code.toString(),
+				map: code.generateMap()
+			};
 
 		}
-	}
+	};
 
 }
 
@@ -62,16 +66,37 @@ const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined"
 
 if (isChrome) {
 	var browser = chrome;
-}\n\n`)
+}\n\n`);
 
-				return {
-					code: code.toString(),
-					map: code.generateMap()
-				}
+			return {
+				code: code.toString(),
+				map: code.generateMap()
+			};
 
 		}
-	}
+	};
 
+}
+
+function callChromeBuilder() {
+	return {
+		writeBundle() {
+			const batPath = join(__dirname, '..', 'build.bat');
+			exec(`"${batPath}" chrome`, (error, stdout, stderr) => {
+				if (error) {
+					console.error(`Error executing built.bat: ${error.message}`);
+					return;
+				}
+				if (stderr) {
+					console.error(`stderr: ${stderr}`);
+				}
+				if (stdout) {
+					console.log(`stdout: ${stdout}`);
+				}
+				console.log('built.bat chrome executed successfully');
+			});
+		}
+	};
 }
 
 /**
@@ -83,6 +108,7 @@ const builds = [
 		plugins: [
 			browserSwitchPlugin(),
 			userScriptHeaderPlugin(),
+			callChromeBuilder()
 		],
 		output: [
 			{
@@ -94,4 +120,4 @@ const builds = [
 	}
 ];
 
-export default ( args ) => args.configOnlyModule ? builds.slice( 0, 3 ) : builds;
+export default args => args.configOnlyModule ? builds.slice(0, 3) : builds;

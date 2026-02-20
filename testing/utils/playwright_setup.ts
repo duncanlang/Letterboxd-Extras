@@ -17,8 +17,6 @@ export const test = base.extend<FixturesType>({
 
 		const pathToExtension = path.join(__dirname, "../../src/dist/chrome");
 
-		console.log(pathToExtension)
-
 		const context = await chromium.launchPersistentContext("", {
 			headless: false,
 			// Only load one extension
