@@ -28,8 +28,8 @@ export class MubiHelper extends Helper {
 			if (response !== '') {
 				this.data = response;
 				this.loadState = LOAD_STATES['Success'];
-				this.addButtonLink(this.url, 'MUBI');
 				this.populateRatingsSidebar();
+				this.addButtonLink(this.url, 'MUBI');
 			}
 
 		});
@@ -104,8 +104,8 @@ export class MubiHelper extends Helper {
 
 						this.loadState = LOAD_STATES['Success'];
 
-						this.addButtonLink(this.url, 'MUBI');
 						this.populateRatingsSidebar();
+						this.addButtonLink(this.url, 'MUBI');
 					} else {
 						this.loadState === LOAD_STATES['Failure'];
 					}
@@ -137,9 +137,16 @@ export class MubiHelper extends Helper {
 		// Add to Letterboxd
 		//* **************************************************************
 		// Add the section to the page
+		const logoSvg = this.helpers.createElement('span', {}, {
+			height: '14.4px',
+			width: '48px',
+			position: 'absolute',
+			'background-image': 'url("' + browser.runtime.getURL("images/mubi-logo.svg") + '")'
+		});
+
 		const section = this._createChartSection(
 			{
-				innerHTML: MUBI_LOGO_SVG,
+				svg: logoSvg,
 				href: this.url
 			}
 		);
@@ -152,10 +159,14 @@ export class MubiHelper extends Helper {
 			'margin-bottom': '10px',
 			'margin-top': '5px'
 		});
+		const starSvg = this.helpers.createElement('span', {}, {
+			height: '18.2px',
+			width: '19.2833px',
+			display: 'inline-block',
+			'background-image': 'url("' + browser.runtime.getURL("images/mubi-star.svg") + '")'
+		});
+		mubiSpan.append(starSvg);
 		section.append(mubiSpan);
-
-		// Add the star SVG (taken from MUBI)
-		mubiSpan.innerHTML = MUBI_STAR_SVG;
 
 		mubiSpan.append(this._generateScoreSpan({
 			href: `${this.url}/ratings`

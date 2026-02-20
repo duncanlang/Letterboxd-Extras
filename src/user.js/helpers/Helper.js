@@ -546,8 +546,8 @@ export class Helper {
 			style: logoProps.style
 		});
 
-		if (logoProps.innerHTML) {
-			logoHolder.innerHTML += logoProps.innerHTML;
+		if (logoProps.svg){
+			logoHolder.append(logoProps.svg);
 		}
 
 		return logoHolder;
@@ -674,7 +674,7 @@ export class Helper {
 			class: 'brand'
 		});
 
-		brandElement.innerHTML += '<svg></svg>';
+		//brandElement.innerHTML += '<svg></svg>';
 
 		const titleElement = this.helpers.createElement('span', {
 			class: 'title'
@@ -784,7 +784,7 @@ export class Helper {
 		const logoContainer = this.helpers.createElement('span', {
 			class: 'spine-logo'
 		});
-		logoContainer.innerHTML = logoSVG;
+		logoContainer.append(logoSVG);
 		spineLink.append(logoContainer);
 
 		if (spineID) {

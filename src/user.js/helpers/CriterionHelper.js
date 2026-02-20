@@ -29,8 +29,16 @@ export class CriterionHelper extends Helper {
 			link: this.linkURL
 		}); */
 
+
+		const logoSvg = this.helpers.createElement('span', {}, {
+			height: '24px',
+			width: '24px',
+			'background-image': 'url("' + browser.runtime.getURL("images/criterion-logo.svg") + '")',
+			'display': 'block',
+			'background-size': 'contain'
+		});
 		this._addSpineIndicator({
-			logoSVG: CRITERION_LOGO_SVG,
+			logoSVG: logoSvg,
 			title: 'Criterion Collection',
 			spineID: spineID ? spineID : null
 		});

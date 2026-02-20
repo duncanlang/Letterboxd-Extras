@@ -65,9 +65,17 @@ export class DoubanHelper extends Helper {
 		if (this.rating == null && this.num_ratings === 0) return;
 
 
+		const logoSvg = this.helpers.createElement('span', {}, {
+			height: '16.7667px',
+			width: '65px',
+			display: 'inline-block',
+			'margin-right': '5px',
+			'margin-bottom': '2px',
+			'background-image': 'url("' + browser.runtime.getURL("images/douban-logo.svg") + '")'
+		});
 		const section = this._createChartSection(
 			{
-				innerHTML: DOUBAN_LOGO_SVG,
+				svg: logoSvg,
 				href: this.linkURL
 			}
 		);
