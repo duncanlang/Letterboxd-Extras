@@ -5520,6 +5520,10 @@ const letterboxd = {
 					if (year == "1997")
 						output = "187";
 					break;
+				case "A.I. Artificial Intelligence":
+					if (year == "2001")
+						output = "A.I.: Artificial Intelligence";
+					break;
 				default:
 					output = title;
 					break;
