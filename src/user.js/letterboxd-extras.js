@@ -3460,6 +3460,11 @@ const letterboxd = {
 		},
 
 		getTSPDTListURL() {
+			// TSPDT used to link to Drew's list and I could get it from their
+			// now I just have to hardcode it
+			this.tspdt.listURL = "https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-7/"
+
+			/*
 			// Get the letterboxd list from the page
 			var url = "https://www.theyshootpictures.com/gf1000_links2.htm";
 			browser.runtime.sendMessage({ name: "GETDATA", url: url }, (value) => {
@@ -3485,11 +3490,8 @@ const letterboxd = {
 					}
 				}
 
-				// Set backup URL just in case
-				if (this.tspdt.listURL == null) {
-					this.tspdt.listURL = "https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-5/"
-				}
 			});
+			*/
 		},
 
 		verifyTSPDT() {
