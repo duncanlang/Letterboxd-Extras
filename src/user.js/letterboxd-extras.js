@@ -2752,7 +2752,7 @@ const letterboxd = {
 				}
 
 				// Third Attempt
-				var buttons = document.querySelectorAll('.micro-button');
+				var buttons = document.querySelectorAll('p.text-link.text-footer div a.micro-button');
 				var lastButton = buttons[buttons.length - 1];
 				lastButton.after(button);
 			}

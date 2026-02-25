@@ -329,7 +329,7 @@ export class Helper {
 			}
 
 			// Third Attempt
-			const buttons = document.querySelectorAll('.micro-button');
+			const buttons = document.querySelectorAll('p.text-link.text-footer div a.micro-button');
 			const lastButton = buttons[buttons.length - 1];
 			lastButton.after(button);
 		}
