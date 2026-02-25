@@ -823,4 +823,14 @@ export class Helper {
 		});
 	}
 
+	getTextBetween(text, start, end) {
+		var tempArray = text.split(start);
+		if (tempArray.length >= 2) {
+			tempArray = tempArray[1].split(end);
+
+			return (tempArray[0]);
+		} else {
+			return ""
+		}
+	}
 }
