@@ -1335,7 +1335,7 @@ const letterboxd = {
 						var queryStringDate = letterboxd.helpers.getWikiDataQuery(this.imdbID, this.tmdbID, this.letterboxdID, this.tmdbTV, 'DATE', 'en');
 
 						this.wikiData.state = 1;
-						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryString }, (data) => {
+						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryString.url, options: queryString.options }, (data) => {
 							if (letterboxd.helpers.ValidateResponse("WikiData", data) == false){
 								return;
 							}
@@ -1556,7 +1556,7 @@ const letterboxd = {
 						});
 
 						// Call WikiData a second time for dates
-						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryStringDate }, (data) => {
+						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: queryStringDate.url, options: queryStringDate.options }, (data) => {
 							if (letterboxd.helpers.ValidateResponse("WikiData Dates", data) == false){
 								return;
 							}
@@ -6067,9 +6067,17 @@ const letterboxd = {
 					"}";
 			}
 
-			sparqlQuery = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?format=json&query=' + sparqlQuery;
-
-			return sparqlQuery;
+			return {
+				url: 'https://query.wikidata.org/bigdata/namespace/wdq/sparql',
+				options: {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'Accept': 'application/sparql-results+json'
+					},
+					body: 'query=' + encodeURIComponent(sparqlQuery) + '&format=json'
+				}
+			};
 		},
 
 		createTableRow(table, label, value1, value2, value3) {
