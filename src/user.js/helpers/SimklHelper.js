@@ -16,10 +16,10 @@ export class SimklHelper extends Helper {
 		// Annoying because this does have a daily limit and now this client id is available online, but you can't have the secret!
 		let url = 'https://api.simkl.com/ratings?client_id=05e838d7230a966313e654449100038628f7a89b840e3fcfaf4d4da94999213a';
 		if (imdbID) {
-			url += `&imdb=${this.imdbID}`;
+			url += `&imdb=${imdbID}`;
 		}
 		if (tmdbID && tmdbID !== '0') {
-			url += `&tmdb=${this.tmdbID}`;
+			url += `&tmdb=${tmdbID}`;
 		}
 		if (tmdbTV) {
 			url += '&type=show';

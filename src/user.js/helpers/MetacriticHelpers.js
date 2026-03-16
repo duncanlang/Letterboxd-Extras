@@ -7,24 +7,25 @@ export class MetacriticHelper extends Helper {
 
 		super(storage, helpers, pageState, 'meta');
 
+        this.url = '';
         this.state = 0;
         this.data = null;
         this.raw = null;
         this.mustSee = false;
-        this.critic = { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0 };
-        this.user = { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0 };
+        this.critic = { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0, parseError: false };
+        this.user = { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0, parseError: false };
 	}
 
     parseRatingScore(data, element){
-        if (element == null)
-            return;
 
         if (element != null) {
             // Standard page with score
             data.rating = element.innerText;
-        } else {
+        } else if (this.url.includes('/tv/') && this.url.includes('/episode-')) {
             // TV episodes with no Metascore
             data.rating = "N/A";
+        } else {
+            data.parseError = true;
         }
     }
 
@@ -46,21 +47,14 @@ export class MetacriticHelper extends Helper {
 
 			data.num_ratings = data.positive + data.mixed + data.negative;
 
-			// If there are ratings, but no reviews so metacritic doesn't display the breakdown
-			if (!(data.rating == "N/A" || data.rating == "tbd") && data.num_ratings == 0) {
-				// parseFloat() will remove insigificant zeroes (so 7.0 will become 7)
-				var temp = this.getTextBetween(this.raw, 'score:' + parseFloat(data.rating).toString() + ',', 'sentiment:');
+            // Metacritic will not show the breakdown when there are too few ratings, lets tally it up ourselves, shall we?
+            if (data.rating == "tbd" && data.num_ratings == 0){
+                data.positive = element.querySelectorAll('.c-reviews-container .review-card .c-siteReviewScore_background .c-siteReviewScore_green').length;
+                data.mixed = element.querySelectorAll('.c-reviews-container .review-card .c-siteReviewScore_background .c-siteReviewScore_yellow').length;
+                data.negative = element.querySelectorAll('.c-reviews-container .review-card .c-siteReviewScore_background .c-siteReviewScore_red').length;
 
-				data.num_ratings = parseInt(this.getTextBetween(temp, 'reviewCount:', ','));
-				data.positive = parseInt(this.getTextBetween(temp, 'positiveCount:', ','));
-				data.mixed = parseInt(this.getTextBetween(temp, 'neutralCount:', ','));
-				data.negative = parseInt(this.getTextBetween(temp, 'negativeCount:', ','));
-
-				if (data.num_ratings.isNaN) data.num_ratings = 0
-				if (data.positive.isNaN) data.positive = 0
-				if (data.mixed.isNaN) data.mixed = 0
-				if (data.negative.isNaN) data.negative = 0
-			}
+                data.num_ratings = data.positive + data.mixed + data.negative;
+            }
 
 			data.highest = this._getMetaHighest(data);
 		}
@@ -111,7 +105,7 @@ export class MetacriticHelper extends Helper {
         var tooltip = "";
         var rating = data.rating;
         var suffix = "";
-        if (data.num_ratings > 0 && rating == "tbd") {
+        if (data.num_ratings > 0 && (rating == "tbd" || rating == "N/A")) {
             tooltip = 'No score yet (' + data.num_ratings.toLocaleString() + ' ' + display + ' review';
             if (data.num_ratings == 1)
                 tooltip += ")";

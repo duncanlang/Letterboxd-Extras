@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Adds extra features to Letterboxd.",
-	"version": "3.18.2",
+	"version": "3.18.3",
 	"minimum_chrome_version": "88",
 	
 	"action": {

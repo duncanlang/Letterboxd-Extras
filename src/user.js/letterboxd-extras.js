@@ -708,7 +708,6 @@ const letterboxd = {
 		lastLocation: window.location.pathname,
 
 		running: false,
-		isMobile: null,
 
 		// Letterboxd
 		letterboxdID: '',
@@ -726,14 +725,14 @@ const letterboxd = {
 		loggedIn: null,
 
 		// Shared page state for the helper classes
-		// Currently not replacing existing values to prevent unwanted errors
-		pageState: { isMobile: null, hideRatings: null, filmWatched: null },
-
-		filmWatched: null,
-		hideRatings: null,
-		hideReviews: null,
-		ratingMoved: 0, // 0 is unmoved, 1 is moved but hideRatings was null, 2 is confirmed
-		reviewsMoved: 0,
+		pageState: { 
+			isMobile: null,
+			hideRatings: null,
+			hideReviews: null,
+			filmWatched: null,
+			ratingMoved: 0, // 0 is unmoved, 1 is moved but hideRatings was null, 2 is confirmed
+			reviewsMoved: 0,
+		 },
 
 		idsCollected: false,
 		altTitleList: null,
@@ -870,6 +869,7 @@ const letterboxd = {
 		},
 
 		async init() {
+			if (letterboxd.storage.syncInitilized == false) return;
 			if (this.running) return;
 
 			this.running = true;
@@ -878,104 +878,121 @@ const letterboxd = {
 			if (this.letterboxdID == '' && window.location.pathname.startsWith('/film/')) {
 				var regex = /\/film\/(.+)\//
 				this.letterboxdID = window.location.pathname.match(regex)[1];
+
+				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found Letterboxd ID ${this.letterboxdID}`);
 			}
 							
 			// Get logged in status
 			if (this.loggedIn == null){
 				this.loggedIn = document.documentElement.innerHTML.includes('person.loggedIn = true');
+				
+				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found Logged in status: ${this.loggedIn}`);
 			}
 
 			if (this.loggedIn == null && letterboxd.storage.get('hide-ratings-enabled') === "unchanged" && letterboxd.storage.get('hide-reviews-enabled') === "false"){
 				// Just in case, set these now if the relevant settings aren't enabled.
 				// this is a backup just in case the site changes in the future in a way where the addon won't be able to set these normally
 				this.loggedIn = false;
-				this.filmWatched = this.pageState.filmWatched = false;
-				this.hideRatings = this.pageState.hideRatings = false;
-				this.hideReviews = false;
+				this.pageState.filmWatched = false;
+				this.pageState.hideRatings = false;
+				this.pageState.hideReviews = false;
 			}
 
 			// Determine mobile
-			if (this.isMobile == null) {
-				if (document.querySelector("html")) {
-					var htmlEl = document.querySelector("html");
-					if (htmlEl.getAttribute("class").includes("no-mobile")) {
-						this.isMobile = this.pageState.isMobile = false;
-					} else {
-						// TODO: Have Helpers accessed shared state passed through on initialization
-						// after storage and page type is parsed.
-						this.isMobile = this.pageState.isMobile = true;
-					}
+			if (this.pageState.isMobile == null && document.querySelector("html")) {
+				var htmlEl = document.querySelector("html");
+				if (htmlEl.getAttribute("class").includes("no-mobile")) {
+					this.pageState.isMobile = false;
+				} else {
+					// TODO: Have Helpers accessed shared state passed through on initialization
+					// after storage and page type is parsed.
+					this.pageState.isMobile = true;
 				}
+
+				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found mobile status ${this.pageState.isMobile}`);
 			}
 
 			// Determine watch status and hide status
-			if (this.filmWatched == null && this.loggedIn != null && letterboxd.storage.syncInitilized == true){
+			if (this.pageState.filmWatched == null && this.loggedIn != null){
 				if (this.loggedIn == false){
 					// If not logged in, only base the hiding on the addon settings
-					this.filmWatched = this.pageState.filmWatched = false;
-					this.hideRatings = this.pageState.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "unchanged";
-					this.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "false";
-				}else if (this.filmWatched == null){
+					this.pageState.filmWatched = false;
+					this.pageState.hideRatings = letterboxd.storage.get('hide-ratings-enabled') !== "unchanged";
+					this.pageState.hideReviews = letterboxd.storage.get('hide-reviews-enabled') !== "false";
+					
+					letterboxd.helpers.WriteConsoleLog('DEBUG', `Found film watched status ${this.pageState.filmWatched}`);
+					
+				}else if (this.pageState.filmWatched == null && (document.querySelector('#userpanel .action.-watch.-on') || document.querySelector('#userpanel .action.-watch .icon'))){
 					// If logged in, we need to check the watched status against the addon settings
 					var found = false;
 
-					if (this.isMobile && document.querySelector('.production-masthead') != null){
+					const watchLink = document.querySelector('#userpanel .action.-watch');
+					if (watchLink != null){
+						this.pageState.filmWatched = watchLink.classList.contains('-on');
+						found = true;
+					}
+
+					/*
+					if (this.pageState.isMobile && document.querySelector('.production-masthead') != null){
 						// Mobile - for whatever reason, the poster seems to load in last so I'm instead checking the action strip
 						var actionStrip = document.querySelector('a.actions-strip span.js-user-actions-menu-text span.prompt');
 						if (actionStrip != null){
-							this.filmWatched = actionStrip.innerText.includes("You’ve watched this");
+							this.pageState.filmWatched = actionStrip.innerText.includes("You’ve watched this");
 							found = true;
 						}
 					}else{
 						// Desktop - check if the poster has the attribute
 						var filmPosterDiv = document.querySelector('#js-poster-col div.poster.film-poster');
-						if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.filmWatched == null){
-							this.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
+						if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.pageState.filmWatched == null){
+							this.pageState.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
 							found = true;
 						}
 					}
+					*/
 
 					if (found){
 						// Determine if ratings should be hidden
-						this.hideRatings = this.pageState.hideRatings = false;
+						this.pageState.hideRatings = false;
 						if (letterboxd.storage.get('hide-ratings-enabled') !== "unchanged"){
-							this.hideRatings = this.pageState.hideRatings = true;
+							this.pageState.hideRatings = true;
 
-							if (letterboxd.storage.get('hide-ratings-unwatched') === true && this.filmWatched == true){
-								this.hideRatings = this.pageState.hideRatings = false;
+							if (letterboxd.storage.get('hide-ratings-unwatched') === true && this.pageState.filmWatched == true){
+								this.pageState.hideRatings = false;
 							}
 						}
 						
 						// Determine if reviews should be hidden
-						this.hideReviews = false;
+						this.pageState.hideReviews = false;
 						if (letterboxd.storage.get('hide-reviews-enabled') !== "unchanged"){
-							this.hideReviews = true;
+							this.pageState.hideReviews = true;
 
-							if (letterboxd.storage.get('hide-reviews-unwatched') === true && this.filmWatched == true){
-								this.hideReviews = false;
+							if (letterboxd.storage.get('hide-reviews-unwatched') === true && this.pageState.filmWatched == true){
+								this.pageState.hideReviews = false;
 							}
 						}
+						
+						letterboxd.helpers.WriteConsoleLog('DEBUG', `Found film watched status ${this.pageState.filmWatched}`);
 					}
 				}
 			}
 
 			// Move the existing ratings if necessary
-			if (this.ratingMoved == 0 && document.querySelector('.sidebar .section.ratings-histogram-chart:not(.ratings-extras)') != null){
-				if (letterboxd.storage.get('hide-ratings-enabled') === "all" && (this.hideRatings == null || this.hideRatings == true)){
+			if (this.pageState.ratingMoved == 0 && document.querySelector('.sidebar .section.ratings-histogram-chart:not(.ratings-extras)') != null){
+				if (letterboxd.storage.get('hide-ratings-enabled') === "all" && (this.pageState.hideRatings == null || this.pageState.hideRatings == true)){
 					var sidebar = this.createRatingsHolder();
 					var ratings = document.querySelector('.sidebar .section.ratings-histogram-chart:not(.ratings-extras)');
 					sidebar.prepend(ratings);
 				}
-				if (this.hideRatings == null)
-					this.ratingMoved = 1;
+				if (this.pageState.hideRatings == null)
+					this.pageState.ratingMoved = 1;
 				else
-					this.ratingMoved = 2;
+					this.pageState.ratingMoved = 2;
 			}
 
-			if (this.ratingMoved == 1 && this.hideRatings != null){
+			if (this.pageState.ratingMoved == 1 && this.pageState.hideRatings != null){
 				var ratingsHolder = document.querySelector('.extras-ratings-holder')
 				var ratings = document.querySelector('.extras-ratings-holder .section.ratings-histogram-chart:not(.ratings-extras)')
-				if (this.hideRatings == false && ratings != null){
+				if (this.pageState.hideRatings == false && ratings != null){
 					// Ratings were moved into the holder but shouldn't have been
 					ratingsHolder.before(ratings);
 					
@@ -986,27 +1003,27 @@ const letterboxd = {
 						button.parentNode.removeChild(button);
 				}
 				
-				this.ratingMoved = 2;
+				this.pageState.ratingMoved = 2;
 			}
 
 			// Hide Reviews
-			if (this.reviewsMoved == 0 && document.querySelector('.film-recent-reviews') != null){
-				if (letterboxd.storage.get('hide-reviews-enabled') === "all" && (this.hideReviews == null || this.hideReviews == true)){
+			if (this.pageState.reviewsMoved == 0 && document.querySelector('.film-recent-reviews') != null){
+				if (letterboxd.storage.get('hide-reviews-enabled') === "all" && (this.pageState.hideReviews == null || this.pageState.hideReviews == true)){
 					var reviews = document.querySelector('.film-recent-reviews');
 					if (reviews != null){
 						reviews.style.display = "None";
 						this.createShowReviewsButton();
 					}
 				}
-				if (this.hideReviews == null)
-					this.reviewsMoved = 1;
+				if (this.pageState.hideReviews == null)
+					this.pageState.reviewsMoved = 1;
 				else
-					this.reviewsMoved = 2;
+					this.pageState.reviewsMoved = 2;
 			}
 
-			if (this.reviewsMoved == 1 && this.hideReviews != null){
+			if (this.pageState.reviewsMoved == 1 && this.pageState.hideReviews != null){
 				var reviews = document.querySelector('.film-recent-reviews');
-				if (this.hideReviews == false && reviews != null){
+				if (this.pageState.hideReviews == false && reviews != null){
 					// Reviews were hidden and shouldn't have been
 					reviews.style.display = "Block";
 					
@@ -1015,9 +1032,8 @@ const letterboxd = {
 						button.parentNode.removeChild(button);
 				}
 				
-				this.reviewsMoved = 2;
+				this.pageState.reviewsMoved = 2;
 			}
-
 
 			// Get year and title
 			if (document.querySelector("section.production-masthead") != null && this.letterboxdYear == null && this.titleError == false) {
@@ -1033,7 +1049,7 @@ const letterboxd = {
 					}
 				} catch (error) {
 					this.titleError = true;
-					console.error('Letterboxd Extras | Error! There was an error when collecting the title and year!\nException:\n' + error);
+					letterboxd.helpers.WriteConsoleLog('ERROR', `There was an error when collecting the title and year! | Exception: ${error}`);
 				}
 			}
 
@@ -1047,7 +1063,7 @@ const letterboxd = {
 					}
 				} catch (error) {
 					this.altTitleError = true;
-					console.error('Letterboxd Extras | Error! There was an error when collecting the alternate titles!\nException:\n' + error);
+					letterboxd.helpers.WriteConsoleLog('ERROR', `There was an error when collecting the alternate titles! | Exception: ${error}`);
 				}
 			}
 
@@ -1248,13 +1264,13 @@ const letterboxd = {
 				if (this.linksMoved == false)
 					this.moveLinks();
 
-				if (this.isMobile && this.durationAdded == false) {
+				if (this.pageState.isMobile && this.durationAdded == false) {
 					this.addDurationMobile();
 				}
 
 			}
 
-			if (this.filmWatched != null){
+			if (this.pageState.filmWatched != null){
 				// Add Cinema Score
 				if (this.cinemascore.data == null && this.letterboxdTitle != null && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null) {
 					this.initCinema(null);
@@ -1549,7 +1565,7 @@ const letterboxd = {
 									}
 								}
 							}else{
-								console.log("Letterboxd Extras | No WikiData results found.");
+								letterboxd.helpers.WriteConsoleLog('LOG', `No WikiData results found.`);
 							}
 
 							this.wikiData.state = LOAD_STATES['Success'];
@@ -1565,7 +1581,7 @@ const letterboxd = {
 							if (value != null && value.results != null && value.results.bindings != null && value.results.bindings.length > 0) {
 								this.wiki_dates = value.results.bindings;
 							}else{
-								console.log("Letterboxd Extras | No WikiData date results found.");
+								letterboxd.helpers.WriteConsoleLog('LOG', `No WikiData date results found.`);
 							}
 							this.wikiData.state_dates = 1;
 						});
@@ -1665,6 +1681,7 @@ const letterboxd = {
 								if (meta != "") {
 									this.metaHelper.raw = meta;
 									this.metaHelper.data = letterboxd.helpers.parseHTML(meta);
+									this.metaHelper.url = value.url;
 									this.wikiData.metaURL = value.url;
 
 									this.addMeta();
@@ -1672,7 +1689,7 @@ const letterboxd = {
 								}
 							});
 						} catch {
-							console.error("Letterboxd Extras | Unable to parse Metacritic URL");
+							letterboxd.helpers.WriteConsoleLog('ERROR', `Unable to parse Metacritic URL`);
 							this.metaAdded = true; // so it doesn't keep calling
 							this.metaHelper.state = 3;
 						}
@@ -1798,7 +1815,7 @@ const letterboxd = {
 			}
 
 			// Add addtional rankings 
-			if ((this.isMobile && document.querySelector('.sidebar')) || (this.isMobile == false && document.querySelector('.production-statistic'))) {
+			if ((this.pageState.isMobile && document.querySelector('.sidebar')) || (this.pageState.isMobile == false && document.querySelector('.production-statistic'))) {
 				// Add 'They Shoot Pictures, Don't They' ranking
 				if (letterboxd.storage.get('tspdt-enabled') === true && this.letterboxdTitle != null && this.tspdt.state < 3 && this.letterboxdDirectors.length > 0) {
 					// this.tspdt.state:
@@ -1861,7 +1878,7 @@ const letterboxd = {
 						this.addRating();
 					}
 					else{
-						console.log("Letterboxd Extras | No " + this.contentRatingSystem + " rating found.");
+						letterboxd.helpers.WriteConsoleLog('LOG', `No ${this.contentRatingSystem} rating found`);
 					}
 
 					this.contentRatingAdded = true; // prevents this from running again regardless of the rating being added
@@ -1904,7 +1921,7 @@ const letterboxd = {
 					if (imdbLink.includes("maindetails"))
 						imdbLink = imdbLink.replace("maindetails", "ratings");
 
-					if (this.isMobile) {
+					if (this.pageState.isMobile) {
 						imdbLink = imdbLink.replace('www.', 'm.');
 					}
 
@@ -1918,7 +1935,10 @@ const letterboxd = {
 
 			// Separate out the ID
 			if (imdbLink != "") {
-				this.imdbID = imdbLink.match(/(imdb.com\/title\/)(tt[0-9]+)(\/)/)[2];
+				let match = imdbLink.match(/(imdb.com\/title\/)(tt[0-9]+)(\/)/);
+				if (match && match.length > 2){
+					this.imdbID = match[2]
+				}
 			}
 
 			// Separate the TMDB ID
@@ -1926,7 +1946,12 @@ const letterboxd = {
 				if (tmdbLink.includes('/tv/')) {
 					this.tmdbTV = true;
 				}
-				this.tmdbID = tmdbLink.match(/(themoviedb.org\/(?:tv|movie)\/)([0-9]+)($|\/)/)[2];
+
+				let match = tmdbLink.match(/(themoviedb.org\/(?:tv|movie)\/)([0-9]+)($|\/)/);
+				if (match && match.length > 2){
+					this.tmdbID = match[2];
+				}
+
 			}
 
 			this.idsCollected = true;
@@ -1966,7 +1991,7 @@ const letterboxd = {
 				'margin-bottom: 15px !important;',
 			);
 
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				imdbScoreSection.append(letterboxd.helpers.createShowDetailsButton("imdb", "imdb-score-details"));
 			}
 
@@ -1976,7 +2001,7 @@ const letterboxd = {
 				this.imdbData.rating, 
 				this.imdbData.num_ratings, 
 				this.imdbData.url.replace('ratings', 'reviews'), 
-				this.isMobile
+				this.pageState.isMobile
 			));
 			
 			imdbScoreSection.append(letterboxd.helpers.createHistogramGraph(
@@ -1994,7 +2019,7 @@ const letterboxd = {
 			var tooltip = "";
 			if (score != null) {
 				tooltip = score.getAttribute('data-original-title');
-				letterboxd.helpers.createDetailsText('imdb', imdbScoreSection, tooltip, this.isMobile);
+				letterboxd.helpers.createDetailsText('imdb', imdbScoreSection, tooltip, this.pageState.isMobile);
 			}
 
 			// Append to the sidebar
@@ -2152,7 +2177,7 @@ const letterboxd = {
 							}
 						});
 					} catch {
-						console.error("Letterboxd Extras | Unable to parse Rotten Tomatoes URL");
+						letterboxd.helpers.WriteConsoleLog('ERROR', 'Unable to parse Rotten Tomatoes URL');
 						this.rtAdded = true; // so it doesn't keep calling
 						this.tomatoData.state = 3;
 					}
@@ -2190,7 +2215,7 @@ const letterboxd = {
 			// Return if no scores what so ever
 			if (this.tomatoData.criticAll.num_ratings == 0 && this.tomatoData.audienceAll.num_ratings == 0) return;
 
-			if (this.tomatoData.hideDetailButton == true && this.isMobile) {
+			if (this.tomatoData.hideDetailButton == true && this.pageState.isMobile) {
 				this.tomatoData.hideDetailButton = false;
 			}
 
@@ -2221,7 +2246,7 @@ const letterboxd = {
 				section.append(showDetails);
 			}
 
-			var createTooltip = (this.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
+			var createTooltip = (this.pageState.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
 
 			// CRITIC SCORE /  TOMATOMETER
 			//************************************************************
@@ -2240,18 +2265,18 @@ const letterboxd = {
 				});
 				criticSpan.append(buttonDiv);
 
-				if (this.isMobile) {
+				if (this.pageState.isMobile) {
 					// Add single toggle button
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.criticTop.percent == "--"), this.pageState.isMobile));
 
 				} else {
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-all", "ALL", "score-critic-all", true, false, this.isMobile));
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-top", "TOP", "score-critic-top", false, (this.tomatoData.criticTop.percent == "--"), this.isMobile));
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-all", "ALL", "score-critic-all", true, false, this.pageState.isMobile));
+					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-top", "TOP", "score-critic-top", false, (this.tomatoData.criticTop.percent == "--"), this.pageState.isMobile));
 				}
 
 				// Add scores
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all", "Critic", this.wikiData.tomatoURL, this.tomatoData.criticAll, "block", this.isMobile, createTooltip));
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top", "Top Critic", this.wikiData.tomatoURL, this.tomatoData.criticTop, "none", this.isMobile, createTooltip));
+				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all", "Critic", this.wikiData.tomatoURL, this.tomatoData.criticAll, "block", this.pageState.isMobile, createTooltip));
+				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top", "Top Critic", this.wikiData.tomatoURL, this.tomatoData.criticTop, "none", this.pageState.isMobile, createTooltip));
 
 				criticAdded = true;
 			}
@@ -2273,18 +2298,18 @@ const letterboxd = {
 				});
 				audienceSpan.append(buttonDiv2);
 
-				if (this.isMobile) {
+				if (this.pageState.isMobile) {
 					// Add single toggle button
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.audienceVerified.percent == "--"), this.pageState.isMobile));
 
 				} else {
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.isMobile));
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "VERIFIED", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.isMobile));
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.pageState.isMobile));
+					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "VERIFIED", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.pageState.isMobile));
 				}
 
 				// Add scores
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all", "Audience", this.wikiData.tomatoURL, this.tomatoData.audienceAll, "block", this.isMobile, createTooltip));
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified", "Verified Audience", this.wikiData.tomatoURL, this.tomatoData.audienceVerified, "none", this.isMobile, createTooltip));
+				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all", "Audience", this.wikiData.tomatoURL, this.tomatoData.audienceAll, "block", this.pageState.isMobile, createTooltip));
+				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified", "Verified Audience", this.wikiData.tomatoURL, this.tomatoData.audienceVerified, "none", this.pageState.isMobile, createTooltip));
 
 				audienceAdded = true;
 			}
@@ -2300,7 +2325,7 @@ const letterboxd = {
 
 			// Move the details text
 			//************************************************************
-			if (this.isMobile == false) {
+			if (this.pageState.isMobile == false) {
 				var criticAllText = section.querySelector('.mobile-details-text.score-critic-all');
 				var criticTopText = section.querySelector('.mobile-details-text.score-critic-top');
 				var audienceAllText = section.querySelector('.mobile-details-text.score-audience-all');
@@ -2319,7 +2344,7 @@ const letterboxd = {
 
 			// Click the rt-buttons
 			//************************************************************
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top') {
 					section.querySelector(".rt-button.critic-toggle").click();
 				}
@@ -2386,20 +2411,29 @@ const letterboxd = {
 			// First, lets grab all the useful information
 			//***************************************************************
 			if (this.metaHelper.data != null) {
-				var scoreContainer = this.metaHelper.data.querySelector('.hero-scores');
+				// Scores
+				var heroScores = this.metaHelper.data.querySelector('div.hero-scores');
 
-				if (scoreContainer != null){
-					// Scores
-					this.metaHelper.parseRatingScore(this.metaHelper.critic, scoreContainer.querySelector('.c-siteReviewScore_background div:not(.c-siteReviewScore_circle) span'));
-					this.metaHelper.parseRatingScore(this.metaHelper.user, scoreContainer.querySelector('.c-siteReviewScore_background div.c-siteReviewScore_circle span'));
-
-					// Grab the 'must see'
-					if (this.metaHelper.data.querySelector('.score-badge__container .score-badge__image')) {
-						this.metaHelper.mustSee = true;
-					}
+				if (heroScores != null){
+					this.metaHelper.parseRatingScore(this.metaHelper.critic, heroScores.querySelector('[data-testid="product-score"] div[title*="Metascore "] span'));
+					this.metaHelper.parseRatingScore(this.metaHelper.user, heroScores.querySelector('[data-testid="product-score"] div[title*="User score "] span'));
 				}
 				else{
-					console.error('Letterboxd Extras | Metacritic: Unable to locate \'.hero-scores\' element');
+					this.metaHelper.critic.parseError = true;
+					this.metaHelper.user.parseError = true;
+				}
+
+
+				// Grab the 'must see'
+				if (this.metaHelper.data.querySelector('.product-hero__scores img.c-global-image__img')) {
+					this.metaHelper.mustSee = true;
+				}
+
+				if (this.metaHelper.critic.parseError){
+					letterboxd.helpers.WriteConsoleLog('ERROR', 'Metacritic: there was an error parsing the critic ratings.');
+				}
+				if (this.metaHelper.user.parseError){
+					letterboxd.helpers.WriteConsoleLog('ERROR', 'Metacritic: there was an error parsing the user ratings.');
 				}
 
 				// Grab the rating counts
@@ -2474,7 +2508,7 @@ const letterboxd = {
 			if (url.endsWith != "/") url += "/"
 			url = this.wikiData.metaURL + "critic-reviews";
 
-			var addTooltip = (this.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
+			var addTooltip = (this.pageState.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
 
 			// Critic score
 			//***************************************************************
@@ -2482,7 +2516,7 @@ const letterboxd = {
 			if (letterboxd.storage.get('metacritic-critic-enabled') === true) {
 				if (this.wikiData.metaURL != null && this.wikiData.metaURL != "") {
 				}
-				section.append(this.metaHelper.createMetaScore("critic", "Critic", url, this.metaHelper.critic, this.metaHelper.mustSee, this.isMobile, addTooltip));
+				section.append(this.metaHelper.createMetaScore("critic", "Critic", url, this.metaHelper.critic, this.metaHelper.mustSee, this.pageState.isMobile, addTooltip));
 				criticAdded = true;
 			}
 
@@ -2492,7 +2526,7 @@ const letterboxd = {
 			if (letterboxd.storage.get('metacritic-users-enabled') === true) {
 				if (this.metaHelper.data != null) {
 					url = url.replace("/critic-reviews", "/user-reviews")
-					section.append(this.metaHelper.createMetaScore("user", "User", url, this.metaHelper.user, this.metaHelper.mustSee, this.isMobile, addTooltip));
+					section.append(this.metaHelper.createMetaScore("user", "User", url, this.metaHelper.user, this.metaHelper.mustSee, this.pageState.isMobile, addTooltip));
 					userAdded = true;
 				}
 			}
@@ -2529,7 +2563,7 @@ const letterboxd = {
 
 			// Move the details text
 			//************************************************************
-			if (this.isMobile == false){
+			if (this.pageState.isMobile == false){
 				var criticText = document.querySelector('.meta-details-critic.mobile-details-text');
 				var userText = document.querySelector('.meta-details-user.mobile-details-text');
 
@@ -2688,7 +2722,7 @@ const letterboxd = {
 				const text = letterboxd.helpers.createElement('span', {
 					class: 'text-footer-extra'
 				});
-				if (this.isMobile == false) {
+				if (this.pageState.isMobile == false) {
 					text.style['margin-left'] = '10px';
 				}
 				text.innerText = "More at ";
@@ -2898,7 +2932,7 @@ const letterboxd = {
 
 			// Add to the page
 			try {
-				if (this.isMobile) {
+				if (this.pageState.isMobile) {
 					const intro = document.querySelector('.details .credits .introduction');
 
 					const rating = letterboxd.helpers.createElement('span', {
@@ -2921,7 +2955,7 @@ const letterboxd = {
 					small.append(p);
 				}
 			} catch (error) {
-				console.error('Letterboxd Extras | Error! There was an error when adding the MPA rating!\nException:\n' + error);
+				letterboxd.helpers.WriteConsoleLog('ERROR', `There was an error when adding the content rating! | Exception: ${error}`);
 			}
 
 			this.ratingAdded = true;
@@ -3259,7 +3293,7 @@ const letterboxd = {
 			);
 
 			var showDetails = null;
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				// Add the Show Details button
 				showDetails = letterboxd.helpers.createShowDetailsButton("sens", "sens-score-details");
 				section.append(showDetails);
@@ -3357,7 +3391,7 @@ const letterboxd = {
 			section.append(container);
 
 			// Add the tooltip as text for mobile
-			letterboxd.helpers.createDetailsText('sens', section, tooltip, this.isMobile);
+			letterboxd.helpers.createDetailsText('sens', section, tooltip, this.pageState.isMobile);
 
 			// APPEND to the sidebar
 			//************************************************************
@@ -3374,7 +3408,7 @@ const letterboxd = {
 			var index = order.indexOf(className);
 			var sidebar = document.querySelector('.sidebar');
 
-			if (this.hideRatings === true) {
+			if (this.pageState.hideRatings === true) {
 				sidebar = document.querySelector('.extras-ratings-holder');
 
 				if (sidebar == null) {
@@ -3505,7 +3539,7 @@ const letterboxd = {
 				list = list.replaceAll('<br>', '\n');
 				list = list.replaceAll('&amp;', '&');
 			} else {
-				console.error("Letterboxd Extras | Error while processing TSPDT");
+				letterboxd.helpers.WriteConsoleLog('ERROR', 'Error while processing TSPDT');
 				return;
 			}
 
@@ -3622,7 +3656,7 @@ const letterboxd = {
 		addTSPDT() {
 			if (document.querySelector('.tspdt-ranking')) return;
 
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				if (!document.querySelector('.sidebar')) return;
 			} else {
 				if (!document.querySelector('.production-statistic-list')) return;
@@ -3653,7 +3687,7 @@ const letterboxd = {
 			a.setAttribute('data-original-title', tooltip);
 
 			// Add the tooltip as text for mobile
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				const detailsSpan = letterboxd.helpers.createElement('span', {
 					class: 'mobile-ranking-details',
 					style: 'display:none'
@@ -3702,7 +3736,7 @@ const letterboxd = {
 				list = JSON.parse(list);
 				list = list.componentState.results;
 			} else {
-				console.error("Letterboxd Extras | Error while processing BFI");
+				letterboxd.helpers.WriteConsoleLog('ERROR', 'Error while processing BFI');
 				return;
 			}
 
@@ -3797,7 +3831,7 @@ const letterboxd = {
 			if (document.querySelector('.bfi-ranking')) return;
 
 			try{
-				if (this.isMobile) {
+				if (this.pageState.isMobile) {
 					if (!document.querySelector('.sidebar')) return;
 				} else {
 					if (!document.querySelector('.production-statistic-list')){
@@ -3838,7 +3872,7 @@ const letterboxd = {
 				a.append(span);
 
 				// Add the tooltip as text for mobile
-				if (this.isMobile) {
+				if (this.pageState.isMobile) {
 					const detailsSpan = letterboxd.helpers.createElement('span', {
 						class: 'mobile-ranking-details',
 						style: 'display:none'
@@ -3860,7 +3894,7 @@ const letterboxd = {
 				letterboxd.helpers.addTooltipEvents(li);
 					
 			}catch (error){
-				console.error("Letterboxd Extras | BFI error: " + error)
+				letterboxd.helpers.WriteConsoleLog('ERROR', `BFI error: " + ${error}`);
 			}
 		},
 
@@ -3871,7 +3905,7 @@ const letterboxd = {
 				extrasStats = letterboxd.helpers.createElement('ul', {
 					class: 'production-statistic-list extras-stats'
 				});
-				if (this.isMobile) {
+				if (this.pageState.isMobile) {
 					// Add to page
 					extrasStats.className += ' extras-ranking-mobile';
 					document.querySelector('.production-masthead .details').append(extrasStats);
@@ -4055,7 +4089,7 @@ const letterboxd = {
 			);
 
 			// Add the Show Details button
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				const showDetails = letterboxd.helpers.createShowDetailsButton("allocine", "allocine-score-details");
 				section.append(showDetails);
 			}
@@ -4078,7 +4112,7 @@ const letterboxd = {
 					criticLabel.innerText = "Critics";
 					criticSpan.append(criticLabel);
 
-					criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
+					criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
 					criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
 					section.append(criticSpan);
 				}
@@ -4096,7 +4130,7 @@ const letterboxd = {
 					userLabel.innerText = "Users";
 					userSpan.append(userLabel);
 
-					userSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.user.rating, this.allocine.user.num_ratings, this.allocine.user.num_reviews, this.allocine.urlUser, this.isMobile));
+					userSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.user.rating, this.allocine.user.num_ratings, this.allocine.user.num_reviews, this.allocine.urlUser, this.pageState.isMobile));
 					userSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.user.rating));
 					section.append(userSpan);
 				}
@@ -4106,14 +4140,14 @@ const letterboxd = {
 				var criticScore = section.querySelector(".allocine-critic-score .allocine-critic .tooltip");
 				if (criticScore != null) {
 					var tooltip = criticScore.getAttribute('data-original-title');
-					letterboxd.helpers.createDetailsText('allocine', section, tooltip, this.isMobile);
+					letterboxd.helpers.createDetailsText('allocine', section, tooltip, this.pageState.isMobile);
 				}
 
 				// User Rating Tooltip
 				var userScore = section.querySelector(".allocine-user-score .allocine-critic .tooltip");
 				if (userScore != null) {
 					var tooltip = userScore.getAttribute('data-original-title');
-					letterboxd.helpers.createDetailsText('allocine', section, tooltip, this.isMobile);
+					letterboxd.helpers.createDetailsText('allocine', section, tooltip, this.pageState.isMobile);
 				}
 
 			} else {
@@ -4128,8 +4162,8 @@ const letterboxd = {
 				});
 				section.append(buttonDiv);
 
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.isMobile));
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.isMobile));
+				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.pageState.isMobile));
+				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.pageState.isMobile));
 				if (letterboxd.storage.get('allocine-users-enabled') != true || letterboxd.storage.get('allocine-critic-enabled') != true) {
 					buttonDiv.style['display'] = "none";
 				}
@@ -4146,7 +4180,7 @@ const letterboxd = {
 					this.allocine.user.rating, 
 					this.allocine.user.num_reviews, 
 					this.allocine.urlUser, 
-					this.isMobile
+					this.pageState.isMobile
 				));
 
 				userSpan.append(letterboxd.helpers.createHistogramGraph(
@@ -4170,7 +4204,7 @@ const letterboxd = {
 					class: 'allocine-critic-score rt-score-div',
 					style: 'position: relative; display: block; height: 44px; display:none;'
 				});
-				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.isMobile));
+				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
 				criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
 				section.append(criticSpan);
 
@@ -4179,14 +4213,14 @@ const letterboxd = {
 				var userScore = section.querySelector(".allocine-user-score .average-rating .tooltip");
 				if (userScore != null) {
 					var tooltip = userScore.getAttribute('data-original-title');
-					letterboxd.helpers.createDetailsText('allocine', section.querySelector(".allocine-user-score"), tooltip, this.isMobile);
+					letterboxd.helpers.createDetailsText('allocine', section.querySelector(".allocine-user-score"), tooltip, this.pageState.isMobile);
 				}
 
 				// Critic Rating Tooltip
 				var criticScore = section.querySelector(".allocine-critic-score .allocine-critic .tooltip");
 				if (criticScore != null) {
 					var tooltip = criticScore.getAttribute('data-original-title');
-					letterboxd.helpers.createDetailsText('allocine', section.querySelector(".allocine-critic-score"), tooltip, this.isMobile);
+					letterboxd.helpers.createDetailsText('allocine', section.querySelector(".allocine-critic-score"), tooltip, this.pageState.isMobile);
 				}
 			}
 
@@ -4307,7 +4341,7 @@ const letterboxd = {
 			}
 
 			if (this.ddd.state < 2 || this.ddd.data == null){
-				console.log("Letterboxd Extras | Unable to locate DDD film page.");
+				letterboxd.helpers.WriteConsoleLog('LOG', 'Unable to locate DDD film page.');
 				this.ddd.state = 3;
 			}else{
 				// Add link to the page
@@ -4453,7 +4487,7 @@ const letterboxd = {
 					
 				this.addLink(this.filmarks.url);
 			}else{
-				console.log("Letterboxd Extras | Unable to find/match Filmarks page.");
+				letterboxd.helpers.WriteConsoleLog('LOG', 'Unable to find/match Filmarks page');
 				return;
 			}
 
@@ -4481,7 +4515,7 @@ const letterboxd = {
 			});
 			heading.append(logoHolder);
 
-			if (this.isMobile) {
+			if (this.pageState.isMobile) {
 				// Add the Show Details button			
 				const showDetails = letterboxd.helpers.createShowDetailsButton("filmarks", "filmarks-score-details");
 				section.append(showDetails);
@@ -4493,7 +4527,7 @@ const letterboxd = {
 				class: 'filmarks-score rt-score-div',
 				style: 'position: relative; display: block;'
 			});
-			ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.isMobile));
+			ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.pageState.isMobile));
 			ratingSpan.append(letterboxd.helpers.createAllocineStars(this.filmarks.rating));
 			section.append(ratingSpan);
 
@@ -4502,7 +4536,7 @@ const letterboxd = {
 			var scoreSpan = section.querySelector(".filmarks-score .filmarks .tooltip");
 			if (scoreSpan != null) {
 				var tooltip = scoreSpan.getAttribute('data-original-title');
-				letterboxd.helpers.createDetailsText('filmarks', section.querySelector(".filmarks-score"), tooltip, this.isMobile);
+				letterboxd.helpers.createDetailsText('filmarks', section.querySelector(".filmarks-score"), tooltip, this.pageState.isMobile);
 			}
 
 			// APPEND to the sidebar
@@ -4569,28 +4603,41 @@ const letterboxd = {
 	},
 
 	helpers: {
+		WriteConsoleLog(type, log) {
+			if (type == "DEBUG" && letterboxd.storage.get('console-log') != true) {
+				return;
+			}
+
+			if (type == "ERROR"){
+				console.error(`Letterboxd Extras | ${type} | ${log}`);
+			}
+			else{
+				console.log(`Letterboxd Extras | ${type} | ${log}`);
+			}
+		},
+
 		ValidateResponse(name, value){
 			// Standard fetch response validation with standardized debug messages
 			// should catch any issues and prevent any catastrophic errors
 
-			if (letterboxd.storage.get('console-log') === true && value != null && value.url != null && value.status != null) {
-				console.log("Letterboxd Extras | Fetch made to URL: " + value.url + "\nResponse status: " + value.status);
+			if ( value != null && value.url != null && value.status != null) {
+				this.WriteConsoleLog('DEBUG', `Fetch made to URL: ${value.url} | Response status: ${value.status}`);
 			}
 
 			var output = true;
 			if (value == null || value.status == null){
 				// Something went really wrong with the fetch
-				console.error("Letterboxd Extras | There was an error with the " + name + " call. Error unknown");
+				this.WriteConsoleLog('ERROR', `There was an error with the ${name} call. Error unknown`);
 				output = false;
 			} else if (value.status == 202 && (value.response == null || value.response == "")){
-				console.error("Letterboxd Extras | There was an error with the " + name + " call. Site returned a 202 without a body, this is likely some anti-bot measures.");
+				this.WriteConsoleLog('ERROR', `There was an error with the ${name} call. Site returned a 202 without a body, this is likely some anti-bot measures.`);
 				output = false;
 			} else if (value.status > 299 || value.status == 0){
 				// Something went wrong, check for errors in the response
 				if (value.errors != null && value.errors.length > 0){
-					console.error("Letterboxd Extras | There was an error with the " + name + " call. Message: " + value.errors[0]);
+					this.WriteConsoleLog('ERROR', `There was an error with the ${name} call. Message: ${value.errors[0]}`);
 				}else{
-					console.error("Letterboxd Extras | There was an error with the " + name + " call. Code: " + value.status);
+					this.WriteConsoleLog('ERROR', `There was an error with the ${name} call. Code: ${value.status}`);
 				}
 				output = false;
 			}		
@@ -4629,7 +4676,7 @@ const letterboxd = {
 			showDetails.innerText = "SHOW DETAILS";
 
 			// Add click event
-			showDetails.addEventListener('click', event => { toggleDetails(event, letterboxd); });
+			showDetails.addEventListener('click', event => { toggleDetails(event, letterboxd.storage); });
 
 			return showDetails;
 		},
@@ -5444,9 +5491,9 @@ const letterboxd = {
 			const logoHolder = this.createChartSectionLogoHolder(sectionID, logoProps);
 			heading.append(logoHolder);
 
-			if (this.isMobile) {
+			if (letterboxd.overview.pageState.isMobile) {
 				// Add the Show Details button
-				const showDetails = this._createShowDetailsButton();
+				const showDetails = letterboxd.helpers.createShowDetailsButton();
 				chartSection.append(showDetails);
 			}
 
@@ -6238,7 +6285,7 @@ const moduleConfigs = [
 	{ class: SimklHelper, target: letterboxd.overview, property: 'simklHelper', args: []},
 	{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [letterboxd.overview.ratingsSuffix] },
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
-	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] }
+	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {

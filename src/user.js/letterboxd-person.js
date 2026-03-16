@@ -113,7 +113,7 @@ export class LetterboxdPerson {
 
 		const queryString = this.extensionHelpers.getWikiDataQuery('', this.tmdbID, '', false, 'PERSON', lang);
 		// Call WikiData
-		browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString }, data => {
+		browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString.url, options: queryString.options }, data => {
 			if (this.extensionHelpers.ValidateResponse('WikiData', data) === false) {
 				return;
 			}
@@ -360,7 +360,7 @@ export class LetterboxdPerson {
 		if (timestamp === null || (now - timestamp) > maxTime || this.lostFilms.list === null) {
 
 			// Get new list - Call WikiData
-			browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString }, data => {
+			browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString.url, options: queryString.options }, data => {
 				if (this.extensionHelpers.ValidateResponse('WikiData', data) === false) {
 					return;
 				}
