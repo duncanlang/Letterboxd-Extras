@@ -1280,6 +1280,22 @@ const letterboxd = {
 					// Call IMDb and Add to page when done
 					if (letterboxd.storage.get('imdb-enabled') === true) {
 						this.imdbData.state = 1;
+
+						var options = letterboxd.helpers.getImdbQuery(this.imdbID);
+						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: 'https://api.graphql.imdb.com/', options: options }, (value) => {
+							if (letterboxd.helpers.ValidateResponse("IMDb Ratings", value) == false){
+								return;
+							}
+
+							if (value.response != null && value.response.data != null){
+								this.imdbData.data = value.response.data;
+
+								this.addIMDBScore();
+							}
+							this.imdbData.state = 2;
+						});
+
+						/*
 						browser.runtime.sendMessage({ name: "GETDATA", url: this.imdbData.url }, (value) => {
 							if (letterboxd.helpers.ValidateResponse("IMDb Ratings", value) == false){
 								return;
@@ -1302,6 +1318,7 @@ const letterboxd = {
 						});
 
 						// Call the IMDb main show page
+						/*
 						browser.runtime.sendMessage({ name: "GETDATA", url: this.imdbData.url.replace('/ratings', '') }, (value) => {
 							if (letterboxd.helpers.ValidateResponse("IMDb Additional", value) == false){
 								return;
@@ -1316,6 +1333,7 @@ const letterboxd = {
 							}
 							this.imdbData.state2 = 1;
 						});
+						*/
 
 						// Call BoxOfficeMojo
 						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID + '/';
@@ -1925,7 +1943,7 @@ const letterboxd = {
 						imdbLink = imdbLink.replace('www.', 'm.');
 					}
 
-					this.imdbData.url = imdbLink;
+					this.imdbData.url = imdbLink + "/";
 
 				} else if (links[i].innerHTML === "TMDB") {
 					// Grab the tmdb link
@@ -1964,6 +1982,32 @@ const letterboxd = {
 
 			// Get the score from the IMDb page
 			//**********************************************/
+			let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
+			if (ratingsSummary != null){
+
+				this.imdbData.rating = ratingsSummary.aggregateRating ?? 0;
+				this.imdbData.num_ratings = ratingsSummary.voteCount ?? 0;
+			}
+			let histogramValues = this.imdbData.data.title?.aggregateRatingsBreakdown?.histogram?.histogramValues ?? [];
+			if (histogramValues != null && histogramValues.length > 0){
+				for (var ii = 0; ii < histogramValues.length; ii++) {
+					var index = histogramValues[ii].rating - 1;
+					var votes = histogramValues[ii].voteCount;
+					var percent = ((votes / this.imdbData.num_ratings) * 100).toFixed(1);
+
+					this.imdbData.percents[index] = percent;
+					this.imdbData.votes[index] = votes;
+
+					if (votes > this.imdbData.highest)
+						this.imdbData.highest = votes;
+				}
+			}
+
+			if (this.imdbData.rating == 0 || this.imdbData.num_ratings == 0 || histogramValues.length == 0) {
+				return false;
+			}
+
+			/*
 			const body = this.imdbData.data.querySelector('body');
 			if (body.getAttribute("id") == "styleguide-v2") {
 				if (this.getIMDBScoreV2() == false) {
@@ -5820,6 +5864,40 @@ const letterboxd = {
 					variables: {
 						id: parseInt(id)
 					}
+				})
+			};
+
+			return options;
+		},
+
+		getImdbQuery(id){
+			var query = `
+					query GetRatings { 
+						title(id: "${id}") { 
+							ratingsSummary { 
+								aggregateRating 
+								voteCount
+							} 
+							aggregateRatingsBreakdown {
+								histogram { 
+									histogramValues { 
+										rating
+										voteCount
+									}
+								}
+							}
+						}
+					}
+				`;
+			var options = {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+					accept: 'application/json'
+				},
+				body: JSON.stringify({
+					query,
+					variables: {}
 				})
 			};
 

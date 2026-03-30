@@ -8,26 +8,29 @@ if (isChrome)
     var browser = chrome;
 
 browser.runtime.onMessage.addListener((msg, sender, response) => {
-    // Logging
-    browser.storage.sync.get('options', (data) => {
-        if (data != null){
-            var options = data.options;
-            if (options != null && options.hasOwnProperty('console-log') && options['console-log'] == true) {
-                console.log("Letterboxd Extras | " + msg.url);
-            }
-        }
-    });
-
-    if (msg.type == null){
-        msg.type = "";
+    if (msg.name == null) {
+        msg.name = "";
     }
 
     if (msg.name == "GETDATA") { // Standard call
+        // Logging
+        browser.storage.sync.get('options', (data) => {
+            if (data != null) {
+                var options = data.options;
+                if (options != null && options.hasOwnProperty('console-log') && options['console-log'] == true) {
+                    console.log("Letterboxd Extras | " + msg.url);
+                }
+            }
+        });
+        if (msg.type == null) {
+            msg.type = "";
+        }
+
         var options = null;
         if (msg.options != null)
             options = msg.options;
 
-        if (msg.url.includes('kinopoiskapiunofficial.tech') && msg.options == null){
+        if (msg.url.includes('kinopoiskapiunofficial.tech') && msg.options == null) {
             // do not steal pls :(
             var options = {
                 method: 'GET',
@@ -39,41 +42,45 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
         try {
             (async () => {
-                // Check for permission before call
-                if (await CheckForPermission(msg.url)){
-                    fetch(encodeURI(msg.url), options).then(async function (res) {
-                        var errors = null;
-
-                        // Check for errors
-                        if (res.status !== 200) {
-                            if (res.errors != null)
-                                errors = res.errors;
-                            
-                            response({ response: null, url: null, status: res.status, errors: errors })
-                            return;
-                        }
-                        
-                        // Get response body
-                        var resData = null;
-                        if (msg.type == "JSON"){
-                            await res.json().then(function (data) {
-                                resData = data;
-                            });
-                        }else{
-                            await res.text().then(function (data) {
-                                resData = data;
-                            });
-                        }
-
-                        response({ response: resData, url: res.url, status: res.status });
-                    });
-                }else{
-                    response({ response: null, url: msg.url, status: 0, errors: ["No permission found matching url: " + msg.url] });
+                // Permission Check
+                const hasPermission = await CheckForPermission(msg.url);
+                if (!hasPermission) {
+                    response({ response: null, url: msg.url, status: 0, errors: [`No permission found matching url: ${msg.url}`] });
+                    return;
                 }
+
+                let res = await fetch(encodeURI(msg.url), options);
+
+                /*
+                // Check for 202 response from IMDb (anti-bot measures)
+                if (res.status === 202 && msg.url.includes('imdb.com')) {
+                    console.log("HTTP 202 response detected. Triggering warmup...");
+
+                    await warmupImdb(msg.url);
+
+                    console.log("Warmup complete. Retrying fetch...");
+                    res = await fetch(encodeURI(msg.url), options);
+                    console.log(`Retry returned: ${res.status}`);
+                }
+                */
+
+                if (res.status !== 200) {
+                    let errors = res.errors || null;
+                    response({ response: null, url: res.url, status: res.status, errors: errors });
+                    return;
+                }
+
+                // Handle response
+                let resData = (msg.type === "JSON") ? await res.json() : await res.text();
+                response({ response: resData, url: res.url, status: res.status });
+
             })();
-        } catch (exception){
-            console.log(exception);
-            response({ response: null, url: null, status: 0 })
+
+            return true;
+
+        } catch (exception) {
+            console.error("Fetch Exception:", exception);
+            response({ response: null, url: null, status: 0 });
         }
 
     } else if (msg.name == "RESETSETTINGS") { // Reset saved settings
@@ -95,6 +102,8 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             var ratingsOrder = getDefaultRatingsOrder();
             response({ value: ratingsOrder });
         })();
+    } else {
+        response({ value: "" });
     }
 
     return true;
@@ -102,7 +111,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
 async function registerContentScripts() {
     await browser.storage.sync.get('options', async (data) => {
-        if (data != null){
+        if (data != null) {
             var storedSettings = data.options;
             if (storedSettings != null && storedSettings.hasOwnProperty("google") && storedSettings["google"] === true) {
                 const script = {
@@ -110,7 +119,21 @@ async function registerContentScripts() {
                     js: ['google2letterboxd.js'],
                     matches: ['https://www.google.com/search*'],
                 };
-                await browser.scripting.registerContentScripts([script]).catch(console.error);
+
+                // Check for existing script
+                let existingScripts = await browser.scripting.getRegisteredContentScripts();
+                existingScripts = existingScripts.map((script) => script.id);
+                if (existingScripts.includes(script.id)){
+                    console.log(`Content script: ${script.id} is already registered.`);
+                    return;
+                }    
+
+                // Register script
+                try {
+                    await browser.scripting.registerContentScripts([script]).catch(console.error);
+                } catch (err) {
+                    console.error(`Failed to register content script: ${err}`);
+                }
             }
         }
     });
@@ -127,12 +150,12 @@ async function InitDefaultSettings() {
 
     if (options == null)
         options = {};
-    
+
     // mpa-enabled -> content-ratings
-    if (options['mpa-enabled'] != null){
-        if (options['mpa-enabled'] === true){
+    if (options['mpa-enabled'] != null) {
+        if (options['mpa-enabled'] === true) {
             options['content-ratings'] = 'mpaa';
-        }else{
+        } else {
             options['content-ratings'] = 'none';
         }
         options['mpa-enabled'] = null;
@@ -211,7 +234,7 @@ async function InitDefaultSettings() {
     await browser.storage.sync.set({ options });
 }
 
-function getDefaultRatingsOrder(){
+function getDefaultRatingsOrder() {
     var defaultOrder = [
         'imdb-ratings',
         'mal-ratings',
@@ -232,14 +255,14 @@ function getDefaultRatingsOrder(){
     return defaultOrder;
 }
 
-function UpdateRatingsOrder(currentOrder){
+function UpdateRatingsOrder(currentOrder) {
     if (currentOrder == null)
         currentOrder = [];
 
     var defaultOrder = getDefaultRatingsOrder();
 
-    for (var i = 0; i < defaultOrder.length; i++){
-        if (!currentOrder.includes(defaultOrder[i])){
+    for (var i = 0; i < defaultOrder.length; i++) {
+        if (!currentOrder.includes(defaultOrder[i])) {
             currentOrder.push(defaultOrder[i]);
         }
     }
@@ -247,7 +270,7 @@ function UpdateRatingsOrder(currentOrder){
     return currentOrder;
 }
 
-async function InitLocalStorage(){
+async function InitLocalStorage() {
     // Get options from sync
     var options = {};
     const data = await browser.storage.local.get('options');
@@ -256,7 +279,7 @@ async function InitLocalStorage(){
     }
 
     if (options['hide-lost-films'] == null) options['hide-lost-films'] = 'show';
-    
+
     // Save
     await browser.storage.local.set({ options });
 }
@@ -312,7 +335,7 @@ async function CheckForPermission(url) {
     // Loop through granted origins and check against the given URL
     for (const pattern of perms.origins) {
         try {
-            const urlPattern = new URLPattern({ 
+            const urlPattern = new URLPattern({
                 protocol: pattern.split("://")[0],
                 hostname: pattern.split("://")[1].split("/")[0],
                 pathname: pattern.split("/").slice(3).join("/") || "*"
@@ -328,3 +351,137 @@ async function CheckForPermission(url) {
 
     return false;
 }
+
+/*
+async function warmupImdb(url) {
+    if (isFirefox) {
+        // In Manifest V2, we can just create an iframe in the background script
+        await createIframeForImdb();
+    }
+    else {
+        // In Manifest V3, we have to use an offscreen document which will create the iframe
+
+        await setupOffscreenDocument();
+
+        return new Promise((resolve) => {
+            // A one-time listener for the completion message
+            const listener = (message) => {
+                if (message.name === 'warmup-complete') {
+                    console.log('received warmup-complete message');
+                    chrome.runtime.onMessage.removeListener(listener);
+                    resolve();
+                }
+            };
+
+            chrome.runtime.onMessage.addListener(listener);
+
+            // Trigger the warmup
+            chrome.runtime.sendMessage({
+                target: 'offscreen',
+                name: 'warmup-imdb',
+                url: url
+            }).catch(err => {
+                // Catching the "message channel closed" error here prevents the crash
+                // This often happens if the offscreen doc was already busy
+                console.debug("Note: Initial message sent, awaiting listener response.");
+            });
+        });
+    }
+}
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Firefox only
+async function createIframeForImdb() {
+    if (document.querySelector('#imdb-iframe')) {
+        document.body.removeChild(document.querySelector('#imdb-iframe'));
+    }
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'imdb-iframe';
+    iframe.src = 'https://www.imdb.com';
+    document.body.append(iframe);
+
+    await awaitIframeLoad(iframe);
+}
+
+const awaitIframeLoad = (iframe) => {
+    return new Promise((resolve) => {
+        iframe.onload = () => {
+            resolve(iframe);
+        };
+    });
+};
+
+// Chrome Only
+let creating; // A global promise to avoid concurrency issues
+async function setupOffscreenDocument() {
+    let path = 'offscreen.html';
+    // Check all windows controlled by the service worker to see if one
+    // of them is the offscreen document with the given path
+    const offscreenUrl = chrome.runtime.getURL(path);
+    const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [offscreenUrl]
+    });
+
+    if (existingContexts.length > 0) {
+        return;
+    }
+
+    // create offscreen document
+    if (creating) {
+        await creating;
+    } else {
+        creating = chrome.offscreen.createDocument({
+            url: path,
+            reasons: ['DOM_PARSER'],
+            justification: 'To handle WAF challenges and session priming',
+        });
+        await creating;
+        creating = null;
+    }
+}
+
+const IMDB_RULE_ID = 1;
+async function setupImdbRules() {
+    const extensionId = chrome.runtime.id;
+
+    const rules = [
+        {
+            id: IMDB_RULE_ID,
+            priority: 1,
+            action: {
+                type: "modifyHeaders",
+                requestHeaders: [
+                    { header: "Referer", operation: "set", value: "https://www.imdb.com/" }
+                ],
+                responseHeaders: [
+                    { header: 'X-Frame-Options', operation: 'remove' },
+                    { header: 'Frame-Options', operation: 'remove' },
+                    // Uncomment the following line to suppress `frame-ancestors` error
+                    {header: 'Content-Security-Policy', operation: 'remove'},
+                ],
+            },
+            condition: {
+                urlFilter: "imdb.com",
+                initiatorDomains: [extensionId],
+                resourceTypes: ["xmlhttprequest"] // fetch calls are categorized as this
+            }
+        }
+    ];
+
+    // First, clear any old rules with this ID, then add the new one
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [IMDB_RULE_ID],
+        addRules: rules
+    });
+
+    console.log("IMDb Spoofing Rule Active");
+}
+
+// Run this when the extension installs or starts up
+chrome.runtime.onInstalled.addListener(setupImdbRules);
+chrome.runtime.onStartup.addListener(setupImdbRules);
+*/

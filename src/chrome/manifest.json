@@ -3,7 +3,7 @@
 	"name": "Letterboxd Extras",
 	"description": "Adds extra features to Letterboxd.",
 	"version": "3.18.3",
-	"minimum_chrome_version": "88",
+	"minimum_chrome_version": "116",
 	
 	"action": {
 		"default_title": "Letterboxd Extras Settings",
