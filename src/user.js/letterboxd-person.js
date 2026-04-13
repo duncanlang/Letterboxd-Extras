@@ -197,7 +197,7 @@ export class LetterboxdPerson {
 		if (this.wiki.Date_Of_Birth && this.wiki.Date_Of_Birth.value !== null && this.wiki.Date_Of_Birth_Precision.value >= 9) {
 			birth = new Date(this.wiki.Date_Of_Birth.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Birth_Precision.value));
 			if (isAlive === true) {
-				const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
+				const age = this._calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date());
 				birth += ` (age ${age})`;
 			}
 
@@ -215,7 +215,7 @@ export class LetterboxdPerson {
 		if (this.wiki.Date_Of_Death && this.wiki.Date_Of_Death.value !== null && this.wiki.Date_Of_Death_Precision.value >= 9) {
 			death = new Date(this.wiki.Date_Of_Death.value).toLocaleDateString('en-UK', this.extensionHelpers.getDateOptions(this.wiki.Date_Of_Death_Precision.value));
 
-			const age = this.extensionHelpers.calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
+			const age = this._calculateAge(new Date(this.wiki.Date_Of_Birth.value), new Date(this.wiki.Date_Of_Death.value));
 			death += ` (aged ${age})`;
 
 			if (this.wiki.DeathCityLabel && this.wiki.DeathCityLabel.value !== null) {
@@ -484,7 +484,7 @@ export class LetterboxdPerson {
 			suffix = ' film ';
 		}
 
-		suffix += this.extensionHelpers.getPersonRole(window.location.pathname.match(new RegExp(/\/([A-za-z\-]+)/))[1]);
+		suffix += this._getPersonRole(window.location.pathname.match(new RegExp(/\/([A-za-z\-]+)/))[1]);
 
 		const uiHeader = document.querySelector('.ui-block-header');
 		let extrasuiHeader = document.querySelector('.extras-filter-header');
@@ -562,4 +562,38 @@ export class LetterboxdPerson {
 
 		this.updateLostFilms();
 	}
+
+
+	_getPersonRole(role) {
+		switch (role) {
+			case 'director':
+			case 'co-director':
+			case 'additional-directing':
+				return 'by this director';
+
+			case 'writer':
+			case 'producer':
+			case 'executive-producer':
+				return `by this ${role.replace('-', ' ')}`;
+
+			case 'actor':
+				return `with this ${role.replace('-', ' ')}`;
+
+			case 'original-writer':
+				return 'by this writer';
+
+			case 'editor':
+				return 'edited by this editor';
+
+			case 'cinematography':
+				return 'shot by this cinematographer';
+
+			case 'composer':
+				return 'with music by this composer';
+
+			default:
+				return `with ${role.replace('-', ' ')} by this artist`;
+		}
+	}
+
 }

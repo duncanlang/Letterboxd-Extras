@@ -6234,12 +6234,6 @@ const letterboxd = {
 			}
 		},
 
-		calculateAge(start, end) {
-			var ageDifMs = end - start;
-			var ageDate = new Date(ageDifMs);
-			return Math.abs(ageDate.getUTCFullYear() - 1970);
-		},
-
 		getDateOptions(precision) {
 			/* Using the WikiData Date Precision values:
 				0 - billion years
@@ -6275,37 +6269,6 @@ const letterboxd = {
 			return defaultValue;
 		},
 
-		getPersonRole(role){
-			switch(role){
-				case "director":
-				case "co-director":
-				case "additional-directing":
-					return "by this director";
-
-				case "writer":
-				case "producer":
-				case "executive-producer":
-					return "by this " + role.replace('-',' ');
-
-				case "actor":
-					return "with this " + role.replace('-',' ');
-						
-				case "original-writer":
-					return "by this writer";
-						
-				case "editor":
-					return "edited by this editor";
-
-				case "cinematography":
-					return "shot by this cinematographer";
-
-				case "composer":
-					return "with music by this composer";
-					
-				default:
-					return "with " + role.replace('-',' ') + " by this artist";
-			}
-		}
 	},
 
 	storage: {
