@@ -120,18 +120,11 @@ export class AnilistHelper extends Helper {
 			scoreSection.append(this._createShowDetailsButton());
 		}
 
-		scoreSection.append(this.helpers.createHistogramScore(
+		scoreSection.append(this.helpers.createHistogram(
 			this.storage,
-			'anilist',
+			'anilist', 
+			'',
 			this.score,
-			this.num_ratings,
-			`${this.data.siteUrl}/reviews`,
-			isMobile
-		));
-
-		scoreSection.append(this.helpers.createHistogramGraph(
-			this.storage,
-			'anilist', '',
 			this.num_ratings,
 			this.data.stats.scoreDistribution,
 			this.data.stats.scoreDistribution[ii],

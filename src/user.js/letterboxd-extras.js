@@ -29,19 +29,6 @@ GM_addStyle(`
 		.sens-ratings .show-details{
 			top: 10px !important;
 		}
-		.imdb-score {
-			border-radius:20px;
-			color:#789;
-			display:block;
-			font-family:Graphik-Light-Web,sans-serif;
-			font-size:20px;
-			font-weight:400;
-			height:33px;
-			line-height:40px;
-			margin-left:1px;
-			text-align:center;
-			width:33px;			
-		}
 		.tomato-score {
 			border-radius:20px;
 			color:#789;
@@ -169,21 +156,39 @@ GM_addStyle(`
 			letter-spacing: 0;
 			vertical-align: super;
 		}
-		.rating-star-imdb{
-			color: #2e51a2;
-			filter: brightness(0) saturate(100%) invert(75%) sepia(25%) saturate(1440%) hue-rotate(359deg) brightness(106%) contrast(92%);
+		.stars-extra.stars-imdb path{
+			fill: #f5c518;
 		}
-		.rating-star-mal{
-			color: #2e51a2;
-			filter: brightness(0) saturate(100%) invert(30%) sepia(8%) saturate(7389%) hue-rotate(193deg) brightness(94%) contrast(95%);
+		.stars-extra.stars-mal path{
+			fill: #2e51a2;
 		}
-		.rating-star-anilist{
-			color: #3db4f2;
-			filter: brightness(0) saturate(100%) invert(67%) sepia(28%) saturate(3210%) hue-rotate(171deg) brightness(97%) contrast(95%);
+		.stars-extra.stars-anilist path{
+			fill: #3db4f2;
 		}
-		.rating-star-allocine{
-			color: #fecc00;
-			filter: brightness(0) saturate(100%) invert(81%) sepia(51%) saturate(1681%) hue-rotate(357deg) brightness(98%) contrast(107%);;
+		.stars-extra.stars-allocine path,
+		.stars-extra.stars-allocine-critic path,
+		.stars-extra.stars-allocine-ratings path{
+			fill: #fecc00;
+		}
+		.stars-extra.stars-filmarks path{
+			fill: #ffcb62;
+		}
+		.stars-extra.stars-background path{
+			fill: #667788;
+		}
+		.dynamic-star-holder{
+			display: inline-block;
+			position: relative;
+			width: 50px;
+			height: 10px;
+			vertical-align: center;
+		}
+		.dynamic-star-holder.allocine-critic-stars{
+			scale: 1.5;
+			left: 15px;
+		}
+		.dynamic-star-holder.allocine-ratings-stars{
+			left: 5px;
 		}
 		.twipsy-extra-in{
 			opacity: 1 !important;
@@ -247,6 +252,9 @@ GM_addStyle(`
 		.allocine-buttons{
 			display: block;
 			margin-bottom: 5px;
+		}
+		a.allocine-critic-score{
+			font-size: 20px;
 		}
 		.rt-button.allo-user, .rt-button.allo-critic{
 			display: inline-block;
@@ -555,12 +563,17 @@ GM_addStyle(`
 			padding: 4px;
 			border: #4c4c4c 1px solid;
 			border-radius: .625rem;
+			width: 60px;
 		}
 		.allocine-label{
 			width: 100%;
 			display: block;
 			text-align: center; 
 			font-size: 10px;
+		}
+		.allocine-critic a {
+			display: block;
+			text-align: center;
 		}
 			
 		.kinopoisk-score {
@@ -1068,7 +1081,7 @@ const letterboxd = {
 			}
 
 			// Replace 'Fans' with rating count
-			if (this.fansConverted == false && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null) {
+			if (this.fansConverted == false && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .ratings-histogram") != null) {
 				var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
 
 				var fansLink = section.querySelector("a.all-link.more-link");
@@ -1160,7 +1173,7 @@ const letterboxd = {
 						href: ratingsUrl
 					});
 					ratingCount.innerText = count + " ratings";
-					section.querySelector(".rating-histogram-exploded").before(ratingCount);
+					section.querySelector(".rating-histogram").before(ratingCount);
 				}
 
 				this.fansConverted = true;
@@ -2038,20 +2051,12 @@ const letterboxd = {
 			if (this.pageState.isMobile) {
 				imdbScoreSection.append(letterboxd.helpers.createShowDetailsButton("imdb", "imdb-score-details"));
 			}
-
-			imdbScoreSection.append(letterboxd.helpers.createHistogramScore(
-				letterboxd.storage, 
-				"imdb", 
-				this.imdbData.rating, 
-				this.imdbData.num_ratings, 
-				this.imdbData.url.replace('ratings', 'reviews'), 
-				this.pageState.isMobile
-			));
 			
-			imdbScoreSection.append(letterboxd.helpers.createHistogramGraph(
+			imdbScoreSection.append(letterboxd.helpers.createHistogram(
 				letterboxd.storage,
 				"imdb", 
 				this.imdbData.url, 
+				this.imdbData.rating, 
 				this.imdbData.num_ratings, 
 				this.imdbData.votes, 
 				this.imdbData.percents, 
@@ -4157,7 +4162,7 @@ const letterboxd = {
 					criticSpan.append(criticLabel);
 
 					criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
-					criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+					criticSpan.append(letterboxd.helpers.createDynamicStars('allocine-ratings', this.allocine.critic.rating));
 					section.append(criticSpan);
 				}
 
@@ -4175,7 +4180,7 @@ const letterboxd = {
 					userSpan.append(userLabel);
 
 					userSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "ratings-style", this.allocine.user.rating, this.allocine.user.num_ratings, this.allocine.user.num_reviews, this.allocine.urlUser, this.pageState.isMobile));
-					userSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.user.rating));
+					userSpan.append(letterboxd.helpers.createDynamicStars('allocine-ratings', this.allocine.user.rating));
 					section.append(userSpan);
 				}
 
@@ -4218,22 +4223,14 @@ const letterboxd = {
 					style: 'position: relative; display: block;'
 				});
 
-				userSpan.append(letterboxd.helpers.createHistogramScore(
+				userSpan.append(letterboxd.helpers.createHistogram(
 					letterboxd.storage, 
 					"allocine", 
-					this.allocine.user.rating, 
-					this.allocine.user.num_reviews, 
-					this.allocine.urlUser, 
-					this.pageState.isMobile
-				));
-
-				userSpan.append(letterboxd.helpers.createHistogramGraph(
-					letterboxd.storage, 
-					"allocine", 
-					this.allocine.urlUser, 
-					this.allocine.user.num_reviews, 
-					this.allocine.user.votes, 
-					this.allocine.user.percents, 
+					this.allocine.urlUser,
+					this.allocine.user.rating,
+					this.allocine.user.num_reviews,
+					this.allocine.user.votes,
+					this.allocine.user.percents,
 					this.allocine.user.highest
 				));
 
@@ -4249,7 +4246,7 @@ const letterboxd = {
 					style: 'position: relative; display: block; height: 44px; display:none;'
 				});
 				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
-				criticSpan.append(letterboxd.helpers.createAllocineStars(this.allocine.critic.rating));
+				criticSpan.append(letterboxd.helpers.createDynamicStars('allocine-critic', this.allocine.critic.rating));
 				section.append(criticSpan);
 
 				// Add the tooltip as text for mobile
@@ -4572,7 +4569,7 @@ const letterboxd = {
 				style: 'position: relative; display: block;'
 			});
 			ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.pageState.isMobile));
-			ratingSpan.append(letterboxd.helpers.createAllocineStars(this.filmarks.rating));
+			ratingSpan.append(letterboxd.helpers.createDynamicStars('filmarks', this.filmarks.rating));
 			section.append(ratingSpan);
 
 			// Add the tooltip as text for mobile
@@ -4747,6 +4744,19 @@ const letterboxd = {
 
 		createElement(tag, attrs, styles) {
 			const element = document.createElement(tag);
+			for (const aKey in attrs) {
+				if (!Object.prototype.hasOwnProperty.call(attrs, aKey)) continue;
+				element.setAttribute(aKey, attrs[aKey]);
+			}
+			for (const sKey in styles) {
+				if (!Object.prototype.hasOwnProperty.call(styles, sKey)) continue;
+				element.style[sKey] = styles[sKey];
+			}
+			return element;
+		},
+
+		createElementNS(tag, namespace, attrs, styles) {
+			const element = document.createElementNS(namespace, tag);
 			for (const aKey in attrs) {
 				if (!Object.prototype.hasOwnProperty.call(attrs, aKey)) continue;
 				element.setAttribute(aKey, attrs[aKey]);
@@ -5146,6 +5156,7 @@ const letterboxd = {
 			}
 		},
 
+		// TODO, to remove
 		createHistogramScore(storage, type, rating, count, url, isMobile) {
 			// The span that holds the score
 			var style = "";
@@ -5211,38 +5222,81 @@ const letterboxd = {
 			return scoreSpan;
 		},
 
+		createHistogram(storage, type, url, rating, count, votes, percents, highest) {
 
-		createHistogramGraph(storage, type, url, count, votes, percents, highest) {
-			// Add the bars for the rating
-			let histogramType = "rating-histogram-condensed";
-
-			if (votes.length == 10) {
-				histogramType = "rating-histogram-exploded"
-			}
-
+			// Create the initial structure for the graph
 			const histogram = this.createElement('div', {
-				class: 'rating-histogram clear ' + histogramType + ' rating-histogram-extras',
-				style: 'position: relative;'
+				class: 'rating-histogram rating-histogram-extras'
 			});
-			const ul = this.createElement('ul', {
+			const layoutDiv = this.createElement('div', {
+				class: 'layout'
 			});
-			histogram.append(ul);
+			histogram.append(layoutDiv);
 
-			let width = 15;
-			if (votes.length == 6) {
-				width = 26;
-			} else if (votes.length == 5) {
-				width = 35;
+
+			// Create the score
+			//*********************************************/
+			let convertRatings = (storage.get('convert-ratings') === '5');
+			let convert10Point = (storage.get('convert-ratings') === '10');
+			let suffix = '/10';
+			let ratingTooltip = '';
+			let ratingText = '';
+
+			if (rating != "N/A") {
+				// Convert the score if needed
+				if (convertRatings === true) {
+					if (type == "anilist") {
+						rating = (Number(rating) / 20).toFixed(1);
+					} else {
+						rating = (Number(rating) / 2).toFixed(1);
+					}
+					suffix = "/5";
+				} else if (type == "anilist") {
+					suffix = "/100";
+				} else if (type == "allocine") {
+					if (convert10Point) {
+						rating = (Number(rating) * 2).toFixed(1);
+						suffix = "/10";
+					} else {
+						rating = Number(rating).toFixed(1);
+						suffix = "/5";
+					}
+				} else {
+					rating = Number(rating).toFixed(1);
+					suffix = "/10";
+				}
+
+				// Create tooltip text
+				ratingTooltip = 'Weighted average of ' + rating + suffix + ' based on ' + count.toLocaleString() + ' ratings'
+			}
+			
+			if (rating == "N/A") {
+				ratingText = "N/A";
+			} else if (type === "anilist" && convertRatings == false) {
+				ratingText = rating + "%";
+			} else {
+				ratingText = rating;
 			}
 
-			// Loop for each bar
+			const scoreElement = this.createElement('a', {
+				class: 'averagerating tooltip imdb-score tooltip-extra',
+				href: url,
+				['data-original-title']: ratingTooltip
+			});
+			scoreElement.innerText = ratingText;
+
+
+			// Create the histogram bar graph
+			//*********************************************/
+			const table = this.createElement('table', {
+				class: 'chart'
+			});
+			const tbody = this.createElement('tbody', {
+				class: 'plot'
+			});
+			table.append(tbody);
+
 			for (var ii = 0; ii < votes.length; ii++) {
-				var left = (ii * (width + 1)).toString() + "px;";
-				const il = this.createElement('li', {
-					class: 'rating-histogram-bar',
-					style: 'width: ' + width + 'px; left: ' + left
-				});
-				ul.append(il);
 
 				// Determine vote counts and percentages
 				if (type === "mal") {
@@ -5255,13 +5309,7 @@ const letterboxd = {
 					var voteCount = votes[ii];
 					var percentage = percents[ii];
 				}
-
-				// Determine rating type (rating vs review)
-				let ratingType = "ratings";
-				if (type == "allocine") {
-					ratingType = "reviews";
-				}
-
+				
 				// Determine Suffixes
 				let currentRatingsSuffix = letterboxd.overview.ratingsSuffix.map((x) => x);
 				if (type === "anilist" && storage.get('convert-ratings') === false) {
@@ -5270,70 +5318,112 @@ const letterboxd = {
 					currentRatingsSuffix = ['0-★', '★', '★★', '★★★', '★★★★', '★★★★★'];
 				}
 
-				const a = this.createElement('a', {
-					class: 'ir tooltip ' + type + ' tooltip-extra',
-					['data-original-title']: voteCount.toLocaleString() + " " + currentRatingsSuffix[ii] + ' ' + ratingType + ' (' + percentage.toString() + '%)'
-				});
-				il.append(a);
+
+				// Determine rating type (rating vs review)
+				let ratingType = "ratings";
+				if (type == "allocine") {
+					ratingType = "reviews";
+				}
+
+				let tooltip = `${voteCount.toLocaleString()} ${currentRatingsSuffix[ii]} ${ratingType} (${percentage.toString()}%)`
+				let href = '';
 
 				// IMDb reviews link
 				if (type == "imdb") {
-					a.href = url.replace('/ratings', '') + '/reviews?ratingFilter=' + (ii + 1).toString();
+					href = url.replace('/ratings', '') + '/reviews?ratingFilter=' + (ii + 1).toString();
 				} else if (type == "allocine") {
-					a.href = url + "star-" + ii;
+					href = url + "star-" + ii;
 				}
-
-				var max = 44.0;
-				var min = 1;
-				var percent = voteCount / highest;
-				var height = (max * percent);
-
-				if (height < min) {
-					height = min;
-				}
-
-				height = height.toString() + "px;";
-
-				const i = this.createElement('i', {
-					style: 'height: ' + height
+				
+				// Now create the actual element
+				let percent = voteCount / highest;
+				const tr = this.createElement('tr', {
+					class: 'column',
+					style: `--value: ${percent};`
 				});
-				a.append(i);
+
+				const td = this.createElement('td', {
+					class: 'cell'
+				});
+				tr.append(td);
+
+				const a = this.createElement('a', {
+					class: `barcolumn tooltip ${type} tooltip-extra`,
+					['data-original-title']: tooltip,
+					href: href
+				});
+				td.append(a);
+				
+				const spanBar = this.createElement('span', {
+					class: 'bar'
+				});
+				a.append(spanBar);
+				
+				const spanFill = this.createElement('span', {
+					class: 'fill'
+				});
+				spanBar.append(spanFill);
+
+				// Add to the graph
+				tbody.append(tr);
 			}
 
-			// Extra class for mobile
-			var starClass = "";
-			if (letterboxd.overview.isMobile) {
-				starClass = " rating-star-extra-mobile"
-			}
+			// Create the stars
+			//*********************************************/
+			const svgStart = this.createLetterboxd1Stars(type);
+			const svgEnd = this.createLetterboxd5Stars(type);
 
-			// Add the stars for visual
-			// Uses the same star image that letterboxd uses, but with some css filters to change the colors
-			// See: https://stackoverflow.com/questions/42966641/how-to-transform-black-into-any-given-color-using-only-css-filters/43960991#43960991
-			// Also: https://codepen.io/sosuke/pen/Pjoqqp
-			// 1 Star
-			const span1Star = this.createElement('span', {
-				class: 'rating-green rating-green-tiny rating-1'
-			});
-			const span1StarInner = this.createElement('span', {
-				class: 'rating rated-2 rating-star-' + type + starClass
-			});
-			span1StarInner.innerText = "★";
-			span1Star.append(span1StarInner);
 
-			// 5 Star
-			const span5Star = this.createElement('span', {
-				class: 'rating-green rating-green-tiny rating-5'
-			});
-			const span5StarInner = this.createElement('span', {
-				class: 'rating rated-10 rating-star-' + type + starClass
-			});
-			span5StarInner.innerText = "★★★★★";
-			span5Star.append(span5StarInner);
-
-			ul.before(span1Star);
-			ul.after(span5Star);
+			// Finalize the element in the correct order
+			//*********************************************/
+			layoutDiv.append(svgStart);
+			layoutDiv.append(table);
+			layoutDiv.append(svgEnd);
+			layoutDiv.append(scoreElement);
 
 			return histogram;
+		},
+
+		createLetterboxd1Stars(type){
+			// Create the ★
+			const svg = this.createElementNS('svg', 'http://www.w3.org/2000/svg', {
+				class: `glyph stars -start -rating stars-extra stars-${type}`,
+				role: 'graphics-symbol',
+				width: '9',
+				height: '9',
+				viewBox: '0 0 9 9',
+				['aria-label']: '★'
+			});
+			svg.append(this.createLetterboxdStarPath(0));
+
+			return svg;
+		},
+
+		createLetterboxd5Stars(type){
+			// Create the ★★★★★
+			const svg = this.createElementNS('svg', 'http://www.w3.org/2000/svg', {
+				class: `glyph stars -end -rating stars-extra stars-${type}`,
+				role: 'graphics-symbol',
+				width: '49',
+				height: '9',
+				viewBox: '0 0 49 9',
+				['aria-label']: '★★★★★'
+			});
+			for (var ii = 0; ii < 5; ii++){
+				svg.append(this.createLetterboxdStarPath(ii));
+			}
+
+			return svg;
+		},
+
+		createLetterboxdStarPath(ii){
+			const path = this.createElementNS('path', 'http://www.w3.org/2000/svg', {
+				transform: `translate(${ii * 10}, 0)`,
+				['fill-rule']: 'evenodd',
+				d: 'M5.065.45c-.22-.61-.95-.59-1.14 0l-.75 2.57H.705c-.73 0-.96.62-.37 1.07l1.99 1.53-.76 2.49c-.22.73.34 1.16.93.71l2-1.53 2 1.53c.59.45 1.15.02.93-.71l-.76-2.49 1.99-1.53c.59-.45.39-1.07-.33-1.07h-2.48z'
+			});
+
+			return path;
 		},
 
 		createAllocineCriticScore(letterboxd, type, rating, count, reviewCount, url, isMobile) {
@@ -5378,7 +5468,7 @@ const letterboxd = {
 			}
 
 			const scoreElement = letterboxd.helpers.createElement('a', {
-				class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
+				class: 'tooltip display-rating -highlight allocine-critic-score tooltip-extra',
 				style: style,
 				href: url,
 				['data-original-title']: tooltip
@@ -5395,38 +5485,64 @@ const letterboxd = {
 			return scoreSpan;
 		},
 
-		createAllocineStars(rating) {
+		createDynamicStars(type, rating) {
 			var holder = letterboxd.helpers.createElement('div', {
-				class: 'allo-critic-stars'
+				class: `dynamic-star-holder ${type}-stars`
 			});
 
-			// Star back
-			const span5Starback = letterboxd.helpers.createElement('span', {
-				class: 'rating rated-10 rating-star-allocine-critic',
-				style: 'position: absolute;'
+			// Create the background stars
+			const svgBacking = this.createElementNS('svg', 'http://www.w3.org/2000/svg', {
+				class: `glyph stars -end -rating stars-extra stars-background`,
+				role: 'graphics-symbol',
+				width: '49',
+				height: '9',
+				viewBox: '0 0 49 9'
+			},{
+				position: 'absolute',
 			});
-			span5Starback.innerText = "★★★★★";
-			holder.append(span5Starback);
+			for (var ii = 0; ii < 5; ii++){
+				svgBacking.append(this.createLetterboxdStarPath(ii));
+			}
+			holder.append(svgBacking);
 
 			rating = letterboxd.helpers.roundHalf(rating);
 
 			// Star front
 			// determine width
-			var totalWidth = 64;
-			var starWidth = 12;
-			var betweenWidth = 1;
-			var width = (starWidth * Math.floor(rating)) + Math.floor(rating) * betweenWidth;
-			if (rating > Math.floor(rating)) {
-				width += starWidth / 2;
-			}
-			//width = totalWidth - width;
+			let totalWidth = 49;
+			let rounded = (Math.round(rating * 2) / 2).toFixed(1); // round to the nearest .5
+			let percent = rounded / 5
+			let width = totalWidth * percent;
 
-			const span5Starfront = letterboxd.helpers.createElement('span', {
-				class: 'rating rated-10 rating-star-allocine',
-				style: 'position: absolute; width:' + width + 'px;'
+			//let starWidth = totalWidth / 5;
+			//var width = starWidth * Math.floor(rating) + Math.floor(rating);
+			//if (rating > Math.floor(rating)) {
+			//	width += starWidth / 2;
+			//}
+
+			const div = this.createElement('div', {
+			},{
+				height: '9',
+				position: 'absolute',
+				overflow: 'hidden',
+				width: `${width}px`
 			});
-			span5Starfront.innerText = "★★★★★";
-			holder.append(span5Starfront);
+
+			const svgFront = this.createElementNS('svg', 'http://www.w3.org/2000/svg', {
+				class: `glyph stars -end -rating stars-extra stars-${type}`,
+				role: 'graphics-symbol',
+				width: totalWidth,
+				height: '9',
+				viewBox: '0 0 49 9'
+			},{
+				display: 'block',
+			});
+			for (var ii = 0; ii < 5; ii++){
+				svgFront.append(this.createLetterboxdStarPath(ii));
+			}
+			div.append(svgFront);
+
+			holder.append(div);
 
 			return holder;
 		},

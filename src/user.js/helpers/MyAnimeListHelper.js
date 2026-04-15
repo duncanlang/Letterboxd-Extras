@@ -90,19 +90,11 @@ export class MyAnimeListHelper extends Helper {
 			}
 		}
 
-		scoreSection.append(this.helpers.createHistogramScore(
-			this.storage,
-			'mal',
-			this.rating,
-			this.num_ratings,
-			`${this.data.url}/reviews`,
-			isMobile
-		));
-
-		scoreSection.append(this.helpers.createHistogramGraph(
+		scoreSection.append(this.helpers.createHistogram(
 			this.storage,
 			'mal',
 			'',
+			this.rating,
 			this.num_ratings,
 			this.statistics.scores,
 			this.statistics.scores,
