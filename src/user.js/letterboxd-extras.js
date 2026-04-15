@@ -2047,10 +2047,6 @@ const letterboxd = {
 				},
 				'margin-bottom: 15px !important;',
 			);
-
-			if (this.pageState.isMobile) {
-				imdbScoreSection.append(letterboxd.helpers.createShowDetailsButton("imdb", "imdb-score-details"));
-			}
 			
 			imdbScoreSection.append(letterboxd.helpers.createHistogram(
 				letterboxd.storage,
@@ -2064,7 +2060,7 @@ const letterboxd = {
 			));
 
 			// Add the tooltip as text for mobile
-			var score = imdbScoreSection.querySelector(".average-rating .tooltip");
+			var score = imdbScoreSection.querySelector(".averagerating.tooltip");
 			var tooltip = "";
 			if (score != null) {
 				tooltip = score.getAttribute('data-original-title');
@@ -4137,12 +4133,6 @@ const letterboxd = {
 				'height: 15px !important;'
 			);
 
-			// Add the Show Details button
-			if (this.pageState.isMobile) {
-				const showDetails = letterboxd.helpers.createShowDetailsButton("allocine", "allocine-score-details");
-				section.append(showDetails);
-			}
-
 			// Create the Scores
 			//***************************************************************
 			if (letterboxd.storage.get('allocine-style') === "ratings") {
@@ -5156,72 +5146,6 @@ const letterboxd = {
 			}
 		},
 
-		// TODO, to remove
-		createHistogramScore(storage, type, rating, count, url, isMobile) {
-			// The span that holds the score
-			var style = "";
-			if (isMobile) {
-				style = "left: auto;";
-			} else {
-				style = "left: 188px;";
-			}
-			const scoreSpan = this.createElement('span', {
-				class: 'average-rating',
-				style: style + ' position:absolute;'
-			});
-
-			var convertRatings = (storage.get('convert-ratings') === "5");
-			var convert10Point = (storage.get('convert-ratings') === "10");
-			var suffix = "/10";
-			var tooltip = "";
-			if (rating != "N/A") {
-				// Convert the score if needed
-				if (convertRatings === true) {
-					if (type == "anilist") {
-						rating = (Number(rating) / 20).toFixed(1);
-					} else {
-						rating = (Number(rating) / 2).toFixed(1);
-					}
-					suffix = "/5";
-				} else if (type == "anilist") {
-					suffix = "/100";
-				} else if (type == "allocine") {
-					if (convert10Point) {
-						rating = (Number(rating) * 2).toFixed(1);
-						suffix = "/10";
-					} else {
-						rating = Number(rating).toFixed(1);
-						suffix = "/5";
-					}
-				} else {
-					rating = Number(rating).toFixed(1);
-					suffix = "/10";
-				}
-
-				// Create tooltip text
-				tooltip = 'Weighted average of ' + rating + suffix + ' based on ' + count.toLocaleString() + ' ratings'
-			}
-
-			// The element that is the score itself
-			const scoreElement = this.createElement('a', {
-				class: 'tooltip display-rating -highlight imdb-score tooltip-extra',
-				href: url,
-				['data-original-title']: tooltip
-			});
-
-			if (rating == "N/A") {
-				scoreElement.innerText = "N/A";
-			} else if (type === "anilist" && convertRatings == false) {
-				scoreElement.innerText = rating + "%";
-			} else {
-				scoreElement.innerText = rating;
-			}
-
-			scoreSpan.append(scoreElement);
-
-			return scoreSpan;
-		},
-
 		createHistogram(storage, type, url, rating, count, votes, percents, highest) {
 
 			// Create the initial structure for the graph
@@ -5279,7 +5203,7 @@ const letterboxd = {
 			}
 
 			const scoreElement = this.createElement('a', {
-				class: 'averagerating tooltip imdb-score tooltip-extra',
+				class: 'average-rating tooltip averagerating tooltip imdb-score tooltip-extra',
 				href: url,
 				['data-original-title']: ratingTooltip
 			});
@@ -5653,7 +5577,7 @@ const letterboxd = {
 
 			if (letterboxd.overview.pageState.isMobile) {
 				// Add the Show Details button
-				const showDetails = letterboxd.helpers.createShowDetailsButton();
+				const showDetails = letterboxd.helpers.createShowDetailsButton(sectionID, `${sectionID}-score-details`);
 				chartSection.append(showDetails);
 			}
 

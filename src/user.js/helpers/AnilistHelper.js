@@ -132,7 +132,7 @@ export class AnilistHelper extends Helper {
 		));
 
 		// Add the tooltip as text for mobile
-		const score = scoreSection.querySelector('.average-rating .tooltip');
+		const score = scoreSection.querySelector('.averagerating.tooltip');
 		let tooltip = '';
 		if (score !== null) {
 			tooltip = score.getAttribute('data-original-title');
