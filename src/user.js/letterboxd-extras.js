@@ -1180,11 +1180,12 @@ const letterboxd = {
 			}
 
 			// Convert to 10-point scale
-			if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .average-rating") != null) {
-				var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
+			if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') === "10" && document.querySelector('section.ratings-histogram-chart:not(.ratings-extras) a.averagerating') != null) {
+				let section = document.querySelector('section.ratings-histogram-chart:not(.ratings-extras)');
+				let score = section.querySelector('a.averagerating');
 
 				// Convert tooltip
-				var tooltipAttribute = "";
+				let tooltipAttribute = "";
 				if (score.hasAttribute("data-original-title")) {
 					tooltipAttribute = "data-original-title";
 				} else if (score.hasAttribute("title")) {
@@ -1203,12 +1204,11 @@ const letterboxd = {
 					score.setAttribute(tooltipAttribute, tooltip.replace(oldScore, tooltipScore));
 
 					// Convert main rating
-					var score = section.querySelector(".average-rating .display-rating");
 					score.innerText = newScore.toFixed(1).toString();
 
 					// Convert the histogram graph
 					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
-					var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
+					var histogramBars = section.querySelectorAll('a.barcolumn.tooltip');
 					for (var i = 0; i < histogramBars.length; i++) {
 						if (histogramBars[i].getAttribute(tooltipAttribute) != null) {
 							var bar = histogramBars[i];
@@ -1225,23 +1225,23 @@ const letterboxd = {
 				}
 
 				this.scoreConverted = true;
-			} else if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') != "10" && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null) {
+			} else if (this.scoreConverted == false && letterboxd.storage.get('convert-ratings') != "10" && document.querySelector('section.ratings-histogram-chart:not(.ratings-extras) a.averagerating') != null) {
 				this.scoreConverted = true;
 			}
 
 			// Add Tooltip as details text for letterboxd rating
-			if (this.showDetailsAdded == false && (this.scoreConverted == true) && document.querySelector(".ratings-histogram-chart:not(.ratings-extras)") != null) {
+			if (this.showDetailsAdded == false && (this.scoreConverted == true) && document.querySelector('section.ratings-histogram-chart:not(.ratings-extras)') != null) {
 				if (letterboxd.storage.get('tooltip-show-details') === true) {
-					var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
-					var histogram = section.querySelector('div');
-					var score = section.querySelector(".average-rating .display-rating");
+					let section = document.querySelector('section.ratings-histogram-chart:not(.ratings-extras)');
+					let score = section.querySelector('a.averagerating');
+					let histogram = section.querySelector('div.rating-histogram');
 
 					// Set the position on the div
 					histogram.style['position'] = 'relative';
 					histogram.style['margin-bottom'] = '10px';
 
 					// Add the tooltip as text for mobile
-					var tooltip = "";
+					let tooltip = '';
 					if (score != null && score.hasAttribute('data-original-title')) {
 						tooltip = score.getAttribute('data-original-title');
 					} else if (score != null && score.hasAttribute('title')) {
