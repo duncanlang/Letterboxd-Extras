@@ -2483,11 +2483,11 @@ const letterboxd = {
 
 				// Grab the rating counts
 				// Critic
-				var criticSection = this.metaHelper.data.querySelector('.top-critic-reviews-section');
+				var criticSection = this.metaHelper.data.querySelector('div[data-testid="critic-reviews"]');
 				this.metaHelper.parseRatingCounts(this.metaHelper.critic, criticSection);
 
 				// Users
-				var userSection = this.metaHelper.data.querySelector('.top-user-reviews-section');
+				var userSection = this.metaHelper.data.querySelector('div[data-testid="user-reviews"]');
 				this.metaHelper.parseRatingCounts(this.metaHelper.user, userSection);
 
 			} else {
