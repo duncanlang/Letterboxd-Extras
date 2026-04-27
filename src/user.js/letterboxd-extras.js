@@ -5917,6 +5917,9 @@ const letterboxd = {
 							ratingsSummary { 
 								aggregateRating 
 								voteCount
+								topRanking {
+									rank
+								}
 							} 
 							aggregateRatingsBreakdown {
 								histogram { 
