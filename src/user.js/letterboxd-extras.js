@@ -509,6 +509,14 @@ GM_addStyle(`
 			top: -1px !important;
 			pointer-events: none;
 		}
+		.imdb-ranking a .icon{
+			height: 16px !important;
+			width: 32px !important;
+			pointer-events: none;
+		}
+		.imdb-ranking a{
+			padding-left: 35px !important;
+		}
 		.extras-ranking-mobile{
 			margin-left: -5px !important;
 			margin-top: 10px !important;
@@ -753,7 +761,7 @@ const letterboxd = {
 
 		// IMDb
 		imdbID: "",
-		imdbData: { state: 0, url: "", data: null, raw: null, state2: 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null },
+		imdbData: { state: 0, url: "", data: null, raw: null, state2: 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null, rank: null },
 
 		// TMDB
 		tmdbID: '',
@@ -1291,7 +1299,7 @@ const letterboxd = {
 
 				if (this.imdbID != "" && this.imdbData.state < 1) {
 					// Call IMDb and Add to page when done
-					if (letterboxd.storage.get('imdb-enabled') === true) {
+					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true) {
 						this.imdbData.state = 1;
 
 						var options = letterboxd.helpers.getImdbQuery(this.imdbID);
@@ -1303,50 +1311,16 @@ const letterboxd = {
 							if (value.response != null && value.response.data != null){
 								this.imdbData.data = value.response.data;
 
-								this.addIMDBScore();
-							}
-							this.imdbData.state = 2;
-						});
-
-						/*
-						browser.runtime.sendMessage({ name: "GETDATA", url: this.imdbData.url }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("IMDb Ratings", value) == false){
-								return;
-							}
-
-							if (value.response != null){
-								this.imdbData.raw = value.response;
-								this.imdbData.data = letterboxd.helpers.parseHTML(this.imdbData.raw);
-
-								if (this.imdbData.data != null) {
-									if (this.imdbData.raw.includes('(TV Mini Series)'))
-										this.imdbData.isMiniSeries = true;
-									if (this.imdbData.raw.includes('(TV Episode)'))
-										this.imdbData.isTVEpisode = true;
-
+								if (letterboxd.storage.get('imdb-enabled') === true){
 									this.addIMDBScore();
 								}
+								
+								if (letterboxd.storage.get('imdb-250-enabled') === true){
+									this.addIMDBRank();
+								}
 							}
 							this.imdbData.state = 2;
 						});
-
-						// Call the IMDb main show page
-						/*
-						browser.runtime.sendMessage({ name: "GETDATA", url: this.imdbData.url.replace('/ratings', '') }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("IMDb Additional", value) == false){
-								return;
-							}
-
-							if (value.response != null){
-								this.imdbData.data2 = letterboxd.helpers.parseHTML(value.response);
-
-								if (this.imdbData.data2 != null) {
-									this.getIMDBAdditional();
-								}
-							}
-							this.imdbData.state2 = 1;
-						});
-						*/
 
 						// Call BoxOfficeMojo
 						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID + '/';
@@ -1993,7 +1967,7 @@ const letterboxd = {
 
 			if (!document.querySelector('.sidebar')) return;
 
-			// Get the score from the IMDb page
+			// Get the score from the IMDb API response
 			//**********************************************/
 			let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
 			if (ratingsSummary != null){
@@ -2018,18 +1992,6 @@ const letterboxd = {
 
 			if (this.imdbData.rating == 0 || this.imdbData.num_ratings == 0 || histogramValues.length == 0) {
 				return false;
-			}
-
-			/*
-			const body = this.imdbData.data.querySelector('body');
-			if (body.getAttribute("id") == "styleguide-v2") {
-				if (this.getIMDBScoreV2() == false) {
-					return;
-				}
-			} else {
-				if (this.getIMDBScoreNew() == false) {
-					return;
-				}
 			}
 
 			// Add the score to the page
@@ -2074,6 +2036,86 @@ const letterboxd = {
 			// Add the hover events
 			//*****************************************************************
 			letterboxd.helpers.addTooltipEvents(imdbScoreSection);
+		},
+
+		addIMDBRank(){
+			if (document.querySelector('.imdb-ranking')) return;
+
+			try{
+				if (this.pageState.isMobile) {
+					if (!document.querySelector('.sidebar')) return;
+				} else {
+					if (!document.querySelector('.production-statistic-list')){
+						throw new Error("Unable to locate the production-statistic-list on the Letterboxd page!");
+					}
+				}
+				
+				// Get the score from the IMDb API response
+				//**********************************************/
+				let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
+				if (ratingsSummary != null){
+					this.imdbData.rank = ratingsSummary.topRanking.rank ?? 0;
+				}
+
+				if (this.imdbData.rank == 0 || this.imdbData.rank > 250){
+					return;
+				}
+
+				// Lets add it to the page
+				//***************************************************************
+				// create the li
+				const li = letterboxd.helpers.createElement('li', {
+					class: 'stat imdb-ranking extras-ranking'
+				});
+
+				// Determine list page number
+				var url = 'https://letterboxd.com/dave/list/imdb-top-250/';
+				var page = Math.ceil(this.imdbData.rank / 100);
+				if (page > 1) {
+					url += 'page/' + page + '/';
+				}
+
+				const a = letterboxd.helpers.createElement('a', {
+					class: 'has-icon icon-16 tooltip tooltip-extra',
+					href: url
+				});
+				li.append(a);
+				a.innerText = this.imdbData.rank;
+				var tooltip = '№ ' + this.imdbData.rank + " in \"IMDb\" Top 250";
+				a.setAttribute('data-original-title', tooltip);
+
+				const span = letterboxd.helpers.createElement('span', {
+					class: 'icon',
+					style: 'background: url("' + browser.runtime.getURL("images/imdb-logo.svg") + '");'
+				});
+				a.append(span);
+
+				// Add the tooltip as text for mobile
+				if (this.pageState.isMobile) {
+					const detailsSpan = letterboxd.helpers.createElement('span', {
+						class: 'mobile-ranking-details',
+						style: 'display:none'
+					});
+
+					const detailsText = letterboxd.helpers.createElement('p', {
+					});
+					detailsText.innerText = tooltip;
+					detailsSpan.append(detailsText);
+
+					li.append(detailsSpan);
+				}
+
+				// Add to page
+				this.appendRanking(li, 'imdb-ranking');
+
+				// Add the hover events
+				//*****************************************************************
+				letterboxd.helpers.addTooltipEvents(li);
+					
+			}catch (error){
+				letterboxd.helpers.WriteConsoleLog('ERROR', `IMDb Top 250 error: " + ${error}`);
+			}
+
 		},
 
 		getIMDBScoreV2() {
@@ -3967,8 +4009,10 @@ const letterboxd = {
 
 			// Order of rankings
 			var order = [
+				'imdb-ranking',
 				'.tspdt-ranking',
-				'.bfi-ranking'
+				'.bfi-ranking',
+				'.afi-ranking'
 			];
 
 			var index = order.indexOf('.' + className);
