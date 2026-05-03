@@ -86,7 +86,7 @@
 	
 	"web_accessible_resources": [
 		{
-		  "resources": [ "images/*"],
+		  "resources": [ "images/*" ],
 		  "matches": [ "https://letterboxd.com/*" ],
 		  "use_dynamic_url": true
 		}

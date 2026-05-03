@@ -12,6 +12,7 @@ import { MyAnimeListHelper } from './helpers/MyAnimeListHelper';
 import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
+import { RankingHelper } from './helpers/RankingHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -503,11 +504,13 @@ GM_addStyle(`
 			margin-right: 3px;
 		}
 
-		.bfi-ranking a .icon{
+		.bfi-ranking a .icon,
+		.afi-ranking a .icon{
 			height: 18px !important;
 			width: 18px !important;
 			top: -1px !important;
 			pointer-events: none;
+			background-repeat: round !important;
 		}
 		.imdb-ranking a .icon{
 			height: 16px !important;
@@ -761,7 +764,7 @@ const letterboxd = {
 
 		// IMDb
 		imdbID: "",
-		imdbData: { state: 0, url: "", data: null, raw: null, state2: 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null, rank: null },
+		imdbData: { state: 0, url: "", data: null, raw: null, state2: 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null },
 
 		// TMDB
 		tmdbID: '',
@@ -835,6 +838,9 @@ const letterboxd = {
 		sensCritique: { state: 0, id: null, url: null, data: null },
 		sensHelper: null,
 
+		// Rankings (BFI, TSPDT, AFI, IMDb)
+		rankingHelper: null,
+
 		// They Shoot Pictures ranking
 		tspdt: { state: 0, data: null, raw: null, found: false, ranking: null, listURL: null },
 		theyShootPicturesHelper: null,
@@ -901,6 +907,12 @@ const letterboxd = {
 				this.letterboxdID = window.location.pathname.match(regex)[1];
 
 				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found Letterboxd ID ${this.letterboxdID}`);
+			}
+
+			// Append Rankings
+			if (this.letterboxdID != '' && ((this.pageState.isMobile && document.querySelector('.sidebar')) || (this.pageState.isMobile == false && document.querySelector('.production-statistic')))) {
+				
+				this.rankingHelper.loadRankings(this.letterboxdID);
 			}
 							
 			// Get logged in status
@@ -1315,8 +1327,9 @@ const letterboxd = {
 									this.addIMDBScore();
 								}
 								
-								if (letterboxd.storage.get('imdb-250-enabled') === true){
-									this.addIMDBRank();
+								if (letterboxd.storage.get('imdb-250-enabled') === true && this.rankingHelper.imdbData.loadState == LOAD_STATES['Uninitialized']){
+									this.collectIMDBRank();
+									this.rankingHelper.createRanking(this.rankingHelper.imdbData);
 								}
 							}
 							this.imdbData.state = 2;
@@ -1962,6 +1975,13 @@ const letterboxd = {
 			this.idsCollected = true;
 		},
 
+		collectIMDBRank(){
+			let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
+			if (ratingsSummary != null){
+				this.rankingHelper.imdbData.rank = ratingsSummary.topRanking.rank ?? 0;
+			}
+		},
+
 		addIMDBScore() {
 			if (document.querySelector('.imdb-ratings')) return;
 
@@ -1971,7 +1991,6 @@ const letterboxd = {
 			//**********************************************/
 			let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
 			if (ratingsSummary != null){
-
 				this.imdbData.rating = ratingsSummary.aggregateRating ?? 0;
 				this.imdbData.num_ratings = ratingsSummary.voteCount ?? 0;
 			}
@@ -2036,86 +2055,6 @@ const letterboxd = {
 			// Add the hover events
 			//*****************************************************************
 			letterboxd.helpers.addTooltipEvents(imdbScoreSection);
-		},
-
-		addIMDBRank(){
-			if (document.querySelector('.imdb-ranking')) return;
-
-			try{
-				if (this.pageState.isMobile) {
-					if (!document.querySelector('.sidebar')) return;
-				} else {
-					if (!document.querySelector('.production-statistic-list')){
-						throw new Error("Unable to locate the production-statistic-list on the Letterboxd page!");
-					}
-				}
-				
-				// Get the score from the IMDb API response
-				//**********************************************/
-				let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
-				if (ratingsSummary != null){
-					this.imdbData.rank = ratingsSummary.topRanking.rank ?? 0;
-				}
-
-				if (this.imdbData.rank == 0 || this.imdbData.rank > 250){
-					return;
-				}
-
-				// Lets add it to the page
-				//***************************************************************
-				// create the li
-				const li = letterboxd.helpers.createElement('li', {
-					class: 'stat imdb-ranking extras-ranking'
-				});
-
-				// Determine list page number
-				var url = 'https://letterboxd.com/dave/list/imdb-top-250/';
-				var page = Math.ceil(this.imdbData.rank / 100);
-				if (page > 1) {
-					url += 'page/' + page + '/';
-				}
-
-				const a = letterboxd.helpers.createElement('a', {
-					class: 'has-icon icon-16 tooltip tooltip-extra',
-					href: url
-				});
-				li.append(a);
-				a.innerText = this.imdbData.rank;
-				var tooltip = '№ ' + this.imdbData.rank + " in \"IMDb\" Top 250";
-				a.setAttribute('data-original-title', tooltip);
-
-				const span = letterboxd.helpers.createElement('span', {
-					class: 'icon',
-					style: 'background: url("' + browser.runtime.getURL("images/imdb-logo.svg") + '");'
-				});
-				a.append(span);
-
-				// Add the tooltip as text for mobile
-				if (this.pageState.isMobile) {
-					const detailsSpan = letterboxd.helpers.createElement('span', {
-						class: 'mobile-ranking-details',
-						style: 'display:none'
-					});
-
-					const detailsText = letterboxd.helpers.createElement('p', {
-					});
-					detailsText.innerText = tooltip;
-					detailsSpan.append(detailsText);
-
-					li.append(detailsSpan);
-				}
-
-				// Add to page
-				this.appendRanking(li, 'imdb-ranking');
-
-				// Add the hover events
-				//*****************************************************************
-				letterboxd.helpers.addTooltipEvents(li);
-					
-			}catch (error){
-				letterboxd.helpers.WriteConsoleLog('ERROR', `IMDb Top 250 error: " + ${error}`);
-			}
-
 		},
 
 		getIMDBScoreV2() {
@@ -4009,7 +3948,7 @@ const letterboxd = {
 
 			// Order of rankings
 			var order = [
-				'imdb-ranking',
+				'.imdb-ranking',
 				'.tspdt-ranking',
 				'.bfi-ranking',
 				'.afi-ranking'
@@ -6451,6 +6390,7 @@ const moduleConfigs = [
 	{ class: MyAnimeListHelper, target: letterboxd.overview, property: 'myAnimeListHelper', args: [letterboxd.overview.ratingsSuffix] },
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
+	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {
