@@ -8,3 +8,4 @@ ff android debug.txt
 /testing/playwright-report
 **/node_modules
 package-lock.json
+/scripts/*.json
