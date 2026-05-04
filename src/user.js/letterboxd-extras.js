@@ -908,8 +908,7 @@ const letterboxd = {
 			}
 
 			// Append Rankings
-			if (this.letterboxdID != '' && ((this.pageState.isMobile && document.querySelector('.sidebar')) || (this.pageState.isMobile == false && document.querySelector('.production-statistic')))) {
-				
+			if (this.letterboxdID != '' && this.rankingHelper.loadState == LOAD_STATES['Uninitialized'] && ((this.pageState.isMobile && document.querySelector('.sidebar')) || (this.pageState.isMobile == false && document.querySelector('.production-statistic')))) {
 				this.rankingHelper.loadRankings(this.letterboxdID);
 			}
 							
@@ -1099,15 +1098,16 @@ const letterboxd = {
 			}
 
 			// Replace 'Fans' with rating count
-			if (this.fansConverted == false && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .ratings-histogram") != null) {
-				var section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
+			if (this.fansConverted == false && document.querySelector(".ratings-histogram-chart:not(.ratings-extras) .rating-histogram") != null) {
+				let section = document.querySelector(".ratings-histogram-chart:not(.ratings-extras)");
 
-				var fansLink = section.querySelector("a.all-link.more-link");
-				var score = section.querySelector(".average-rating .display-rating");
-				var count = 0;
+				let fansLink = section.querySelector("a.accessory");
+				let score = section.querySelector("a.averagerating");
+				let count = 0;
+
 				if (score != null) {
 					// Grab count and link from score element
-					var regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]ratings)/);
+					let regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]ratings)/);
 
 					if (score.hasAttribute("data-original-title")) {
 						count = score.getAttribute("data-original-title").match(regex)[1];
@@ -1121,16 +1121,17 @@ const letterboxd = {
 				} else {
 					// Collect the rating count by tallying the bar graph
 					var ratingsUrl = "";
-					regex = new RegExp(/^([0-9,.]+)\b/);
-					var histogramBars = section.querySelectorAll(".rating-histogram .rating-histogram-bar");
-					for (var i = 0; i < histogramBars.length; i++) {
+					let regex = new RegExp(/^([0-9,.]+)\b/);
+					let histogramBars = section.querySelectorAll("a.barcolumn.tooltip");
+
+					for (let i = 0; i < histogramBars.length; i++) {
 						if (histogramBars[i].getAttribute("data-original-title") != null || histogramBars[i].getAttribute("title") != null) {
 							var bar = histogramBars[i];
 						} else {
 							var bar = histogramBars[i].querySelector("a");
 						}
 
-						var tooltip = "";
+						let tooltip = "";
 						if (bar.hasAttribute("data-original-title")) {
 							tooltip = bar.getAttribute("data-original-title");
 						} else if (bar.hasAttribute("title")) {
@@ -1162,14 +1163,15 @@ const letterboxd = {
 				if (letterboxd.storage.get('replace-fans') === "replace" && fansLink != null) {
 					// Replace the existing fans text with ratings
 					fansLink.innerText = count + " ratings";
+					fansLink.href = ratingsUrl;
 
 				} else if (letterboxd.storage.get('replace-fans') === "both" && fansLink != null) {
 					// Add the rating count next to the fans
 					// Create the bullet point
 					var right = fansLink.clientWidth + 5;
 					const bullet = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link extras-bullet',
-						style: 'right: ' + right.toString() + 'px'
+						class: 'accessory',
+						style: 'margin-left: 3px;'
 					});
 					bullet.innerText = "•";
 					fansLink.before(bullet);
@@ -1177,8 +1179,7 @@ const letterboxd = {
 					// Create the rating count link
 					right += bullet.clientWidth + 5;
 					const ratingCount = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link',
-						style: 'right: ' + right.toString() + 'px',
+						class: 'accessory',
 						href: ratingsUrl
 					});
 					ratingCount.innerText = count;
@@ -1187,7 +1188,7 @@ const letterboxd = {
 				} else if (fansLink == null) {
 					// Fans element does not exist, create one for the ratings count
 					const ratingCount = letterboxd.helpers.createElement('a', {
-						class: 'all-link more-link',
+						class: 'accessory',
 						href: ratingsUrl
 					});
 					ratingCount.innerText = count + " ratings";

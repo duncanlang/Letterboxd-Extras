@@ -67,6 +67,24 @@ export class RankingHelper {
         listUrl: 'https://letterboxd.com/dvideostor/list/roger-eberts-great-movies/'
     };
 
+    get loadState() {
+        const states = [ this.afiData, this.bfiData, this.tspdtData, this.imdbData, this.ebertData ].map(x => x.loadState);
+
+        // Check if any are failed
+        if (states.includes(LOAD_STATES['Failure'])) return LOAD_STATES['Failure'];
+
+        // Check for loading or reload
+        if (states.includes(LOAD_STATES['Loading']) || states.includes(LOAD_STATES['Reload'])) {
+            return LOAD_STATES['Loading'];
+        }
+
+        // Check for success
+        if (states.every(x => x === LOAD_STATES['Success'])) return LOAD_STATES['Success'];
+
+        // Otherwise, we're still Uninitialized
+        return LOAD_STATES['Uninitialized'];
+    };
+
 	constructor(storage, helpers, pageState) {
 		this.storage = storage;
 		this.helpers = helpers;
