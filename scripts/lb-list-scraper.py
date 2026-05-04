@@ -94,7 +94,7 @@ def scrape_letterboxd_list(name, list_url):
         print(f"Scraping page {current_page}...")
             
         soup = BeautifulSoup(response.text, 'html.parser')
-        posters = soup.select('ul.poster-list li.posteritem.numbered-list-item div.react-component')
+        posters = soup.select('ul.poster-list li.posteritem div.react-component')
         
         if not posters:
             break
@@ -139,4 +139,5 @@ def scrape_letterboxd_list(name, list_url):
 
 # --- HOW TO RUN ---
 #scrape_letterboxd_list('bfi', 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/')
-scrape_letterboxd_list('tspdt', 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-7/')
+#scrape_letterboxd_list('tspdt', 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-7/')
+scrape_letterboxd_list('ebert', 'https://letterboxd.com/dvideostor/list/roger-eberts-great-movies/')

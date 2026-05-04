@@ -175,6 +175,8 @@ async function InitDefaultSettings() {
     if (options['bfi-enabled'] == null) options['bfi-enabled'] = true;
     if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
+    if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
+
 
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";

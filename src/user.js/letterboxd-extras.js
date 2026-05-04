@@ -508,10 +508,10 @@ GM_addStyle(`
 			pointer-events: none;
 		}
 		.bfi-ranking a .extras-ranking-icon,
-		.afi-ranking a .extras-ranking-icon{
+		.afi-ranking a .extras-ranking-icon,
+		.ebert-ranking a .extras-ranking-icon{
 			height: 18px !important;
 			width: 18px !important;
-			top: -1px !important;
 			background-repeat: round !important;
 		}
 		.imdb-ranking a .extras-ranking-icon{
@@ -1943,7 +1943,7 @@ const letterboxd = {
 		collectIMDBRank(){
 			let ratingsSummary = this.imdbData.data.title?.ratingsSummary ?? null;
 			if (ratingsSummary != null){
-				this.rankingHelper.imdbData.rank = ratingsSummary.topRanking.rank ?? 0;
+				this.rankingHelper.imdbData.rank = ratingsSummary.topRanking?.rank ?? 0;
 				this.rankingHelper.imdbData.index = this.rankingHelper.imdbData.rank;
 			}
 		},

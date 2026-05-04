@@ -4,7 +4,8 @@ const rankingOrder = [
     '.imdb-ranking',
     '.tspdt-ranking',
     '.bfi-ranking',
-    '.afi-ranking'
+    '.afi-ranking',
+    '.ebert-ranking'
 ];
 
 export class RankingHelper {
@@ -54,6 +55,17 @@ export class RankingHelper {
         image: 'imdb-logo.svg',
         listUrl: 'https://letterboxd.com/dave/list/imdb-top-250/'
     };
+    ebertData = { 
+        loadState: LOAD_STATES['Uninitialized'],
+        prefix: 'ebert',
+        label: "Roger Ebert's Great Movies",
+        rank: 0,
+        index: 0,
+        totalRank: 250,
+        list: null,
+        image: 'ebert-great-movies-logo.svg',
+        listUrl: 'https://letterboxd.com/dvideostor/list/roger-eberts-great-movies/'
+    };
 
 	constructor(storage, helpers, pageState) {
 		this.storage = storage;
@@ -91,6 +103,16 @@ export class RankingHelper {
             }
             else{
                 this.afiData.loadState = LOAD_STATES['Success'];
+            }
+        }
+        
+        // Roger Ebert Great Movies
+        if (this.ebertData.loadState == LOAD_STATES['Uninitialized']){
+            if (this.storage.get('ebert-great-enabled') === true){
+                this._loadRanking(this.ebertData);
+            }
+            else{
+                this.ebertData.loadState = LOAD_STATES['Success'];
             }
         }
     }
@@ -150,9 +172,14 @@ export class RankingHelper {
             class: 'tooltip tooltip-extra',
             href: url
         });
-        let tooltip = `№ ${rank} in "${label}" Top ${total}`;
-        a.setAttribute('data-original-title', tooltip);
         div.append(a);
+        let tooltip = '';
+        if (prefix == 'ebert') {
+            tooltip = `Included in "${label}"`;
+        } else {
+            tooltip = `№ ${rank} in "${label}" Top ${total}`;
+        }
+        a.setAttribute('data-original-title', tooltip);
 
         // Logo
         if (prefix == 'tspdt') {
@@ -170,11 +197,13 @@ export class RankingHelper {
         }
         
         // Rank
-        const labelSpan = this.helpers.createElement('span', {
-            class: 'label'
-        });
-        labelSpan.innerText = rank;
-        a.append(labelSpan);
+        if (prefix != 'ebert') {
+            const labelSpan = this.helpers.createElement('span', {
+                class: 'label'
+            });
+            labelSpan.innerText = rank;
+            a.append(labelSpan);
+        }
 
         // Add the tooltip as text for mobile
         if (this.pageState.isMobile) {
