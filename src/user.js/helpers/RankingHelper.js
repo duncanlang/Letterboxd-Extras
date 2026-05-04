@@ -16,6 +16,7 @@ export class RankingHelper {
         prefix: 'afi',
         label: 'AFI 100 Years',
         rank: 0,
+        index: 0,
         totalRank: 100,
         list: null,
         image: 'afi-logo.png',
@@ -26,8 +27,10 @@ export class RankingHelper {
         prefix: 'bfi',
         label: 'BFI Sight and Sound',
         rank: 0,
+        index: 0,
         totalRank: 250,
         list: null,
+        image: 'bfi-logo.svg',
         listUrl: 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/'
     };
     tspdtData = { 
@@ -35,6 +38,7 @@ export class RankingHelper {
         prefix: 'tspdt',
         label: "They Shoot Pictures, Don't They?",
         rank: 0,
+        index: 0,
         totalRank: 1000,
         list: null,
         listUrl: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-7/'
@@ -44,6 +48,7 @@ export class RankingHelper {
         prefix: 'imdb',
         label: "IMDb",
         rank: 0,
+        index: 0,
         totalRank: 250,
         list: null,
         image: 'imdb-logo.svg',
@@ -59,13 +64,33 @@ export class RankingHelper {
     loadRankings(letterboxdID){
         this.letterboxdID = letterboxdID;
 
+        // BFI Sight and Sound
+        if (this.bfiData.loadState == LOAD_STATES['Uninitialized']){
+            if (this.storage.get('bfi-enabled') === true){
+                this._loadRanking(this.bfiData);
+            }
+            else{
+                this.bfiData.loadState = LOAD_STATES['Success'];
+            }
+        }
+        
+        // TSPDT
+        if (this.tspdtData.loadState == LOAD_STATES['Uninitialized']){
+            if (this.storage.get('tspdt-enabled') === true){
+                this._loadRanking(this.tspdtData);
+            }
+            else{
+                this.tspdtData.loadState = LOAD_STATES['Success'];
+            }
+        }
+
         // AFI
         if (this.afiData.loadState == LOAD_STATES['Uninitialized']){
             if (this.storage.get('afi-enabled') === true){
                 this._loadRanking(this.afiData);
             }
             else{
-                data.loadState = LOAD_STATES['Success'];
+                this.afiData.loadState = LOAD_STATES['Success'];
             }
         }
     }
@@ -90,7 +115,8 @@ export class RankingHelper {
             }
 
             data.list = value.response;
-            data.rank = data.list[this.letterboxdID].rank ?? 0;
+            data.rank = data.list[this.letterboxdID]?.rank ?? 0;
+            data.index = data.list[this.letterboxdID]?.index ?? data.rank;
             this.createRanking(data);
         });
     }
@@ -100,6 +126,7 @@ export class RankingHelper {
         let total = data.totalRank;
         let prefix = data.prefix;
         let label = data.label;
+        let index = data.index;
 
         this.helpers.WriteConsoleLog('DEBUG', `${prefix} rank found: ${rank}.`);
         if (rank == 0 || rank > total) return;
@@ -108,34 +135,46 @@ export class RankingHelper {
         
         // Determine list page number
         let url = data.listUrl;
-        let page = Math.ceil(rank / 100);
+        let page = Math.ceil(index / 100);
         if (page > 1) {
-            url += 'page/' + page + '/';
+            url += `page/${page}/`;
         }
         
         // Lets add it to the page
         //***************************************************************
-        const li = this.helpers.createElement('li', {
-            class: `stat ${prefix}-ranking extras-ranking`
+        const div = this.helpers.createElement('div', {
+            class: `production-statistic ${prefix}-ranking extras-ranking`
         });
 
         const a = this.helpers.createElement('a', {
-            class: 'has-icon icon-16 tooltip tooltip-extra',
-            href: data.listUrl
+            class: 'tooltip tooltip-extra',
+            href: url
         });
-        li.append(a);
-        
-        // Rank and tooltip
-        a.innerText = rank;
-        var tooltip = `№ ${rank} in "${label}" Top ${total}`;
+        let tooltip = `№ ${rank} in "${label}" Top ${total}`;
         a.setAttribute('data-original-title', tooltip);
+        div.append(a);
 
         // Logo
-        const span = this.helpers.createElement('span', {
-            class: 'icon',
-            style: 'background: url(' + browser.runtime.getURL(`/images/${data.image}`) + ')'
+        if (prefix == 'tspdt') {
+            const logoSpan = this.helpers.createElement('span', {
+                class: 'extras-ranking-icon',
+            });
+            logoSpan.innerText = '🎥'
+            a.append(logoSpan);
+        } else {
+            const logoSpan = this.helpers.createElement('span', {
+                class: 'extras-ranking-icon',
+                style: 'background: url(' + browser.runtime.getURL(`/images/${data.image}`) + ')'
+            });
+            a.append(logoSpan);
+        }
+        
+        // Rank
+        const labelSpan = this.helpers.createElement('span', {
+            class: 'label'
         });
-        a.append(span);
+        labelSpan.innerText = rank;
+        a.append(labelSpan);
 
         // Add the tooltip as text for mobile
         if (this.pageState.isMobile) {
@@ -149,15 +188,15 @@ export class RankingHelper {
             detailsText.innerText = tooltip;
             detailsSpan.append(detailsText);
 
-            li.append(detailsSpan);
+            div.append(detailsSpan);
         }
         
         // Add to page
-        this._appendRanking(li, prefix);
+        this._appendRanking(div, prefix);
 
         // Add the hover events
         //*****************************************************************
-		this.helpers.addTooltipEvents(li);
+		this.helpers.addTooltipEvents(div);
 
         data.loadState = LOAD_STATES['Success'];
     }
@@ -167,7 +206,7 @@ export class RankingHelper {
 		// Create the ul element if needed
         var extrasStats = document.querySelector('.extras-stats')
         if (extrasStats == null) {
-            extrasStats = this.helpers.createElement('ul', {
+            extrasStats = this.helpers.createElement('div', {
                 class: 'production-statistic-list extras-stats'
             });
             if (this.pageState.isMobile) {

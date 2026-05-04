@@ -171,6 +171,8 @@ async function InitDefaultSettings() {
     if (options['criterion-link-enabled'] == null) options['criterion-link-enabled'] = true;
     if (options['bluray-link-enabled'] == null) options['bluray-link-enabled'] = true;
     if (options['ebert-link-enabled'] == null) options['ebert-link-enabled'] = true;
+    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = true;
+    if (options['bfi-enabled'] == null) options['bfi-enabled'] = true;
     if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
 
@@ -187,8 +189,6 @@ async function InitDefaultSettings() {
     if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
     if (options['allocine-default-view'] == null) options['allocine-default-view'] = "user";
     if (options['search-redirect'] == null) options['search-redirect'] = false;
-    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = false;
-    if (options['bfi-enabled'] == null) options['bfi-enabled'] = false;
     if (options['convert-ratings'] == null) options['convert-ratings'] = "false";
     if (options['mpa-convert'] == null) options['mpa-convert'] = false;
     if (options['open-same-tab'] == null) options['open-same-tab'] = false;
@@ -304,6 +304,19 @@ browser.runtime.onInstalled.addListener(async (details) => {
         if (parseInt(version[0]) == 3 && parseInt(version[1]) < 16 && isFirefox) {
             await ConvertLocalToSync();
         }
+        else if (parseInt(version[0]) == 3 && parseInt(version[1]) < 19) {
+            // Remove old premissions
+            const permissionToRemove = {
+                origins: ["https://*.theyshootpictures.com/*", "https://www.bfi.org.uk/*"],
+            };
+            await browser.permissions.remove(permissionToRemove);
+
+            // Force enable the settings
+            await UpdateExistingSettings([
+                { key: 'bfi-enabled', value: true },
+                { key: 'tspdt-enabled', value: true }
+            ]);
+        }
 
         // Init default settings
         await InitDefaultSettings();
@@ -341,4 +354,21 @@ async function CheckForPermission(url) {
     }
 
     return false;
+}
+
+async function UpdateExistingSettings(newSettings){
+    var options = {};
+    const data = await browser.storage.sync.get('options');
+    if (data != null && data.options != null) {
+        Object.assign(options, data.options);
+    }
+
+    for (var i = 0; i < newSettings.length; i++) {
+        let key = newSettings[i].key;
+        let value = newSettings[i].value;
+        options[key] = value;
+    }
+    
+    // Save
+    await browser.storage.sync.set({ options });
 }
