@@ -412,7 +412,14 @@
         <div>
             <h4>Wikipedia</h4>
             <label for="wiki-link-enabled">Display Wikipedia link:</label>
-            <input type="checkbox" id="wiki-link-enabled" class="setting"/>
+            <input type="checkbox" id="wiki-link-enabled" subid="wiki-link-options" class="setting"/>
+            <p class="info-tip">By default, the link will match your browser's language setting.</p>
+            <div id="wiki-link-options" class="subsetting">
+                <div>
+                    <label for="wiki-prefer-en">Prefer English Wikipedia:</label>
+                    <input type="checkbox" id="wiki-prefer-en" class="setting"/>
+                </div>
+            </div>
         </div>
         <div>
             <h4>Criterion</h4>

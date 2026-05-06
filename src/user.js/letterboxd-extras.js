@@ -1337,7 +1337,7 @@ const letterboxd = {
 						// Call BoxOfficeMojo
 						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID + '/';
 						if (letterboxd.storage.get('mojo-link-enabled') === true) {
-							this.addLink(mojoURL);
+							this.addLink(mojoURL, 'MOJO', 'mojo');
 						}
 						browser.runtime.sendMessage({ name: "GETDATA", url: mojoURL }, (value) => {
 							this.mojoData.state = 1;
@@ -1565,14 +1565,14 @@ const letterboxd = {
 									if (this.wiki && this.wiki.Bluray_ID && letterboxd.storage.get('bluray-link-enabled') === true){
 										this.bluray.id = this.wiki.Bluray_ID.value;
 										this.bluray.url = 'https://www.blu-ray.com/_/' + this.bluray.id;
-										this.addLink(this.bluray.url);
+										this.addLink(this.bluray.url, 'Blu-Ray.com', 'bluray');
 									}
 
 									// Get RogerEbert.com ID
 									if (this.wiki && this.wiki.Ebert_ID && letterboxd.storage.get('ebert-link-enabled') === true){
 										this.ebert.id = this.wiki.Ebert_ID.value;
 										this.ebert.url = 'https://www.rogerebert.com/reviews/' + this.ebert.id;
-										this.addLink(this.ebert.url);
+										this.addLink(this.ebert.url, 'Ebert', 'ebert');
 									}
 
 									// Check for State of Transmission
@@ -1684,7 +1684,7 @@ const letterboxd = {
 
 				// Add Metacritic
 				if (this.wikiData.metaURL != "" && this.wikiData.state == 2 && letterboxd.storage.get('metacritic-enabled') === true) {
-					this.addLink(this.wikiData.metaURL);
+					this.addLink(this.wikiData.metaURL, 'META', 'meta');
 
 					if (this.metaHelper.data == null && this.metaAdded == false && this.metaHelper.state < 1) {
 						try {
@@ -1876,16 +1876,10 @@ const letterboxd = {
 		addWikiButton() {
 			if (document.querySelector('.wiki-button')) return;
 
-
 			if (this.wiki.Wikipedia != null && this.wiki.Wikipedia.value != null) {
-				var url = this.wiki.Wikipedia.value;
-			} else if (this.wiki.WikipediaEN != null && this.wiki.WikipediaEN.value != null) {
-				var url = this.wiki.WikipediaEN.value;
-			} else {
-				return;
+				let url = this.wiki.Wikipedia.value;
+				this.addLink(url, letterboxd.helpers.getWikiButtonLabel(url), 'wiki');
 			}
-
-			this.addLink(url);
 		},
 
 		resolveExistingButtonLinks() {
@@ -2149,7 +2143,7 @@ const letterboxd = {
 
 		initTomato() {
 			if (this.wikiData.tomatoURL != null && this.wikiData.tomatoURL != "") {
-				this.addLink(this.wikiData.tomatoURL);
+				this.addLink(this.wikiData.tomatoURL, 'RT', 'tomato');
 
 				if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1) {
 					try {
@@ -2579,127 +2573,75 @@ const letterboxd = {
 			this.metaAdded = true;
 		},
 
-		addLink(url) {
+		addLink(url, text, prefix) {
 			if (url === null || url === "") {
 				return;
 			}
 
-			// Check if already added
-			if (!this.linksAdded.includes(url)) {
-				this.linksAdded.push(url);
+			let className = `${prefix}-button`;
 
-				var text = "";
-				var className = "";
-				if (url.includes("rottentomatoes")) {
-					text = "RT";
-					className = "tomato-button";
-				} else if (url.includes("metacritic")) {
-					text = "META";
-					className = "meta-button";
-				} else if (url.includes("boxofficemojo")) {
-					text = "MOJO";
-					className = "mojo-button";
-				} else if (url.includes("anilist")) {
-					text = "AL";
-					className = "anilist-button";
-				} else if (url.includes("myanimelist")) {
-					text = "MAL";
-					className = "mal-button";
-				} else if (url.includes("anidb")) {
-					text = "ANIDB";
-					className = "anidb-button";
-				} else if (url.includes("senscritique")) {
-					text = "CRITIQUE";
-					className = "sens-button";
-				} else if (url.includes("mubi.com")) {
-					text = "MUBI";
-					className = "mubi-button";
-				} else if (url.includes("filmaffinity.com")) {
-					text = "AFFINITY";
-					className = "filmaff-button";
-				} else if (url.includes("wikipedia")) {
-					text = "WIKI";
-					className = "wiki-button";
-				} else if (url.includes("allocine")) {
-					text = "ALLO";
-					className = "allocine-button";
-				} else if (url.includes("filmarks")) {
-					text = "FILMARKS";
-					className = "filmarks-button";
-				} else if (url.includes("doesthedogdie")) {
-					text = "DOG";
-					className = "ddd-button";
-				} else if (url.includes("blu-ray.com")) {
-					text = "Blu-ray.com";
-					className = "bluray-button";
-				} else if (url.includes("rogerebert.com")) {
-					text = "Ebert";
-					className = "ebert-button";
-				}
+			if (document.querySelector('.' + className)) {
+				return;
+			}
 
-				if (document.querySelector('.' + className)) {
+			// Create Button Element
+			const button = letterboxd.helpers.createElement('a', {
+				class: `micro-button track-event extras-button ${className}`,
+				href: url
+			});
+			button.innerText = text;
+
+			if (letterboxd.storage.get('open-same-tab') != true) {
+				button.setAttribute("target", "_blank");
+			}
+
+			// Determine Placement
+			const order = [
+				'.tomato-button',
+				'.meta-button',
+				'.sens-button',
+				'.mubi-button',
+				'.filmaff-button',
+				'.simkl-button',
+				'.kinopoisk-button',
+				'.douban-button',
+				'.allocine-button',
+				'.mdl-button',
+				'.mal-button',
+				'.anilist-button',
+				'.anidb-button',
+				'.filmarks-button',
+				'.criterion-button',
+				'.mojo-button',
+				'.wiki-button',
+				'.ddd-button',
+				'.bluray-button',
+				'.ebert-button'
+			];
+
+			let index = order.indexOf('.' + className);
+			// First Attempt
+			for (let i = index + 1; i < order.length; i++) {
+				var temp = document.querySelector(order[i]);
+				if (temp != null) {
+					temp.before(button);
 					return;
 				}
-
-				// Create Button Element
-				var button = letterboxd.helpers.createElement('a', {
-					class: 'micro-button track-event ' + className,
-					href: url
-				});
-				button.innerText = text;
-
-				if (letterboxd.storage.get('open-same-tab') != true) {
-					button.setAttribute("target", "_blank");
-				}
-
-				// Determine Placement
-				var order = [
-					'.tomato-button',
-					'.meta-button',
-					'.sens-button',
-					'.mubi-button',
-					'.filmaff-button',
-					'.simkl-button',
-					'.kinopoisk-button',
-					'.douban-button',
-					'.allocine-button',
-					'.mdl-button',
-					'.mal-button',
-					'.anilist-button',
-					'.anidb-button',
-					'.filmarks-button',
-					'.criterion-button',
-					'.mojo-button',
-					'.wiki-button',
-					'.ddd-button',
-					'.bluray-button',
-					'.ebert-button'
-				];
-
-				var index = order.indexOf('.' + className);
-				// First Attempt
-				for (var i = index + 1; i < order.length; i++) {
-					var temp = document.querySelector(order[i]);
-					if (temp != null) {
-						temp.before(button);
-						return;
-					}
-				}
-
-				// Second Attempt
-				for (var i = index - 1; i >= 0; i--) {
-					var temp = document.querySelector(order[i]);
-					if (temp != null) {
-						temp.after(button);
-						return;
-					}
-				}
-
-				// Third Attempt
-				var buttons = document.querySelectorAll('p.text-link.text-footer div a.micro-button');
-				var lastButton = buttons[buttons.length - 1];
-				lastButton.after(button);
 			}
+
+			// Second Attempt
+			for (let i = index - 1; i >= 0; i--) {
+				var temp = document.querySelector(order[i]);
+				if (temp != null) {
+					temp.after(button);
+					return;
+				}
+			}
+
+			// Third Attempt
+			let buttons = document.querySelectorAll('p.text-link.text-footer div a.micro-button');
+			let lastButton = buttons[buttons.length - 1];
+			lastButton.after(button);
 		},
 
 		moveLinks() {
@@ -3298,7 +3240,7 @@ const letterboxd = {
 			var ratingCount = this.sensCritique.data.product.stats.ratingCount;
 			var recommendCount = this.sensCritique.data.product.stats.recommendCount;
 
-			this.addLink(url);
+			this.addLink(url, 'CRITIQUE', 'sens');
 
 			// Do not display if there is no score or ratings
 			if (rating == null && ratingCount == 0) return;
@@ -3523,7 +3465,7 @@ const letterboxd = {
 
 			this.allocine.state = 2;
 
-			this.addLink(this.allocine.url);
+			this.addLink(this.allocine.url, 'ALLO', 'allocine');
 
 			// Collect Date from the AlloCine page
 			//***************************************************************
@@ -3859,7 +3801,7 @@ const letterboxd = {
 		addDDD(){
 			if (this.ddd.id != null){
 				this.ddd.url = "https://www.doesthedogdie.com/media/" + this.ddd.id;
-				this.addLink(this.ddd.url);
+				this.addLink(this.ddd.url, 'DOG', 'ddd');
 			}
 
 			this.ddd.added = true;
@@ -3991,7 +3933,7 @@ const letterboxd = {
 				if (this.filmarks.movie.link != null)
 					this.filmarks.url = this.filmarks.movie.link;
 					
-				this.addLink(this.filmarks.url);
+				this.addLink(this.filmarks.url, 'FILMARKS', 'filmarks');
 			}else{
 				letterboxd.helpers.WriteConsoleLog('LOG', 'Unable to find/match Filmarks page');
 				return;
@@ -5471,6 +5413,32 @@ const letterboxd = {
 			if (tmdbId != "" && queryType == "PERSON")
 				sparqlQuery += '  { ?item p:P4985 ?tmdbStatement. ?tmdbStatement ps:P4985 ?tmdbID. MINUS { ?tmdbStatement wikibase:rank wikibase:DeprecatedRank. } }\n'
 
+			// Wikipedia Language
+			let wikipediaQuery = '';
+			if (queryType == 'MAIN' || queryType == 'PERSON'){
+				let browserLocale = window.navigator.language;
+				if (browserLocale.length > 2){
+					browserLocale = browserLocale.substring(0, 2);
+				}
+				
+				if (browserLocale == '' || browserLocale == 'en' || letterboxd.storage.get('wiki-prefer-en') === true) {
+					wikipediaQuery = '  OPTIONAL { ' +
+									 '   ?Wikipedia schema:about ?item ;' +
+									 '             schema:isPartOf <https://en.wikipedia.org/> .' +
+									 '  }'
+				} else {
+					wikipediaQuery = `  OPTIONAL { ` +
+									 `   ?${browserLocale}_link schema:about ?item ;` +
+									 `             schema:isPartOf <https://${browserLocale}.wikipedia.org/> .` +
+									 `  }` +
+									 `  OPTIONAL { ` +
+									 `   ?en_link schema:about ?item ;` +
+									 `             schema:isPartOf <https://en.wikipedia.org/> .` +
+									 `  }` +
+									 `  BIND(COALESCE(?${browserLocale}_link, ?en_link) AS ?Wikipedia)`
+				}
+			}
+
 
 			if (queryType == "DATE") {
 				sparqlQuery = "SELECT DISTINCT ?Date ?Date_Country ?Date_Precision ?Date_Format ?Date_City_Country WHERE {\n" +
@@ -5496,7 +5464,7 @@ const letterboxd = {
 						"GROUP BY ?Date ?Date_Precision ?Date_Country ?Date_Format ?Date_City_Country";
 
 			} else if (queryType == "PERSON") {
-				sparqlQuery = "SELECT DISTINCT ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?WikipediaEN ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?itemLabel ?BirthName ?Date_Of_Birth ?Date_Of_Birth_Precision ?Date_Of_Death ?Date_Of_Death_Precision ?BirthCityLabel ?BirthCountry ?DeathCityLabel ?DeathCountry ?Wikipedia ?Years_Start ?Years_End ?IMDb_ID  WHERE {\n" +
 						"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }\n" +
 						"  \n" +
 						"  ?item p:P4985 ?statement0.\n" +
@@ -5580,16 +5548,7 @@ const letterboxd = {
 						"      }\n" +
 						"    }\n" +
 						"  }\n" +
-						"  OPTIONAL {\n" +
-						"    ?WikipediaEN schema:about ?item .\n" +
-						"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
-						"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
-						"  }\n" +
-						"  OPTIONAL {\n" +
-						"    ?Wikipedia schema:about ?item .\n" +
-						"    ?Wikipedia schema:inLanguage \"en\" .\n" +
-						"    ?Wikipedia schema:isPartOf <https://en.wikipedia.org/> .\n" +
-						"  }\n" +
+						wikipediaQuery +
 						"}";
 
 			}else if (queryType == "LOSTFILMS"){
@@ -5600,7 +5559,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?WikipediaEN ?Wikipedia ?StateOfTransmission WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -5697,16 +5656,7 @@ const letterboxd = {
 					"    ?TV_End_entry psv:P582 [wikibase:timePrecision ?TV_End_Precision].\n" +
 					"    MINUS { ?TV_End_entry wikibase:rank wikibase:DeprecatedRank. }\n" +
 					"  }\n" +
-					"  OPTIONAL {\n" +
-					"    ?WikipediaEN schema:about ?item .\n" +
-					"    ?WikipediaEN schema:inLanguage \"en\" .\n" +
-					"    ?WikipediaEN schema:isPartOf <https://en.wikipedia.org/> .\n" +
-					"  }\n" +
-					"  OPTIONAL {\n" +
-					"    ?Wikipedia schema:about ?item .\n" +
-					"    ?Wikipedia schema:inLanguage \"" + lang + "\" .\n" +
-					"    ?Wikipedia schema:isPartOf <https://" + lang + ".wikipedia.org/> .\n" +
-					"  }\n" +
+					wikipediaQuery +
 					"}";
 			}
 
@@ -5823,6 +5773,29 @@ const letterboxd = {
 				default:
 					return "with " + role.replace('-',' ') + " by this artist";
 			}
+		},
+
+		getWikiButtonLabel(url){
+
+			let browserLocale = window.navigator.language;
+			if (browserLocale.length > 2){
+				browserLocale = browserLocale.substring(0, 2);
+			}
+
+			let regex = new RegExp(/https:\/\/([a-z]+)\.wikipedia\.org/);
+			let found = url.match(regex);
+
+			if (found){
+				// In my extremely biased opinion, english is the default
+				// So we don't need to show the language if the user's locale is english, or the user has enabled prefer english
+				if (browserLocale == 'en' || letterboxd.storage.get('wiki-prefer-en') === true){
+					return 'WIKI';
+				}
+
+				return `${found[1]} WIKI`;
+			}
+
+			return 'WIKI';
 		}
 	},
 

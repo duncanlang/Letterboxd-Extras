@@ -177,7 +177,6 @@ async function InitDefaultSettings() {
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
     if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
 
-
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
     if (options['critic-default'] == null) options['critic-default'] = "all";
@@ -206,6 +205,7 @@ async function InitDefaultSettings() {
     if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'unchanged';
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
     if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
+    if (options['wiki-prefer-en'] == null) options['wiki-prefer-en'] = false;
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';
