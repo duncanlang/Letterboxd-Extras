@@ -1107,7 +1107,7 @@ const letterboxd = {
 
 				if (score != null) {
 					// Grab count and link from score element
-					let regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]ratings)/);
+					let regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]rating)/);
 
 					if (score.hasAttribute("data-original-title")) {
 						count = score.getAttribute("data-original-title").match(regex)[1];
@@ -1162,37 +1162,20 @@ const letterboxd = {
 
 				if (letterboxd.storage.get('replace-fans') === "replace" && fansLink != null) {
 					// Replace the existing fans text with ratings
-					fansLink.innerText = count + " ratings";
+					fansLink.innerText = `${count} ratings`;
 					fansLink.href = ratingsUrl;
 
 				} else if (letterboxd.storage.get('replace-fans') === "both" && fansLink != null) {
 					// Add the rating count next to the fans
-					// Create the bullet point
-					var right = fansLink.clientWidth + 5;
-					const bullet = letterboxd.helpers.createElement('a', {
-						class: 'accessory',
-						style: 'margin-left: 3px;'
-					});
-					bullet.innerText = "•";
-					fansLink.before(bullet);
 
+					// Create the bullet point
+					letterboxd.helpers.createSectionAccessory(section, '•', '', 'margin-left: 3px;');
 					// Create the rating count link
-					right += bullet.clientWidth + 5;
-					const ratingCount = letterboxd.helpers.createElement('a', {
-						class: 'accessory',
-						href: ratingsUrl
-					});
-					ratingCount.innerText = count;
-					bullet.before(ratingCount);
+					letterboxd.helpers.createSectionAccessory(section, count, ratingsUrl, 'margin-left: 3px;');
 
 				} else if (fansLink == null) {
 					// Fans element does not exist, create one for the ratings count
-					const ratingCount = letterboxd.helpers.createElement('a', {
-						class: 'accessory',
-						href: ratingsUrl
-					});
-					ratingCount.innerText = count + " ratings";
-					section.querySelector(".rating-histogram").before(ratingCount);
+					letterboxd.helpers.createSectionAccessory(section, `${count} ratings`, ratingsUrl, '');
 				}
 
 				this.fansConverted = true;
@@ -1226,7 +1209,7 @@ const letterboxd = {
 					score.innerText = newScore.toFixed(1).toString();
 
 					// Convert the histogram graph
-					regex = new RegExp(/(?:\d+|No)(?: *| *)([★½]+|half-★) ratings/);
+					regex = new RegExp(/(?:[0-9,]+|No)(?: *| *)([★½]+|half-★) rating/);
 					var histogramBars = section.querySelectorAll('a.barcolumn.tooltip');
 					for (var i = 0; i < histogramBars.length; i++) {
 						if (histogramBars[i].getAttribute(tooltipAttribute) != null) {
@@ -4091,6 +4074,41 @@ const letterboxd = {
 			}		
 
 			return output;
+		},
+
+		createSectionAccessory(section, text, href, style) {
+			let accessorySection = section.querySelector('div.section-accessories');
+
+			// Create the accessory section, if needed
+			if (accessorySection == null){
+				const aside = letterboxd.helpers.createElement('aside', {
+					class: 'aside'
+				});
+
+				accessorySection = letterboxd.helpers.createElement('div', {
+					class: 'section-accessories'
+				});
+				aside.append(accessorySection);
+
+				section.querySelector('.section-header .section-heading').after(aside);
+			}
+
+			// Now create the actual accessory
+			const accessory = letterboxd.helpers.createElement('a', {
+				class: 'accessory'
+			});
+
+			if (text != '')
+				accessory.innerText = text;
+
+			if (href != '')
+				accessory.href = href;
+			
+			if (style)
+				accessory.style = style
+
+			// Finally, let's add the newly create accessory to the section
+			accessorySection.prepend(accessory);
 		},
 
 		parseWikiDataResult(data, tagName, currentValue){
