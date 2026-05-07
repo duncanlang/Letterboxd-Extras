@@ -97,19 +97,46 @@ function SetRatingsOrder(ratingsOrder){
         { key: "douban-ratings", value: "Douban"},
     ];
 
-    var listElement = document.querySelector('ul#ratings-order');
+    let listElement = document.querySelector('ul#ratings-order');
     listElement.textContent = '';
-    for (var i = 0; i < ratingsOrder.length; i++){
-        var key = ratingsOrder[i];
-        var name = ratingIdMapping.find(x => x.key == key).value;
+    for (let i = 0; i < ratingsOrder.length; i++){
+        let key = ratingsOrder[i];
+        let name = ratingIdMapping.find(x => x.key == key).value;
 
-        var li = document.createElement('li');
-        li.innerText = name;
+        let li = document.createElement('li');
         li.classList.add('sortable-item');
         li.setAttribute('draggable', 'true');
         li.setAttribute('rating-id', key);
+        li.setAttribute('tabindex', 0);
+
+        let label = document.createElement('span');
+        label.classList.add('sortable-item-label');
+        label.innerText = name;
+
+        let upArrow = document.createElement('span');
+        upArrow.innerText = '▲';
+        upArrow.classList.add('sortable-item-arrow');
+        upArrow.classList.add('arrow-up');
+        if (i == 0)
+            upArrow.classList.add('disabled');
+
+        let downArrow = document.createElement('span');
+        downArrow.innerText = '▼';
+        downArrow.classList.add('sortable-item-arrow');
+        downArrow.classList.add('arrow-down');
+        if (i == ratingsOrder.length - 1)
+            downArrow.classList.add('disabled');
+
+        li.append(label);
+        li.append(upArrow);
+        li.append(downArrow);
         
         listElement.append(li);
+
+        upArrow.addEventListener('click', sortableItemArrowClick);
+        downArrow.addEventListener('click', sortableItemArrowClick);
+        
+        li.addEventListener('keydown', sortableItemKeyPress);
     }
 }
 
@@ -708,12 +735,81 @@ list.addEventListener('touchend', (e) => {
     handleDragEnd(draggingItem);
 });
 
+
+function sortableItemArrowClick(event){
+    const arrow = event.target;
+    const item = arrow.parentNode;
+    const list = item.parentNode;
+    
+    draggingItem = item;
+
+    if (arrow.className.includes('disabled')) return;
+
+    let previousItem = item.previousElementSibling;
+    let nextItem = item.nextElementSibling?.nextElementSibling ?? null;
+
+    if (event.shiftKey){
+        previousItem = list.firstChild;
+        nextItem = null;
+    }    
+
+    if (arrow.className.includes('arrow-up') && previousItem != null) {
+        updateListPosition(previousItem);
+    }
+    else if (arrow.className.includes('arrow-down')) {
+        updateListPosition(nextItem);
+    }
+    
+    SaveSortableList(list);
+}
+
+function sortableItemKeyPress(event){
+    const key = event.key;
+    const item = event.target;
+
+    draggingItem = item;
+
+    let previousItem = item.previousElementSibling;
+    let nextItem = item.nextElementSibling?.nextElementSibling ?? null;
+
+    if (event.shiftKey){
+        previousItem = list.firstChild;
+        nextItem = null;
+    }    
+
+    switch (key) {
+        case "ArrowUp":
+            updateListPosition(previousItem);
+            event.preventDefault();
+            item.focus();
+            break;
+
+        case "ArrowDown":
+            updateListPosition(nextItem);
+            event.preventDefault();
+            item.focus();
+            break;
+    }
+
+    SaveSortableList(list);
+}
+
 function updateListPosition(afterElement) {
     if (afterElement) {
         list.insertBefore(draggingItem, afterElement);
     } else {
         list.appendChild(draggingItem);
+    }    
+
+    // Make sure the disabled class is removed
+    for (let i = 0; i < list.childNodes.length; i++){
+        list.childNodes[i].querySelector('.arrow-up').classList.remove('disabled');
+        list.childNodes[i].querySelector('.arrow-down').classList.remove('disabled');
     }
+
+    // And added to whichever items are now the top and bottom
+    draggingItem.parentNode.firstChild.querySelector('.arrow-up').classList.add('disabled');
+    draggingItem.parentNode.lastChild.querySelector('.arrow-down').classList.add('disabled');
 }
 
 function handleDragEnd(item) {

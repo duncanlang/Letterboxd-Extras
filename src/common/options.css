@@ -168,20 +168,38 @@ body:not(.android) .topnav{
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 .sortable-item {
-    padding: 3px 5px;
     margin: 3px 0;
     background: color-mix(in srgb, currentColor 7%, transparent);
     border-radius: 3px;
     color: var(--body-text-color);
-    cursor: grab;
     box-shadow: var(--box-shadow-level-1);
     transition: background 0.2s, transform 0.2s;
-}
-.sortable-item:hover {
-    background: color-mix(in srgb, currentColor 14%, transparent);
-    transform: scale(1.01);
+    display: flex;
 }
 .sortable-item.dragging {
     border: 2px dashed var(--color-accent-primary);
     background: color-mix(in srgb, currentColor 21%, transparent);
+}
+
+.sortable-item-label {
+    flex-grow: 1;
+    padding: 3px 5px;
+    cursor: grab;
+}
+
+.sortable-item span {
+    border-radius: 3px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+.sortable-item span:hover {
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    transform: scale(1.01);
+}
+
+.sortable-item-arrow {
+    cursor: pointer;
+    width: 35px;
+    text-align: center;
 }
