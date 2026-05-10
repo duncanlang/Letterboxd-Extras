@@ -929,8 +929,8 @@ const letterboxd = {
 			}
 
 			// Determine mobile
-			if (this.pageState.isMobile == null && document.querySelector("html")) {
-				var htmlEl = document.querySelector("html");
+			if (this.pageState.isMobile == null && document.querySelector("html") && document.querySelector("html").hasAttribute('class')) {
+				const htmlEl = document.querySelector("html");
 				if (htmlEl.getAttribute("class").includes("no-mobile")) {
 					this.pageState.isMobile = false;
 				} else {
