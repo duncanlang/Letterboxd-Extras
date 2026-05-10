@@ -356,6 +356,13 @@
             <label for="ebert-great-enabled">Show Roger Ebert Great Movies:</label>
             <input type="checkbox" id="ebert-great-enabled" class="setting"/>
         </div>
+        <div>
+            <h4>Custom Rankings</h4>
+            <a class="hyperlink" href="/custom_list.html?action=add" target="_blank">Add a new custom ranking</a>
+            <ul id="custom-list-holder" class="sortable-list">
+                <li style="opacity: 50%; text-align: center;">You have no custom ranking lists</li>
+            </ul>
+        </div>
     </div>
 
     <hr width="100%">
@@ -522,21 +529,34 @@
 
     <!-- Import/Export -->
     <div id="import-export">
-        <h3>Import/Export Settings</h3>
+        <h3>Import/Export</h3>
         <div>
-            <input type="button" id="export" value="Export to File" />
-        </div>
-        <div id="importdivdesktop">
-            <input type="button" id="import" value="Import from File" />
-            <input type="file" accept="application/json" id="importpicker">
-        </div>
-        <div id="importdivandroid" style="display:none">
-            <input type="button" id="importbutton" value="Import from File" />
-            <p class="info-tip">This will open the restore in a separate tab.</p>
-            <p id="tabpermissionreminder">This requires the 'tabs' permission to open the new tab. The request pop-up will likely open behind this due to a bug with FireFox.</p>
+            <h4>Settings</h4>
+            <div>
+                <input type="button" id="export" value="Export to File" />
+            </div>
+            <div id="importdivdesktop">
+                <input type="button" id="import" value="Import from File" />
+                <input type="file" accept="application/json" id="importpicker">
+            </div>
+            <div id="importdivandroid" style="display:none">
+                <input type="button" id="importbutton" value="Import from File" />
+                <p class="info-tip">This will open the restore in a separate tab.</p>
+                <p id="tabpermissionreminder">This requires the 'tabs' permission to open the new tab. The request pop-up will likely open behind this due to a bug with FireFox.</p>
+            </div>
+            <div>
+                <input type="button" id="reset" value="Reset settings to default" />
+            </div>
         </div>
         <div>
-            <input type="button" id="reset" value="Reset settings to default" />
+            <h4>Custom Rankings</h4>
+            <div>
+                <input type="button" id="export-lists" value="Export to File" />
+            </div>
+            <div>
+                <input type="button" id="import" value="Import from File" />
+                <input type="file" accept="application/json" id="importpicker-lists">
+            </div>
         </div>
     </div>
 

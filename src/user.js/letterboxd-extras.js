@@ -507,9 +507,7 @@ GM_addStyle(`
 		.extras-ranking a span{
 			pointer-events: none;
 		}
-		.bfi-ranking a .extras-ranking-icon,
-		.afi-ranking a .extras-ranking-icon,
-		.ebert-ranking a .extras-ranking-icon{
+		.extras-ranking-icon{
 			height: 18px !important;
 			width: 18px !important;
 			background-repeat: round !important;
@@ -908,8 +906,13 @@ const letterboxd = {
 			}
 
 			// Append Rankings
-			if (this.letterboxdID != '' && this.rankingHelper.loadState == LOAD_STATES['Uninitialized'] && ((this.pageState.isMobile && document.querySelector('.sidebar')) || (this.pageState.isMobile == false && document.querySelector('.production-statistic')))) {
-				this.rankingHelper.loadRankings(this.letterboxdID);
+			if (this.letterboxdID != '' && ((this.pageState.isMobile && document.querySelector('.sidebar')) || (this.pageState.isMobile == false && document.querySelector('.production-statistic')))) {
+				if (this.rankingHelper.loadState == LOAD_STATES['Uninitialized']) {
+					this.rankingHelper.loadRankings(this.letterboxdID);
+				}
+				if (this.rankingHelper.customLoadState == LOAD_STATES['Uninitialized']){
+					this.rankingHelper.loadCustomRankings(this.letterboxdID);
+				}
 			}
 							
 			// Get logged in status

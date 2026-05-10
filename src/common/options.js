@@ -18,25 +18,43 @@ if ((isAndroid || isPopup) && isFirefox)
     AndroidImportReplacer();
 
 var options = {};
+var custom_lists;
 
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
-// Load from storage
+// Load the settings
 async function load() {
-    // Assign the object
+    // Get from sync storage
     var data = await browser.storage.sync.get('options');
 
-    if (data != null && data.options != null) {
+    if (data != undefined && data != null && data.options != null) {
         Object.assign(options, data.options);
         // Set the settings
         await set();
     }
 }
 
+// Load the custom lists
+async function loadCustomLists() {
+    // Get from local storage
+    const data = await browser.storage.local.get({ custom_lists });
+
+    if (data != undefined && data != null && data.custom_lists != null) {
+        custom_lists = data.custom_lists;
+        SetCustomLists();
+        DetermineNoCustomListsMessage();
+    }
+}
+
 // Save
 function save() {
     browser.storage.sync.set({ options });
+}
+
+// Save custom lists
+async function saveCustomLists() {
+    await browser.storage.local.set({ custom_lists: custom_lists });
 }
 
 async function set() {
@@ -137,6 +155,54 @@ function SetRatingsOrder(ratingsOrder){
         downArrow.addEventListener('click', sortableItemArrowClick);
         
         li.addEventListener('keydown', sortableItemKeyPress);
+    }
+}
+
+function SetCustomLists(){
+    if (custom_lists == undefined || custom_lists == null || custom_lists.length == 0) return;
+
+    const listElement = document.querySelector('#custom-list-holder');
+
+    for (let i = 0; i < custom_lists.length; i++){
+        const customList = custom_lists[i];
+        
+        const li = document.createElement('li');
+        li.classList.add('sortable-item');
+        li.setAttribute('list-id', customList.id);
+        li.setAttribute('tabindex', 0);
+
+        const label = document.createElement('span');
+        label.classList.add('custom_list_label');
+        label.innerText = `${customList.icon ?? ''} ${customList.label}`;
+
+        const editButton = document.createElement('a');
+        editButton.classList.add('custom_list_button');
+        editButton.innerText = 'Edit';
+        editButton.href = `/custom_list.html?action=edit&list_id=${customList.id}`;
+        editButton.target = '_blank';
+
+        const deleteButton = document.createElement('span');
+        deleteButton.classList.add('custom_list_button');
+        deleteButton.innerText = 'Delete';
+
+        li.append(label);
+        li.append(editButton);
+        li.append(deleteButton);
+        
+        listElement.append(li);
+        
+        deleteButton.addEventListener('click', deleteCustomList);
+    }    
+}
+
+function DetermineNoCustomListsMessage(){
+    const listElement = document.querySelector('#custom-list-holder');
+    const listItems = listElement.querySelectorAll('li');
+
+    if (listItems.length == 1) {
+        listItems[0].classList.remove('hidden');
+    } else {
+        listItems[0].classList.add('hidden');
     }
 }
 
@@ -430,6 +496,7 @@ async function registerContentScript(target) {
 // On load, load
 document.addEventListener('DOMContentLoaded', event => {
     load();
+    loadCustomLists();
     validateImportButton();
 });
 
@@ -854,4 +921,32 @@ function ResetRatingsOrder(){
 function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
     section.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteCustomList(event) {
+    const listItem = event.target.parentNode;
+    const listName = listItem.querySelector('.custom_list_label')?.innerText ?? '';
+    const listId = listItem?.getAttribute('list-id') ?? '';
+
+    if (listItem == null || listId == '' || listName == ''){
+        console.error('There was an error finding the list item?');
+        return;
+    }
+
+    // Confirmation Popup
+    if (!window.confirm(`Do you want to delete your custom list "${listName}"?`)) {
+        return;
+    }
+    
+    // Remove from the array
+    custom_lists = custom_lists.filter(x => {
+        return x.id != listId
+    });
+
+    // Save the storage.local
+    await saveCustomLists();
+
+    // Remove from the html page
+    listItem.remove();
+    DetermineNoCustomListsMessage();
 }

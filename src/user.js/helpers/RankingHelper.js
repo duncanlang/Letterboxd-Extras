@@ -5,7 +5,12 @@ const rankingOrder = [
     '.tspdt-ranking',
     '.bfi-ranking',
     '.afi-ranking',
-    '.ebert-ranking'
+    '.ebert-ranking',
+    '.custom0-ranking',
+    '.custom1-ranking',
+    '.custom2-ranking',
+    '.custom3-ranking',
+    '.custom4-ranking',
 ];
 
 export class RankingHelper {
@@ -21,6 +26,7 @@ export class RankingHelper {
         totalRank: 100,
         list: null,
         image: 'afi-logo.png',
+        isRanked: true,
         listUrl: 'https://letterboxd.com/afi/list/afis-100-years100-movies-10th-anniversary/'
     };
     bfiData = { 
@@ -32,6 +38,7 @@ export class RankingHelper {
         totalRank: 250,
         list: null,
         image: 'bfi-logo.svg',
+        isRanked: true,
         listUrl: 'https://letterboxd.com/bfi/list/sight-and-sounds-greatest-films-of-all-time/'
     };
     tspdtData = { 
@@ -42,6 +49,9 @@ export class RankingHelper {
         index: 0,
         totalRank: 1000,
         list: null,
+        icon: '🎥',
+        image: null,
+        isRanked: true,
         listUrl: 'https://letterboxd.com/thisisdrew/list/they-shoot-pictures-dont-they-1000-greatest-7/'
     };
     imdbData = { 
@@ -53,6 +63,7 @@ export class RankingHelper {
         totalRank: 250,
         list: null,
         image: 'imdb-logo.svg',
+        isRanked: true,
         listUrl: 'https://letterboxd.com/dave/list/imdb-top-250/'
     };
     ebertData = { 
@@ -64,11 +75,15 @@ export class RankingHelper {
         totalRank: 250,
         list: null,
         image: 'ebert-great-movies-logo.svg',
+        isRanked: false,
         listUrl: 'https://letterboxd.com/dvideostor/list/roger-eberts-great-movies/'
     };
 
+    customLoadState = LOAD_STATES['Uninitialized'];
+    customLists = [];
+
     get loadState() {
-        const states = [ this.afiData, this.bfiData, this.tspdtData, this.imdbData, this.ebertData ].map(x => x.loadState);
+        const states = [ this.afiData, this.bfiData, this.tspdtData, this.imdbData, this.ebertData ].map(x => x.loadState);        
 
         // Check if any are failed
         if (states.includes(LOAD_STATES['Failure'])) return LOAD_STATES['Failure'];
@@ -134,6 +149,31 @@ export class RankingHelper {
             }
         }
     }
+    
+    async loadCustomRankings(letterboxdID){
+        this.customLoadState = LOAD_STATES['Loading'];
+        this.letterboxdID = letterboxdID;
+
+        // Load from storage
+        const data = await browser.storage.local.get('custom_lists');
+        if (data == undefined || data == null || data.custom_lists == null) {
+            this.customLoadState = LOAD_STATES['Failed'];
+            return;
+        }
+        this.customLists = data.custom_lists;
+
+        for (let i = 0; i < this.customLists.length; i++){
+            const customList = this.customLists[i];
+
+            customList.prefix = `custom${i}`;
+            customList.rank = customList.list[this.letterboxdID]?.rank ?? 0;
+            customList.index = customList.list[this.letterboxdID]?.index ?? customList.rank;
+            
+            this.createRanking(customList);
+        }
+
+        this.customLoadState = LOAD_STATES['Success'];
+    }
 
     _loadRanking(data){
         data.loadState = LOAD_STATES['Loading'];
@@ -192,7 +232,7 @@ export class RankingHelper {
         });
         div.append(a);
         let tooltip = '';
-        if (prefix == 'ebert') {
+        if (data.isRanked == false) {
             tooltip = `Included in "${label}"`;
         } else {
             tooltip = `№ ${rank} in "${label}" Top ${total}`;
@@ -200,22 +240,29 @@ export class RankingHelper {
         a.setAttribute('data-original-title', tooltip);
 
         // Logo
-        if (prefix == 'tspdt') {
+        if (data.icon != null && data.icon != '') {
             const logoSpan = this.helpers.createElement('span', {
                 class: 'extras-ranking-icon',
             });
-            logoSpan.innerText = '🎥'
+            logoSpan.innerText = data.icon
             a.append(logoSpan);
         } else {
+            let imageUrl;
+            if (prefix.startsWith('custom')){
+                imageUrl = data.image;
+            } else {
+                imageUrl = browser.runtime.getURL(`/images/${data.image}`);
+            }
+
             const logoSpan = this.helpers.createElement('span', {
                 class: 'extras-ranking-icon',
-                style: 'background: url(' + browser.runtime.getURL(`/images/${data.image}`) + ')'
+                style: `background: url('${imageUrl}')`
             });
             a.append(logoSpan);
         }
         
         // Rank
-        if (prefix != 'ebert') {
+        if (data.isRanked) {
             const labelSpan = this.helpers.createElement('span', {
                 class: 'label'
             });

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="options.css">
+    <link rel="stylesheet" href="colour_scheme.css">
+    <link rel="stylesheet" href="custom_list.css">
+</head>
+
+<body>
+
+    <div class="">
+        <div id="header-add" class="hidden">
+            <h3>Create a custom ranking list</h3>
+            <p>Note:</p>
+            <ul>
+                <li>Custom lists are static and will not automatically update when the Letterboxd list changes</li>
+                <li>Custom lists are limited to 500 movies (5 pages)</li>
+                <li>Custom lists are stored in the local extension storage and will NOT be synced across devices</li>
+            </ul>
+            <div>
+                <label for="list-url">Letterboxd List URL:</label>
+                <input type="url" id="list-url" class="textbox"/>
+            </div>
+            <div>
+                <input type="button" id="scrape-button" value="Collect List"/>
+            </div>
+        </div>
+        <div id="header-edit" class="hidden">
+            <h3>Edit your custom ranking list</h3>
+            <p>You can refresh your list if the Letterboxd source list has changed.</p>
+            <div>
+                <input type="button" id="refresh-button" value="Refresh List"/>
+            </div>
+        </div>
+
+        <div id="progress-holder" class="hidden">
+            <p>Please wait while the list is being parsed...</p>
+            <div class="loader"></div>
+        </div>
+
+        <div id="parsed-details" class="hidden">
+            <h4>Custom List Data</h4>
+            <div>
+                <label for="input-total">Movies in list:</label>
+                <label id="input-total">0</label>
+            </div>
+            <div>
+                <label for="input-url">List URL:</label>
+                <label id="input-url" style="width: auto;">https://letterboxd.com/</label>
+            </div>
+            <div>
+                <label for="input-label">List Name:</label>
+                <input type="text" id="input-label" class="textbox"/>
+            </div>
+            <div>
+                <label for="input-ranked">Ranked List:</label>
+                <input type="checkbox" id="input-ranked"/>
+            </div>
+            <div>
+                <label for="input-icon">Icon:</label>
+                <br>
+                <input type="radio" id="radio-text" name="icon_type" value="text">
+                <label for="radio-text" class="radio">Text/Emoji:</label>
+                <input type="text" id="input-icon" class="textbox"/>
+                <br>
+                <input type="radio" id="radio-image" name="icon_type" value="url">
+                <label for="radio-image" class="radio">Image URL:</label>
+                <input type="text" id="input-iconurl" class="textbox"/>
+            </div>
+            <div>
+            <input type="button" id="save-button" value="Save List"/>
+            </div>
+        </div>
+        
+        <div id="error-holder" class="hidden">
+            <p id="error-text" style="color: red;">There was an error</p>
+        </div>
+        <div id="message-holder" class="hidden">
+            <p id="message-text">List has been saved. You can close this page now.</p>
+        </div>
+    </div>
+
+    <script src="custom_list.js"></script>
+</body>
+
+</html>
