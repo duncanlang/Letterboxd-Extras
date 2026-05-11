@@ -965,24 +965,6 @@ const letterboxd = {
 						found = true;
 					}
 
-					/*
-					if (this.pageState.isMobile && document.querySelector('.production-masthead') != null){
-						// Mobile - for whatever reason, the poster seems to load in last so I'm instead checking the action strip
-						var actionStrip = document.querySelector('a.actions-strip span.js-user-actions-menu-text span.prompt');
-						if (actionStrip != null){
-							this.pageState.filmWatched = actionStrip.innerText.includes("You’ve watched this");
-							found = true;
-						}
-					}else{
-						// Desktop - check if the poster has the attribute
-						var filmPosterDiv = document.querySelector('#js-poster-col div.poster.film-poster');
-						if (filmPosterDiv != null && filmPosterDiv.getAttribute('data-watched') != null && this.pageState.filmWatched == null){
-							this.pageState.filmWatched = filmPosterDiv.getAttribute('data-watched') == 'true';
-							found = true;
-						}
-					}
-					*/
-
 					if (found){
 						// Determine if ratings should be hidden
 						this.pageState.hideRatings = false;
@@ -1076,9 +1058,15 @@ const letterboxd = {
 					this.letterboxdTitle = document.querySelector(".headline-1.primaryname span").innerText;
 
 					// Collect native title
-					var nativeTitle = document.querySelector('.originalname .quoted-creative-work-title')
+					let nativeTitle = document.querySelector('.originalname .quoted-creative-work-title')
 					if (nativeTitle != null) {
 						this.letterboxdNativeTitle = nativeTitle.innerText;
+					}
+					
+					letterboxd.helpers.WriteConsoleLog('DEBUG', `Found film year: ${this.letterboxdYear}`);
+					letterboxd.helpers.WriteConsoleLog('DEBUG', `Found film title: ${this.letterboxdTitle}`);
+					if (this.letterboxdNativeTitle != null) {
+						letterboxd.helpers.WriteConsoleLog('DEBUG', `Found film native title: ${this.letterboxdNativeTitle}`);
 					}
 				} catch (error) {
 					this.titleError = true;
@@ -1276,16 +1264,17 @@ const letterboxd = {
 			}
 
 			// First Get the IMDb link 
-			if (this.idsCollected == false && document.querySelector('.micro-button') != null && document.querySelector('.block-flag-wrapper')) {
-				// Gets the IMDb link and ID, and also TMDB id
-				this.resolveExistingButtonLinks();
-				if (this.linksMoved == false)
-					this.moveLinks();
+			if (this.idsCollected == false && document.querySelector('.micro-button') != null) {
+				if (this.loggedIn == false || document.querySelector('.block-flag-wrapper')) {
+					// Gets the IMDb link and ID, and also TMDB id
+					this.resolveExistingButtonLinks();
+					if (this.linksMoved == false)
+						this.moveLinks();
 
-				if (this.pageState.isMobile && this.durationAdded == false) {
-					this.addDurationMobile();
+					if (this.pageState.isMobile && this.durationAdded == false) {
+						this.addDurationMobile();
+					}
 				}
-
 			}
 
 			if (this.pageState.filmWatched != null){
@@ -2662,15 +2651,22 @@ const letterboxd = {
 				var regex = new RegExp(/([0-9.,]+)(.+)(mins|min)/);
 				var duration = footer.innerText.match(regex);
 
-				// Save the report button then remove the old text, then re-add
-				var report = footer.querySelector('.block-flag-wrapper');
-				report.style['margin-left'] = '5px';
-
 				// Save badges (adult)
 				var badges = footer.querySelectorAll('.badge');
 
+				// Save the report button
+				if (this.loggedIn) {
+					var report = footer.querySelector('.block-flag-wrapper');
+					report.style['margin-left'] = '5px';
+				}
+
+				// Clear the footer
 				footer.innerText = "";
-				footer.prepend(report);
+
+				// Readd the report button
+				if (this.loggedIn) {
+					footer.prepend(report);
+				}
 
 				// Add the duration
 				var hours = 0;
@@ -3822,13 +3818,13 @@ const letterboxd = {
 			this.filmarks.state = 1;
 
 			var isAnime = (this.myAnimeListHelper.id != null || this.anilistHelper.id != null);
-			var apiURL = "https://markuapi.apn.leapcell.app/search/";
+			var apiURL = 'https://markuapi.kabk.dev/search/';
 			if (this.tmdbTV && isAnime){
-				apiURL += "animes?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
+				apiURL += `animes?limit=20&q=${encodeURIComponent(this.letterboxdTitle)}`;
 			}else if (this.tmdbTV){
-				apiURL += "dramas?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
+				apiURL += `dramas?limit=20&q=${encodeURIComponent(this.letterboxdTitle)}`;
 			}else{
-				apiURL += "movies?limit=20&q=" + encodeURIComponent(this.letterboxdTitle);
+				apiURL += `movies?limit=20&q=${encodeURIComponent(this.letterboxdTitle)}`;
 			}
 				
 			// Make Calls

@@ -307,12 +307,6 @@ browser.runtime.onInstalled.addListener(async (details) => {
             await ConvertLocalToSync();
         }
         else if (parseInt(version[0]) == 3 && parseInt(version[1]) < 19) {
-            // Remove old premissions
-            const permissionToRemove = {
-                origins: ["https://*.theyshootpictures.com/*", "https://www.bfi.org.uk/*"],
-            };
-            await browser.permissions.remove(permissionToRemove);
-
             // Force enable the settings
             await UpdateExistingSettings([
                 { key: 'bfi-enabled', value: true },
