@@ -80,7 +80,7 @@
 		{
 			"matches": [ "https://letterboxd.com/*" ],
 			"js": [ "polyfill.js", "additional.js", "letterboxd-extras.user.js" ],
-			"run_at": "document_start"
+			"run_at": "document_end"
 		}
 	],
 	

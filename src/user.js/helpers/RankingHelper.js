@@ -298,10 +298,10 @@ export class RankingHelper {
     _appendRanking(ranking, prefix){
 
 		// Create the ul element if needed
-        var extrasStats = document.querySelector('.extras-stats')
+        var extrasStats = document.querySelector('.extras-statistics-list')
         if (extrasStats == null) {
             extrasStats = this.helpers.createElement('div', {
-                class: 'production-statistic-list extras-stats'
+                class: 'production-statistic-list extras-statistics-list'
             });
             if (this.pageState.isMobile) {
                 // Add to page
