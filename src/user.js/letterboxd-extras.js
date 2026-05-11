@@ -3786,7 +3786,7 @@ const letterboxd = {
 
 		addDDD(){
 			if (this.ddd.id != null){
-				this.ddd.url = "https://www.doesthedogdie.com/media/" + this.ddd.id;
+				this.ddd.url = `https://www.doesthedogdie.com/media/${this.ddd.id}`;
 				this.addLink(this.ddd.url, 'DOG', 'ddd');
 			}
 
@@ -3795,7 +3795,7 @@ const letterboxd = {
 
 		getFilmarks() {
 			this.filmarks.state = 1;
-			var apiURL = "https://markuapi.apn.leapcell.app/" + this.filmarks.id;
+			var apiURL = `https://markuapi.kabk.dev/${this.filmarks.id}`;
 				
 			// Make Calls
 			browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {

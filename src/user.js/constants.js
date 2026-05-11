@@ -28,12 +28,10 @@ export const CONNECTION_DOMAINS = [
 	'api.mubi.com',
 	'apollo.senscritique.com',
 	'filmaffinity.com',
-	'theyshootpictures.com',
-	'bfi.org.uk',
 	'allocine.fr',
 	'api.simkl.com',
 	'google.com',
 	'doesthedogdie.com',
-	'markuapi.apn.leapcell.app',
+	'markuapi.kabk.dev',
 	'kinopoiskapiunofficial.tech'
 ];
