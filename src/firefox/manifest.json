@@ -72,8 +72,7 @@
 		"https://markuapi.apn.leapcell.app/*",
 		"https://kinopoiskapiunofficial.tech/api/*",
 		"https://api.douban.com/*",
-		"https://api.mydramalist.com/*",
-		"tabs"
+		"https://api.mydramalist.com/*"
 	],
 
 	"content_scripts": [

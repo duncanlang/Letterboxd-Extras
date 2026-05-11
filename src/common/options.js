@@ -14,8 +14,8 @@ if (isAndroid)
 if (isPopup)
     document.body.classList.add("popup");
 
-if ((isAndroid || isPopup) && isFirefox)
-    AndroidImportReplacer();
+if (isPopup && isFirefox)
+    PopupImportReplacer();
 
 var options = {};
 var custom_lists;
@@ -163,6 +163,13 @@ function SetCustomLists(){
 
     const listElement = document.querySelector('#custom-list-holder');
 
+    // Delete existing entries
+    const tempList = Array.from(listElement.querySelectorAll('li[list-id]'));
+    for (let i = 0; i < tempList.length; i++){
+        tempList[i].remove();
+    }
+
+    // Create new entries
     for (let i = 0; i < custom_lists.length; i++){
         const customList = custom_lists[i];
         
@@ -234,7 +241,7 @@ function checkSubIDToDisable(element) {
 
 // On change, save
 document.addEventListener('change', event => {
-    if (event.target.id == "importpicker") {
+    if (event.target.id == "importSettings-picker" || event.target.id == "importLists-picker") {
         validateImportButton();
     } else {
         let element = event.target;
@@ -400,21 +407,31 @@ document.addEventListener('click', event => {
     }
 
     switch (event.target.id) {
-        case "export":
+        // Settings import/export/reset
+        case "exportSettings":
             exportSettings();
             break;
-        case "import":
+        case "importSettings":
             importSettings();
             break;
         case "reset":
             resetSettings();
             break;
-        case "importbutton":
-            OpenImportTab();
+
+        // Custom lists import/export
+        case "exportLists":
+            exportLists();
             break;
+        case "importLists":
+            importLists();
+            break;
+
+        // Request Permissions
         case "requestall":
             RequestAllMissingPermissions();
             break;
+
+        // Reset ratings order
         case "reset-rating-order":
             ResetRatingsOrder();
             break;
@@ -505,10 +522,37 @@ document.addEventListener('focus', event => {
 });
 
 function validateImportButton() {
-    const importPicker = document.querySelector("#importpicker");
-    const importButton = document.querySelector("#import");
-
+    // Settings
+    const importPicker = document.querySelector("#importSettings-picker");
+    const importButton = document.querySelector("#importSettings");
     importButton.disabled = (importPicker.value == "");
+    
+    // Custom Lists
+    const importListsPicker = document.querySelector("#importLists-picker");
+    const importListsButton = document.querySelector("#importLists");
+    importListsButton.disabled = (importListsPicker.value == "");
+}
+
+function downloadFile(data, fileName) {
+    const timeOptions = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+    };
+
+    var url = `data:text/plain;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, '  '))}`;
+    var date = (new Date).toLocaleDateString('ja-JP', timeOptions);
+    fileName = `${fileName}-${date}.json`;
+
+    // Download
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', fileName || '');
+    a.setAttribute('type', 'text/plain');
+    a.dispatchEvent(new MouseEvent('click'));
 }
 
 async function exportSettings() {
@@ -523,29 +567,26 @@ async function exportSettings() {
         settings: settings.options
     }
 
-    const timeOptions = {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric'
-    };
+    downloadFile(userdata, 'letterboxd-extras-backup');
+}
 
-    var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(userdata, null, '  '));
-    var date = (new Date).toLocaleDateString('ja-JP', timeOptions);
-    var filename = 'letterboxd-extras-backup-' + date + '.json';
+async function exportLists() {
+    // Create JSON
+    var data = await browser.storage.local.get('custom_lists').then(function (storedSettings) {
+        return storedSettings;
+    });
 
-    // Download
-    const a = document.createElement('a');
-    a.href = url;
-    a.setAttribute('download', filename || '');
-    a.setAttribute('type', 'text/plain');
-    a.dispatchEvent(new MouseEvent('click'));
+    const userdata = {
+        timeStamp: Date.now(),
+        version: browser.runtime.getManifest().version,
+        custom_lists: data.custom_lists
+    }
+
+    downloadFile(userdata, 'letterboxd-extras-custom-rankings');
 }
 
 async function importSettings() {
-    const importPicker = document.querySelector("#importpicker");
+    const importPicker = document.querySelector("#importSettings-picker");
 
     // Make sure file is selected
     if (importPicker.files.length == 0) {
@@ -593,15 +634,57 @@ async function importSettings() {
     save();
 
     window.alert("Your settings have been restored from file")
+}
 
-    if (window.location.href.endsWith('restore.html')){
-        browser.tabs.create({
-            url: "/options.html",
-            active: true
-        });
+async function importLists() {
+    const importPicker = document.querySelector("#importLists-picker");
 
-        window.close();
+    // Make sure file is selected
+    if (importPicker.files.length == 0) {
+        window.alert("No file selected.")
+        return;
     }
+
+    // Get file and read the contents
+    const selectedFile = importPicker.files[0];
+    const content = await readFileAsText(selectedFile);
+    
+    var json;
+    var error = "";
+    try {
+        json = JSON.parse(content);
+    } catch(err) {
+        error = "File is not valid JSON."
+    }
+
+    if (json != null){
+        // Validate file contents
+        if (json.timeStamp == null || json.version == null || json.custom_lists == null){
+            error = "File is not a valid Letterboxd Extras custom rankings file."
+        }
+        if (json.version != null && versionCompare(json.version, browser.runtime.getManifest().version, {lexicographical: false, zeroExtend: true}) > 0){
+            error = "Custom rankings file is from a newer version (" + json.version + ") than the current add-on (" + browser.runtime.getManifest().version + "). Please update before importing your rankings."
+        }
+    }
+
+    if (error != ""){
+        window.alert("Invalid file: " + error + "\n\nThe import could not be completed");
+        return;
+    }
+
+    // Read timestamp from file
+    const date = (new Date(json.timeStamp)).toLocaleDateString(window.navigator.language);
+
+    // Confirmation Popup
+    if (!window.confirm("Your current custom ranking lists will be overwritten with data backed up on " + date + ".\n\nOverwrite all lists with data from file?")) {
+        return;
+    }
+
+    custom_lists = json.custom_lists;
+    saveCustomLists();
+    SetCustomLists();
+
+    window.alert("Your custom lists have been restored from file")
 }
 
 async function resetSettings(){
@@ -695,28 +778,12 @@ async function OpenImportTab(){
 // Make a link to the android replacer page
 // For some reason, FF on android has a bug where the filepicker does not work in the options_ui
 // So we have a separate page where we want the android users to use instead
-function AndroidImportReplacer(){
+function PopupImportReplacer(){
     if (document.URL.endsWith('restore.html'))
         return;
 
-    const importDesktop = document.getElementById("importdivdesktop");
-    importDesktop.style.display = 'none';
-
-    const importAndroid = document.getElementById("importdivandroid");
-    importAndroid.style.display = '';
-
-    // Show the tab permission reminder
-    browser.permissions.contains({ permissions: ['tabs'] }).then((value) => {
-        let reminder = document.getElementById('tabpermissionreminder');
-
-        if (reminder != null){
-            if (isAndroid == false && value == false){
-                reminder.style.display = '';
-            }else{
-                reminder.style.display = 'none';
-            }
-        }
-    });
+    document.querySelector('#import-export-div').classList.add('hidden');
+    document.querySelector('#import-export-hyperlink').classList.remove('hidden');
 }
 
 function ValidateRequestAllVisiblity(){

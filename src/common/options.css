@@ -60,15 +60,6 @@ div.subsetting{
     margin-left: 15px;
 }
 
-input#export,
-input#import {
-    margin-top: 5px;
-}
-
-input#reset {
-    margin-top: 25px;
-}
-
 p.info-tip {
     margin-top: 0px;
     font-style: italic;

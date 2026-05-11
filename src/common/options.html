@@ -529,34 +529,38 @@
 
     <!-- Import/Export -->
     <div id="import-export">
-        <h3>Import/Export</h3>
-        <div>
-            <h4>Settings</h4>
+        <h3 name="import-export">Import/Export</h3>
+        <div id="import-export-div">
             <div>
-                <input type="button" id="export" value="Export to File" />
-            </div>
-            <div id="importdivdesktop">
-                <input type="button" id="import" value="Import from File" />
-                <input type="file" accept="application/json" id="importpicker">
-            </div>
-            <div id="importdivandroid" style="display:none">
-                <input type="button" id="importbutton" value="Import from File" />
-                <p class="info-tip">This will open the restore in a separate tab.</p>
-                <p id="tabpermissionreminder">This requires the 'tabs' permission to open the new tab. The request pop-up will likely open behind this due to a bug with FireFox.</p>
+                <h4>Settings</h4>
+                <div>
+                    <input type="button" id="exportSettings" value="Export to File" />
+                </div>
+                <br>
+                <div>
+                    <input type="button" id="importSettings" value="Import from File" />
+                    <input type="file" accept="application/json" id="importSettings-picker">
+                </div>
+                <br>
+                <br>
+                <div>
+                    <input type="button" id="reset" value="Reset settings to default" />
+                </div>
             </div>
             <div>
-                <input type="button" id="reset" value="Reset settings to default" />
+                <h4>Custom Rankings</h4>
+                <div>
+                    <input type="button" id="exportLists" value="Export to File" />
+                </div>
+                <br>
+                <div>
+                    <input type="button" id="importLists" value="Import from File" />
+                    <input type="file" accept="application/json" id="importLists-picker">
+                </div>
             </div>
         </div>
-        <div>
-            <h4>Custom Rankings</h4>
-            <div>
-                <input type="button" id="export-lists" value="Export to File" />
-            </div>
-            <div>
-                <input type="button" id="import" value="Import from File" />
-                <input type="file" accept="application/json" id="importpicker-lists">
-            </div>
+        <div id="import-export-hyperlink" class="hidden">
+            <a class="hyperlink" href="/options.html#import-export" target="_blank">Click here to open the full settings to import and export your data.</a>
         </div>
     </div>
 
