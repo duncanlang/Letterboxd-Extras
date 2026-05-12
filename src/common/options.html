@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Letterboxd Extras Settings</title>
+    <title>Letterboxd Extras - Settings</title>
     
     <link rel="stylesheet" href="options.css">
     <link rel="stylesheet" href="colour_scheme.css">
@@ -360,7 +360,9 @@
         </div>
         <div>
             <h4>Custom Rankings</h4>
-            <a class="hyperlink" href="/custom_list.html?action=add" target="_blank">Add a new custom ranking</a>
+            <p id="custom-ranking-desc">You can have up to 10 of your own custom ranking lists.</p>
+            <p id="custom-ranking-reached" class="hidden">You have reached the limit of 10 custom ranking lists.</p>
+            <a id="create-ranking-hyperlink" class="hyperlink" href="/custom_list.html?action=add" target="_blank">Add a new custom ranking</a>
             <ul id="custom-list-holder" class="sortable-list">
                 <li style="opacity: 50%; text-align: center;">You have no custom ranking lists</li>
             </ul>

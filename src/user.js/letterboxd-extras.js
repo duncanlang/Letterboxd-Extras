@@ -509,10 +509,14 @@ GM_addStyle(`
 		}
 		.extras-ranking-icon{
 			height: 18px !important;
+			font-weight: bold;
+		}
+		.extras-ranking-image{
+			height: 18px !important;
 			width: 18px !important;
 			background-repeat: round !important;
 		}
-		.imdb-ranking a .extras-ranking-icon{
+		.imdb-ranking a .extras-ranking-image{
 			height: 16px !important;
 			width: 32px !important;
 		}
@@ -764,6 +768,9 @@ GM_addStyle(`
 			padding: 4px 15px;
 			text-shadow: rgba(255,255,255,.1) 0 1px 0;
 			font-size: 12px;
+		}
+		.extras-statistics-list {
+			flex-wrap: wrap;
 		}
 	`);
 

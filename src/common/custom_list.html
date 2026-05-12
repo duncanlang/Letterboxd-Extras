@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Letterboxd Extras - Create a custom ranking list</title>
+    <title>Letterboxd Extras - Custom Rankings</title>
 
     <link rel="stylesheet" href="options.css">
     <link rel="stylesheet" href="colour_scheme.css">
@@ -20,8 +20,9 @@
             <h3>Create a custom ranking list</h3>
             <p>Note:</p>
             <ul>
+                <li>You must use the normal list url, not the short share links (boxd.it)</li>
                 <li>Custom lists are static and will not automatically update when the Letterboxd list changes</li>
-                <li>Custom lists are limited to 500 movies (5 pages)</li>
+                <li>Custom lists are limited to 1000 movies (10 pages)</li>
                 <li>Custom lists are stored in the local extension storage and will NOT be synced across devices</li>
             </ul>
             <div>
@@ -68,7 +69,7 @@
                 <br>
                 <input type="radio" id="radio-text" name="icon_type" value="text">
                 <label for="radio-text" class="radio">Text/Emoji:</label>
-                <input type="text" id="input-icon" class="textbox"/>
+                <input type="text" id="input-icon" class="textbox" maxlength="3" style="width: 60px !important;"/>
                 <br>
                 <input type="radio" id="radio-image" name="icon_type" value="url">
                 <label for="radio-image" class="radio">Image URL:</label>
@@ -83,7 +84,7 @@
             <p id="error-text" style="color: red;">There was an error</p>
         </div>
         <div id="message-holder" class="hidden">
-            <p id="message-text">List has been saved. You can close this page now.</p>
+            <p id="message-text">List has been saved. You can now close this page.</p>
         </div>
     </div>
 

@@ -6,11 +6,6 @@ const rankingOrder = [
     '.bfi-ranking',
     '.afi-ranking',
     '.ebert-ranking',
-    '.custom0-ranking',
-    '.custom1-ranking',
-    '.custom2-ranking',
-    '.custom3-ranking',
-    '.custom4-ranking',
 ];
 
 export class RankingHelper {
@@ -255,7 +250,7 @@ export class RankingHelper {
             }
 
             const logoSpan = this.helpers.createElement('span', {
-                class: 'extras-ranking-icon',
+                class: 'extras-ranking-image',
                 style: `background: url('${imageUrl}')`
             });
             a.append(logoSpan);
@@ -298,7 +293,7 @@ export class RankingHelper {
     _appendRanking(ranking, prefix){
 
 		// Create the ul element if needed
-        var extrasStats = document.querySelector('.extras-statistics-list')
+        let extrasStats = document.querySelector('.extras-statistics-list')
         if (extrasStats == null) {
             extrasStats = this.helpers.createElement('div', {
                 class: 'production-statistic-list extras-statistics-list'
@@ -318,27 +313,40 @@ export class RankingHelper {
             }
         }
 
-        var index = rankingOrder.indexOf(`.${prefix}-ranking`);
+        const index = rankingOrder.indexOf(`.${prefix}-ranking`);
+        if (index == -1) {
+            extrasStats.append(ranking);
+            return;
+        }
 
-        // First
-        for (var i = index + 1; i < rankingOrder.length; i++) {
-            var temp = extrasStats.querySelector(rankingOrder[i]);
-            if (temp != null) {
+        // First - search forwards
+        for (let i = index + 1; i < rankingOrder.length; i++) {
+            let temp = extrasStats.querySelector(rankingOrder[i]);
+            if (temp) {
                 temp.before(ranking);
                 return;
             }
         }
 
-        // Second
-        for (var i = index - 1; i >= 0; i--) {
-            var temp = extrasStats.querySelector(rankingOrder[i]);
-            if (temp != null) {
+        // Second - check for custom rankings
+        for (let i = 0; i <= 9; i++) {
+            let temp = extrasStats.querySelector(`.custom${i}-ranking`);
+            if (temp) {
+                temp.before(ranking);
+                return;
+            }
+        }
+
+        // Third - search backwards
+        for (let i = index - 1; i >= 0; i--) {
+            let temp = extrasStats.querySelector(rankingOrder[i]);
+            if (temp) {
                 temp.after(ranking);
                 return;
             }
         }
 
-        // Third
+        // Fourth - nothing found, just append
         extrasStats.append(ranking);
     }
 }

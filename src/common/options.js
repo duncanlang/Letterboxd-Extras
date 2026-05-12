@@ -179,17 +179,17 @@ function SetCustomLists(){
         li.setAttribute('tabindex', 0);
 
         const label = document.createElement('span');
-        label.classList.add('custom_list_label');
+        label.classList.add('custom-list-label');
         label.innerText = `${customList.icon ?? ''} ${customList.label}`;
 
         const editButton = document.createElement('a');
-        editButton.classList.add('custom_list_button');
+        editButton.classList.add('custom-list-button');
         editButton.innerText = 'Edit';
         editButton.href = `/custom_list.html?action=edit&list_id=${customList.id}`;
         editButton.target = '_blank';
 
         const deleteButton = document.createElement('span');
-        deleteButton.classList.add('custom_list_button');
+        deleteButton.classList.add('custom-list-button');
         deleteButton.innerText = 'Delete';
 
         li.append(label);
@@ -199,7 +199,17 @@ function SetCustomLists(){
         listElement.append(li);
         
         deleteButton.addEventListener('click', deleteCustomList);
-    }    
+    }
+
+    if (custom_lists.length >= 10){
+        document.querySelector('#custom-ranking-desc').classList.add('hidden');
+        document.querySelector('#custom-ranking-reached').classList.remove('hidden');
+        document.querySelector('#create-ranking-hyperlink').classList.add('hidden');
+    } else {
+        document.querySelector('#custom-ranking-desc').classList.remove('hidden');
+        document.querySelector('#custom-ranking-reached').classList.add('hidden');
+        document.querySelector('#create-ranking-hyperlink').classList.remove('hidden');
+    }
 }
 
 function DetermineNoCustomListsMessage(){
@@ -992,7 +1002,7 @@ function scrollToSection(sectionId) {
 
 async function deleteCustomList(event) {
     const listItem = event.target.parentNode;
-    const listName = listItem.querySelector('.custom_list_label')?.innerText ?? '';
+    const listName = listItem.querySelector('.custom-list-label')?.innerText ?? '';
     const listId = listItem?.getAttribute('list-id') ?? '';
 
     if (listItem == null || listId == '' || listName == ''){
@@ -1017,3 +1027,11 @@ async function deleteCustomList(event) {
     listItem.remove();
     DetermineNoCustomListsMessage();
 }
+
+
+// Check specific key or pass 'null' for all data in local storage
+browser.storage.local.getBytesInUse(null).then((bytes) => {
+    const kb = (bytes / 1024).toFixed(2);
+    const mb = (bytes / (1024 * 1024)).toFixed(2);
+    console.log(`Storage used: ${bytes} bytes (~${kb} KB / ${mb} MB)`);
+});

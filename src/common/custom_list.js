@@ -14,6 +14,8 @@ let listId = urlParams.get('list_id') ?? '';
 if (listId == '')
     listId = self.crypto.randomUUID();
 
+const maxLists = 10;
+
 const progressRing = document.querySelector('#progress-holder');
 const detailsElement = document.querySelector('#parsed-details');
 const errorHolder = document.querySelector('#error-holder');
@@ -24,6 +26,7 @@ const scrapeButton = document.querySelector('#scrape-button');
 const saveButton = document.querySelector('#save-button');
 
 const listUrlPattern = new RegExp(/https:\/\/letterboxd\.com\/.+\/list\/.+\//);
+
 var listData = {
     id: listId,
     label: '',
@@ -99,10 +102,15 @@ async function scrapeLetterboxdList(url) {
         return;
     }
 
-    if (!url.match(listUrlPattern)) {
+    if (!url.match(listUrlPattern) && !url.match(listShortPattern)) {
         showError('The list URL is invalid.');
         return;
     }
+
+    // Set the page action here again
+    // this is because we set the action to edit after saving to prevent duplicate lists
+    // But if we scrape a list again, we are going to be adding a new list
+    pageAction = urlParams.get('action') ?? 'add';
 
     // Init the listData
     if (pageAction == 'add'){
@@ -121,6 +129,7 @@ async function scrapeLetterboxdList(url) {
 
     progressRing.classList.remove('hidden');
     detailsElement.classList.add('hidden');
+    messageHolder.classList.add('hidden');
     scrapeButton.enabled = false;
 
     const request = {
@@ -154,10 +163,11 @@ async function scrapeLetterboxdList(url) {
         pageCount = pageElements[pageElements.length - 1]?.innerText ?? '0';
         pageCount = parseInt(pageCount);
     }
-    pageCount = Math.min(pageCount, 5);
+    pageCount = Math.min(pageCount, 10);
 
     if (listData.label == '' || pageCount == 0) {
         showError('There was an error parsing the Letterboxd list.');
+        progressRing.classList.add('hidden');
         return;
     }
     listData.isRanked = html.querySelector('.posteritem.numbered-list-item') != null;
@@ -231,7 +241,7 @@ async function saveList() {
     let { custom_lists } = await browser.storage.local.get({ custom_lists: [] });
 
     if (pageAction == 'add'){
-        if (custom_lists != null && custom_lists.length > 5){
+        if (custom_lists != null && custom_lists.length > maxLists){
             showError('You have too many custom lists');
             return;
         }
