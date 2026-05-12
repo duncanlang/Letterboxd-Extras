@@ -717,6 +717,54 @@ GM_addStyle(`
 				font-size: 9px;
 			}
 		}
+			
+		.extras-error-div {
+			position: fixed;
+			right: 5;
+			top: 5;
+			z-index: 99999;
+		}
+		.extras-error-button {
+			position: relative;
+			float: right;
+			cursor: pointer;
+			user-select: none;
+		}
+		.extras-error-label {
+			font-size: 12px;
+			display: inline;
+			vertical-align: center;
+		}
+		.extras-error-badge {
+			width: 20px;
+			height: 20px;
+			background: #f44336;
+			border-radius: 50%;
+			display: inline-block;
+			vertical-align: center;
+			margin-left: 5px;
+			background-image: linear-gradient(to bottom,#ffffff40 5%,#fff0 95%);
+		}
+		.extras-error-holder {
+			display: none;
+			background: #89a;
+			position: absolute;
+			z-index: 1000;
+			box-shadow: inset 0 1px #ffffff59,0 0 10px #000;
+			border-radius: 2px;
+			width: 200px;
+			right: 0;
+			top: 28px;
+			padding: 4px 0;
+		}
+		.extras-error-holder li {
+			display: block;
+			color: #2c3440;
+			border: none;
+			padding: 4px 15px;
+			text-shadow: rgba(255,255,255,.1) 0 1px 0;
+			font-size: 12px;
+		}
 	`);
 
 /* eslint-disable */
@@ -866,7 +914,7 @@ const letterboxd = {
 		doesTheDogDieHelper: null,
 
 		// Filmarks
-		filmarks: { state: 0, data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
+		filmarks: { state: LOAD_STATES['Uninitialized'], data: null, id: null, movie: null, url: null, rating: null, num_ratings: 0 },
 		filmarksHelper: null,
 
 		// Blu-ray.com
@@ -876,8 +924,6 @@ const letterboxd = {
 		ebert: { id: null, url: null },
 
 		kinopoiskHelper: null,
-
-		linksAdded: [],
 
 		rtAdded: false,
 		metaAdded: false,
@@ -1790,7 +1836,7 @@ const letterboxd = {
 				}
 					
 				// Add Filmarks
-				if (this.filmarks.state == 0 && this.wikiData.state == 2 && letterboxd.storage.get('filmarks-enabled') === true ){
+				if (this.filmarks.state == LOAD_STATES['Uninitialized'] && this.wikiData.state == 2 && letterboxd.storage.get('filmarks-enabled') === true ){
 					if (this.filmarks.id != null && this.filmarks.id != ''){
 						this.getFilmarks();
 					}
@@ -2223,7 +2269,7 @@ const letterboxd = {
 				// Add the div to hold the toggle buttons
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
-					style: 'display: block; margin-right: 10px;'
+					style: 'display: inline; margin-right: 10px;'
 				});
 				criticSpan.append(buttonDiv);
 
@@ -3596,7 +3642,7 @@ const letterboxd = {
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
 					class: 'allocine-buttons',
-					style: 'display: block;'
+					style: 'display: inline;'
 				});
 				section.append(buttonDiv);
 
@@ -3609,7 +3655,7 @@ const letterboxd = {
 				// User score - user rt-score-div so I can reuse changeTomatoScore
 				const userSpan = letterboxd.helpers.createElement('span', {
 					class: 'allocine-user-score rt-score-div',
-					style: 'position: relative; display: block;'
+					style: 'position: relative; display: block; margin-top: 5px;'
 				});
 
 				userSpan.append(letterboxd.helpers.createHistogram(
@@ -3632,7 +3678,7 @@ const letterboxd = {
 				// Critic score
 				const criticSpan = letterboxd.helpers.createElement('span', {
 					class: 'allocine-critic-score rt-score-div',
-					style: 'position: relative; display: block; height: 44px; display:none;'
+					style: 'position: relative; display: block; height: 44px; display:none; margin-top: 5px;'
 				});
 				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
 				criticSpan.append(letterboxd.helpers.createDynamicStars('allocine-critic', this.allocine.critic.rating));
@@ -3790,24 +3836,27 @@ const letterboxd = {
 		},
 
 		getFilmarks() {
-			this.filmarks.state = 1;
+			this.filmarks.state = LOAD_STATES['Loading'];
 			var apiURL = `https://markuapi.kabk.dev/${this.filmarks.id}`;
+			
+			letterboxd.helpers.WriteConsoleLog('DEBUG', `Filmarks: ID found in WikiData.`);
 				
 			// Make Calls
 			browser.runtime.sendMessage({ name: "GETDATA", url: apiURL, type: "JSON" }, (value) => {
 				if (letterboxd.helpers.ValidateResponse("Filmarks", value) == false){
+					this.filmarks.state = LOAD_STATES['Failed'];
 					return;
 				}
 
 				try {
 					this.filmarks.data = value.response;
-					this.filmarks.state = 2;
+					this.filmarks.state = LOAD_STATES['Success'];
 				} catch (error) {
 					console.error(error);
-					this.filmarks.state = 3; // Error
+					this.filmarks.state = LOAD_STATES['Failed'];
 				}
 
-				if (this.filmarks.state == 2 && this.filmarks.data != null){
+				if (this.filmarks.state == LOAD_STATES['Success'] && this.filmarks.data != null){
 					this.filmarks.movie = this.filmarks.data.data;
 					this.addFilmarks();
 				}
@@ -3815,7 +3864,9 @@ const letterboxd = {
 		},
 
 		searchFilmarks() {
-			this.filmarks.state = 1;
+			this.filmarks.state = LOAD_STATES['Loading'];
+			
+			letterboxd.helpers.WriteConsoleLog('DEBUG', `Filmarks: ID not found in WikiData, attempting search instead.`);
 
 			var isAnime = (this.myAnimeListHelper.id != null || this.anilistHelper.id != null);
 			var apiURL = 'https://markuapi.kabk.dev/search/';
@@ -3835,13 +3886,13 @@ const letterboxd = {
 
 				try {
 					this.filmarks.data = value.response;
-					this.filmarks.state = 2;
+					this.filmarks.state = LOAD_STATES['Success'];
 				} catch (error) {
 					console.error(error);
-					this.filmarks.state = 3; // Error
+					this.filmarks.state = LOAD_STATES['Failed'];
 				}
 
-				if (this.filmarks.state == 2 && this.filmarks.data != null){
+				if (this.filmarks.state == LOAD_STATES['Success'] && this.filmarks.data != null){
 					// See if we can match from the API
 					if (this.filmarks.data.results != null){
 						var items = [];
@@ -4046,6 +4097,51 @@ const letterboxd = {
 			}
 		},
 
+		ShowErrorMessage(message) {
+			// Create the error holder
+			if (document.querySelector('.extras-error-holder') == null){
+				const div = letterboxd.helpers.createElement('div', {
+					class: 'extras-error-div'
+				});
+
+				// The main 'button'
+				const button = letterboxd.helpers.createElement('div', {
+					class: 'extras-error-button text-slug'
+				});
+				div.append(button);
+
+				const label = letterboxd.helpers.createElement('span', {
+					class: 'extras-error-label'
+				});
+				label.innerText = 'Extras Error';
+				button.append(label);
+				
+				const badge = letterboxd.helpers.createElement('div', {
+					class: 'extras-error-badge'
+				});
+				button.append(badge);
+
+				// The ul element that will contain the error text
+				const errorHolder = letterboxd.helpers.createElement('ul', {
+					class: 'extras-error-holder'
+				});
+				div.append(errorHolder);
+
+				document.querySelector('body').append(div);
+
+				button.addEventListener('click', event => {
+					toggleErrorMessage(event);
+				});
+			}
+
+			const errorHolder = document.querySelector('.extras-error-holder');
+			
+			const li = letterboxd.helpers.createElement('li', {});
+			li.innerText = message;
+			errorHolder.append(li);
+
+		},
+
 		ValidateResponse(name, value){
 			// Standard fetch response validation with standardized debug messages
 			// should catch any issues and prevent any catastrophic errors
@@ -4066,6 +4162,9 @@ const letterboxd = {
 				// Something went wrong, check for errors in the response
 				if (value.errors != null && value.errors.length > 0){
 					this.WriteConsoleLog('ERROR', `There was an error with the ${name} call. Message: ${value.errors[0]}`);
+					if (value.errors[0].startsWith('No permission found matching url')){
+						letterboxd.helpers.ShowErrorMessage('Letterboxd Extras is missing some permissions required for your selected options. View the settings to grant the permissions.');
+					}
 				}else{
 					this.WriteConsoleLog('ERROR', `There was an error with the ${name} call. Code: ${value.status}`);
 				}
@@ -4089,7 +4188,7 @@ const letterboxd = {
 				});
 				aside.append(accessorySection);
 
-				section.querySelector('.section-header .section-heading').after(aside);
+				section.querySelector('.section-header .section-heading')?.after(aside);
 			}
 
 			// Now create the actual accessory

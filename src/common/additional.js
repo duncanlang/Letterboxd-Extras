@@ -172,3 +172,13 @@ function toggleReviews(event, letterboxd) {
 		event.target.innerText = "Show reviews";
 	}
 }
+
+function toggleErrorMessage(event) {
+	const element = document.querySelector('.extras-error-holder');
+
+	if (element.style.display == "none") {
+		element.style.display = "block";
+	} else {
+		element.style.display = "none";
+	}
+}

@@ -43,7 +43,11 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         try {
             (async () => {
                 // Permission Check
-                if (msg.url.startsWith == 'https://'){
+                if (msg.url.includes('markuapi')){
+                    let temp = '';
+                }
+
+                if (msg.url.startsWith('https://')){
                     const hasPermission = await CheckForPermission(msg.url);
                     if (!hasPermission) {
                         response({ response: null, url: msg.url, status: 0, errors: [`No permission found matching url: ${msg.url}`] });
