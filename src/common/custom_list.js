@@ -11,9 +11,6 @@ const urlParams = new URLSearchParams(queryString);
 let pageAction = urlParams.get('action') ?? 'add';
 let listId = urlParams.get('list_id') ?? '';
 
-if (listId == '')
-    listId = self.crypto.randomUUID();
-
 const maxLists = 10;
 
 const progressRing = document.querySelector('#progress-holder');
@@ -28,7 +25,7 @@ const saveButton = document.querySelector('#save-button');
 const listUrlPattern = new RegExp(/https:\/\/letterboxd\.com\/.+\/list\/.+\//);
 
 var listData = {
-    id: listId,
+    id: '',
     label: '',
     totalRank: 0,
     list: {},
@@ -114,6 +111,9 @@ async function scrapeLetterboxdList(url) {
 
     // Init the listData
     if (pageAction == 'add'){
+        listId = self.crypto.randomUUID();
+
+        listData.id = listId;
         listData.label = '';
         listData.totalRank = 0;
         listData.list = {};
@@ -241,7 +241,7 @@ async function saveList() {
     let { custom_lists } = await browser.storage.local.get({ custom_lists: [] });
 
     if (pageAction == 'add'){
-        if (custom_lists != null && custom_lists.length > maxLists){
+        if (custom_lists != null && custom_lists.length >= maxLists){
             showError('You have too many custom lists');
             return;
         }

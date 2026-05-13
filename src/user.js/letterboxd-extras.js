@@ -507,6 +507,9 @@ GM_addStyle(`
 		.extras-ranking a span{
 			pointer-events: none;
 		}
+		.extras-ranking-mobile a span {
+			font-size: 12px;
+		}
 		.extras-ranking-icon{
 			height: 18px !important;
 			font-weight: bold;
@@ -521,12 +524,14 @@ GM_addStyle(`
 			width: 32px !important;
 		}
 		.extras-ranking-mobile{
-			margin-left: -5px !important;
 			margin-top: 10px !important;
 			text-align: left !important;
 		}
 		.extras-ranking-mobile div a{
 			font-size: 18px;
+		}
+		.extras-ranking-mobile.extras-expanded .extras-ranking a {
+			width: 60px;
 		}
 		.film-stats-show-details{
 			font-size: 10px;

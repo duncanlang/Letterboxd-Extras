@@ -20,6 +20,8 @@ if (isPopup && isFirefox)
 var options = {};
 var custom_lists;
 
+const maxLists = 10;
+
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
@@ -200,16 +202,6 @@ function SetCustomLists(){
         
         deleteButton.addEventListener('click', deleteCustomList);
     }
-
-    if (custom_lists.length >= 10){
-        document.querySelector('#custom-ranking-desc').classList.add('hidden');
-        document.querySelector('#custom-ranking-reached').classList.remove('hidden');
-        document.querySelector('#create-ranking-hyperlink').classList.add('hidden');
-    } else {
-        document.querySelector('#custom-ranking-desc').classList.remove('hidden');
-        document.querySelector('#custom-ranking-reached').classList.add('hidden');
-        document.querySelector('#create-ranking-hyperlink').classList.remove('hidden');
-    }
 }
 
 function DetermineNoCustomListsMessage(){
@@ -220,6 +212,16 @@ function DetermineNoCustomListsMessage(){
         listItems[0].classList.remove('hidden');
     } else {
         listItems[0].classList.add('hidden');
+    }
+
+    if (custom_lists.length >= maxLists){
+        document.querySelector('#custom-ranking-desc').classList.add('hidden');
+        document.querySelector('#custom-ranking-reached').classList.remove('hidden');
+        document.querySelector('#create-ranking-hyperlink').classList.add('hidden');
+    } else {
+        document.querySelector('#custom-ranking-desc').classList.remove('hidden');
+        document.querySelector('#custom-ranking-reached').classList.add('hidden');
+        document.querySelector('#create-ranking-hyperlink').classList.remove('hidden');
     }
 }
 
@@ -543,25 +545,32 @@ function validateImportButton() {
     importListsButton.disabled = (importListsPicker.value == "");
 }
 
-function downloadFile(data, fileName) {
-    const timeOptions = {
+function downloadFile(data, name) {
+    const formatOptions = {
         year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric'
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
     };
 
-    var url = `data:text/plain;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, '  '))}`;
-    var date = (new Date).toLocaleDateString('ja-JP', timeOptions);
-    fileName = `${fileName}-${date}.json`;
+    const url = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, '  '))}`;
+
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-GB', formatOptions);
+    const parts = formatter.formatToParts(now);
+    const d = Object.fromEntries(parts.map(p => [p.type, p.value]));
+    const formattedDate = `${d.year}_${d.month}_${d.day}_${d.hour}_${d.minute}_${d.second}`;
+
+    fileName = `${name}-${formattedDate}.json`;
 
     // Download
     const a = document.createElement('a');
     a.href = url;
     a.setAttribute('download', fileName || '');
-    a.setAttribute('type', 'text/plain');
+    a.setAttribute('type', 'application/json');
     a.dispatchEvent(new MouseEvent('click'));
 }
 

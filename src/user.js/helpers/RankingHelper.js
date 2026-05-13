@@ -298,15 +298,24 @@ export class RankingHelper {
             extrasStats = this.helpers.createElement('div', {
                 class: 'production-statistic-list extras-statistics-list'
             });
+
             if (this.pageState.isMobile) {
-                // Add to page
-                extrasStats.className += ' extras-ranking-mobile';
-                document.querySelector('.production-masthead .details').append(extrasStats);
+                extrasStats.classList.add('extras-ranking-mobile');
+
+                // Div to hold both the list and show details button
+                const mobileHolder = this.helpers.createElement('div', {
+                    class: 'production-statistic-mobile-holder'
+                });
+                mobileHolder.append(extrasStats);
 
                 // Add the Show Details button
-                const showDetails = this.helpers.createShowDetailsButton("film-stats", "mobile-ranking-details")
-                showDetails.className = "film-stats-show-details";
-                extrasStats.before(showDetails);
+                const showDetails = this.helpers.createShowDetailsButton('film-stats', 'mobile-ranking-details');
+                showDetails.className = 'film-stats-show-details';
+                showDetails.setAttribute('target-parent', 'extras-ranking-mobile');
+                mobileHolder.prepend(showDetails);
+                
+                // Add to page
+                document.querySelector('.production-synopsis').after(mobileHolder);
             } else {
                 // Add to page
                 document.querySelector('.production-statistic-list').after(extrasStats);

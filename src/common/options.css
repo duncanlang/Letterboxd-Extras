@@ -104,6 +104,7 @@ label:NOT(.radio) {
 .hyperlink {
     color: rgb(51, 167, 255);
     display: block;
+    width: fit-content;
 }
 
 /* Top navigation bar */
