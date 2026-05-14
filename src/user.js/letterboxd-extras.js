@@ -204,17 +204,23 @@ GM_addStyle(`
 			-webkit-transition: opacity 0.10s linear;
 			transition: opacity 0.10s linear;
 		}
+		.rt-button-holder {
+			display: inline-flex;
+			margin-right: 10px;
+			margin-top: 3px;
+		}
 		.rt-button{
 			display: inline;
 			font-size: 10px;
-			width: 48%;
+			width: fit-content;
 			text-align: center;
+			min-width: 20px;
 			color: #9ab;
 			border-radius: 3px;
 			background-color: #283038;
 			padding: 1px;
-			padding-left: 3px;
-			padding-right: 3px;
+			padding-left: 5px;
+			padding-right: 5px;
 			-webkit-user-select: none; /* Safari */
 			-ms-user-select: none; /* IE 10 and IE 11 */
 			user-select: none; /* Standard syntax */
@@ -251,7 +257,6 @@ GM_addStyle(`
 			margin-top: 4px;
 		}
 		.allocine-buttons{
-			display: block;
 			margin-bottom: 5px;
 		}
 		a.allocine-critic-score{
@@ -259,7 +264,7 @@ GM_addStyle(`
 		}
 		.rt-button.allo-user, .rt-button.allo-critic{
 			display: inline-block;
-			width: 46%;
+			width: 100px;
 			margin-right: 0px;
 		}
 		.rt-button.allo-user.extras-mobile, .rt-button.allo-critic.extras-mobile{
@@ -2260,17 +2265,17 @@ const letterboxd = {
 			heading.append(logo);
 
 			// Add the Show Details button
-			var showDetails = null;
+			let showDetails = null;
 			if (this.tomatoData.hideDetailButton == false) {
 				showDetails = letterboxd.helpers.createShowDetailsButton("rt", "rt-score-details")
 				section.append(showDetails);
 			}
 
-			var createTooltip = (this.pageState.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
+			let createTooltip = (this.pageState.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
 
 			// CRITIC SCORE /  TOMATOMETER
 			//************************************************************
-			var criticAdded = false;
+			let criticAdded = false;
 			if (letterboxd.storage.get('tomato-critic-enabled') === true) {
 				// The span that holds the score
 				const criticSpan = letterboxd.helpers.createElement('span', {
@@ -2281,7 +2286,7 @@ const letterboxd = {
 				// Add the div to hold the toggle buttons
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
-					style: 'display: inline; margin-right: 10px;'
+					class: 'rt-button-holder'
 				});
 				criticSpan.append(buttonDiv);
 
@@ -2314,7 +2319,7 @@ const letterboxd = {
 				// Add the toggle buttons
 				// Div to hold buttons
 				const buttonDiv2 = letterboxd.helpers.createElement('div', {
-					style: 'display: block; margin-right: 10px;'
+					class: 'rt-button-holder'
 				});
 				audienceSpan.append(buttonDiv2);
 
@@ -2405,7 +2410,7 @@ const letterboxd = {
 				data.num_ratings = data.likedCount + data.notLikedCount;
 
 				data.url = scoredetails.scoreLinkUrl;
-				data.rating = scoredetails.averageRating
+				data.rating = scoredetails.averageRating ?? '';
 
 				if (scoredetails.certified != null && scoredetails.certified == true && data.type == "CRITIC") {
 					data.state = "certified-fresh";
@@ -3653,8 +3658,7 @@ const letterboxd = {
 				// Add the div to hold the toggle buttons
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
-					class: 'allocine-buttons',
-					style: 'display: inline;'
+					class: 'rt-button-holder allocine-buttons'
 				});
 				section.append(buttonDiv);
 
@@ -4341,8 +4345,8 @@ const letterboxd = {
 			});
 			scoreDiv.append(imageSpan);
 
-			var suffix = "";
-			var rating = data.rating;
+			let suffix = "";
+			let rating = data.rating;
 			if (type.includes("critic")) {
 				suffix = "/10";
 			} else {
@@ -4362,15 +4366,15 @@ const letterboxd = {
 				}
 			}
 
-			// The element that is the score itself
-			var hover = 'Average of ' + rating + suffix + ' based on ' + parseInt(data.num_ratings).toLocaleString() + ' ' + display + ' rating';
-			if (data.percent == "--" || rating == "")
-				hover = data.num_ratings + " " + display + " rating";
-			else
-				data.percent += "%";
+			let hover = `Average of ${rating}${suffix} based on ${parseInt(data.num_ratings).toLocaleString()} ${display} rating${(data.num_ratings != 1) ? 's' : ''}`;
 
-			if (data.num_ratings != 1)
-				hover += "s";
+			if (rating == '') {
+				hover = `${data.num_ratings} ${display} rating${(data.num_ratings != 1) ? 's' : ''}`;
+			}
+
+			if (data.percent != '--') {
+				data.percent += "%";
+			}
 
 			if (type.includes("audience-verified"))
 				url += "/reviews?type=verified_audience"
@@ -4381,6 +4385,7 @@ const letterboxd = {
 			else
 				url += "/reviews"
 
+			// The element that is the score itself
 			const score = letterboxd.helpers.createElement('a', {
 				class: 'tooltip tooltip-extra display-rating -highlight tomato-score',
 				href: url,

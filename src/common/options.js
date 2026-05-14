@@ -1037,10 +1037,11 @@ async function deleteCustomList(event) {
     DetermineNoCustomListsMessage();
 }
 
-
+/*
 // Check specific key or pass 'null' for all data in local storage
 browser.storage.local.getBytesInUse(null).then((bytes) => {
     const kb = (bytes / 1024).toFixed(2);
     const mb = (bytes / (1024 * 1024)).toFixed(2);
     console.log(`Storage used: ${bytes} bytes (~${kb} KB / ${mb} MB)`);
 });
+*/
