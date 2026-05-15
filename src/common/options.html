@@ -5,9 +5,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letterboxd Extras - Settings</title>
     
     <link rel="stylesheet" href="options.css">
     <link rel="stylesheet" href="colour_scheme.css">
+    <link rel="icon" type="image/png" href="icon128.png">
 </head>
 
 <body>
@@ -252,7 +254,7 @@
             <h4>Filmarks</h4>
             <div>
                 <label for="filmarks-enabled">Display Filmarks:</label>
-                <input type="checkbox" id="filmarks-enabled" permission="https://markuapi.apn.leapcell.app/*" class="setting" />
+                <input type="checkbox" id="filmarks-enabled" permission="https://markuapi.kabk.dev/*" class="setting" />
             </div>
             <div class="div-request-permission">
                 <label style="color: red;">! Missing Permission !</label>
@@ -298,6 +300,7 @@
         <input type="checkbox" id="override-ratings-order" subid="rating-order-div" class="setting"/>
 
         <div id="rating-order-div" class="subsetting">
+            <p class="info-tip">Drag the items - or - click the arrows to reorder (shift-click the arrows to move to the top or bottom)</p>
             <ul id="ratings-order" class="sortable-list">
                 <li class="sortable-item" draggable="true" rating-id="imdb-ratings">IMDb</li>
                 <li class="sortable-item" draggable="true" rating-id="mal-ratings">MyAnimeList</li>
@@ -335,24 +338,33 @@
     <div id="rankings">
         <h3>Rankings</h3>
         <div>
-            <div>
-                <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
-                <input type="checkbox" id="tspdt-enabled" permission="https://*.theyshootpictures.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="tspdt-permissions" class="request-permission" permissionTarget="tspdt-enabled" value="Request Permission"/>
-            </div>
+            <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
+            <input type="checkbox" id="tspdt-enabled" class="setting"/>
         </div>
         <div>
-            <div>
-                <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
-                <input type="checkbox" id="bfi-enabled" permission="https://www.bfi.org.uk/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="bfi-permissions" class="request-permission" permissionTarget="bfi-enabled" value="Request Permission"/>
-            </div>
+            <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
+            <input type="checkbox" id="bfi-enabled" class="setting"/>
+        </div>
+        <div>
+            <label for="afi-enabled">Show "AFI 100 Years" top 100 rankings:</label>
+            <input type="checkbox" id="afi-enabled" class="setting"/>
+        </div>
+        <div>
+            <label for="imdb-250-enabled">Show IMDb top 250 rankings:</label>
+            <input type="checkbox" id="imdb-250-enabled" class="setting"/>
+        </div>
+        <div>
+            <label for="ebert-great-enabled">Show Roger Ebert Great Movies:</label>
+            <input type="checkbox" id="ebert-great-enabled" class="setting"/>
+        </div>
+        <div>
+            <h4>Custom Rankings</h4>
+            <p id="custom-ranking-desc">You can have up to 10 of your own custom ranking lists.</p>
+            <p id="custom-ranking-reached" class="hidden">You have reached the limit of 10 custom ranking lists.</p>
+            <a id="create-ranking-hyperlink" class="hyperlink" href="/custom_list.html?action=add" target="_blank">Add a new custom ranking</a>
+            <ul id="custom-list-holder" class="sortable-list">
+                <li style="opacity: 50%; text-align: center;">You have no custom ranking lists</li>
+            </ul>
         </div>
     </div>
 
@@ -412,7 +424,14 @@
         <div>
             <h4>Wikipedia</h4>
             <label for="wiki-link-enabled">Display Wikipedia link:</label>
-            <input type="checkbox" id="wiki-link-enabled" class="setting"/>
+            <input type="checkbox" id="wiki-link-enabled" subid="wiki-link-options" class="setting"/>
+            <p class="info-tip">By default, the link will match your browser's language setting.</p>
+            <div id="wiki-link-options" class="subsetting">
+                <div>
+                    <label for="wiki-prefer-en">Prefer English Wikipedia:</label>
+                    <input type="checkbox" id="wiki-prefer-en" class="setting"/>
+                </div>
+            </div>
         </div>
         <div>
             <h4>Criterion</h4>
@@ -513,21 +532,38 @@
 
     <!-- Import/Export -->
     <div id="import-export">
-        <h3>Import/Export Settings</h3>
-        <div>
-            <input type="button" id="export" value="Export to File" />
+        <h3 name="import-export">Import/Export</h3>
+        <div id="import-export-div">
+            <div>
+                <h4>Settings</h4>
+                <div>
+                    <input type="button" id="exportSettings" value="Export to File" />
+                </div>
+                <br>
+                <div>
+                    <input type="button" id="importSettings" value="Import from File" />
+                    <input type="file" accept="application/json" id="importSettings-picker">
+                </div>
+                <br>
+                <br>
+                <div>
+                    <input type="button" id="reset" value="Reset settings to default" />
+                </div>
+            </div>
+            <div>
+                <h4>Custom Rankings</h4>
+                <div>
+                    <input type="button" id="exportLists" value="Export to File" />
+                </div>
+                <br>
+                <div>
+                    <input type="button" id="importLists" value="Import from File" />
+                    <input type="file" accept="application/json" id="importLists-picker">
+                </div>
+            </div>
         </div>
-        <div id="importdivdesktop">
-            <input type="button" id="import" value="Import from File" />
-            <input type="file" accept="application/json" id="importpicker">
-        </div>
-        <div id="importdivandroid" style="display:none">
-            <input type="button" id="importbutton" value="Import from File" />
-            <p class="info-tip">This will open the restore in a separate tab.</p>
-            <p id="tabpermissionreminder">This requires the 'tabs' permission to open the new tab. The request pop-up will likely open behind this due to a bug with FireFox.</p>
-        </div>
-        <div>
-            <input type="button" id="reset" value="Reset settings to default" />
+        <div id="import-export-hyperlink" class="hidden">
+            <a class="hyperlink" href="/options.html#import-export" target="_blank">Click here to open the full settings to import and export your data.</a>
         </div>
     </div>
 
@@ -537,7 +573,7 @@
     <div id="debug">
         <h3>Debug</h3>
         <div>
-            <label for="console-log">Log calls in console:</label>
+            <label for="console-log">Enable debug logs in browser console (f12):</label>
             <input type="checkbox" id="console-log" class="setting"/>
         </div>
     </div>

@@ -64,6 +64,7 @@ function HideTwipsy(event) {
 function toggleDetails(event, letterboxdStorage, isMobile) {
 	// Get the target class stored in the 'target' attribute of the clicked button
 	const target = `.${event.target.getAttribute('target')}`;
+	const targetParent = event.target.getAttribute('target-parent') ?? '';
 	const elements = document.querySelectorAll(target);
 
 	elements.forEach(element => {
@@ -143,9 +144,15 @@ function toggleDetails(event, letterboxdStorage, isMobile) {
 	if (event.target.innerText.includes('SHOW')) {
 		event.target.innerText = 'HIDE DETAILS';
 		letterboxdStorage.set(target.replace('.', ''), 'show');
+		if (targetParent != ''){
+			document.querySelector(`.${targetParent}`).classList.add('extras-expanded');
+		}
 	} else {
 		event.target.innerText = 'SHOW DETAILS';
 		letterboxdStorage.set(target.replace('.', ''), 'hide');
+		if (targetParent != ''){
+			document.querySelector(`.${targetParent}`).classList.remove('extras-expanded');
+		}
 	}
 }
 
@@ -170,5 +177,15 @@ function toggleReviews(event, letterboxd) {
 	} else {
 		element.style.display = "none";
 		event.target.innerText = "Show reviews";
+	}
+}
+
+function toggleErrorMessage(event) {
+	const element = document.querySelector('.extras-error-holder');
+
+	if (element.style.display == "none") {
+		element.style.display = "block";
+	} else {
+		element.style.display = "none";
 	}
 }

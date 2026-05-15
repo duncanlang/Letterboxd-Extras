@@ -43,26 +43,19 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         try {
             (async () => {
                 // Permission Check
-                const hasPermission = await CheckForPermission(msg.url);
-                if (!hasPermission) {
-                    response({ response: null, url: msg.url, status: 0, errors: [`No permission found matching url: ${msg.url}`] });
-                    return;
+                if (msg.url.includes('markuapi')){
+                    let temp = '';
+                }
+
+                if (msg.url.startsWith('https://')){
+                    const hasPermission = await CheckForPermission(msg.url);
+                    if (!hasPermission) {
+                        response({ response: null, url: msg.url, status: 0, errors: [`No permission found matching url: ${msg.url}`] });
+                        return;
+                    }
                 }
 
                 let res = await fetch(encodeURI(msg.url), options);
-
-                /*
-                // Check for 202 response from IMDb (anti-bot measures)
-                if (res.status === 202 && msg.url.includes('imdb.com')) {
-                    console.log("HTTP 202 response detected. Triggering warmup...");
-
-                    await warmupImdb(msg.url);
-
-                    console.log("Warmup complete. Retrying fetch...");
-                    res = await fetch(encodeURI(msg.url), options);
-                    console.log(`Retry returned: ${res.status}`);
-                }
-                */
 
                 if (res.status !== 200) {
                     let errors = res.errors || null;
@@ -182,6 +175,11 @@ async function InitDefaultSettings() {
     if (options['criterion-link-enabled'] == null) options['criterion-link-enabled'] = true;
     if (options['bluray-link-enabled'] == null) options['bluray-link-enabled'] = true;
     if (options['ebert-link-enabled'] == null) options['ebert-link-enabled'] = true;
+    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = true;
+    if (options['bfi-enabled'] == null) options['bfi-enabled'] = true;
+    if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
+    if (options['afi-enabled'] == null) options['afi-enabled'] = true;
+    if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
 
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
@@ -196,8 +194,6 @@ async function InitDefaultSettings() {
     if (options['allocine-enabled'] == null) options['allocine-enabled'] = false;
     if (options['allocine-default-view'] == null) options['allocine-default-view'] = "user";
     if (options['search-redirect'] == null) options['search-redirect'] = false;
-    if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = false;
-    if (options['bfi-enabled'] == null) options['bfi-enabled'] = false;
     if (options['convert-ratings'] == null) options['convert-ratings'] = "false";
     if (options['mpa-convert'] == null) options['mpa-convert'] = false;
     if (options['open-same-tab'] == null) options['open-same-tab'] = false;
@@ -213,6 +209,7 @@ async function InitDefaultSettings() {
     if (options['hide-ratings-enabled'] == null) options['hide-ratings-enabled'] = 'unchanged';
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
     if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
+    if (options['wiki-prefer-en'] == null) options['wiki-prefer-en'] = false;
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';
@@ -313,6 +310,13 @@ browser.runtime.onInstalled.addListener(async (details) => {
         if (parseInt(version[0]) == 3 && parseInt(version[1]) < 16 && isFirefox) {
             await ConvertLocalToSync();
         }
+        else if (parseInt(version[0]) == 3 && parseInt(version[1]) < 19) {
+            // Force enable the settings
+            await UpdateExistingSettings([
+                { key: 'bfi-enabled', value: true },
+                { key: 'tspdt-enabled', value: true }
+            ]);
+        }
 
         // Init default settings
         await InitDefaultSettings();
@@ -352,136 +356,19 @@ async function CheckForPermission(url) {
     return false;
 }
 
-/*
-async function warmupImdb(url) {
-    if (isFirefox) {
-        // In Manifest V2, we can just create an iframe in the background script
-        await createIframeForImdb();
-    }
-    else {
-        // In Manifest V3, we have to use an offscreen document which will create the iframe
-
-        await setupOffscreenDocument();
-
-        return new Promise((resolve) => {
-            // A one-time listener for the completion message
-            const listener = (message) => {
-                if (message.name === 'warmup-complete') {
-                    console.log('received warmup-complete message');
-                    chrome.runtime.onMessage.removeListener(listener);
-                    resolve();
-                }
-            };
-
-            chrome.runtime.onMessage.addListener(listener);
-
-            // Trigger the warmup
-            chrome.runtime.sendMessage({
-                target: 'offscreen',
-                name: 'warmup-imdb',
-                url: url
-            }).catch(err => {
-                // Catching the "message channel closed" error here prevents the crash
-                // This often happens if the offscreen doc was already busy
-                console.debug("Note: Initial message sent, awaiting listener response.");
-            });
-        });
-    }
-}
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Firefox only
-async function createIframeForImdb() {
-    if (document.querySelector('#imdb-iframe')) {
-        document.body.removeChild(document.querySelector('#imdb-iframe'));
+async function UpdateExistingSettings(newSettings){
+    var options = {};
+    const data = await browser.storage.sync.get('options');
+    if (data != null && data.options != null) {
+        Object.assign(options, data.options);
     }
 
-    const iframe = document.createElement('iframe');
-    iframe.id = 'imdb-iframe';
-    iframe.src = 'https://www.imdb.com';
-    document.body.append(iframe);
-
-    await awaitIframeLoad(iframe);
-}
-
-const awaitIframeLoad = (iframe) => {
-    return new Promise((resolve) => {
-        iframe.onload = () => {
-            resolve(iframe);
-        };
-    });
-};
-
-// Chrome Only
-let creating; // A global promise to avoid concurrency issues
-async function setupOffscreenDocument() {
-    let path = 'offscreen.html';
-    // Check all windows controlled by the service worker to see if one
-    // of them is the offscreen document with the given path
-    const offscreenUrl = chrome.runtime.getURL(path);
-    const existingContexts = await chrome.runtime.getContexts({
-        contextTypes: ['OFFSCREEN_DOCUMENT'],
-        documentUrls: [offscreenUrl]
-    });
-
-    if (existingContexts.length > 0) {
-        return;
+    for (var i = 0; i < newSettings.length; i++) {
+        let key = newSettings[i].key;
+        let value = newSettings[i].value;
+        options[key] = value;
     }
-
-    // create offscreen document
-    if (creating) {
-        await creating;
-    } else {
-        creating = chrome.offscreen.createDocument({
-            url: path,
-            reasons: ['DOM_PARSER'],
-            justification: 'To handle WAF challenges and session priming',
-        });
-        await creating;
-        creating = null;
-    }
+    
+    // Save
+    await browser.storage.sync.set({ options });
 }
-
-const IMDB_RULE_ID = 1;
-async function setupImdbRules() {
-    const extensionId = chrome.runtime.id;
-
-    const rules = [
-        {
-            id: IMDB_RULE_ID,
-            priority: 1,
-            action: {
-                type: "modifyHeaders",
-                requestHeaders: [
-                    { header: "Referer", operation: "set", value: "https://www.imdb.com/" }
-                ],
-                responseHeaders: [
-                    { header: 'X-Frame-Options', operation: 'remove' },
-                    { header: 'Frame-Options', operation: 'remove' },
-                    // Uncomment the following line to suppress `frame-ancestors` error
-                    {header: 'Content-Security-Policy', operation: 'remove'},
-                ],
-            },
-            condition: {
-                urlFilter: "imdb.com",
-                initiatorDomains: [extensionId],
-                resourceTypes: ["xmlhttprequest"] // fetch calls are categorized as this
-            }
-        }
-    ];
-
-    // First, clear any old rules with this ID, then add the new one
-    await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: [IMDB_RULE_ID],
-        addRules: rules
-    });
-
-    console.log("IMDb Spoofing Rule Active");
-}
-
-// Run this when the extension installs or starts up
-chrome.runtime.onInstalled.addListener(setupImdbRules);
-chrome.runtime.onStartup.addListener(setupImdbRules);
-*/

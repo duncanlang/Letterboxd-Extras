@@ -300,7 +300,7 @@ export class Helper {
 
 			// Create Button Element
 			const button = this.helpers.createElement('a', {
-				class: `micro-button track-event ${className}`,
+				class: `micro-button track-event extras-button ${className}`,
 				href: url
 			});
 			button.innerText = text;

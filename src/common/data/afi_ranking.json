@@ -1,0 +1,402 @@
+{
+  "citizen-kane": {
+    "rank": 1,
+    "index": 1
+  },
+  "the-godfather": {
+    "rank": 2,
+    "index": 2
+  },
+  "casablanca": {
+    "rank": 3,
+    "index": 3
+  },
+  "raging-bull": {
+    "rank": 4,
+    "index": 4
+  },
+  "singin-in-the-rain": {
+    "rank": 5,
+    "index": 5
+  },
+  "gone-with-the-wind": {
+    "rank": 6,
+    "index": 6
+  },
+  "lawrence-of-arabia": {
+    "rank": 7,
+    "index": 7
+  },
+  "schindlers-list": {
+    "rank": 8,
+    "index": 8
+  },
+  "vertigo": {
+    "rank": 9,
+    "index": 9
+  },
+  "the-wizard-of-oz-1939": {
+    "rank": 10,
+    "index": 10
+  },
+  "city-lights": {
+    "rank": 11,
+    "index": 11
+  },
+  "the-searchers": {
+    "rank": 12,
+    "index": 12
+  },
+  "star-wars": {
+    "rank": 13,
+    "index": 13
+  },
+  "psycho": {
+    "rank": 14,
+    "index": 14
+  },
+  "2001-a-space-odyssey": {
+    "rank": 15,
+    "index": 15
+  },
+  "sunset-boulevard": {
+    "rank": 16,
+    "index": 16
+  },
+  "the-graduate": {
+    "rank": 17,
+    "index": 17
+  },
+  "the-general": {
+    "rank": 18,
+    "index": 18
+  },
+  "on-the-waterfront": {
+    "rank": 19,
+    "index": 19
+  },
+  "its-a-wonderful-life": {
+    "rank": 20,
+    "index": 20
+  },
+  "chinatown": {
+    "rank": 21,
+    "index": 21
+  },
+  "some-like-it-hot": {
+    "rank": 22,
+    "index": 22
+  },
+  "the-grapes-of-wrath": {
+    "rank": 23,
+    "index": 23
+  },
+  "et-the-extra-terrestrial": {
+    "rank": 24,
+    "index": 24
+  },
+  "to-kill-a-mockingbird": {
+    "rank": 25,
+    "index": 25
+  },
+  "mr-smith-goes-to-washington": {
+    "rank": 26,
+    "index": 26
+  },
+  "high-noon": {
+    "rank": 27,
+    "index": 27
+  },
+  "all-about-eve": {
+    "rank": 28,
+    "index": 28
+  },
+  "double-indemnity": {
+    "rank": 29,
+    "index": 29
+  },
+  "apocalypse-now": {
+    "rank": 30,
+    "index": 30
+  },
+  "the-maltese-falcon-1941": {
+    "rank": 31,
+    "index": 31
+  },
+  "the-godfather-part-ii": {
+    "rank": 32,
+    "index": 32
+  },
+  "one-flew-over-the-cuckoos-nest": {
+    "rank": 33,
+    "index": 33
+  },
+  "snow-white-and-the-seven-dwarfs": {
+    "rank": 34,
+    "index": 34
+  },
+  "annie-hall": {
+    "rank": 35,
+    "index": 35
+  },
+  "the-bridge-on-the-river-kwai": {
+    "rank": 36,
+    "index": 36
+  },
+  "the-best-years-of-our-lives": {
+    "rank": 37,
+    "index": 37
+  },
+  "the-treasure-of-the-sierra-madre": {
+    "rank": 38,
+    "index": 38
+  },
+  "dr-strangelove-or-how-i-learned-to-stop-worrying-and-love-the-bomb": {
+    "rank": 39,
+    "index": 39
+  },
+  "the-sound-of-music": {
+    "rank": 40,
+    "index": 40
+  },
+  "king-kong": {
+    "rank": 41,
+    "index": 41
+  },
+  "bonnie-and-clyde": {
+    "rank": 42,
+    "index": 42
+  },
+  "midnight-cowboy": {
+    "rank": 43,
+    "index": 43
+  },
+  "the-philadelphia-story": {
+    "rank": 44,
+    "index": 44
+  },
+  "shane": {
+    "rank": 45,
+    "index": 45
+  },
+  "it-happened-one-night": {
+    "rank": 46,
+    "index": 46
+  },
+  "a-streetcar-named-desire": {
+    "rank": 47,
+    "index": 47
+  },
+  "rear-window": {
+    "rank": 48,
+    "index": 48
+  },
+  "intolerance-loves-struggle-throughout-the-ages": {
+    "rank": 49,
+    "index": 49
+  },
+  "the-lord-of-the-rings-the-fellowship-of-the-ring": {
+    "rank": 50,
+    "index": 50
+  },
+  "west-side-story": {
+    "rank": 51,
+    "index": 51
+  },
+  "taxi-driver": {
+    "rank": 52,
+    "index": 52
+  },
+  "the-deer-hunter": {
+    "rank": 53,
+    "index": 53
+  },
+  "mash": {
+    "rank": 54,
+    "index": 54
+  },
+  "north-by-northwest": {
+    "rank": 55,
+    "index": 55
+  },
+  "jaws": {
+    "rank": 56,
+    "index": 56
+  },
+  "rocky": {
+    "rank": 57,
+    "index": 57
+  },
+  "the-gold-rush": {
+    "rank": 58,
+    "index": 58
+  },
+  "nashville": {
+    "rank": 59,
+    "index": 59
+  },
+  "duck-soup-1933": {
+    "rank": 60,
+    "index": 60
+  },
+  "sullivans-travels": {
+    "rank": 61,
+    "index": 61
+  },
+  "american-graffiti": {
+    "rank": 62,
+    "index": 62
+  },
+  "cabaret": {
+    "rank": 63,
+    "index": 63
+  },
+  "network": {
+    "rank": 64,
+    "index": 64
+  },
+  "the-african-queen": {
+    "rank": 65,
+    "index": 65
+  },
+  "raiders-of-the-lost-ark": {
+    "rank": 66,
+    "index": 66
+  },
+  "whos-afraid-of-virginia-woolf": {
+    "rank": 67,
+    "index": 67
+  },
+  "unforgiven": {
+    "rank": 68,
+    "index": 68
+  },
+  "tootsie": {
+    "rank": 69,
+    "index": 69
+  },
+  "a-clockwork-orange": {
+    "rank": 70,
+    "index": 70
+  },
+  "saving-private-ryan": {
+    "rank": 71,
+    "index": 71
+  },
+  "the-shawshank-redemption": {
+    "rank": 72,
+    "index": 72
+  },
+  "butch-cassidy-and-the-sundance-kid": {
+    "rank": 73,
+    "index": 73
+  },
+  "the-silence-of-the-lambs": {
+    "rank": 74,
+    "index": 74
+  },
+  "in-the-heat-of-the-night": {
+    "rank": 75,
+    "index": 75
+  },
+  "forrest-gump": {
+    "rank": 76,
+    "index": 76
+  },
+  "all-the-presidents-men": {
+    "rank": 77,
+    "index": 77
+  },
+  "modern-times": {
+    "rank": 78,
+    "index": 78
+  },
+  "the-wild-bunch": {
+    "rank": 79,
+    "index": 79
+  },
+  "the-apartment": {
+    "rank": 80,
+    "index": 80
+  },
+  "spartacus": {
+    "rank": 81,
+    "index": 81
+  },
+  "sunrise-a-song-of-two-humans": {
+    "rank": 82,
+    "index": 82
+  },
+  "titanic-1997": {
+    "rank": 83,
+    "index": 83
+  },
+  "easy-rider": {
+    "rank": 84,
+    "index": 84
+  },
+  "a-night-at-the-opera": {
+    "rank": 85,
+    "index": 85
+  },
+  "platoon": {
+    "rank": 86,
+    "index": 86
+  },
+  "12-angry-men": {
+    "rank": 87,
+    "index": 87
+  },
+  "bringing-up-baby": {
+    "rank": 88,
+    "index": 88
+  },
+  "the-sixth-sense": {
+    "rank": 89,
+    "index": 89
+  },
+  "swing-time": {
+    "rank": 90,
+    "index": 90
+  },
+  "sophies-choice": {
+    "rank": 91,
+    "index": 91
+  },
+  "goodfellas": {
+    "rank": 92,
+    "index": 92
+  },
+  "the-french-connection": {
+    "rank": 93,
+    "index": 93
+  },
+  "pulp-fiction": {
+    "rank": 94,
+    "index": 94
+  },
+  "the-last-picture-show": {
+    "rank": 95,
+    "index": 95
+  },
+  "do-the-right-thing": {
+    "rank": 96,
+    "index": 96
+  },
+  "blade-runner": {
+    "rank": 97,
+    "index": 97
+  },
+  "yankee-doodle-dandy": {
+    "rank": 98,
+    "index": 98
+  },
+  "toy-story": {
+    "rank": 99,
+    "index": 99
+  },
+  "ben-hur-1959": {
+    "rank": 100,
+    "index": 100
+  }
+}

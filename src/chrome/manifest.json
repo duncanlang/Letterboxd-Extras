@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Adds extra features to Letterboxd.",
-	"version": "3.18.6",
+	"version": "3.19.0",
 	"minimum_chrome_version": "116",
 	
 	"action": {
@@ -59,13 +59,11 @@
 		"https://api.mubi.com/*",
 		"https://apollo.senscritique.com/*",
 		"https://*.filmaffinity.com/*",
-		"https://*.theyshootpictures.com/*",
-		"https://www.bfi.org.uk/*",
 		"https://www.allocine.fr/*",
 		"https://api.simkl.com/*",
 		"https://www.google.com/search*",
 		"https://www.doesthedogdie.com/*",
-		"https://markuapi.apn.leapcell.app/*",
+		"https://markuapi.kabk.dev/*",
 		"https://kinopoiskapiunofficial.tech/api/*",
 		"https://api.douban.com/*",
 		"https://api.mydramalist.com/*"
@@ -80,13 +78,13 @@
 		{
 			"matches": [ "https://letterboxd.com/*" ],
 			"js": [ "polyfill.js", "additional.js", "letterboxd-extras.user.js" ],
-			"run_at": "document_start"
+			"run_at": "document_end"
 		}
 	],
 	
 	"web_accessible_resources": [
 		{
-		  "resources": [ "images/*"],
+		  "resources": [ "images/*" ],
 		  "matches": [ "https://letterboxd.com/*" ],
 		  "use_dynamic_url": true
 		}

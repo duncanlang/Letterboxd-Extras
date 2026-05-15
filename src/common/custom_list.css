@@ -1,0 +1,42 @@
+/* Loading progress ring */
+.loader {
+  border-top: 5px solid #ff8000;
+  border-right: 5px solid #00e054;
+  border-bottom: 5px solid #40bcf4;
+  border-left: 5px solid #f0f2f4;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.center {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.textbox {
+  width: 350px;
+}
+
+label.radio {
+    display: inline-block;
+    width: 175px;
+    margin-bottom: 10px;
+}

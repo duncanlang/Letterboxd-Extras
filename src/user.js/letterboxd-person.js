@@ -12,6 +12,7 @@ export class LetterboxdPerson {
 		this.tmdbID = null;
 		this.wiki = null;
 		this.letterboxdName = null;
+		this.buttonUpdated = false;
 
 		this.lostFilms = {
 			loadState: LOAD_STATES['Uninitialized'],
@@ -41,13 +42,18 @@ export class LetterboxdPerson {
 
 		// Get the TMDB id and call wikidata
 		if (this.letterboxdName !== null && this.tmdbID === null && document.querySelector('.bio') !== null) {
-			// Loop and find TMDB
+			// Get the TMDB ID
 			const body = document.querySelector('body');
 			if (body.hasAttribute('data-tmdb-id')) {
 				this.tmdbID = body.getAttribute('data-tmdb-id');
 			}
 
 			this.callWikiData();
+		}
+
+		// Update the TMDB button
+		if (this.buttonUpdated == false && document.querySelector('.micro-button:not(.extras-button)')){
+			this.updateTmdbButton();
 		}
 
 		// Add the filter
@@ -80,6 +86,15 @@ export class LetterboxdPerson {
 		return this.stopRunning();
 	}
 
+	updateTmdbButton() {
+		const tmdbButton = document.querySelector('.micro-button:not(.extras-button)');
+		if (tmdbButton != null){
+			if (this.extensionStorage.get('open-same-tab') == true) {
+				tmdbButton.setAttribute("target", "");
+			}
+			this.buttonUpdated = true;
+		}
+	}
 
 	getName() {
 		const nameElement = document.querySelector('h1.title-1');
@@ -121,11 +136,10 @@ export class LetterboxdPerson {
 			const value = data.response;
 			if (value !== null && value.results !== null && value.results.bindings !== null && value.results.bindings.length > 0) {
 				this.wiki = value.results.bindings[0];
+
 				this.addWikiData();
 				this.addIMDbButton();
-				if (this.extensionStorage.get('wiki-link-enabled') === true) {
-					this.addWikiButton();
-				}
+				this.addWikiButton();
 			}
 		});
 	}
@@ -297,53 +311,50 @@ export class LetterboxdPerson {
 	}
 
 	addWikiButton() {
-		let url = '';
+
+		let url = this.wiki?.Wikipedia?.value ?? '';
 
 		if (document.querySelector('.wiki-button')) return;
-
-		if (this.wiki.Wikipedia && this.wiki.Wikipedia.value !== null) {
-			url = this.wiki.Wikipedia.value;
-
-		} else if (this.wiki.WikipediaEN !== null && this.wiki.WikipediaEN.value !== null) {
-			url = this.wiki.WikipediaEN.value;
-
-		} else {
-			return;
-
-		}
+		if (this.extensionStorage.get('wiki-link-enabled') === false) return;
+		if (url == '') return;
 
 		// Create Button Element
 		const button = this.extensionHelpers.createElement('a', {
-			class: 'micro-button wiki-button',
+			class: 'micro-button extras-button wiki-button',
 			href: url
 		});
-		button.innerText = 'WIKI';
+		button.innerText = this.extensionHelpers.getWikiButtonLabel(url);
+		
+		if (this.extensionStorage.get('open-same-tab') != true) {
+			button.setAttribute("target", "_blank");
+		}
 
 		// Add to Page
-		document.querySelector('.micro-button:NOT(.imdb-button)').after(button);
+		document.querySelector('.micro-button:NOT(.extras-button)').after(button);
 	}
 
 	addIMDbButton() {
-		if (document.querySelector('.imdb-button')) return;
+		
+		let url = this.wiki?.IMDb_ID?.value ?? '';
 
-		let url = '';
-		if (this.wiki.IMDb_ID && this.wiki.IMDb_ID.value !== null) {
-			url = this.wiki.IMDb_ID.value;
-		} else {
-			return;
-		}
+		if (document.querySelector('.imdb-button')) return;
+		if (url == '') return;
 
 		url = `https://www.imdb.com/name/${url}`;
 
 		// Create Button Element
 		const button = this.extensionHelpers.createElement('a', {
-			class: 'micro-button imdb-button',
+			class: 'micro-button extras-button imdb-button',
 			href: url
 		});
 		button.innerText = 'IMDB';
+		
+		if (this.extensionStorage.get('open-same-tab') != true) {
+			button.setAttribute("target", "_blank");
+		}
 
 		// Add to Page
-		document.querySelector('.micro-button').before(button);
+		document.querySelector('.micro-button:NOT(.extras-button)').before(button);
 
 	}
 
@@ -357,7 +368,7 @@ export class LetterboxdPerson {
 
 		const now = new Date();
 		const maxTime = 7 * 60 * 60 * 24 * 1000; // one week
-		if (timestamp === null || (now - timestamp) > maxTime || this.lostFilms.list === null) {
+		if (timestamp === null || timestamp === undefined || (now - timestamp) > maxTime || this.lostFilms.list === null) {
 
 			// Get new list - Call WikiData
 			browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString.url, options: queryString.options }, data => {

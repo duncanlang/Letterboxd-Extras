@@ -14,29 +14,49 @@ if (isAndroid)
 if (isPopup)
     document.body.classList.add("popup");
 
-if ((isAndroid || isPopup) && isFirefox)
-    AndroidImportReplacer();
+if (isPopup && isFirefox)
+    PopupImportReplacer();
 
 var options = {};
+var custom_lists;
+
+const maxLists = 10;
 
 var missingHostPermissions = [];
 var missingContentScripts = [];
 
-// Load from storage
+// Load the settings
 async function load() {
-    // Assign the object
+    // Get from sync storage
     var data = await browser.storage.sync.get('options');
 
-    if (data != null && data.options != null) {
+    if (data != undefined && data != null && data.options != null) {
         Object.assign(options, data.options);
         // Set the settings
         await set();
     }
 }
 
+// Load the custom lists
+async function loadCustomLists() {
+    // Get from local storage
+    const data = await browser.storage.local.get({ custom_lists });
+
+    if (data != undefined && data != null && data.custom_lists != null) {
+        custom_lists = data.custom_lists;
+        SetCustomLists();
+        DetermineNoCustomListsMessage();
+    }
+}
+
 // Save
 function save() {
     browser.storage.sync.set({ options });
+}
+
+// Save custom lists
+async function saveCustomLists() {
+    await browser.storage.local.set({ custom_lists: custom_lists });
 }
 
 async function set() {
@@ -97,19 +117,111 @@ function SetRatingsOrder(ratingsOrder){
         { key: "douban-ratings", value: "Douban"},
     ];
 
-    var listElement = document.querySelector('ul#ratings-order');
+    let listElement = document.querySelector('ul#ratings-order');
     listElement.textContent = '';
-    for (var i = 0; i < ratingsOrder.length; i++){
-        var key = ratingsOrder[i];
-        var name = ratingIdMapping.find(x => x.key == key).value;
+    for (let i = 0; i < ratingsOrder.length; i++){
+        let key = ratingsOrder[i];
+        let name = ratingIdMapping.find(x => x.key == key).value;
 
-        var li = document.createElement('li');
-        li.innerText = name;
+        let li = document.createElement('li');
         li.classList.add('sortable-item');
         li.setAttribute('draggable', 'true');
         li.setAttribute('rating-id', key);
+        li.setAttribute('tabindex', 0);
+
+        let label = document.createElement('span');
+        label.classList.add('sortable-item-label');
+        label.innerText = name;
+
+        let upArrow = document.createElement('span');
+        upArrow.innerText = '▲';
+        upArrow.classList.add('sortable-item-arrow');
+        upArrow.classList.add('arrow-up');
+        if (i == 0)
+            upArrow.classList.add('disabled');
+
+        let downArrow = document.createElement('span');
+        downArrow.innerText = '▼';
+        downArrow.classList.add('sortable-item-arrow');
+        downArrow.classList.add('arrow-down');
+        if (i == ratingsOrder.length - 1)
+            downArrow.classList.add('disabled');
+
+        li.append(label);
+        li.append(upArrow);
+        li.append(downArrow);
         
         listElement.append(li);
+
+        upArrow.addEventListener('click', sortableItemArrowClick);
+        downArrow.addEventListener('click', sortableItemArrowClick);
+        
+        li.addEventListener('keydown', sortableItemKeyPress);
+    }
+}
+
+function SetCustomLists(){
+    if (custom_lists == undefined || custom_lists == null || custom_lists.length == 0) return;
+
+    const listElement = document.querySelector('#custom-list-holder');
+
+    // Delete existing entries
+    const tempList = Array.from(listElement.querySelectorAll('li[list-id]'));
+    for (let i = 0; i < tempList.length; i++){
+        tempList[i].remove();
+    }
+
+    // Create new entries
+    for (let i = 0; i < custom_lists.length; i++){
+        const customList = custom_lists[i];
+        
+        const li = document.createElement('li');
+        li.classList.add('sortable-item');
+        li.setAttribute('list-id', customList.id);
+        li.setAttribute('tabindex', 0);
+
+        const label = document.createElement('span');
+        label.classList.add('custom-list-label');
+        label.innerText = `${customList.icon ?? ''} ${customList.label}`;
+
+        const editButton = document.createElement('a');
+        editButton.classList.add('custom-list-button');
+        editButton.innerText = 'Edit';
+        editButton.href = `/custom_list.html?action=edit&list_id=${customList.id}`;
+        editButton.target = '_blank';
+
+        const deleteButton = document.createElement('span');
+        deleteButton.classList.add('custom-list-button');
+        deleteButton.innerText = 'Delete';
+
+        li.append(label);
+        li.append(editButton);
+        li.append(deleteButton);
+        
+        listElement.append(li);
+        
+        deleteButton.addEventListener('click', deleteCustomList);
+    }
+}
+
+function DetermineNoCustomListsMessage(){
+    const listElement = document.querySelector('#custom-list-holder');
+    const listItems = listElement.querySelectorAll('li');
+
+    if (listItems.length == 1) {
+        listItems[0].classList.remove('hidden');
+    } else {
+        listItems[0].classList.add('hidden');
+    }
+
+    if (custom_lists.length >= maxLists){
+        document.querySelector('#custom-ranking-desc').classList.add('hidden');
+        document.querySelector('#custom-ranking-reached').classList.remove('hidden');
+        document.querySelector('#create-ranking-hyperlink').classList.add('hidden');
+    } else {
+        document.querySelector('#custom-ranking-desc').classList.remove('hidden');
+        document.querySelector('#custom-ranking-reached').classList.add('hidden');
+        document.querySelector('#create-ranking-hyperlink').classList.remove('hidden');
     }
 }
 
@@ -141,7 +253,7 @@ function checkSubIDToDisable(element) {
 
 // On change, save
 document.addEventListener('change', event => {
-    if (event.target.id == "importpicker") {
+    if (event.target.id == "importSettings-picker" || event.target.id == "importLists-picker") {
         validateImportButton();
     } else {
         let element = event.target;
@@ -307,21 +419,31 @@ document.addEventListener('click', event => {
     }
 
     switch (event.target.id) {
-        case "export":
+        // Settings import/export/reset
+        case "exportSettings":
             exportSettings();
             break;
-        case "import":
+        case "importSettings":
             importSettings();
             break;
         case "reset":
             resetSettings();
             break;
-        case "importbutton":
-            OpenImportTab();
+
+        // Custom lists import/export
+        case "exportLists":
+            exportLists();
             break;
+        case "importLists":
+            importLists();
+            break;
+
+        // Request Permissions
         case "requestall":
             RequestAllMissingPermissions();
             break;
+
+        // Reset ratings order
         case "reset-rating-order":
             ResetRatingsOrder();
             break;
@@ -403,6 +525,7 @@ async function registerContentScript(target) {
 // On load, load
 document.addEventListener('DOMContentLoaded', event => {
     load();
+    loadCustomLists();
     validateImportButton();
 });
 
@@ -411,10 +534,44 @@ document.addEventListener('focus', event => {
 });
 
 function validateImportButton() {
-    const importPicker = document.querySelector("#importpicker");
-    const importButton = document.querySelector("#import");
-
+    // Settings
+    const importPicker = document.querySelector("#importSettings-picker");
+    const importButton = document.querySelector("#importSettings");
     importButton.disabled = (importPicker.value == "");
+    
+    // Custom Lists
+    const importListsPicker = document.querySelector("#importLists-picker");
+    const importListsButton = document.querySelector("#importLists");
+    importListsButton.disabled = (importListsPicker.value == "");
+}
+
+function downloadFile(data, name) {
+    const formatOptions = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    };
+
+    const url = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, '  '))}`;
+
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-GB', formatOptions);
+    const parts = formatter.formatToParts(now);
+    const d = Object.fromEntries(parts.map(p => [p.type, p.value]));
+    const formattedDate = `${d.year}_${d.month}_${d.day}_${d.hour}_${d.minute}_${d.second}`;
+
+    fileName = `${name}-${formattedDate}.json`;
+
+    // Download
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', fileName || '');
+    a.setAttribute('type', 'application/json');
+    a.dispatchEvent(new MouseEvent('click'));
 }
 
 async function exportSettings() {
@@ -429,29 +586,26 @@ async function exportSettings() {
         settings: settings.options
     }
 
-    const timeOptions = {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric'
-    };
+    downloadFile(userdata, 'letterboxd-extras-backup');
+}
 
-    var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(userdata, null, '  '));
-    var date = (new Date).toLocaleDateString('ja-JP', timeOptions);
-    var filename = 'letterboxd-extras-backup-' + date + '.json';
+async function exportLists() {
+    // Create JSON
+    var data = await browser.storage.local.get('custom_lists').then(function (storedSettings) {
+        return storedSettings;
+    });
 
-    // Download
-    const a = document.createElement('a');
-    a.href = url;
-    a.setAttribute('download', filename || '');
-    a.setAttribute('type', 'text/plain');
-    a.dispatchEvent(new MouseEvent('click'));
+    const userdata = {
+        timeStamp: Date.now(),
+        version: browser.runtime.getManifest().version,
+        custom_lists: data.custom_lists
+    }
+
+    downloadFile(userdata, 'letterboxd-extras-custom-rankings');
 }
 
 async function importSettings() {
-    const importPicker = document.querySelector("#importpicker");
+    const importPicker = document.querySelector("#importSettings-picker");
 
     // Make sure file is selected
     if (importPicker.files.length == 0) {
@@ -499,15 +653,57 @@ async function importSettings() {
     save();
 
     window.alert("Your settings have been restored from file")
+}
 
-    if (window.location.href.endsWith('restore.html')){
-        browser.tabs.create({
-            url: "/options.html",
-            active: true
-        });
+async function importLists() {
+    const importPicker = document.querySelector("#importLists-picker");
 
-        window.close();
+    // Make sure file is selected
+    if (importPicker.files.length == 0) {
+        window.alert("No file selected.")
+        return;
     }
+
+    // Get file and read the contents
+    const selectedFile = importPicker.files[0];
+    const content = await readFileAsText(selectedFile);
+    
+    var json;
+    var error = "";
+    try {
+        json = JSON.parse(content);
+    } catch(err) {
+        error = "File is not valid JSON."
+    }
+
+    if (json != null){
+        // Validate file contents
+        if (json.timeStamp == null || json.version == null || json.custom_lists == null){
+            error = "File is not a valid Letterboxd Extras custom rankings file."
+        }
+        if (json.version != null && versionCompare(json.version, browser.runtime.getManifest().version, {lexicographical: false, zeroExtend: true}) > 0){
+            error = "Custom rankings file is from a newer version (" + json.version + ") than the current add-on (" + browser.runtime.getManifest().version + "). Please update before importing your rankings."
+        }
+    }
+
+    if (error != ""){
+        window.alert("Invalid file: " + error + "\n\nThe import could not be completed");
+        return;
+    }
+
+    // Read timestamp from file
+    const date = (new Date(json.timeStamp)).toLocaleDateString(window.navigator.language);
+
+    // Confirmation Popup
+    if (!window.confirm("Your current custom ranking lists will be overwritten with data backed up on " + date + ".\n\nOverwrite all lists with data from file?")) {
+        return;
+    }
+
+    custom_lists = json.custom_lists;
+    saveCustomLists();
+    SetCustomLists();
+
+    window.alert("Your custom lists have been restored from file")
 }
 
 async function resetSettings(){
@@ -601,28 +797,12 @@ async function OpenImportTab(){
 // Make a link to the android replacer page
 // For some reason, FF on android has a bug where the filepicker does not work in the options_ui
 // So we have a separate page where we want the android users to use instead
-function AndroidImportReplacer(){
+function PopupImportReplacer(){
     if (document.URL.endsWith('restore.html'))
         return;
 
-    const importDesktop = document.getElementById("importdivdesktop");
-    importDesktop.style.display = 'none';
-
-    const importAndroid = document.getElementById("importdivandroid");
-    importAndroid.style.display = '';
-
-    // Show the tab permission reminder
-    browser.permissions.contains({ permissions: ['tabs'] }).then((value) => {
-        let reminder = document.getElementById('tabpermissionreminder');
-
-        if (reminder != null){
-            if (isAndroid == false && value == false){
-                reminder.style.display = '';
-            }else{
-                reminder.style.display = 'none';
-            }
-        }
-    });
+    document.querySelector('#import-export-div').classList.add('hidden');
+    document.querySelector('#import-export-hyperlink').classList.remove('hidden');
 }
 
 function ValidateRequestAllVisiblity(){
@@ -708,12 +888,81 @@ list.addEventListener('touchend', (e) => {
     handleDragEnd(draggingItem);
 });
 
+
+function sortableItemArrowClick(event){
+    const arrow = event.target;
+    const item = arrow.parentNode;
+    const list = item.parentNode;
+    
+    draggingItem = item;
+
+    if (arrow.className.includes('disabled')) return;
+
+    let previousItem = item.previousElementSibling;
+    let nextItem = item.nextElementSibling?.nextElementSibling ?? null;
+
+    if (event.shiftKey){
+        previousItem = list.firstChild;
+        nextItem = null;
+    }    
+
+    if (arrow.className.includes('arrow-up') && previousItem != null) {
+        updateListPosition(previousItem);
+    }
+    else if (arrow.className.includes('arrow-down')) {
+        updateListPosition(nextItem);
+    }
+    
+    SaveSortableList(list);
+}
+
+function sortableItemKeyPress(event){
+    const key = event.key;
+    const item = event.target;
+
+    draggingItem = item;
+
+    let previousItem = item.previousElementSibling;
+    let nextItem = item.nextElementSibling?.nextElementSibling ?? null;
+
+    if (event.shiftKey){
+        previousItem = list.firstChild;
+        nextItem = null;
+    }    
+
+    switch (key) {
+        case "ArrowUp":
+            updateListPosition(previousItem);
+            event.preventDefault();
+            item.focus();
+            break;
+
+        case "ArrowDown":
+            updateListPosition(nextItem);
+            event.preventDefault();
+            item.focus();
+            break;
+    }
+
+    SaveSortableList(list);
+}
+
 function updateListPosition(afterElement) {
     if (afterElement) {
         list.insertBefore(draggingItem, afterElement);
     } else {
         list.appendChild(draggingItem);
+    }    
+
+    // Make sure the disabled class is removed
+    for (let i = 0; i < list.childNodes.length; i++){
+        list.childNodes[i].querySelector('.arrow-up').classList.remove('disabled');
+        list.childNodes[i].querySelector('.arrow-down').classList.remove('disabled');
     }
+
+    // And added to whichever items are now the top and bottom
+    draggingItem.parentNode.firstChild.querySelector('.arrow-up').classList.add('disabled');
+    draggingItem.parentNode.lastChild.querySelector('.arrow-down').classList.add('disabled');
 }
 
 function handleDragEnd(item) {
@@ -759,3 +1008,40 @@ function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
     section.scrollIntoView({ behavior: 'smooth' });
 }
+
+async function deleteCustomList(event) {
+    const listItem = event.target.parentNode;
+    const listName = listItem.querySelector('.custom-list-label')?.innerText ?? '';
+    const listId = listItem?.getAttribute('list-id') ?? '';
+
+    if (listItem == null || listId == '' || listName == ''){
+        console.error('There was an error finding the list item?');
+        return;
+    }
+
+    // Confirmation Popup
+    if (!window.confirm(`Do you want to delete your custom list "${listName}"?`)) {
+        return;
+    }
+    
+    // Remove from the array
+    custom_lists = custom_lists.filter(x => {
+        return x.id != listId
+    });
+
+    // Save the storage.local
+    await saveCustomLists();
+
+    // Remove from the html page
+    listItem.remove();
+    DetermineNoCustomListsMessage();
+}
+
+/*
+// Check specific key or pass 'null' for all data in local storage
+browser.storage.local.getBytesInUse(null).then((bytes) => {
+    const kb = (bytes / 1024).toFixed(2);
+    const mb = (bytes / (1024 * 1024)).toFixed(2);
+    console.log(`Storage used: ${bytes} bytes (~${kb} KB / ${mb} MB)`);
+});
+*/
