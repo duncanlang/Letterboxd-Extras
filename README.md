@@ -2,7 +2,7 @@
 
 A browser add-on/extension that adds additional features to the movie tracking database site [Letterboxd](https://letterboxd.com/) including ratings from other sites, box office and budget, and more.
 
-<a href="https://addons.mozilla.org/en-US/firefox/addon/letterboxd-extras/"><img src="https://user-images.githubusercontent.com/585534/107280546-7b9b2a00-6a26-11eb-8f9f-f95932f4bfec.png" alt="Get Letterboxd Extras for Firefox"></a>
+<a href="https://addons.mozilla.org/firefox/addon/letterboxd-extras/"><img src="https://user-images.githubusercontent.com/585534/107280546-7b9b2a00-6a26-11eb-8f9f-f95932f4bfec.png" alt="Get Letterboxd Extras for Firefox"></a>
 <a href="https://chromewebstore.google.com/detail/letterboxd-extras/edhldpamlnkpekapihiolppcdppgeice"><img src="https://user-images.githubusercontent.com/585534/107280622-91a8ea80-6a26-11eb-8d07-77c548b28665.png" alt="Get Letterboxd Extras for Chromium"></a>
 <a href="https://microsoftedge.microsoft.com/addons/detail/letterboxd-extras/khnodkkceaakcafenlmnbbjgfkhjmbgh"><img src="https://user-images.githubusercontent.com/585534/107280673-a5ece780-6a26-11eb-9cc7-9fa9f9f81180.png" alt="Get Letterboxd Extras for Microsoft Edge"></a>
 
@@ -43,7 +43,7 @@ A browser add-on/extension that adds additional features to the movie tracking d
 
 ## Installation
 ### Firefox and Firefox-based Browsers
-[Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/letterboxd-extras/)
+[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/letterboxd-extras/)
 
 XPI file for manual installation available for each release on the [releases tab](https://github.com/duncanlang/Letterboxd-Extras/releases).
 
