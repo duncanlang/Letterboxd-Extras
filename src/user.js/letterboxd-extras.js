@@ -962,7 +962,7 @@ const letterboxd = {
 
 			// Get Letterboxd ID
 			if (this.letterboxdID == '' && window.location.pathname.startsWith('/film/')) {
-				var regex = /\/film\/(.+)\//
+				var regex = /\/film\/([a-z\-\d\:_]+)\//
 				this.letterboxdID = window.location.pathname.match(regex)[1];
 
 				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found Letterboxd ID ${this.letterboxdID}`);
@@ -4588,7 +4588,7 @@ const letterboxd = {
 
 		createDetailsRow(headerText, value, currency, togetherWith) {
 			// Determine className
-			var className = "";
+			let className = "";
 			switch (headerText) {
 				case "Budget":
 					className = "budget";
@@ -4617,18 +4617,18 @@ const letterboxd = {
 				}
 			}
 
-			var sharedEl = null;
+			let sharedEl = null;
 			if (togetherWith != null && togetherWith != "") {
 				sharedEl = letterboxd.helpers.createElement('a', {
-					href: "/film/" + togetherWith
+					href: `/film/${togetherWith}`
 				});
 				sharedEl.innerText = "(Shared)";
 			}
 
 			// Check if already added to the page
-			if (document.querySelector('.' + className + '') != null) {
+			if (document.querySelector(`.${className}`) != null) {
 				// Replace the exising value
-				var p = document.querySelector('.' + className + ' p');
+				const p = document.querySelector(`.${className} p`);
 				p.innerText = value;
 
 				// Add the shared togetherwith link
@@ -4642,7 +4642,7 @@ const letterboxd = {
 				//********************************************
 				// Create the row header element				
 				const header = letterboxd.helpers.createElement('h3', {
-					class: className + ' header'
+					class: `${className} header`
 				});
 
 				// Span
@@ -4651,48 +4651,60 @@ const letterboxd = {
 				header.append(span);
 
 				// Create the list element
-				const sluglist = letterboxd.helpers.createElement('div', {
-					class: 'text-indentedlist ' + className + ' detail'
+				const detail = letterboxd.helpers.createElement('div', {
+					class: `text-indentedlist ${className} detail`
 				});
 
 				// Text holder
 				const p = letterboxd.helpers.createElement('p', {});
 				p.innerText = value;
-				sluglist.append(p);
+				detail.append(p);
 
 				// Add the shared togetherwith link
 				if (sharedEl != null) {
-					sluglist.append(sharedEl);
+					detail.append(sharedEl);
 				}
 
 				// Append to the Tab Details
 				//********************************************
-				// Get the details tab
-				const tabDetails = document.querySelector('#tab-details');
+				const order = [
+					'budget',
+					'box-office-us',
+					'box-office-ww'
+				];
 
-				// Append the Header
-				// If budget
-				if (className == "budget" && tabDetails.querySelector('.box-office-us.header')) {
-					tabDetails.querySelector('.box-office-us.header').before(header);
-				} else if (className == "budget" && tabDetails.querySelector('.box-office-ww.header')) {
-					tabDetails.querySelector('.box-office-ww.header').before(header);
-					// If box office US
-				} else if (className == "box-office-us" && tabDetails.querySelector('.budget.detail')) {
-					tabDetails.querySelector('.budget.detail').after(header);
-				} else if (className == "box-office-us" && tabDetails.querySelector('.box-office-ww.header')) {
-					tabDetails.querySelector('.box-office-ww.header').before(header);
-					// If box office WW
-				} else if (className == "box-office-ww" && tabDetails.querySelector('.box-office-us.detail')) {
-					tabDetails.querySelector('.box-office-us.detail').after(header);
-				} else if (className == "box-office-ww" && tabDetails.querySelector('.budget.detail')) {
-					tabDetails.querySelector('.budget.detail').after(header);
-					// else
-				} else {
-					tabDetails.append(header);
+				// Get the details tab
+				const tabDetails = document.querySelector('#tab-panel-details');
+
+				let index = order.indexOf(className);
+
+				// First Attempt
+				for (let i = index + 1; i < order.length; i++) {
+					let tempHeader = document.querySelector(`.${order[i]}.header`);
+					let tempDetail = document.querySelector(`.${order[i]}.detail`);
+
+					if (tempHeader && tempDetail) {
+						tempHeader.before(header);
+						header.after(detail);
+						return;
+					}
 				}
 
-				// Append the sluglist
-				header.after(sluglist);
+				// Second Attempt
+				for (let i = index - 1; i >= 0; i--) {
+					let tempHeader = document.querySelector(`.${order[i]}.header`);
+					let tempDetail = document.querySelector(`.${order[i]}.detail`);
+
+					if (tempHeader && tempDetail) {
+						tempDetail.after(header);
+						header.after(detail);
+						return;
+					}
+				}
+
+				// Third Attempt
+				tabDetails.append(header);
+				tabDetails.append(detail);
 			}
 		},
 
