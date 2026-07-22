@@ -122,8 +122,8 @@ export class AnilistHelper extends Helper {
 
 		scoreSection.append(this.helpers.createHistogram(
 			this.storage,
-			'anilist', 
-			'',
+			'anilist',
+			this.url + '/stats',
 			this.score,
 			this.num_ratings,
 			this.data.stats.scoreDistribution,

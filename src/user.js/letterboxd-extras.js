@@ -4851,9 +4851,11 @@ const letterboxd = {
 
 				// IMDb reviews link
 				if (type == "imdb") {
-					href = url.replace('/ratings', '') + '/reviews?ratingFilter=' + (ii + 1).toString();
+					href = url.replace('/ratings/', '/reviews/?rating=' + (ii + 1).toString());
 				} else if (type == "allocine") {
 					href = url + "star-" + ii;
+				} else {
+					href = url;
 				}
 				
 				// Now create the actual element

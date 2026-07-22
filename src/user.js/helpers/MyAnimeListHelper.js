@@ -32,7 +32,7 @@ export class MyAnimeListHelper extends Helper {
 			}
 
 			this.data = response.data;
-			this.linkURL = this.data.url;
+			this.url = this.data.url;
 
 			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, 'JSON', {}, response => {
 
@@ -46,7 +46,7 @@ export class MyAnimeListHelper extends Helper {
 				this.statistics = response.data;
 				this.loadState = LOAD_STATES['Success'];
 
-				this.addButtonLink(this.linkURL, 'MAL');
+				this.addButtonLink(this.url, 'MAL');
 				this.populateRatingsSidebar();
 
 			});
@@ -93,7 +93,7 @@ export class MyAnimeListHelper extends Helper {
 		scoreSection.append(this.helpers.createHistogram(
 			this.storage,
 			'mal',
-			'',
+			this.url + '/stats',
 			this.rating,
 			this.num_ratings,
 			this.statistics.scores,
