@@ -43,10 +43,6 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         try {
             (async () => {
                 // Permission Check
-                if (msg.url.includes('markuapi')){
-                    let temp = '';
-                }
-
                 if (msg.url.startsWith('https://')){
                     const hasPermission = await CheckForPermission(msg.url);
                     if (!hasPermission) {
@@ -331,29 +327,19 @@ browser.runtime.onInstalled.addListener(async (details) => {
 });
 
 async function CheckForPermission(url) {
-    // Wrap chrome API in a Promise
-    const perms = await new Promise(resolve => {
-        chrome.permissions.getAll(resolve);
+    // For some reason, I previously was using URLPattern to compare the url to permissions
+    // but this doesn't work in FF prior to 142 (and 140 and 115 are still in support)
+    // I assume there a reason why I did this way, but I don't know what it was
+    // so lets just go back to the normal browser.permissions.contains,
+    // maybe later I will discover the reason I did it this way
+
+    return new Promise(resolve => {
+        browser.permissions.contains({
+            origins: [url]
+        }, (hasPermission) => {
+            resolve(hasPermission);
+        });
     });
-
-    // Loop through granted origins and check against the given URL
-    for (const pattern of perms.origins) {
-        try {
-            const urlPattern = new URLPattern({
-                protocol: pattern.split("://")[0],
-                hostname: pattern.split("://")[1].split("/")[0],
-                pathname: pattern.split("/").slice(3).join("/") || "*"
-            });
-
-            if (urlPattern.test(url)) {
-                return true;
-            }
-        } catch (e) {
-            console.warn("Invalid pattern in permissions:", pattern, e);
-        }
-    }
-
-    return false;
 }
 
 async function UpdateExistingSettings(newSettings){
