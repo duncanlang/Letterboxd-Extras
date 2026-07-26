@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "Letterboxd Extras",
 	"description": "Display ratings from other film sites, and other nifty extras, directly on Letterboxd. Fully customizable.",
-	"version": "3.20.0",
+	"version": "3.20.1",
 
 	"browser_specific_settings": {
 		"gecko_android": {
