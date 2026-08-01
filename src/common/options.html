@@ -407,18 +407,22 @@
             <h4>"Does the Dog Die?"</h4>
             <div>
                 <label for="ddd-enabled">Display "Does the Dog Die?" link:</label>
-                <input type="checkbox" id="ddd-enabled" permission="https://www.doesthedogdie.com/*" class="setting"/>
+                <input type="checkbox" id="ddd-enabled" class="setting"/>
+            </div>
+            <div>
+                <label for="ddd-api-enabled">Use the DoesTheDogDie API to match the movie:</label>
+                <input type="checkbox" id="ddd-api-enabled" permission="https://www.doesthedogdie.com/*" subid="sub-ddd-api" class="setting"/>
             </div>
             <div class="div-request-permission">
                 <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="tspdt-permissions" class="request-permission" permissionTarget="tspdt-enabled" value="Request Permission"/>
+                <input type="button" id="ddd-permissions" class="request-permission" permissionTarget="ddd-api-enabled" value="Request Permission"/>
             </div>
-            <div>
-                <label for="ddd-apikey">API Key (optional):</label>
+            <div id="sub-ddd-api" class="subsetting">
+                <label for="ddd-apikey">API Key:</label>
                 <input type="text" id="ddd-apikey" class="setting"/>
                 <a class="hyperlink" href="https://www.doesthedogdie.com/profile" target="_blank">Get your API key from your DDD profile</a>
-                <p class="info-tip">An API key is supposed to be mandatory for the DDD API, however, the API call seems to work without. If this does not work, you can try to use your own API key.</p>
             </div>
+            <p class="info-tip">By default, Letterboxd Extras will collect the  DDD film ID from WikiData. The DDD API should be more comprehensive, but can have issues matching, requires a (free) API key, and also needs an additional permission grant for the Letterboxd Extras.</p>
         </div>
         <div>
             <h4>BoxOfficeMojo</h4>

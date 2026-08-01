@@ -1880,7 +1880,7 @@ const letterboxd = {
 					letterboxd.helpers.WriteConsoleLog('DEBUG', `DoesTheDogDie: ID found in WikiData.`);
 					this.addDDD();
 				}
-				else if (this.ddd.state == 0){
+				else if (this.ddd.state == 0 && letterboxd.storage.get('ddd-api-enabled') === true){
 					// Call API
 					this.initDDD();
 				}
@@ -3742,20 +3742,29 @@ const letterboxd = {
 
 		async initDDD(){
 			this.ddd.state = 1;
+
+			let apiKey = letterboxd.storage.get("ddd-apikey");
+
+			if (apiKey == '') {
+				letterboxd.helpers.WriteConsoleLog('LOG', 'No DDD API key, cannot search for ID using the DDD API.');
+				this.ddd.state = 3
+				return;
+			}
+
 			var options = {
 				method: 'GET',
-					  headers: {
-					"Accept": "application/json",
+				headers: {
 					'X-API-KEY': letterboxd.storage.get("ddd-apikey")
 				}
 			};
 
-			// Call the ddd API with the IMDB query 
-			var url = "https://www.doesthedogdie.com/dddsearch?imdb=" + this.imdbID;
+			// IMDB API Search
 			if (this.imdbID != ''){
+				let url = `https://www.doesthedogdie.com/api/v3/items?imdb=${this.imdbID}`
+
 				const response = await new Promise((resolve, reject) => {
 					browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
-						if (letterboxd.helpers.ValidateResponse("DoesTheDogDie (IMDb search)", value) == false){
+						if (letterboxd.helpers.ValidateResponse("DoesTheDogDie API (IMDb search)", value) == false){
 							if (value.status == 401){
 								letterboxd.helpers.ShowErrorMessage('DoesTheDogDie returned a 401 Unauthorized response. Please enter a valid API key into the Letterboxd Extras settings.', 'ddd-key');
 							}
@@ -3765,9 +3774,10 @@ const letterboxd = {
 						resolve(value);
 					});
 				});
-				var result = response.response;
-				if (result.items != null && result.items.length > 0) {
-					var item = result.items[0];
+
+				let items = response.response;
+				if (items != null && items.length > 0){
+					let item = items[0];
 					if (item.tmdbId > 0 && item.tmdbId != parseInt(this.tmdbID)){
 						// uh oh, DDD has the wrong movie???
 						// Found with https://letterboxd.com/film/the-hunt-2012/
@@ -3778,47 +3788,35 @@ const letterboxd = {
 				}
 			}
 
-			// If not found with the first call, do the search query instead
-			if (this.ddd.data == null){
-				// Search for title
-				url = "https://www.doesthedogdie.com/dddsearch?q=" + this.letterboxdTitle;
-				var response = await new Promise((resolve, reject) => {
+			// The TMDB search is weirdly quite slow, so lets not bother
+
+			// Title Search
+			if (this.ddd.state < 2){
+				let title = (this.letterboxdNativeTitle != null) ? this.letterboxdNativeTitle : this.letterboxdTitle;
+				let url = `https://www.doesthedogdie.com/api/v3/items?name=${title}`
+
+				const response = await new Promise((resolve, reject) => {
 					browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
-						if (letterboxd.helpers.ValidateResponse("DoesTheDogDie (title search)", value) == false){
-							if (value.status == 401){
-								letterboxd.helpers.ShowErrorMessage('DoesTheDogDie returned a 401 Unauthorized response. Please enter a valid API key into the Letterboxd Extras settings.', 'ddd-key');
+						if (letterboxd.helpers.ValidateResponse("DoesTheDogDie API (Title search)", value) == false){
+							if (value.status == 401 || value.status == 403){
+								letterboxd.helpers.ShowErrorMessage('DoesTheDogDie returned an Unauthorized response. Please enter a valid API key into the Letterboxd Extras settings.', 'ddd-key');
 							}
 							reject(new Error("Invalid response"));
 							return;
 						}
 						resolve(value);
 					});
-				});					
-				var result = response.response;
-
-				// Search for native title as well
-				if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle != ""){
-					url = "https://www.doesthedogdie.com/dddsearch?q=" + this.letterboxdNativeTitle;
-					response = await new Promise((resolve, reject) => {
-						browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("DoesTheDogDie (title search)", value) == false){
-								if (value.status == 401){
-									letterboxd.helpers.ShowErrorMessage('DoesTheDogDie returned a 401 Unauthorized response. Please enter a valid API key into the Letterboxd Extras settings.', 'ddd-key');
-								}
-								reject(new Error("Invalid response"));
-								return;
-							}
-							resolve(value);
-						});
-					});
-					if (result.items != null && response.response.items != null)
-						result.items = result.items.concat(response.response.items);
-				}
-
-				if (result.items != null && result.items.length > 0){
-					for (var i = 0; i < result.items.length; i++){
-						var item = result.items[i];
-						var itemType = item.itemType.name;
+				});
+				
+				let items = response.response;
+				if (items != null && items.length > 0){
+					for (var i = 0; i < items.length; i++){
+						let item = items[i];
+						let itemType = item.itemTypeName;
+						let itemName = item.name;
+						let itemYear = item.releaseYear;
+						let itemTmdb = item.tmdbId;
+						let itemImdb = item.imdbId;
 
 						// Make sure the item type matches the letterboxd movie
 						if ((this.tmdbTV == true && itemType != "TV Show") || (this.tmdbTV == false && itemType != "Movie")){
@@ -3826,19 +3824,22 @@ const letterboxd = {
 						}
 
 						// Try to match on the TMDB ID
-						if (item.tmdbId == this.tmdbID){
+						if (itemTmdb != null && itemTmdb == this.tmdbID){
 							// This is an exact match, set and exit out
 							this.ddd.data = item;
 							this.ddd.state = 2;
 							break;
 						}
-						else if (item.tmdbId != null && item.tmdbId > 0){
+						else if (itemTmdb != null && itemTmdb > 0){
 							// DDD item has a tmdb ID that does not match letterboxd, lets continue instead of matching on the name
 							continue;
 						}
 
 						// Try to match on the name
-						if (item.name == this.letterboxdTitle && item.releaseYear == this.letterboxdYear || (item.name == this.letterboxdTitle + " " + this.letterboxdYear && item.releaseYear == this.letterboxdYear)){
+						if (itemName == this.letterboxdTitle && itemYear == this.letterboxdYear ||
+							(itemName == this.letterboxdTitle + " " + this.letterboxdYear && itemYear == this.letterboxdYear) ||
+							(itemName == this.letterboxdNativeTitle && itemYear == this.letterboxdYear)
+						){
 							// Match based on name may not be accurate, don't exit so we can keep checking for a match based on TMDB if needed
 							this.ddd.data = item;
 							this.ddd.state = 2;
@@ -3846,15 +3847,16 @@ const letterboxd = {
 					}
 				}
 			}
+			
 
 			if (this.ddd.state < 2 || this.ddd.data == null){
-				letterboxd.helpers.WriteConsoleLog('LOG', 'Unable to locate DDD film page.');
+				letterboxd.helpers.WriteConsoleLog('LOG', 'Unable to locate DDD film page using the API.');
 				this.ddd.state = 3;
 			}else{
 				// Add link to the page
 				this.ddd.id = this.ddd.data.id;
 				this.addDDD();
-			}
+			}	
 		},
 
 		addDDD(){
@@ -5535,7 +5537,7 @@ const letterboxd = {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/json',
-					accept: 'application/json'
+					'x-imdb-client-name': 'imdb-web-next'
 				},
 				body: JSON.stringify({
 					query,

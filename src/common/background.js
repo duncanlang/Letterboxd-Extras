@@ -223,6 +223,10 @@ async function InitDefaultSettings() {
         options["ratings-order"] = UpdateRatingsOrder(options["ratings-order"]);
     }
 
+    if (options['ddd-api-enabled'] == null){
+        options['ddd-api-enabled'] = options['ddd-apikey'] != '';
+    }
+
     // Save
     await browser.storage.sync.set({ options });
 }
