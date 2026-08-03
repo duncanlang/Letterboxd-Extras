@@ -1876,7 +1876,7 @@ const letterboxd = {
 
 			// Add 'Does the dog die?' link
 			if (this.idsCollected == true && (this.imdbID != '' || this.tmdbID != '') && this.wikiData.state == 2 && this.letterboxdTitle != null && document.querySelector('.micro-button') != null && this.linksMoved == true && letterboxd.storage.get('ddd-enabled') === true){
-				if (this.ddd.id != null && this.ddd.id != ''){
+				if (this.ddd.id != null && this.ddd.id != '' && this.ddd.state < 2){
 					letterboxd.helpers.WriteConsoleLog('DEBUG', `DoesTheDogDie: ID found in WikiData.`);
 					this.addDDD();
 				}
@@ -3865,7 +3865,7 @@ const letterboxd = {
 				this.addLink(this.ddd.url, 'DOG', 'ddd');
 			}
 
-			this.ddd.added = true;
+			this.ddd.state = 2;
 		},
 
 		getFilmarks() {

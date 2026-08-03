@@ -43,7 +43,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         try {
             (async () => {
                 // Permission Check
-                if (msg.url.startsWith('https://')){
+                if (msg.url.startsWith('https://')) {
                     const hasPermission = await CheckForPermission(msg.url);
                     if (!hasPermission) {
                         response({ response: null, url: msg.url, status: 0, errors: [`No permission found matching url: ${msg.url}`] });
@@ -112,10 +112,10 @@ async function registerContentScripts() {
                 // Check for existing script
                 let existingScripts = await browser.scripting.getRegisteredContentScripts();
                 existingScripts = existingScripts.map((script) => script.id);
-                if (existingScripts.includes(script.id)){
+                if (existingScripts.includes(script.id)) {
                     console.log(`Content script: ${script.id} is already registered.`);
                     return;
-                }    
+                }
 
                 // Register script
                 try {
@@ -223,7 +223,7 @@ async function InitDefaultSettings() {
         options["ratings-order"] = UpdateRatingsOrder(options["ratings-order"]);
     }
 
-    if (options['ddd-api-enabled'] == null){
+    if (options['ddd-api-enabled'] == null) {
         options['ddd-api-enabled'] = options['ddd-apikey'] != '';
     }
 
@@ -337,16 +337,16 @@ async function CheckForPermission(url) {
     // so lets just go back to the normal browser.permissions.contains,
     // maybe later I will discover the reason I did it this way
 
-    return new Promise(resolve => {
-        browser.permissions.contains({
-            origins: [url]
-        }, (hasPermission) => {
-            resolve(hasPermission);
-        });
-    });
+    try {
+        return await browser.permissions.contains({ origins: [url] });
+    }
+    catch (exception){
+        console.error(`There was an error checking the permissions: ${exception}`);
+        return false;
+    }
 }
 
-async function UpdateExistingSettings(newSettings){
+async function UpdateExistingSettings(newSettings) {
     var options = {};
     const data = await browser.storage.sync.get('options');
     if (data != null && data.options != null) {
@@ -358,7 +358,7 @@ async function UpdateExistingSettings(newSettings){
         let value = newSettings[i].value;
         options[key] = value;
     }
-    
+
     // Save
     await browser.storage.sync.set({ options });
 }

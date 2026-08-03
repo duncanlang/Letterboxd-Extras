@@ -29,7 +29,7 @@ export class AnilistHelper extends Helper {
 
 		this.id = id;
 
-		const url = 'https://graphql.anilist.co';
+		const url = 'https://graphql.anilist.co/';
 		const options = this._getHeaders();
 
 		this.loadState = LOAD_STATES['Loading'];
