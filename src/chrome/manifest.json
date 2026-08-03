@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Letterboxd Extras",
 	"description": "Display ratings from other film sites, and other nifty extras, directly on Letterboxd. Fully customizable.",
-	"version": "3.20.2",
+	"version": "3.20.3",
 	"minimum_chrome_version": "116",
 	
 	"action": {
