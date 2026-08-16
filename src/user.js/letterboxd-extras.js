@@ -6028,7 +6028,13 @@ letterboxd.storage.initLocal();
 const observer = new MutationObserver(() => {
 
 	if (window.location.hostname === 'letterboxd.com') {
-		if (window.location.pathname.startsWith('/film/') && !window.location.pathname.includes("ratings")) {
+		if (window.location.pathname.startsWith('/film/') && 
+			!window.location.pathname.includes("/ratings/") && 
+			!window.location.pathname.includes("/members/") && 
+			!window.location.pathname.includes("/fans/") && 
+			!window.location.pathname.includes("/likes/") && 
+			!window.location.pathname.includes("/reviews/") && 
+			!window.location.pathname.includes("/lists/")) {
 			letterboxd.overview.init();
 		}
 		else if (window.location.pathname.startsWith('/search/')) {
