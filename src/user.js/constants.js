@@ -1,4 +1,4 @@
-export const LETTERBOXD_EXTRAS_VERSION = '1.0.0';
+export const LETTERBOXD_EXTRAS_VERSION = '3.20.4';
 
 export const LETTERBOXD_EXTRAS_AUTHORS = [
 	'Duncan Lang', 
@@ -24,7 +24,7 @@ export const CONNECTION_DOMAINS = [
 	'webapp.cinemascore.com',
 	'query.wikidata.org',
 	'metacritic.com',
-	'api.jikan.moe',
+	'api.tenrai.org',
 	'graphql.anilist.co',
 	'api.mubi.com',
 	'apollo.senscritique.com',
