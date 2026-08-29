@@ -2,6 +2,8 @@ const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 document.body.classList.add(isFirefox ? "firefox" : "chrome");
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 if (isChrome)
     var browser = chrome;
 
@@ -28,7 +30,7 @@ var missingContentScripts = [];
 // Load the settings
 async function load() {
     // Get from sync storage
-    var data = await browser.storage.sync.get('options');
+    let data = await browser.storage.sync.get('options');
 
     if (data != undefined && data != null && data.options != null) {
         Object.assign(options, data.options);
@@ -446,6 +448,17 @@ document.addEventListener('click', event => {
         // Reset ratings order
         case "reset-rating-order":
             ResetRatingsOrder();
+            break;
+            
+        // Plex Auth
+        case "plex-auth-button":
+            PlexAuth();
+            break;
+        case "plex-auth-check":
+            CheckPlexAuth();
+            break;
+        case "plex-auth-remove":
+            RemovePlexAuth();
             break;
     }
 
@@ -1035,6 +1048,222 @@ async function deleteCustomList(event) {
     // Remove from the html page
     listItem.remove();
     DetermineNoCustomListsMessage();
+}
+
+
+// PLEX AUTH
+const plexProductName = 'Letterboxd Extras';
+
+var plex = {
+    clientId: null,
+    pinId: null,
+    pinCode: null,
+    token: null
+}
+LoadPlexData();
+
+/**
+ * Load the Plex data from the local storage
+ */
+async function LoadPlexData(){
+    let data = await browser.storage.local.get('plex_data');
+    
+    if (data != undefined && data != null && data.plex_data != null) {
+        Object.assign(plex, data.plex_data);
+    }
+
+    CheckPlexAuth();
+}
+
+/**
+ * Save the Plex data to the local storage
+ */
+async function SavePlexData() {
+    await browser.storage.local.set({ plex_data: plex });
+}
+
+/**
+ * The main Auth flow for Plex
+ */
+async function PlexAuth() {    
+    if (plex.clientId == null)
+        plex.clientId = self.crypto.randomUUID();
+
+    await SavePlexData();
+
+    // Get Pin
+    let url = `https://plex.tv/api/v2/pins?strong=true`
+    var options = {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-Plex-Product': plexProductName,
+            'X-Plex-Client-Identifier': plex.clientId
+        }
+    };
+
+    const response = await new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+            resolve(value);
+        });
+    });
+
+    if (response == null && response.response != null && response.response.id != null) return;
+
+    plex.pinId = response.response.id;
+    plex.pinCode = response.response.code;
+    
+    await SavePlexData();
+
+    // Open Auth URL - &forwardUrl=${browser.runtime.getURL('/options.html')}
+    url = `https://app.plex.tv/auth#?clientID=${plex.clientId}&code=${plex.pinCode}&context%5Bdevice%5D%5Bproduct%5D=${plexProductName}`
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.dispatchEvent(new MouseEvent('click'));
+    
+    document.querySelector('#plex-auth-button').enabled = false;
+    document.querySelector('#plex-auth-check').enabled = false;
+
+    // Check if the pin has been claimed
+    document.querySelector('#plex-auth-status').innerText = 'Checking...';
+    let retries = 0
+    let success = false;
+    while(success == false && retries < 100) {
+        await delay(1000);
+        success = await GetPlexToken();
+        retries++;
+    }
+    
+    await SavePlexData();
+    await CheckPlexAuth();
+}
+
+
+/**
+ * Checks the status of the Plex authentication and updates the visual status label on the DOM
+ */
+async function CheckPlexAuth() {
+    document.querySelector('#plex-auth-status').innerText = 'Checking...';
+    document.querySelector('#plex-auth-button').disabled = true;
+    document.querySelector('#plex-auth-check').disabled = true;
+
+    // Determine if we already have a token, if not we get one if we have the pin id
+    let hasToken = false;
+    if (plex.token != null){
+        hasToken = true;
+    }
+    else if (plex.pinId != null) {
+        hasToken = await GetPlexToken();
+    }
+
+    // Validate the token and determine the status
+    let status = '❌ Not connected.';
+    let success = false;
+    if (hasToken) {
+        let statusCode = await ValidatePlexToken();
+        
+        if (statusCode == 200){
+            status = '✅ Connected.'
+            success = true;
+        }
+        else if (statusCode == 401){
+            status = '❌ Expired.'
+        }
+        else {
+            status = '❌ Unexpected error. Plex may be down or unavailable.'
+        }
+    }
+
+    // Set status
+    if (success == true || plex.pinId == null){
+        document.querySelector('#plex-auth-status').innerText = status;
+        document.querySelector('#plex-auth-button').disabled = false;
+        document.querySelector('#plex-auth-check').disabled = false;
+    }
+}
+
+
+/**
+ * Validates the current token by sending a request to the /user endpoint of the Plex API
+ *
+ * @returns {integer} HTTP status code (200 = success, 401 = auth failure, otherwise Plex error)
+ */
+async function ValidatePlexToken() {
+    let url = 'https://plex.tv/api/v2/user'
+    var options = {
+        method: 'GET',
+        headers: {
+            'Accept': ' application/json',
+            'X-Plex-Product': plexProductName,
+            'X-Plex-Client-Identifier': plex.clientId,
+            'X-Plex-Token': plex.token
+        }
+    };
+
+    const response = await new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+            resolve(value);
+        });
+    });
+    
+    if (response != null && response.status != null){
+        return response.status;
+    }
+
+    return 500
+}
+
+
+/**
+ * Gets the Plex access token using the pin ID
+ *
+ * @returns {Promise<boolean>}
+ */
+async function GetPlexToken() {
+    let url = `https://plex.tv/api/v2/pins/${plex.pinId}`
+    var options = {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Plex-Client-Identifier': plex.clientId
+        }
+    };
+
+    const response = await new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ name: "GETDATA", url: url, options: options, type: "JSON" }, (value) => {
+            resolve(value);
+        });
+    });
+    
+    if (response.response.authToken != null){
+        plex.token = response.response.authToken;
+        plex.pinCode = null;
+        plex.pinId = null;
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
+ * Removes the current Plex Auth
+ */
+async function RemovePlexAuth() {
+
+    plex = {
+        clientId: null,
+        pinId: null,
+        pinCode: null,
+        token: null
+    }
+
+    SavePlexData();
+
+    document.querySelector('#plex-auth-status').innerText = '❌ Not connected.';
+    document.querySelector('#plex-auth-button').disabled = false;
+    document.querySelector('#plex-auth-check').disabled = false;
 }
 
 /*

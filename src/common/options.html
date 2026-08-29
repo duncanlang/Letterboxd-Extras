@@ -21,6 +21,7 @@
         <p class="nav-item" sectionId="rankings">Rankings</p>
         <p class="nav-item" sectionId="content-ratings">Content Ratings</p>
         <p class="nav-item" sectionId="add-links">Additional Links</p>
+        <p class="nav-item" sectionId="watchlists">Watchlists</p>
         <p class="nav-item" sectionId="misc">Misc</p>
         <p class="nav-item" sectionId="google-search">Google</p>
         <p class="nav-item" sectionId="import-export">Import/Export</p>
@@ -455,6 +456,31 @@
             <h4>RogerEbert.com</h4>
             <label for="ebert-link-enabled">Display RogerEbert.com link:</label>
             <input type="checkbox" id="ebert-link-enabled" class="setting"/>
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <!-- Watchlist -->
+    <div id="watchlists">
+        <h3>Watchlists</h3>
+
+        <div>
+            <h4>Plex Watchlist</h4>
+            <div>
+                <label for="plex-watchlist-enabled">Enable Plex Watchlist:</label>
+                <input type="checkbox" id="plex-watchlist-enabled" permission="https://*.plex.tv/*" subid="sub-plex-auth" class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="plex-permissions" class="request-permission" permissionTarget="plex-watchlist-enabled" value="Request Permission"/>
+            </div>
+            <div id="sub-plex-auth" class="subsetting">
+                <p id="plex-auth-status">Checking...</p>
+                <input id="plex-auth-button" type="button" value="Connect to Plex" />
+                <input id="plex-auth-check" type="button" value="Recheck Auth" />
+                <input id="plex-auth-remove" type="button" value="Remove Auth" style="margin-left: 15px;" />
+            </div>
         </div>
     </div>
 

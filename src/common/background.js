@@ -53,7 +53,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
                 let res = await fetch(encodeURI(msg.url), options);
 
-                if (res.status !== 200) {
+                if (res.status > 299) {
                     let errors = res.errors || null;
                     response({ response: null, url: res.url, status: res.status, errors: errors });
                     return;

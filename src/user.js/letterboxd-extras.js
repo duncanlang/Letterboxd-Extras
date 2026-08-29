@@ -872,6 +872,7 @@ const letterboxd = {
 			Kinopoisk_ID: null,
 			MDL_ID: null,
 			StateOfTransmission: null,
+			Plex_ID: null
 		},
 
 		// Rotten Tomatoes
@@ -1618,6 +1619,11 @@ const letterboxd = {
 										this.ebert.id = this.wiki.Ebert_ID.value;
 										this.ebert.url = 'https://www.rogerebert.com/reviews/' + this.ebert.id;
 										this.addLink(this.ebert.url, 'Ebert', 'ebert');
+									}
+
+									// Get Plex ID
+									if (this.wiki && this.wiki.Plex_ID){
+										this.wikiData.Plex_ID = this.wiki.Plex_ID.value;
 									}
 
 									// Check for State of Transmission
@@ -5755,7 +5761,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission ?Plex_ID WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -5788,6 +5794,7 @@ const letterboxd = {
 					"  OPTIONAL { ?item wdt:P3156 ?ACB_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P3216 ?ClassInd_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P12020 ?StateOfTransmission. }\n" +
+        			"  OPTIONAL { ?item wdt:P11460 ?Plex_ID. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P2130 ?Budget_Entry.\n" +
 					"    ?Budget_Entry ps:P2130 ?Budget.\n" +
