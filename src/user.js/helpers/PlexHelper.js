@@ -22,7 +22,7 @@ export class PlexHelper extends Helper {
 	}
 
 	async initialize(){
-		this.loadState = LOAD_STATES['Pending'];
+		this.loadState = LOAD_STATES['Loading']; // Prevent this running multiple times
 		this.enabled = this.storage.get('plex-watchlist-enabled');
 
 		// Create the watchlist button
@@ -31,11 +31,16 @@ export class PlexHelper extends Helper {
 		// Load the cache
 		this._loadCache();
 
+		// TODO - instead of simply getting the token from the storage, rework so it calls the background script
+		// have the background script verify if the token is valid and refresh if necessary
+
 		// Init the auth token
 		const auth_data = await browser.storage.local.get('plex_data').then(function (value) {
 			return value.plex_data;
 		});
 		this.token = auth_data.token;
+
+		this.loadState = LOAD_STATES['Pending']; // Indicate we are now ready and waiting to call the api
 	}
 
 	_createWatchlistButton() {
