@@ -31,16 +31,13 @@ export class PlexHelper extends Helper {
 		// Load the cache
 		this._loadCache();
 
-		// TODO - instead of simply getting the token from the storage, rework so it calls the background script
-		// have the background script verify if the token is valid and refresh if necessary
-
-		// Init the auth token
-		const auth_data = await browser.storage.local.get('plex_data').then(function (value) {
-			return value.plex_data;
+		// Get the currently valid token
+		browser.runtime.sendMessage({ name: "GETPLEXAUTH" }, (value) => {
+			if (value.status == 200){
+				this.token = value.response;
+			}
+			this.loadState = LOAD_STATES['Pending']; // Indicate we are now ready and waiting to call the api
 		});
-		this.token = auth_data.token;
-
-		this.loadState = LOAD_STATES['Pending']; // Indicate we are now ready and waiting to call the api
 	}
 
 	_createWatchlistButton() {

@@ -1061,23 +1061,24 @@ LoadPlexData();
  * Load the Plex data from the local storage
  */
 async function LoadPlexData(){
-    let data = await browser.storage.local.get('plex_data');
-    
-    if (data != undefined && data != null && data.plex_data != null) {
-        Object.assign(plex, data.plex_data);
-    } else {
-        // Init
-        plex = {
-            clientId: self.crypto.randomUUID(),
-            privateKey: null,
-            kid: null,
-            pinId: null,
-            pinCode: null,
-            token: null
-        }
-    }
 
-    CheckPlexAuth();
+    browser.runtime.sendMessage({ name: "GETPLEXAUTH" }, (value) => {
+        if (value.status == 200){
+            Object.assign(plex, value.response);
+        } else {
+            // Init
+            plex = {
+                clientId: self.crypto.randomUUID(),
+                privateKey: null,
+                kid: null,
+                pinId: null,
+                pinCode: null,
+                token: null
+            }
+        }
+        
+        CheckPlexAuth();
+    });
 }
 
 /**
@@ -1321,6 +1322,7 @@ async function GetPlexJWT() {
  */
 async function RemovePlexAuth() {
 
+    // Clear saved auth data
     plex = {
         clientId: plex.clientId, // keep existing clientId
         privateKey: null,
@@ -1329,9 +1331,16 @@ async function RemovePlexAuth() {
         pinCode: null,
         token: null
     }
-
     SavePlexData();
+    
+    // Clear cache
+    let plex_cache = {
+        etag: null,
+        watchlist: null,
+    }
+    await browser.storage.local.set({ plex_cache: plex_cache });
 
+    // Update visual
     document.querySelector('#plex-auth-status').innerText = '❌ Not connected.';
     document.querySelector('#plex-auth-button').disabled = false;
     document.querySelector('#plex-auth-check').disabled = false;

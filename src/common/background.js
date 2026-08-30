@@ -91,6 +91,124 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             var ratingsOrder = getDefaultRatingsOrder();
             response({ value: ratingsOrder });
         })();
+
+    } else if (msg.name == "GETPLEXAUTH") {
+        (async () => {
+            let token = null;
+            
+            // Get the token from the storage
+            const auth_data = await browser.storage.local.get('plex_data').then(function (value) {
+                return value.plex_data;
+            });
+            if (auth_data?.token == null || token == ''){
+                response({ status: 401, response: null });
+                return;
+            }
+
+            // Verify if the token is still valid
+            let url = 'https://plex.tv/api/v2/user'
+            let options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Plex-Client-Identifier': auth_data.clientId,
+                    'X-Plex-Token': auth_data.token
+                }
+            };
+            let validate_result = await fetch(encodeURI(url), options);
+            
+            if (validate_result?.status == 200){
+                console.log('Plex token valid, using existing');
+                response({ status: 200, response: auth_data });
+                return;
+            }
+            
+            console.log('Plex token no longer valid, attempting to refresh');
+
+            // Refresh the token
+            //*****************************
+            // Step 1: Get a Nonce
+            url = `https://clients.plex.tv/api/v2/auth/nonce`
+            options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Plex-Client-Identifier': auth_data.clientId,
+                }
+            };
+            let nonce_result = await fetch(encodeURI(url), options);
+            
+            if (nonce_result == null || nonce_result.status == 500){
+                response({ status: 500, response: null });
+                return;
+            }
+            let json = await nonce_result.json();
+            let nonce = json.nonce;
+
+            // Step 2: Create a Device JWT
+            // Import the privatekey
+            const privateKey = await self.crypto.subtle.importKey(
+                "jwk",
+                JSON.parse(auth_data.privateKey),
+                { name: "Ed25519" },
+                true,
+                ["sign"]
+            );
+
+            const header = {
+                "kid": auth_data.kid,
+                "alg": "EdDSA",
+                "typ": "JWT"
+            }
+            const payload = {
+                "nonce": nonce,
+                "scope": "username,email,friendly_name",
+                "aud": "plex.tv",
+                "iss": auth_data.clientId
+            }
+
+            const encodedHeader = base64UrlEncode(JSON.stringify(header));
+            const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+            const signingInput = `${encodedHeader}.${encodedPayload}`;
+
+            const encoder = new TextEncoder();
+            const signature = await self.crypto.subtle.sign(
+                { name: "Ed25519" },
+                privateKey,
+                encoder.encode(signingInput)
+            );
+
+            const encodedSignature = base64UrlEncode(signature);
+            let deviceJWT = `${signingInput}.${encodedSignature}`;
+
+            // Step 3: Exchange for Plex Token
+            const requestBody = {
+                jwt: deviceJWT
+            };
+            url = `https://clients.plex.tv/api/v2/auth/token`
+            options = {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Plex-Client-Identifier': auth_data.clientId,
+                },
+                body: JSON.stringify(requestBody)
+            };
+            let token_result = await fetch(encodeURI(url), options);
+
+            if (token_result == null || token_result.status == 500){
+                response({ status: 500, response: null });
+                return;
+            }
+            json = await token_result.json();
+            auth_data.token = json.auth_token;
+
+            // Save and return the message
+            await browser.storage.local.set({ plex_data: auth_data });
+            response({ status: 200, response: auth_data });
+
+        })();
     } else {
         response({ value: "" });
     }
@@ -361,4 +479,22 @@ async function UpdateExistingSettings(newSettings) {
 
     // Save
     await browser.storage.sync.set({ options });
+}
+
+
+// Helper for Base64URL encoding
+function base64UrlEncode(input) {
+    let base64;
+    if (typeof input === 'string') {
+        base64 = btoa(input);
+    } else {
+        // If it's an ArrayBuffer (like the signature)
+        const bytes = new Uint8Array(input);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        base64 = btoa(binary);
+    }
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
