@@ -53,7 +53,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
                 let res = await fetch(encodeURI(msg.url), options);
 
-                if (res.status > 299) {
+                if (res.status >= 400) {
                     let errors = res.errors || null;
                     response({ response: null, url: res.url, status: res.status, errors: errors });
                     return;
@@ -61,7 +61,7 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
                 // Handle response
                 let resData = (msg.type === "JSON") ? await res.json() : await res.text();
-                response({ response: resData, url: res.url, status: res.status });
+                response({ response: resData, url: res.url, status: res.status, etag: res.headers?.get('etag') ?? null });
 
             })();
 

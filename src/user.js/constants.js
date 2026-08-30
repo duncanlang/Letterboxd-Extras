@@ -34,5 +34,6 @@ export const CONNECTION_DOMAINS = [
 	'google.com',
 	'doesthedogdie.com',
 	'markuapi.kabk.dev',
-	'kinopoiskapiunofficial.tech'
+	'kinopoiskapiunofficial.tech',
+	'plex.tv'
 ];

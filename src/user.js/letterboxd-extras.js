@@ -13,6 +13,7 @@ import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
+import { PlexHelper } from './helpers/PlexHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -790,6 +791,10 @@ GM_addStyle(`
 		.extras-statistics-list {
 			flex-wrap: wrap;
 		}
+		.extras-menubutton.disabled {
+			opacity: 50%;
+			cursor: not-allowed;
+		}
 	`);
 
 /* eslint-disable */
@@ -944,6 +949,9 @@ const letterboxd = {
 
 		// RogerEbert.com
 		ebert: { id: null, url: null },
+
+		// Plex Helper
+		plexHelper: null,
 
 		kinopoiskHelper: null,
 
@@ -1348,6 +1356,11 @@ const letterboxd = {
 						this.addDurationMobile();
 					}
 				}
+			}
+
+			// Init the PlexHandler
+			if (this.plexHelper.loadState == LOAD_STATES['Uninitialized'] && document.querySelector('li.panel-sharing') != null){
+				this.plexHelper.initialize();
 			}
 
 			if (this.pageState.filmWatched != null){
@@ -1882,7 +1895,7 @@ const letterboxd = {
 					else if (this.letterboxdTitle != null && this.altTitleList != null){
 						this.searchFilmarks();
 					}
-				}
+				}				
 			} 
 
 			if (letterboxd.storage.get('convert-ratings') === "5") {
@@ -1927,6 +1940,17 @@ const letterboxd = {
 					}
 
 					this.contentRatingAdded = true; // prevents this from running again regardless of the rating being added
+				}
+			}
+			
+			// Load the Plex Watchlist Data here
+			if (this.wikiData.state == LOAD_STATES['Success'] && this.plexHelper.loadState == LOAD_STATES['Pending']){
+				if (this.wikiData.Plex_ID != null){
+					this.plexHelper.checkWatchlistStatus(this.wikiData.Plex_ID);
+				}
+				else{
+					// if there is no id, we still pass this so we can tell the user that we're unable to match the movie
+					this.plexHelper.checkWatchlistStatus(null);
 				}
 			}
 
@@ -6021,6 +6045,7 @@ const moduleConfigs = [
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
+	{ class: PlexHelper, target: letterboxd.overview, property: 'plexHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {
