@@ -100,8 +100,13 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             const auth_data = await browser.storage.local.get('plex_data').then(function (value) {
                 return value.plex_data;
             });
-            if (auth_data?.token == null || token == ''){
+            if (auth_data == null || auth_data.clientId == null){
                 response({ status: 401, response: null });
+                return;
+            }
+            if (auth_data != null && auth_data.pinId != null && auth_data.token == null){
+                console.log('No Plex token, but pinId is present (use is mid auth flow).');
+                response({ status: 200, response: auth_data });
                 return;
             }
 
@@ -344,6 +349,9 @@ async function InitDefaultSettings() {
     if (options['ddd-api-enabled'] == null) {
         options['ddd-api-enabled'] = options['ddd-apikey'] != '';
     }
+    
+    if (options['plex-watchlist-enabled'] == null) options['plex-watchlist-enabled'] = false;
+    if (options['plex-link-enabled'] == null) options['plex-link-enabled'] = false;
 
     // Save
     await browser.storage.sync.set({ options });

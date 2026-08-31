@@ -1052,10 +1052,40 @@ async function deleteCustomList(event) {
 
 
 // PLEX AUTH
-const plexProductName = 'Letterboxd Extras';
+const plexProductInfo = {
+    name: 'Letterboxd Extras',
+    version: '',
+    platform: '',
+    browser: '',
+    browserVersion: 'Unknown',
+}
 
 var plex = {}
 LoadPlexData();
+
+GetProductInfo();
+async function GetProductInfo() {
+    let platform = await browser.runtime.getPlatformInfo();
+    
+    if (platform.os == 'win'){
+        plexProductInfo.platform = 'Windows';
+    }
+    else if (platform.os == 'mac'){
+        plexProductInfo.platform = 'macOS';
+    }
+    else if (platform.os == 'android'){
+        plexProductInfo.platform = 'Android';
+    }
+    else if (platform.os == 'linux'){
+        plexProductInfo.platform = 'Linux';
+    }
+    else {
+        plexProductInfo.platform = platform.os;
+    }
+
+    plexProductInfo.browser = isChrome ? "Chromium" : "Firefox";
+    plexProductInfo.version = browser.runtime.getManifest().version
+}
 
 /**
  * Load the Plex data from the local storage
@@ -1128,7 +1158,7 @@ async function PlexAuth() {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-Plex-Product': plexProductName,
+            'X-Plex-Product': plexProductInfo.name,
             'X-Plex-Client-Identifier': plex.clientId
         },
         body: JSON.stringify(requestBody)
@@ -1148,9 +1178,21 @@ async function PlexAuth() {
     plex.pinId = result.response.id;
     plex.pinCode = result.response.code;
     
+    await SavePlexData();
+    
     // Step 2: User Authentication
     //*****************************************
-    url = `https://app.plex.tv/auth#?clientID=${plex.clientId}&code=${plex.pinCode}&context%5Bdevice%5D%5Bproduct%5D=${plexProductName}`
+    url = `https://app.plex.tv/auth#?clientID=${plex.clientId}&code=${plex.pinCode}`;
+    url += `&context[device][product]=${plexProductInfo.name}`;
+    url += `&context[device][version]=${plexProductInfo.version}`;
+    url += `&context[device][platform]=${plexProductInfo.browser}`;
+    url += `&context[device][platformVersion]=${plexProductInfo.browserVersion}`;
+    url += `&context[device][device]=${plexProductInfo.platform}`;
+    url += `&context[device][deviceName]=${plexProductInfo.name} (${plexProductInfo.browser})`;
+    url += `&context[device][deviceName]=${plexProductInfo.name} (${plexProductInfo.browser})`;
+
+    url = encodeURI(url);
+    
     const a = document.createElement('a');
     a.href = url;
     a.target = '_blank';
@@ -1158,7 +1200,6 @@ async function PlexAuth() {
 
     document.querySelector('#plex-auth-button').disabled = true;
     document.querySelector('#plex-auth-check').disabled = true;
-    document.querySelector('#plex-auth-remove').disabled = true;
 
     // Check if the pin has been claimed
     document.querySelector('#plex-auth-status').innerText = 'Checking...';
@@ -1182,7 +1223,6 @@ async function CheckPlexAuth() {
     document.querySelector('#plex-auth-status').innerText = 'Checking...';
     document.querySelector('#plex-auth-button').disabled = true;
     document.querySelector('#plex-auth-check').disabled = true;
-    document.querySelector('#plex-auth-remove').disabled = true;
 
     // Determine if we already have a token, if not we get one if we have the pin id
     let hasToken = false;
@@ -1212,12 +1252,9 @@ async function CheckPlexAuth() {
     }
 
     // Set status
-    if (success == true || plex.pinId == null){
-        document.querySelector('#plex-auth-status').innerText = status;
-        document.querySelector('#plex-auth-button').disabled = success;
-        document.querySelector('#plex-auth-check').disabled = false;
-        document.querySelector('#plex-auth-remove').disabled = false;
-    }
+    document.querySelector('#plex-auth-status').innerText = status;
+    document.querySelector('#plex-auth-button').disabled = success;
+    document.querySelector('#plex-auth-check').disabled = !success;
 }
 
 
@@ -1232,7 +1269,7 @@ async function ValidatePlexToken() {
         method: 'GET',
         headers: {
             'Accept': 'application/json',
-            'X-Plex-Product': plexProductName,
+            'X-Plex-Product': plexProductInfo.name,
             'X-Plex-Client-Identifier': plex.clientId,
             'X-Plex-Token': plex.token
         }
@@ -1323,8 +1360,10 @@ async function GetPlexJWT() {
 async function RemovePlexAuth() {
 
     // Clear saved auth data
+    let existingClientId = plex.clientId;
+
     plex = {
-        clientId: plex.clientId, // keep existing clientId
+        clientId: existingClientId, // keep existing clientId
         privateKey: null,
         kid: null,
         pinId: null,

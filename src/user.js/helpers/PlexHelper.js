@@ -12,36 +12,45 @@ export class PlexHelper extends Helper {
 
 	constructor(storage, helpers, pageState) {
 
-		super(storage, helpers, pageState, 'plex-watchlist');
+		super(storage, helpers, pageState, 'plex');
 
 		this.loadState = LOAD_STATES['Uninitialized'];
 		this.id = null;
 		this.token = null;
 		this.watchlist = [];
 		this.etag = null;
+		this.watchlistStatus = 0;
 	}
 
 	async initialize(){
 		this.loadState = LOAD_STATES['Loading']; // Prevent this running multiple times
 		this.enabled = this.storage.get('plex-watchlist-enabled');
+		this.linkEnabled = this.storage.get('plex-link-enabled');
 
-		// Create the watchlist button
-		this._createWatchlistButton();
+		if (this.enabled) {
+			// Create the watchlist button
+			this._createWatchlistButton();
 
-		// Load the cache
-		this._loadCache();
+			// Load the cache
+			this._loadCache();
 
-		// Get the currently valid token
-		browser.runtime.sendMessage({ name: "GETPLEXAUTH" }, (value) => {
-			if (value.status == 200){
-				this.token = value.response;
-			}
-			this.loadState = LOAD_STATES['Pending']; // Indicate we are now ready and waiting to call the api
-		});
+			// Get the currently valid token
+			browser.runtime.sendMessage({ name: "GETPLEXAUTH" }, (value) => {
+				if (value.status == 200 && value?.response?.token != null){
+					this.token = value.response.token;
+				}
+				this.loadState = LOAD_STATES['Pending']; // Indicate we are now ready and waiting to call the api
+			});
+		}
 	}
 
 	_createWatchlistButton() {
 		if (!this.enabled) return;
+
+		// TODO - we need to do this differently on mobile
+		// it technically works for mobile, but only when logged in to letterboxd (the panel doesn't appear when not)
+		// and can also get hidden behind the url bar
+		// lets see if we can just put it on the page instead of in the menu below the share button
 
 		const menuItem = this.helpers.createElement('li', {
 			class: ''
@@ -81,22 +90,30 @@ export class PlexHelper extends Helper {
 		this.loadState = LOAD_STATES['Loading'];
 		this.id = id;
 
-		if (!this.enabled) return;
-
-		if (this.id != null){
-			// Check if already on watchlist
-			await this._checkWatchlist();
-
-			// Set the button based on the current watchlist status
-			this._updateWatchlistButton();
-			
-			this.addButton.disabled = false;
-			this.addButton.classList.remove('disabled');
+		if (!this.enabled){
+			this.loadState = LOAD_STATES['Success'];
+			return;
 		}
-		else {
-			this.addButton.setAttribute('data-original-title', 'Unable to match to Plex ID');
-			this.addButton.addEventListener('mouseover', ShowTwipsy);
-			this.addButton.addEventListener('mouseout', HideTwipsy);
+		// Watchlist functionality
+		if (this.enabled) {
+			if (this.id != null){
+				// Check if already on watchlist
+				await this._checkWatchlist();
+
+				// Set the button based on the current watchlist status
+				this._updateWatchlistButton();
+			}
+			else {
+				this.addButton?.setAttribute('data-original-title', 'Unable to match to Plex ID');
+				this.addButton?.addEventListener('mouseover', ShowTwipsy);
+				this.addButton?.addEventListener('mouseout', HideTwipsy);
+			}
+		}
+
+		// Additional Link
+		if (this.linkEnabled && this.id != null) {
+			let url = `https://app.plex.tv/desktop/#!/provider/tv.plex.provider.discover/details?key=/library/metadata/${this.id}`;
+			this.addButtonLink(url, 'Plex');
 		}
 
 		this.loadState = LOAD_STATES['Success'];
@@ -104,16 +121,33 @@ export class PlexHelper extends Helper {
 	
 	_updateWatchlistButton() {
 
+		let tooltip = '';
+
 		// Add the event based on whether the film is on the watchlist
-		if (this.watchlist.includes(this.id)) {
+		if (this.watchlistStatus == 401 ) {
+			tooltip = 'Plex API returned unauthorized. Verify authentication';
+		}
+		else if (this.watchlistStatus != 200 ) {
+			tooltip = 'There was an error fetching your watchlist';
+		}
+		else if (this.watchlist.includes(this.id)) {
 			this.addButton.style.display = 'none';
 			this.removeButton.style.display = '';
 		}
-		else{
+		else {
+			this.addButton.disabled = false;
+			this.addButton.classList.remove('disabled');
+
 			this.addButton.style.display = '';
 			this.removeButton.style.display = 'none';
 		}
 
+
+		if (tooltip != '') {
+			this.addButton?.setAttribute('data-original-title', tooltip);
+			this.addButton?.addEventListener('mouseover', ShowTwipsy);
+			this.addButton?.addEventListener('mouseout', HideTwipsy);
+		}
 	}
 
 	async _checkWatchlist() {
@@ -139,14 +173,18 @@ export class PlexHelper extends Helper {
 			});
 
 			// Call error
+			if (result != null && (result.status >= 400 || result.etag == null)){
+				this.helpers.WriteConsoleLog('ERROR', `Unable to fetch entire watchlist, call returned status ${result.status}.`);
+				this.watchlistError = true;
+				return;
+			}
 			if (result == null || result.status == null || result.response == null){
 				this.helpers.WriteConsoleLog('ERROR', `Unable to fetch entire watchlist, error unknown.`);
+				this.watchlistError = true;
 				return;
 			}
-			if (result.status >= 400 || result.etag == null){
-				this.helpers.WriteConsoleLog('ERROR', `Unable to fetch entire watchlist, call returned status ${result.status}.`);
-				return;
-			}
+			this.watchlistStatus = result.status;
+
 			// Check for etag, if the same use the cache
 			if (this.etag === result.etag){
 				this.helpers.WriteConsoleLog('DEBUG', `Watchlist call returned same etag, using cached list.`);
