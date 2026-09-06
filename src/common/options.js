@@ -1123,6 +1123,13 @@ async function SavePlexData() {
  */
 async function PlexAuth() {
 
+    // Clear out old pinid if one is saved
+    if (plex.pinId != null){
+        plex.pinId = null;
+        plex.pinCode = null;
+        await SavePlexData();
+    }
+
     // Step 1: Generate a PIN with JWK
     //*****************************************
 
@@ -1177,7 +1184,6 @@ async function PlexAuth() {
 
     plex.pinId = result.response.id;
     plex.pinCode = result.response.code;
-    
     await SavePlexData();
     
     // Step 2: User Authentication
@@ -1188,7 +1194,6 @@ async function PlexAuth() {
     url += `&context[device][platform]=${plexProductInfo.browser}`;
     url += `&context[device][platformVersion]=${plexProductInfo.browserVersion}`;
     url += `&context[device][device]=${plexProductInfo.platform}`;
-    url += `&context[device][deviceName]=${plexProductInfo.name} (${plexProductInfo.browser})`;
     url += `&context[device][deviceName]=${plexProductInfo.name} (${plexProductInfo.browser})`;
 
     url = encodeURI(url);
@@ -1348,6 +1353,7 @@ async function GetPlexJWT() {
         plex.token = result.response.authToken;
         plex.pinCode = null;
         plex.pinId = null;
+        await SavePlexData();
         return true;
     }
     

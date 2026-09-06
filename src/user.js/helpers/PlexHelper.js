@@ -47,11 +47,6 @@ export class PlexHelper extends Helper {
 	_createWatchlistButton() {
 		if (!this.enabled) return;
 
-		// TODO - we need to do this differently on mobile
-		// it technically works for mobile, but only when logged in to letterboxd (the panel doesn't appear when not)
-		// and can also get hidden behind the url bar
-		// lets see if we can just put it on the page instead of in the menu below the share button
-
 		const menuItem = this.helpers.createElement('li', {
 			class: ''
 		});

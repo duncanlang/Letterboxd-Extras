@@ -104,6 +104,10 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
                 response({ status: 401, response: null });
                 return;
             }
+            if (auth_data.pinId == null && auth_data.token == null){
+                response({ status: 401, response: auth_data });
+                return;
+            }
             if (auth_data != null && auth_data.pinId != null && auth_data.token == null){
                 console.log('No Plex token, but pinId is present (use is mid auth flow).');
                 response({ status: 200, response: auth_data });
