@@ -20,6 +20,19 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
     margin: 0px;
+
+    max-width: 99%;
+}
+
+@media (prefers-color-scheme: light) {
+    body {        
+        --text-color-success: green;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    body {
+        --text-color-success: lightgreen;
+    }
 }
 
 body.android{
@@ -42,11 +55,16 @@ body.chrome{
 }
 
 .hidden {
-  display: none !important;
+    display: none !important;
+}
+
+.center {
+    max-width: 700px !important;
+    margin: 0 auto !important;
 }
 
 hr {
-    width: 98%;
+    width: 99%;
 }
 
 body.android{
@@ -120,6 +138,15 @@ label:NOT(.radio) {
     position: sticky;
     z-index: 100;
     top: 0px;
+}
+
+.bottomtext {
+    bottom: 0px;
+    position: sticky;
+    z-index: 100;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0), var(--body-back-color));
 }
 
 body.androidpup .topnav{

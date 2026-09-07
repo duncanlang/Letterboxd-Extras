@@ -296,20 +296,27 @@ document.addEventListener('change', event => {
                     checkSubIDToDisable(element);
                 });
             } else {
-                // Remove the permission
-                browser.permissions.remove(permissionsToRequest, (removed) => {
-                    if (removed) {
-                        ValidatePermission(element);
-                        if (element.getAttribute('contentScript') != null) {
-                            registerContentScript(element);
+                // Remove the permission, first check if another setting needs this permission
+                const otherSettings = document.querySelectorAll(`input[type="checkbox"][permission="${origins}"]`);
+                const stillRequired = Array.from(otherSettings)
+                    .filter(checkbox => checkbox != element)
+                    .some(checkbox => checkbox.checked);
+
+                if (!stillRequired){
+                    browser.permissions.remove(permissionsToRequest, (removed) => {
+                        if (removed) {
+                            ValidatePermission(element);
+                            if (element.getAttribute('contentScript') != null) {
+                                registerContentScript(element);
+                            }
+                        } else {
+                            element.checked = true;
+                            options[element.id] = element.checked;
+                            save();
                         }
-                    } else {
-                        element.checked = true;
-                        options[element.id] = element.checked;
-                        save();
-                    }
-                    checkSubIDToDisable(element);
-                });
+                        checkSubIDToDisable(element);
+                    });
+                }
             }
         }
 

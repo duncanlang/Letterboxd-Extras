@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letterboxd Extras - Setup</title>
+    
+    <link rel="stylesheet" href="options.css">
+    <link rel="stylesheet" href="colour_scheme.css">
+    <link rel="icon" type="image/png" href="icon128.png">
+</head>
+
+<body class="center">
+
+    <h2>Letterboxd Extras Setup</h2>
+
+    <p>Letterboxd Extras has been installed. Settings that require external host permissions are disabled by default, this includes all additional ratings settings such as IMDb, Rotten Tomatoes, and Metacritic ratings.</p>
+    
+    <div>
+        <h3>Configure your Settings</h3>
+        <p>You can click the button below to enable the recommended settings for a quick start, or go to the full settings page to configure your own.</p>
+        <input type="button" id="button-recommended" value="Use recommended settings"/>
+        <br>
+        <br>
+        <a id="settings-link" class="hyperlink">View all settings</a>
+    </div>
+
+    <br>
+    <hr>
+    <br>
+
+    <div>
+        <h3>Import your Settings</h3>
+        <div>
+            <h4>Settings</h4>
+            <div>
+                <input type="button" id="importSettings" value="Import from File" />
+                <input type="file" accept="application/json" id="importSettings-picker">
+            </div>
+        </div>
+        <div>
+            <h4>Custom Rankings</h4>
+            <div>
+                <input type="button" id="importLists" value="Import from File" />
+                <input type="file" accept="application/json" id="importLists-picker">
+            </div>
+        </div>
+    </div>
+    <hr>
+    <p id="success-text" class="bottomtext" style="color: var(--text-color-success); display: none;">You can now close this tab</p>
+
+    
+    <script src="setup.js"></script>
+</body>
+
+</html>

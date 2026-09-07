@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "Letterboxd Extras",
 	"description": "Display ratings from other film sites, and other nifty extras, directly on Letterboxd. Fully customizable.",
-	"version": "3.20.4",
+	"version": "4.0.0",
 
 	"browser_specific_settings": {
 		"gecko_android": {
@@ -51,18 +51,18 @@
 
 	"permissions": [
 		"https://letterboxd.com/*",
-		"https://*.imdb.com/*",
-		"https://www.rottentomatoes.com/*",
-		"https://www.boxofficemojo.com/*",
-		"https://webapp.cinemascore.com/*",
 		"https://query.wikidata.org/*",
-		"https://www.metacritic.com/*",
-		"https://graphql.anilist.co/*",
 		"storage",
 		"scripting"
 	],
 
 	"optional_permissions": [
+		"https://*.imdb.com/*",
+		"https://www.rottentomatoes.com/*",
+		"https://www.boxofficemojo.com/*",
+		"https://webapp.cinemascore.com/*",
+		"https://www.metacritic.com/*",
+		"https://graphql.anilist.co/*",
 		"https://apollo.senscritique.com/*",
 		"https://api.mubi.com/*",
 		"https://*.filmaffinity.com/*",

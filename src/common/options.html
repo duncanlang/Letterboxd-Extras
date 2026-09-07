@@ -27,10 +27,11 @@
         <p class="nav-item" sectionId="debug">Debug</p>
     </section>
 
+    <!-- Missing Permissions -->
     <div id="requestalldiv">
         <h3>Missing Permissions</h3>
         <div>
-            <p class="info-tip">You are missing some permissions needed for certain enabled settings.</p>
+            <p class="info-tip">You are missing some permissions needed for currently enabled settings.</p>
             <input type="button" id="requestall" value="Request Missing Permissions" />
         </div>
         <hr width="100%">
@@ -43,7 +44,11 @@
             <h4>IMDb</h4>
             <div>
                 <label for="imdb-enabled">Display IMDb:</label>
-                <input type="checkbox" id="imdb-enabled" class="setting"/>
+                <input type="checkbox" id="imdb-enabled" permission="https://*.imdb.com/*" class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="imdb-permissions" class="request-permission" permissionTarget="imdb-enabled" value="Request Permission"/>
             </div>
         </div>
         <div>
@@ -61,14 +66,22 @@
             <h4>AniList</h4>
             <div>
                 <label for="al-enabled">Display AniList:</label>
-                <input type="checkbox" id="al-enabled" class="setting"/>
+                <input type="checkbox" id="al-enabled" permission="https://graphql.anilist.co/*" class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="al-permissions" class="request-permission" permissionTarget="al-enabled" value="Request Permission"/>
             </div>
         </div>
         <div>
             <h4>Rotten Tomatoes</h4>
             <div>
                 <label for="tomato-enabled">Display Rotten Tomatoes:</label>
-                <input type="checkbox" id="tomato-enabled" subid="tomato-div" class="setting"/>
+                <input type="checkbox" id="tomato-enabled" permission="https://www.rottentomatoes.com/*" subid="tomato-div" class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="tomato-permissions" class="request-permission" permissionTarget="tomato-enabled" value="Request Permission"/>
             </div>
             <div id="tomato-div" class="subsetting">
                 <div>
@@ -107,7 +120,11 @@
             <h4>Metacritic</h4>
             <div>
                 <label for="metacritic-enabled">Display Metacritic:</label>
-                <input type="checkbox" id="metacritic-enabled" subid="meta-div"class="setting"/>
+                <input type="checkbox" id="metacritic-enabled" permission="https://www.metacritic.com/*" subid="meta-div"class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="metacritic-permissions" class="request-permission" permissionTarget="metacritic-enabled" value="Request Permission"/>
             </div>
             <div id="meta-div" class="subsetting">
                 <div>
@@ -269,7 +286,11 @@
             <h4>CinemaScore</h4>
             <div>
                 <label for="cinema-enabled">Display CinemaScore:</label>
-                <input type="checkbox" id="cinema-enabled" class="setting"/>
+                <input type="checkbox" id="cinema-enabled" permission="https://webapp.cinemascore.com/*" class="setting"/>
+            </div>
+            <div class="div-request-permission">
+                <label style="color: red;">! Missing Permission !</label>
+                <input type="button" id="cinema-permissions" class="request-permission" permissionTarget="cinema-enabled" value="Request Permission"/>
             </div>
         </div>
     </div>
@@ -355,7 +376,7 @@
         </div>
         <div>
             <label for="imdb-250-enabled">Show IMDb top 250 rankings:</label>
-            <input type="checkbox" id="imdb-250-enabled" class="setting"/>
+            <input type="checkbox" id="imdb-250-enabled" permission="https://*.imdb.com/*" class="setting"/>
         </div>
         <div>
             <label for="ebert-great-enabled">Show Roger Ebert Great Movies:</label>

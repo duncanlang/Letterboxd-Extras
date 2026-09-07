@@ -3,6 +3,7 @@
 const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 
+var hasSyncSettings = false;
 
 if (isChrome)
     var browser = chrome;
@@ -76,7 +77,15 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         return (async () => {
             var options = {};
             await browser.storage.sync.set({ options });
-            await InitDefaultSettings();
+            await InitDefaultSettings(false);
+            return true;
+        })();
+
+    } else if (msg.name == "SETRECOMMENDEDSETTINGS") { // Set recommended settings
+        return (async () => {
+            var options = {};
+            await browser.storage.sync.set({ options });
+            await InitDefaultSettings(true);
             return true;
         })();
 
@@ -129,12 +138,13 @@ async function registerContentScripts() {
 }
 
 // InitDefaultSettings - Run every update/install to make sure all settings are initilized
-async function InitDefaultSettings() {
+async function InitDefaultSettings(recommended) {
     // Get options from sync
     var options = {};
     const data = await browser.storage.sync.get('options');
     if (data != null && data.options != null) {
         Object.assign(options, data.options);
+        hasSyncSettings = true;
     }
 
     if (options == null)
@@ -150,14 +160,26 @@ async function InitDefaultSettings() {
         options['mpa-enabled'] = null;
     }
 
+    // Recommended settings
+    if (recommended){
+        if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
+        if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
+        if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
+        if (options['mal-enabled'] == null) options['mal-enabled'] = true;
+        if (options['al-enabled'] == null) options['al-enabled'] = true;
+        if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
+        if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
+    } else {
+        if (options['imdb-enabled'] == null) options['imdb-enabled'] = false;
+        if (options['tomato-enabled'] == null) options['tomato-enabled'] = false;
+        if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = false;
+        if (options['mal-enabled'] == null) options['mal-enabled'] = false;
+        if (options['al-enabled'] == null) options['al-enabled'] = false;
+        if (options['cinema-enabled'] == null) options['cinema-enabled'] = false;
+        if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = false;
+    }
+
     // Default enabled settings
-    if (options['imdb-enabled'] == null) options['imdb-enabled'] = true;
-    if (options['tomato-enabled'] == null) options['tomato-enabled'] = true;
-    if (options['metacritic-enabled'] == null) options['metacritic-enabled'] = true;
-    if (options['mal-enabled'] == null) options['mal-enabled'] = true;
-    if (options['al-enabled'] == null) options['al-enabled'] = true;
-    if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
-    if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
     if (options['wiki-link-enabled'] == null) options['wiki-link-enabled'] = true;
     if (options['tomato-critic-enabled'] == null) options['tomato-critic-enabled'] = true;
     if (options['tomato-audience-enabled'] == null) options['tomato-audience-enabled'] = true;
@@ -269,7 +291,7 @@ function UpdateRatingsOrder(currentOrder) {
 
 async function InitLocalStorage() {
     // Get options from sync
-    var options = {};
+    let options = {};
     const data = await browser.storage.local.get('options');
     if (data != null && data.options != null) {
         Object.assign(options, data.options);
@@ -284,7 +306,7 @@ async function InitLocalStorage() {
 // Convert storage.local to storage.sync (Firefox)
 async function ConvertLocalToSync() {
     // Get from local
-    var options = await browser.storage.local.get().then(function (storedSettings) {
+    let options = await browser.storage.local.get().then(function (storedSettings) {
         return storedSettings;
     });
 
@@ -300,8 +322,15 @@ browser.runtime.onStartup.addListener(registerContentScripts);
 browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason == 'install') {
         // Init the default settings
-        await InitDefaultSettings();
+        await InitDefaultSettings(false);
         await InitLocalStorage();
+
+        if (hasSyncSettings == false){
+            browser.tabs.create({
+                url: "/setup.html",
+                active: true
+            });
+        }
     }
     else if (details.reason == 'update') {
         // Convert from previous versions
@@ -310,7 +339,8 @@ browser.runtime.onInstalled.addListener(async (details) => {
         if (parseInt(version[0]) == 3 && parseInt(version[1]) < 16 && isFirefox) {
             await ConvertLocalToSync();
         }
-        else if (parseInt(version[0]) == 3 && parseInt(version[1]) < 19) {
+        
+        if (parseInt(version[0]) == 3 && parseInt(version[1]) < 19) {
             // Force enable the settings
             await UpdateExistingSettings([
                 { key: 'bfi-enabled', value: true },
@@ -319,7 +349,7 @@ browser.runtime.onInstalled.addListener(async (details) => {
         }
 
         // Init default settings
-        await InitDefaultSettings();
+        await InitDefaultSettings(false);
         await InitLocalStorage();
     }
     else if (details.reason == 'browser_update' || details.reason == 'chrome_update') {
