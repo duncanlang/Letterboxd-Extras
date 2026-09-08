@@ -128,10 +128,16 @@ label:NOT(.radio) {
 }
 
 body.popup label, body.android label:NOT(.radio) {
-    width: 200px;
+    width: 230px;
+}
+body.popup div.subsetting label, body.android div.subsetting label:NOT(.radio) {
+    width: 215px;
 }
 body:not(.popup):not(.android) label:NOT(.radio) {
     width: 500px;
+}
+body:not(.popup):not(.android) div.subsetting label:NOT(.radio)  {
+    width: 485px;
 }
 
 .div-request-permission,

@@ -30,7 +30,7 @@ async function setRecommendedSettings() {
     if (response) {
 
         browser.runtime.sendMessage({ name: "SETRECOMMENDEDSETTINGS" }, (value) => {
-            document.querySelector('#success-text').style.display = '';
+            document.querySelector('#success-text').classList.remove('hidden');
         });
     }
 }

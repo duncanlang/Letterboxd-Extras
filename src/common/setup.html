@@ -18,17 +18,19 @@
         
         <div style="margin-left: 15px; margin-right: 15px;">
             <h2>Letterboxd Extras Setup</h2>
-            <p>Letterboxd Extras has been installed. Settings that require host permissions are disabled by default, this includes displaying of all additional ratings such as IMDb, Rotten Tomatoes, and Metacritic ratings.</p>
+            <p>Letterboxd Extras has been installed. Settings that require host permissions are disabled by default, this includes settings for additional ratings such as IMDb, Rotten Tomatoes, and Metacritic ratings.</p>
         </div>
 
         <div class="settings-container">
             <h3>Configure your Settings</h3>
             <div class="settings-group">
                 <div>
-                    <p>You can click the button below to enable the recommended settings for a quick start, or go to the full settings page to configure your own.</p>
+                    <p>You can click the button below to enable the recommended settings for a quick start, or go to the full settings page to configure your own:</p>
+                </div>
+                <div>
                     <input type="button" id="button-recommended" value="Use recommended settings"/>
-                    <br>
-                    <br>
+                </div>
+                <div>
                     <a id="settings-link" class="hyperlink">View all settings</a>
                 </div>
             </div>
@@ -37,6 +39,9 @@
         <div class="settings-container">
             <h3>Import your Settings</h3>
             <div class="settings-group">
+                <div>
+                    <p>If you are coming from a prior install or another browser, you can import your previous settings from file:</p>
+                </div>
                 <div>
                     <h4>Settings</h4>
                     <div>
@@ -55,13 +60,14 @@
         </div>
 
         <div style="margin-left: 15px; margin-right: 15px;">
-            <p id="success-text" class="bottomtext" style="color: var(--text-color-success); display: none;">You can now close this tab</p>
+            <p id="success-text" class="bottomtext hidden" style="color: var(--text-color-success);">You can now close this tab</p>
         </div>
     </div>
     
 
     <script src="env.js"></script>
     <script src="setup.js"></script>
+    <script src="import.js"></script>
 </body>
 
 </html>
