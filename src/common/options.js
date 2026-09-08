@@ -1,8 +1,6 @@
-const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
-const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 document.body.classList.add(isFirefox ? "firefox" : "chrome");
 
-if (isChrome)
+if (isChrome && typeof browser === "undefined")
     var browser = chrome;
 
 let isAndroid = (navigator.userAgent.includes('Android'));
@@ -40,7 +38,7 @@ async function load() {
 // Load the custom lists
 async function loadCustomLists() {
     // Get from local storage
-    const data = await browser.storage.local.get({ custom_lists });
+    var data = await browser.storage.local.get('custom_lists');
 
     if (data != undefined && data != null && data.custom_lists != null) {
         custom_lists = data.custom_lists;

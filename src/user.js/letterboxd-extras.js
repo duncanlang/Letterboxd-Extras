@@ -1360,7 +1360,7 @@ const letterboxd = {
 					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true) {
 						this.imdbData.state = 1;
 
-						var options = letterboxd.helpers.getImdbQuery(this.imdbID);
+						let options = letterboxd.helpers.getImdbQuery(this.imdbID);
 						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: 'https://api.graphql.imdb.com/', options: options }, (value) => {
 							if (letterboxd.helpers.ValidateResponse("IMDb Ratings", value) == false){
 								return;
@@ -1380,12 +1380,15 @@ const letterboxd = {
 							}
 							this.imdbData.state = 2;
 						});
+					}
 
-						// Call BoxOfficeMojo
-						var mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID + '/';
-						if (letterboxd.storage.get('mojo-link-enabled') === true) {
-							this.addLink(mojoURL, 'MOJO', 'mojo');
-						}
+					// Add BoxOfficeMojo Link
+					let mojoURL = 'https://www.boxofficemojo.com/title/' + this.imdbID + '/';
+					if (letterboxd.storage.get('mojo-link-enabled') === true) {
+						this.addLink(mojoURL, 'MOJO', 'mojo');
+					}
+					// Call BoxOfficeMojo
+					if (letterboxd.storage.get('display-budget') === true && letterboxd.storage.get('use-mojo') === true){
 						browser.runtime.sendMessage({ name: "GETDATA", url: mojoURL }, (value) => {
 							this.mojoData.state = 1;
 							if (letterboxd.helpers.ValidateResponse("BoxOfficeMojo", value) == false){
@@ -1439,39 +1442,41 @@ const letterboxd = {
 									}
 
 									// Box Office and Budget
-									if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null) {
-										this.wikiData.budget.value = this.wiki.Budget.value;
-										if (this.wiki.Budget_UnitLabel != null)
-											this.wikiData.budget.currency = this.wiki.Budget_UnitLabel.value;
-										if (this.wiki.Budget_TogetherWith != null)
-											this.wikiData.budget.togetherWith = this.wiki.Budget_TogetherWith.value;
+									if (letterboxd.storage.get('display-budget') === true){
+										if (this.wiki != null && this.wiki.Budget != null && this.wiki.Budget.value != null) {
+											this.wikiData.budget.value = this.wiki.Budget.value;
+											if (this.wiki.Budget_UnitLabel != null)
+												this.wikiData.budget.currency = this.wiki.Budget_UnitLabel.value;
+											if (this.wiki.Budget_TogetherWith != null)
+												this.wikiData.budget.togetherWith = this.wiki.Budget_TogetherWith.value;
 
-										var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.budget.value));
-										var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.budget));
-										if (this.mojoData.budget == "" || (value > value2) || this.wikiData.budget.togetherWith != null) {
-											letterboxd.helpers.createDetailsRow("Budget", this.wikiData.budget.value, this.wikiData.budget.currency, this.wikiData.budget.togetherWith);
+											var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.budget.value));
+											var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.budget));
+											if (this.mojoData.budget == "" || (value > value2) || this.wikiData.budget.togetherWith != null) {
+												letterboxd.helpers.createDetailsRow("Budget", this.wikiData.budget.value, this.wikiData.budget.currency, this.wikiData.budget.togetherWith);
+											}
 										}
-									}
-									if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null) {
-										this.wikiData.boxOfficeUS.value = this.wiki.Box_OfficeUS.value;
-										if (this.wiki.Box_OfficeUS_UnitLabel != null)
-											this.wikiData.boxOfficeUS.currency = this.wiki.Box_OfficeUS_UnitLabel.value;
+										if (this.wiki != null && this.wiki.Box_OfficeUS != null && this.wiki.Box_OfficeUS.value != null) {
+											this.wikiData.boxOfficeUS.value = this.wiki.Box_OfficeUS.value;
+											if (this.wiki.Box_OfficeUS_UnitLabel != null)
+												this.wikiData.boxOfficeUS.currency = this.wiki.Box_OfficeUS_UnitLabel.value;
 
-										var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeUS.value));
-										var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeUS));
-										if (this.mojoData.boxOfficeUS == "" || (value > value2)) {
-											letterboxd.helpers.createDetailsRow("Box Office (US)", this.wikiData.boxOfficeUS.value, this.wikiData.boxOfficeUS.currency);
+											var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeUS.value));
+											var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeUS));
+											if (this.mojoData.boxOfficeUS == "" || (value > value2)) {
+												letterboxd.helpers.createDetailsRow("Box Office (US)", this.wikiData.boxOfficeUS.value, this.wikiData.boxOfficeUS.currency);
+											}
 										}
-									}
-									if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null) {
-										this.wikiData.boxOfficeWW.value = this.wiki.Box_OfficeWW.value;
-										if (this.wiki.Box_OfficeWW_UnitLabel != null)
-											this.wikiData.boxOfficeWW.currency = this.wiki.Box_OfficeWW_UnitLabel.value;
+										if (this.wiki != null && this.wiki.Box_OfficeWW != null && this.wiki.Box_OfficeWW.value != null) {
+											this.wikiData.boxOfficeWW.value = this.wiki.Box_OfficeWW.value;
+											if (this.wiki.Box_OfficeWW_UnitLabel != null)
+												this.wikiData.boxOfficeWW.currency = this.wiki.Box_OfficeWW_UnitLabel.value;
 
-										var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeWW.value));
-										var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeWW));
-										if (this.mojoData.boxOfficeWW == "" || (value > value2)) {
-											letterboxd.helpers.createDetailsRow("Box Office (WW)", this.wikiData.boxOfficeWW.value, this.wikiData.boxOfficeWW.currency);
+											var value = parseInt(letterboxd.helpers.cleanNumber(this.wikiData.boxOfficeWW.value));
+											var value2 = parseInt(letterboxd.helpers.cleanNumber(this.mojoData.boxOfficeWW));
+											if (this.mojoData.boxOfficeWW == "" || (value > value2)) {
+												letterboxd.helpers.createDetailsRow("Box Office (WW)", this.wikiData.boxOfficeWW.value, this.wikiData.boxOfficeWW.currency);
+											}
 										}
 									}
 

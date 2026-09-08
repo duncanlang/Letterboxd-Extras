@@ -12,46 +12,55 @@
     <link rel="icon" type="image/png" href="icon128.png">
 </head>
 
-<body class="center">
-
-    <h2>Letterboxd Extras Setup</h2>
-
-    <p>Letterboxd Extras has been installed. Settings that require external host permissions are disabled by default, this includes all additional ratings settings such as IMDb, Rotten Tomatoes, and Metacritic ratings.</p>
+<body>
     
-    <div>
-        <h3>Configure your Settings</h3>
-        <p>You can click the button below to enable the recommended settings for a quick start, or go to the full settings page to configure your own.</p>
-        <input type="button" id="button-recommended" value="Use recommended settings"/>
-        <br>
-        <br>
-        <a id="settings-link" class="hyperlink">View all settings</a>
-    </div>
+    <div class="center">
+        
+        <div style="margin-left: 15px; margin-right: 15px;">
+            <h2>Letterboxd Extras Setup</h2>
+            <p>Letterboxd Extras has been installed. Settings that require host permissions are disabled by default, this includes displaying of all additional ratings such as IMDb, Rotten Tomatoes, and Metacritic ratings.</p>
+        </div>
 
-    <br>
-    <hr>
-    <br>
-
-    <div>
-        <h3>Import your Settings</h3>
-        <div>
-            <h4>Settings</h4>
-            <div>
-                <input type="button" id="importSettings" value="Import from File" />
-                <input type="file" accept="application/json" id="importSettings-picker">
+        <div class="settings-container">
+            <h3>Configure your Settings</h3>
+            <div class="settings-group">
+                <div>
+                    <p>You can click the button below to enable the recommended settings for a quick start, or go to the full settings page to configure your own.</p>
+                    <input type="button" id="button-recommended" value="Use recommended settings"/>
+                    <br>
+                    <br>
+                    <a id="settings-link" class="hyperlink">View all settings</a>
+                </div>
             </div>
         </div>
-        <div>
-            <h4>Custom Rankings</h4>
-            <div>
-                <input type="button" id="importLists" value="Import from File" />
-                <input type="file" accept="application/json" id="importLists-picker">
+
+        <div class="settings-container">
+            <h3>Import your Settings</h3>
+            <div class="settings-group">
+                <div>
+                    <h4>Settings</h4>
+                    <div>
+                        <input type="button" id="importSettings" value="Import from File" />
+                        <input type="file" accept="application/json" id="importSettings-picker">
+                    </div>
+                </div>
+                <div>
+                    <h4>Custom Rankings</h4>
+                    <div>
+                        <input type="button" id="importLists" value="Import from File" />
+                        <input type="file" accept="application/json" id="importLists-picker">
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <hr>
-    <p id="success-text" class="bottomtext" style="color: var(--text-color-success); display: none;">You can now close this tab</p>
 
+        <div style="margin-left: 15px; margin-right: 15px;">
+            <p id="success-text" class="bottomtext" style="color: var(--text-color-success); display: none;">You can now close this tab</p>
+        </div>
+    </div>
     
+
+    <script src="env.js"></script>
     <script src="setup.js"></script>
 </body>
 

@@ -21,24 +21,23 @@ body {
 
     margin: 0px;
 
+}
+
+body.popup, body.android {
     max-width: 99%;
 }
 
 @media (prefers-color-scheme: light) {
     body {        
         --text-color-success: green;
+        --text-color-error: red;
     }
 }
 @media (prefers-color-scheme: dark) {
     body {
         --text-color-success: lightgreen;
+        --text-color-error: lightcoral;
     }
-}
-
-body.android{
-    width: 400px;
-    min-width: 400px;
-    max-width: 400px;
 }
 
 body.firefox:not(.android.popup){
@@ -58,8 +57,8 @@ body.chrome{
     display: none !important;
 }
 
-.center {
-    max-width: 700px !important;
+body:not(.popup) .center {
+    max-width: 900px !important;
     margin: 0 auto !important;
 }
 
@@ -67,13 +66,38 @@ hr {
     width: 99%;
 }
 
-body.android{
+div.settings-container:first-child {
+    margin-top: 10px;
+}
+body.popup div.settings-container, body.android div.settings-container {
     margin-left: 5px;
     margin-right: 5px;
+    margin-bottom: 10px;
 }
-body:not(.android){
+body:not(.popup):not(.android) div.settings-container {
     margin-left: 15px;
+    margin-right: 15px;
+    margin-bottom: 10px;
 }
+div.settings-group {
+    background-color: var(--background-color-canvas);
+    border-radius: 8px;
+    box-shadow: var(--box-shadow-level-1);
+}
+h3 {
+    margin: 0px;
+    margin-bottom: 5px;
+}
+div.settings-group > div {
+    padding: 10px;
+}
+div.settings-group > div:not(:last-child) {
+    border-bottom: 1px var(--border-color) solid;
+}
+div.settings-group > div > h4 {
+    margin-top: 0px;
+}
+
 div.subsetting{
     margin-left: 15px;
 }
@@ -100,8 +124,14 @@ a:hover {
 
 label:NOT(.radio) {
     display: inline-block;
-    width: 200px;
     margin-bottom: 10px;
+}
+
+body.popup label, body.android label:NOT(.radio) {
+    width: 200px;
+}
+body:not(.popup):not(.android) label:NOT(.radio) {
+    width: 500px;
 }
 
 .div-request-permission,
@@ -139,6 +169,9 @@ label:NOT(.radio) {
     z-index: 100;
     top: 0px;
 }
+body.popup:not(.chrome) .topnav {
+    padding-left: 10px;
+}
 
 .bottomtext {
     bottom: 0px;
@@ -147,13 +180,6 @@ label:NOT(.radio) {
     padding-top: 3px;
     padding-bottom: 3px;
     background-image: linear-gradient(to bottom, rgba(0,0,0,0), var(--body-back-color));
-}
-
-body.androidpup .topnav{
-    margin-left: -5px;
-}
-body:not(.android) .topnav{
-    margin-left: -15px;
 }
 
 .topnav div {
@@ -172,6 +198,9 @@ body:not(.android) .topnav{
     width: auto;
     border-radius: 4px;
     margin: 3px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 .topnav p:hover {
     cursor: pointer;

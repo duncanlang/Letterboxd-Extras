@@ -22,601 +22,629 @@
         <p class="nav-item" sectionId="content-ratings">Content Ratings</p>
         <p class="nav-item" sectionId="add-links">Additional Links</p>
         <p class="nav-item" sectionId="misc">Misc</p>
-        <p class="nav-item" sectionId="google-search">Google</p>
+        <p class="nav-item" sectionId="search-engines">Search Engines</p>
         <p class="nav-item" sectionId="import-export">Import/Export</p>
         <p class="nav-item" sectionId="debug">Debug</p>
     </section>
 
-    <!-- Missing Permissions -->
-    <div id="requestalldiv">
-        <h3>Missing Permissions</h3>
-        <div>
-            <p class="info-tip">You are missing some permissions needed for currently enabled settings.</p>
-            <input type="button" id="requestall" value="Request Missing Permissions" />
+    <div class="center">
+        <!-- Missing Permissions -->
+        <div id="requestalldiv" class="settings-container">
+            <h3>Missing Permissions</h3>
+            <div>
+                <div>
+                    <p>You are missing some permissions that are required for your currently enabled settings.</p>
+                    <input type="button" id="requestall" value="Request Missing Permissions" />
+                </div>
+            </div>
         </div>
-        <hr width="100%">
     </div>
 
-    <!-- Ratings -->
-    <div id="ratings">
-        <h3>Ratings</h3>
-        <div>
-            <h4>IMDb</h4>
-            <div>
-                <label for="imdb-enabled">Display IMDb:</label>
-                <input type="checkbox" id="imdb-enabled" permission="https://*.imdb.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="imdb-permissions" class="request-permission" permissionTarget="imdb-enabled" value="Request Permission"/>
-            </div>
-        </div>
-        <div>
-            <h4>MyAnimeList</h4>
-            <div>
-                <label for="mal-enabled">Display MyAnimeList:</label>
-                <input type="checkbox" id="mal-enabled" permission="https://api.tenrai.org/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="mal-permissions" class="request-permission" permissionTarget="mal-enabled" value="Request Permission"/>
-            </div>
-        </div>
-        <div>
-            <h4>AniList</h4>
-            <div>
-                <label for="al-enabled">Display AniList:</label>
-                <input type="checkbox" id="al-enabled" permission="https://graphql.anilist.co/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="al-permissions" class="request-permission" permissionTarget="al-enabled" value="Request Permission"/>
-            </div>
-        </div>
-        <div>
-            <h4>Rotten Tomatoes</h4>
-            <div>
-                <label for="tomato-enabled">Display Rotten Tomatoes:</label>
-                <input type="checkbox" id="tomato-enabled" permission="https://www.rottentomatoes.com/*" subid="tomato-div" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="tomato-permissions" class="request-permission" permissionTarget="tomato-enabled" value="Request Permission"/>
-            </div>
-            <div id="tomato-div" class="subsetting">
+    <div class="center">
+        <!-- Ratings -->
+        <div id="ratings" class="settings-container">
+            <h3>Ratings</h3>
+            <div class="settings-group">
                 <div>
-                    <label for="tomato-critic-enabled">Display critic ratings:</label>
-                    <input type="checkbox" id="tomato-critic-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="tomato-audience-enabled">Display audience ratings:</label>
-                    <input type="checkbox" id="tomato-audience-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="rt-default-view">Default detail view:</label>
-                    <select id="rt-default-view"class="setting">
-                        <option value="hide">Hide</option>
-                        <option value="show">Show</option>
-                        <option value="remember">Remember Last</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="critic-default">Default critic score:</label>
-                    <select id="critic-default"class="setting">
-                        <option value="all">All Critics</option>
-                        <option value="top">Top Critics</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="audience-default">Default audience score:</label>
-                    <select id="audience-default"class="setting">
-                        <option value="all">All Audience</option>
-                        <option value="verified">Verified Audience</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div>
-            <h4>Metacritic</h4>
-            <div>
-                <label for="metacritic-enabled">Display Metacritic:</label>
-                <input type="checkbox" id="metacritic-enabled" permission="https://www.metacritic.com/*" subid="meta-div"class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="metacritic-permissions" class="request-permission" permissionTarget="metacritic-enabled" value="Request Permission"/>
-            </div>
-            <div id="meta-div" class="subsetting">
-                <div>
-                    <label for="metacritic-critic-enabled">Display critic ratings:</label>
-                    <input type="checkbox" id="metacritic-critic-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="metacritic-users-enabled">Display user ratings:</label>
-                    <input type="checkbox" id="metacritic-users-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="metacritic-mustsee-enabled">Display Must-See/Must-Watch:</label>
-                    <input type="checkbox" id="metacritic-mustsee-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="meta-default-view">Default detail view:</label>
-                    <select id="meta-default-view" class="setting">
-                        <option value="hide">Hide</option>
-                        <option value="show">Show</option>
-                        <option value="remember">Remember Last</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div>
-            <h4>SensCritique</h4>
-            <div>
-                <label for="senscritique-enabled">Display SensCritique:</label>
-                <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" subid="sens-div" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="senscritique-permissions" class="request-permission" permissionTarget="senscritique-enabled" value="Request Permission"/>
-            </div>
-            <div id="sens-div" class="disabled subsetting">
-                <div>
-                    <label for="sens-favorites-enabled">Display recommended count:</label>
-                    <input type="checkbox" id="sens-favorites-enabled" class="setting"/>
-                </div>
-            </div>
-        </div>
-        <div>
-            <h4>MUBI</h4>
-            <div>
-                <label for="mubi-enabled">Display MUBI:</label>
-                <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="mubi-permissions" class="request-permission" permissionTarget="mubi-enabled" value="Request Permission"/>
-            </div>
-        </div>
-
-        <div>
-            <h4>Douban</h4>
-            <div>
-                <label for="douban-enabled">Display Douban:</label>
-                <input type="checkbox" id="douban-enabled" permission="https://api.douban.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="douban-permissions" class="request-permission" permissionTarget="douban-enabled" value="Request Permission"/>
-            </div>
-            <div>
-                <label for="douban-apikey">API Key:</label>
-                <input type="text" id="douban-apikey" class="setting"/>
-                <p class="info-tip">The Douban API requires an API key to fetch ratings.</p>
-            </div>
-        </div>
-
-        <div>
-            <h4>FilmAffinity</h4>
-            <div>
-                <label for="filmaff-enabled">Display FilmAffinity:</label>
-                <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="filmaff-permissions" class="request-permission" permissionTarget="filmaff-enabled" value="Request Permission"/>
-            </div>
-        </div>
-        <div>
-            <h4>Simkl</h4>
-            <div>
-                <label for="simkl-enabled">Display Simkl:</label>
-                <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="simkl-permissions" class="request-permission" permissionTarget="simkl-enabled" value="Request Permission"/>
-            </div>
-        </div>
-        <div>
-            <h4>AlloCiné</h4>
-            <div>
-                <label for="allocine-enabled">Display AlloCiné:</label>
-                <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" subid="allo-div" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="allocine-permissions" class="request-permission" permissionTarget="allocine-enabled" value="Request Permission"/>
-            </div>
-            <div id="allo-div" class="disabled subsetting">
-                <div>
-                    <label for="allocine-users-enabled">Display user ratings:</label>
-                    <input type="checkbox" id="allocine-users-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="allocine-critic-enabled">Display critic ratings:</label>
-                    <input type="checkbox" id="allocine-critic-enabled" class="setting"/>
-                </div>
-                <div>
-                    <label for="allocine-style">Display Style:</label>
-                    <select id="allocine-style" subid="allo-view-div" subidvalue="ratings" class="setting">
-                        <option value="histogram">Histogram Graph</option>
-                        <option value="ratings">Side-by-side Ratings</option>
-                    </select>
-                </div>
-                <div id="allo-view-div">
+                    <h4>IMDb</h4>
                     <div>
-                        <label for="allocine-default-view">Default ratings view:</label>
-                        <select id="allocine-default-view" class="setting">
-                            <option value="user">User</option>
-                            <option value="critic">Critic</option>
-                        </select>
+                        <label for="imdb-enabled">Display IMDb:</label>
+                        <input type="checkbox" id="imdb-enabled" permission="https://*.imdb.com/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="imdb-permissions" class="request-permission" permissionTarget="imdb-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+                <div>
+                    <h4>MyAnimeList</h4>
+                    <div>
+                        <label for="mal-enabled">Display MyAnimeList:</label>
+                        <input type="checkbox" id="mal-enabled" permission="https://api.tenrai.org/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="mal-permissions" class="request-permission" permissionTarget="mal-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+                <div>
+                    <h4>AniList</h4>
+                    <div>
+                        <label for="al-enabled">Display AniList:</label>
+                        <input type="checkbox" id="al-enabled" permission="https://graphql.anilist.co/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="al-permissions" class="request-permission" permissionTarget="al-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+                <div>
+                    <h4>Rotten Tomatoes</h4>
+                    <div>
+                        <label for="tomato-enabled">Display Rotten Tomatoes:</label>
+                        <input type="checkbox" id="tomato-enabled" permission="https://www.rottentomatoes.com/*" subid="tomato-div" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="tomato-permissions" class="request-permission" permissionTarget="tomato-enabled" value="Request Permission"/>
+                    </div>
+                    <div id="tomato-div" class="subsetting">
+                        <div>
+                            <label for="tomato-critic-enabled">Display critic ratings:</label>
+                            <input type="checkbox" id="tomato-critic-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="tomato-audience-enabled">Display audience ratings:</label>
+                            <input type="checkbox" id="tomato-audience-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="rt-default-view">Default detail view:</label>
+                            <select id="rt-default-view"class="setting">
+                                <option value="hide">Hide</option>
+                                <option value="show">Show</option>
+                                <option value="remember">Remember Last</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="critic-default">Default critic score:</label>
+                            <select id="critic-default"class="setting">
+                                <option value="all">All Critics</option>
+                                <option value="top">Top Critics</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="audience-default">Default audience score:</label>
+                            <select id="audience-default"class="setting">
+                                <option value="all">All Audience</option>
+                                <option value="verified">Verified Audience</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4>Metacritic</h4>
+                    <div>
+                        <label for="metacritic-enabled">Display Metacritic:</label>
+                        <input type="checkbox" id="metacritic-enabled" permission="https://www.metacritic.com/*" subid="meta-div"class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="metacritic-permissions" class="request-permission" permissionTarget="metacritic-enabled" value="Request Permission"/>
+                    </div>
+                    <div id="meta-div" class="subsetting">
+                        <div>
+                            <label for="metacritic-critic-enabled">Display critic ratings:</label>
+                            <input type="checkbox" id="metacritic-critic-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="metacritic-users-enabled">Display user ratings:</label>
+                            <input type="checkbox" id="metacritic-users-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="metacritic-mustsee-enabled">Display Must-See/Must-Watch:</label>
+                            <input type="checkbox" id="metacritic-mustsee-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="meta-default-view">Default detail view:</label>
+                            <select id="meta-default-view" class="setting">
+                                <option value="hide">Hide</option>
+                                <option value="show">Show</option>
+                                <option value="remember">Remember Last</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4>SensCritique</h4>
+                    <div>
+                        <label for="senscritique-enabled">Display SensCritique:</label>
+                        <input type="checkbox" id="senscritique-enabled" permission="https://apollo.senscritique.com/*" subid="sens-div" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="senscritique-permissions" class="request-permission" permissionTarget="senscritique-enabled" value="Request Permission"/>
+                    </div>
+                    <div id="sens-div" class="disabled subsetting">
+                        <div>
+                            <label for="sens-favorites-enabled">Display recommended count:</label>
+                            <input type="checkbox" id="sens-favorites-enabled" class="setting"/>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4>MUBI</h4>
+                    <div>
+                        <label for="mubi-enabled">Display MUBI:</label>
+                        <input type="checkbox" id="mubi-enabled" permission="https://api.mubi.com/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="mubi-permissions" class="request-permission" permissionTarget="mubi-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+
+                <div>
+                    <h4>Douban</h4>
+                    <div>
+                        <label for="douban-enabled">Display Douban:</label>
+                        <input type="checkbox" id="douban-enabled" permission="https://api.douban.com/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="douban-permissions" class="request-permission" permissionTarget="douban-enabled" value="Request Permission"/>
+                    </div>
+                    <div>
+                        <label for="douban-apikey">API Key:</label>
+                        <input type="password" id="douban-apikey" class="setting"/>
+                        <p class="info-tip">The Douban API requires an API key to fetch ratings.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h4>FilmAffinity</h4>
+                    <div>
+                        <label for="filmaff-enabled">Display FilmAffinity:</label>
+                        <input type="checkbox" id="filmaff-enabled" permission="https://*.filmaffinity.com/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="filmaff-permissions" class="request-permission" permissionTarget="filmaff-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+                <div>
+                    <h4>Simkl</h4>
+                    <div>
+                        <label for="simkl-enabled">Display Simkl:</label>
+                        <input type="checkbox" id="simkl-enabled" permission="https://api.simkl.com/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="simkl-permissions" class="request-permission" permissionTarget="simkl-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+                <div>
+                    <h4>AlloCiné</h4>
+                    <div>
+                        <label for="allocine-enabled">Display AlloCiné:</label>
+                        <input type="checkbox" id="allocine-enabled" permission="https://www.allocine.fr/*" subid="allo-div" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="allocine-permissions" class="request-permission" permissionTarget="allocine-enabled" value="Request Permission"/>
+                    </div>
+                    <div id="allo-div" class="disabled subsetting">
+                        <div>
+                            <label for="allocine-users-enabled">Display user ratings:</label>
+                            <input type="checkbox" id="allocine-users-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="allocine-critic-enabled">Display critic ratings:</label>
+                            <input type="checkbox" id="allocine-critic-enabled" class="setting"/>
+                        </div>
+                        <div>
+                            <label for="allocine-style">Display Style:</label>
+                            <select id="allocine-style" subid="allo-view-div" subidvalue="ratings" class="setting">
+                                <option value="histogram">Histogram Graph</option>
+                                <option value="ratings">Side-by-side Ratings</option>
+                            </select>
+                        </div>
+                        <div id="allo-view-div">
+                            <div>
+                                <label for="allocine-default-view">Default ratings view:</label>
+                                <select id="allocine-default-view" class="setting">
+                                    <option value="user">User</option>
+                                    <option value="critic">Critic</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4>Kinopoisk</h4>
+                    <div>
+                        <label for="kinopoisk-enabled">Display Kinopoisk:</label>
+                        <input type="checkbox" id="kinopoisk-enabled" permission="https://kinopoiskapiunofficial.tech/api/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="kinopoisk-permissions" class="request-permission" permissionTarget="kinopoisk-enabled" value="Request Permission"/>
+                    </div>
+                    <div>
+                        <label for="kinopoisk-apikey">API Key (optional):</label>
+                        <input type="password" id="kinopoisk-apikey" class="setting"/>
+                        <a class="hyperlink" href="https://kinopoiskapiunofficial.tech/" target="_blank">Get your API key from the unofficial API</a>
+                        <p class="info-tip">Letterboxd Extras uses an unoffical API to get the ratings from Kinopoisk. If you encounter issues with rate limiting, you can enter your own key.</p>
+                    </div>
+                </div>
+                <div>
+                    <h4>Filmarks</h4>
+                    <div>
+                        <label for="filmarks-enabled">Display Filmarks:</label>
+                        <input type="checkbox" id="filmarks-enabled" permission="https://markuapi.kabk.dev/*" class="setting" />
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="filmarks-permissions" class="request-permission" permissionTarget="filmarks-enabled" value="Request Permission"/>
+                    </div>
+                </div>
+                <div>
+                    <h4>CinemaScore</h4>
+                    <div>
+                        <label for="cinema-enabled">Display CinemaScore:</label>
+                        <input type="checkbox" id="cinema-enabled" permission="https://webapp.cinemascore.com/*" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="cinema-permissions" class="request-permission" permissionTarget="cinema-enabled" value="Request Permission"/>
                     </div>
                 </div>
             </div>
         </div>
-        <div>
-            <h4>Kinopoisk</h4>
-            <div>
-                <label for="kinopoisk-enabled">Display Kinopoisk:</label>
-                <input type="checkbox" id="kinopoisk-enabled" permission="https://kinopoiskapiunofficial.tech/api/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="kinopoisk-permissions" class="request-permission" permissionTarget="kinopoisk-enabled" value="Request Permission"/>
-            </div>
-            <div>
-                <label for="kinopoisk-apikey">API Key (optional):</label>
-                <input type="text" id="kinopoisk-apikey" class="setting"/>
-                <a class="hyperlink" href="https://kinopoiskapiunofficial.tech/" target="_blank">Get your API key from the unofficial API</a>
-                <p class="info-tip">Letterboxd Extras uses an unoffical API to get the ratings from Kinopoisk. If you encounter issues with rate limiting, you can enter your own key.</p>
-            </div>
-        </div>
-        <div>
-            <h4>Filmarks</h4>
-            <div>
-                <label for="filmarks-enabled">Display Filmarks:</label>
-                <input type="checkbox" id="filmarks-enabled" permission="https://markuapi.kabk.dev/*" class="setting" />
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="filmarks-permissions" class="request-permission" permissionTarget="filmarks-enabled" value="Request Permission"/>
-            </div>
-        </div>
-        <div>
-            <h4>CinemaScore</h4>
-            <div>
-                <label for="cinema-enabled">Display CinemaScore:</label>
-                <input type="checkbox" id="cinema-enabled" permission="https://webapp.cinemascore.com/*" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="cinema-permissions" class="request-permission" permissionTarget="cinema-enabled" value="Request Permission"/>
-            </div>
-        </div>
-    </div>
 
-    <hr width="100%">
-
-    <!-- Spines -->
-    <div id="spines">
-        <h3>Physical Media Spines</h3>
-        <div>
-            <h4>Criterion</h3>
-            <div id="criterion-div">
-                <label for="criterion-spine-default-view">Spine Number View:</label>
-                <select id="criterion-spine-default-view"class="setting">
-                    <option value="None">None</option>
-                    <option value="Row">Row</option>
-                    <option value="Column">Column</option>
-                    <option value="Left/Right">Left/Right</option>
-                </select>
-                <p class="info-tip">Changes how the Criterion Spine number is displayed.</p>
-            </div>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- Reorder Ratings -->
-    <div id="reorder">
-        <h3>Reorder Ratings</h3>
-
-        <label for="override-ratings-order">Override default order:</label>
-        <input type="checkbox" id="override-ratings-order" subid="rating-order-div" class="setting"/>
-
-        <div id="rating-order-div" class="subsetting">
-            <p class="info-tip">Drag the items - or - click the arrows to reorder (shift-click the arrows to move to the top or bottom)</p>
-            <ul id="ratings-order" class="sortable-list">
-                <li class="sortable-item" draggable="true" rating-id="imdb-ratings">IMDb</li>
-                <li class="sortable-item" draggable="true" rating-id="mal-ratings">MyAnimeList</li>
-                <li class="sortable-item" draggable="true" rating-id="al-ratings">AniList</li>
-                <li class="sortable-item" draggable="true" rating-id="allocine-ratings">AlloCiné</li>
-                <li class="sortable-item" draggable="true" rating-id="tomato-ratings">Rotten Tomatoes</li>
-                <li class="sortable-item" draggable="true" rating-id="meta-ratings">Metacritic</li>
-                <li class="sortable-item" draggable="true" rating-id="sens-rating">SensCritique</li>
-                <li class="sortable-item" draggable="true" rating-id="mubi-ratings">Mubi</li>
-                <li class="sortable-item" draggable="true" rating-id="filmaff-ratings">FilmAffinity</li>
-                <li class="sortable-item" draggable="true" rating-id="simkl-ratings">Simkl</li>
-                <li class="sortable-item" draggable="true" rating-id="kinopoisk-ratings">Kinopoisk</li>
-                <li class="sortable-item" draggable="true" rating-id="filmarks-ratings">Filmarks</li>
-                <li class="sortable-item" draggable="true" rating-id="cinemascore">CinemaScore</li>
-            </ul>
-            <input type="button" id="reset-rating-order" value="Reset order to default" />
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- LB Search -->
-    <div id="search">
-        <h3>Search</h3>
-        <div>
-            <label for="search-redirect">Default results to films:</label>
-            <input type="checkbox" id="search-redirect" class="setting"/>
-            <p class="info-tip">Defaults the Letterboxd search to only show results for films, rather than showing all results.</p>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- Rankings -->
-    <div id="rankings">
-        <h3>Rankings</h3>
-        <div>
-            <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
-            <input type="checkbox" id="tspdt-enabled" class="setting"/>
-        </div>
-        <div>
-            <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
-            <input type="checkbox" id="bfi-enabled" class="setting"/>
-        </div>
-        <div>
-            <label for="afi-enabled">Show "AFI 100 Years" top 100 rankings:</label>
-            <input type="checkbox" id="afi-enabled" class="setting"/>
-        </div>
-        <div>
-            <label for="imdb-250-enabled">Show IMDb top 250 rankings:</label>
-            <input type="checkbox" id="imdb-250-enabled" permission="https://*.imdb.com/*" class="setting"/>
-        </div>
-        <div>
-            <label for="ebert-great-enabled">Show Roger Ebert Great Movies:</label>
-            <input type="checkbox" id="ebert-great-enabled" class="setting"/>
-        </div>
-        <div>
-            <h4>Custom Rankings</h4>
-            <p id="custom-ranking-desc">You can have up to 10 of your own custom ranking lists.</p>
-            <p id="custom-ranking-reached" class="hidden">You have reached the limit of 10 custom ranking lists.</p>
-            <a id="create-ranking-hyperlink" class="hyperlink" href="/custom_list.html?action=add" target="_blank">Add a new custom ranking</a>
-            <ul id="custom-list-holder" class="sortable-list">
-                <li style="opacity: 50%; text-align: center;">You have no custom ranking lists</li>
-            </ul>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- Content Ratings -->
-    <div id="content-ratings">
-        <h3>Content Ratings</h3>
-        <div>
-            <label for="content-ratings">Display content ratings from:</label>
-            <select id="content-ratings" class="setting">
-                <option value="none">None</option>
-                <option value="mpaa">MPA (United States)</option>
-                <option value="bbfc">BBFC (United Kingdom)</option>
-                <option value="fsk">FSK (Germany)</option>
-                <option value="cnc">CNC (France)</option>
-                <option value="eirin">EIRIN (Japan)</option>
-                <option value="kmrb">KMRB (South Korea)</option>
-                <option value="acb">ACB (Australia)</option>
-                <option value="classind">ClassInd (Brazil)</option>
-            </select>
-        </div>
-        <div id="mpa-div">
-            <label for="mpa-convert">Convert historical content ratings to modern equivalent:</label>
-            <input type="checkbox" id="mpa-convert" class="setting"/>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- Additional Links -->
-    <div id="add-links">
-        <h3>Additional 'More at' Links</h3>
-
-        <div>
-            <h4>"Does the Dog Die?"</h4>
-            <div>
-                <label for="ddd-enabled">Display "Does the Dog Die?" link:</label>
-                <input type="checkbox" id="ddd-enabled" class="setting"/>
-            </div>
-            <div>
-                <label for="ddd-api-enabled">Use the DoesTheDogDie API to match the movie:</label>
-                <input type="checkbox" id="ddd-api-enabled" permission="https://www.doesthedogdie.com/*" subid="sub-ddd-api" class="setting"/>
-            </div>
-            <div class="div-request-permission">
-                <label style="color: red;">! Missing Permission !</label>
-                <input type="button" id="ddd-permissions" class="request-permission" permissionTarget="ddd-api-enabled" value="Request Permission"/>
-            </div>
-            <div id="sub-ddd-api" class="subsetting">
-                <label for="ddd-apikey">API Key:</label>
-                <input type="text" id="ddd-apikey" class="setting"/>
-                <a class="hyperlink" href="https://www.doesthedogdie.com/profile" target="_blank">Get your API key from your DDD profile</a>
-            </div>
-            <p class="info-tip">By default, Letterboxd Extras will collect the  DDD film ID from WikiData. The DDD API should be more comprehensive, but can have issues matching, requires a (free) API key, and also needs an additional permission grant for the Letterboxd Extras.</p>
-        </div>
-        <div>
-            <h4>BoxOfficeMojo</h4>
-            <label for="mojo-link-enabled">Display BoxOfficeMojo link:</label>
-            <input type="checkbox" id="mojo-link-enabled" class="setting"/>
-        </div>
-        <div>
-            <h4>Wikipedia</h4>
-            <label for="wiki-link-enabled">Display Wikipedia link:</label>
-            <input type="checkbox" id="wiki-link-enabled" subid="wiki-link-options" class="setting"/>
-            <p class="info-tip">By default, the link will match your browser's language setting.</p>
-            <div id="wiki-link-options" class="subsetting">
+        <!-- Spines -->
+        <div id="spines" class="settings-container">
+            <h3>Physical Media Spines</h3>
+            <div class="settings-group">
                 <div>
-                    <label for="wiki-prefer-en">Prefer English Wikipedia:</label>
-                    <input type="checkbox" id="wiki-prefer-en" class="setting"/>
+                    <h4>Criterion</h3>
+                    <div id="criterion-div">
+                        <label for="criterion-spine-default-view">Spine Number View:</label>
+                        <select id="criterion-spine-default-view"class="setting">
+                            <option value="None">None</option>
+                            <option value="Row">Row</option>
+                            <option value="Column">Column</option>
+                            <option value="Left/Right">Left/Right</option>
+                        </select>
+                        <p class="info-tip">Changes how the Criterion Spine number is displayed.</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div>
-            <h4>Criterion</h4>
-            <label for="criterion-link-enabled">Display Criterion link:</label>
-            <input type="checkbox" id="criterion-link-enabled" class="setting"/>
-        </div>
-        <div>
-            <h4>Blu-ray.com</h4>
-            <label for="bluray-link-enabled">Display Blu-ray.com link:</label>
-            <input type="checkbox" id="bluray-link-enabled" class="setting"/>
-        </div>
-        <div>
-            <h4>RogerEbert.com</h4>
-            <label for="ebert-link-enabled">Display RogerEbert.com link:</label>
-            <input type="checkbox" id="ebert-link-enabled" class="setting"/>
-        </div>
-    </div>
 
-    <hr width="100%">
-
-    <!-- Miscellaneous -->
-    <div id="misc">
-        <h3>Miscellaneous</h3>
-        <div>
-            <label for="convert-ratings">Convert ratings:</label>
-            <select id="convert-ratings" class="setting">
-                <option value="false">Leave unchanged</option>
-                <option value="5">5-point scale</option>
-                <option value="10">10-point scale</option>
-            </select>
-            <p class="info-tip">Converts ratings to different rating scales. Affects all ratings except for Cinemascore and Rotten Tomatoes percentage.</p>
-        </div>
-        <div>
-            <label for="open-same-tab">Open 'More At' links in same tab:</label>
-            <input type="checkbox" id="open-same-tab" class="setting"/>
-        </div>
-        <!-- Replace fans -->
-        <div>
-            <label for="replace-fans">Replace 'Fans' with Rating Count:</label>
-            <select id="replace-fans" class="setting">
-                <option value="false">Leave unchanged</option>
-                <option value="replace">Replace</option>
-                <option value="both">Side-by-side</option>
-            </select>
-        </div>
-        <!-- Hide Ratings -->
-        <div>
-            <label for="hide-ratings-enabled">Hide ratings:</label>
-            <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="unchanged">
-                <option value="unchanged">Leave unchanged</option>
-                <option value="additional">Hide additional ratings</option>
-                <option value="all">Hide all ratings</option>
-            </select>
-            <div id="div-ratings-unwatched" class="subsetting">
-                <label for="hide-ratings-unwatched">Only when unwatched:</label>
-                <input type="checkbox" id="hide-ratings-unwatched" class="setting"/>
-            </div>
-        </div>
-        <!-- Hide Reviews -->
-        <div>
-            <label for="hide-reviews-enabled">Hide reviews:</label>
-            <select id="hide-reviews-enabled" class="setting" subid="div-reviews-unwatched" subidvalue="false">
-                <option value="false">Leave unchanged</option>
-                <option value="all">Hide reviews</option>
-            </select>
-            <div id="div-reviews-unwatched" class="subsetting">
-                <label for="hide-reviews-unwatched">Only when unwatched:</label>
-                <input type="checkbox" id="hide-reviews-unwatched" class="setting"/>
-            </div>
-        </div>
-        <!-- Display tooltips -->
-        <div>
-            <label for="tooltip-show-details">Display rating tooltips on the page:</label>
-            <input type="checkbox" id="tooltip-show-details" class="setting"/>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- Google Search -->
-    <div id="google-search">
-        <h3>Google Search</h3>
-        <div>
-            <label for="google">Always display Letterboxd score on Google searches:</label>
-            <input type="checkbox" id="google" permission="https://www.google.com/search*" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" class="setting"/>
-        </div>
-        <div class="div-request-permission">
-            <label style="color: red;">! Missing Permission !</label>
-            <input type="button" id="google-permissions" class="request-permission" permissionTarget="google" value="Request Permission"/>
-        </div>
-        <div class="div-request-contentscript">
-            <label style="color: red;">! Missing Content Script !</label>
-            <input type="button" id="google-contentscripts" class="request-contentscript" permissionTarget="google" value="Request Content Script"/>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <!-- Import/Export -->
-    <div id="import-export">
-        <h3 name="import-export">Import/Export</h3>
-        <div id="import-export-div">
-            <div>
-                <h4>Settings</h4>
+        <!-- Reorder Ratings -->
+        <div id="reorder" class="settings-container">
+            <h3>Reorder Ratings</h3>
+            <div class="settings-group">
                 <div>
-                    <input type="button" id="exportSettings" value="Export to File" />
-                </div>
-                <br>
-                <div>
-                    <input type="button" id="importSettings" value="Import from File" />
-                    <input type="file" accept="application/json" id="importSettings-picker">
-                </div>
-                <br>
-                <br>
-                <div>
-                    <input type="button" id="reset" value="Reset settings to default" />
-                </div>
-            </div>
-            <div>
-                <h4>Custom Rankings</h4>
-                <div>
-                    <input type="button" id="exportLists" value="Export to File" />
-                </div>
-                <br>
-                <div>
-                    <input type="button" id="importLists" value="Import from File" />
-                    <input type="file" accept="application/json" id="importLists-picker">
+                    <label for="override-ratings-order">Override default order:</label>
+                    <input type="checkbox" id="override-ratings-order" subid="rating-order-div" class="setting"/>
+
+                    <div id="rating-order-div" class="subsetting">
+                        <p class="info-tip">Drag the items - or - click the arrows to reorder (shift-click the arrows to move to the top or bottom)</p>
+                        <ul id="ratings-order" class="sortable-list">
+                            <li class="sortable-item" draggable="true" rating-id="imdb-ratings">IMDb</li>
+                            <li class="sortable-item" draggable="true" rating-id="mal-ratings">MyAnimeList</li>
+                            <li class="sortable-item" draggable="true" rating-id="al-ratings">AniList</li>
+                            <li class="sortable-item" draggable="true" rating-id="allocine-ratings">AlloCiné</li>
+                            <li class="sortable-item" draggable="true" rating-id="tomato-ratings">Rotten Tomatoes</li>
+                            <li class="sortable-item" draggable="true" rating-id="meta-ratings">Metacritic</li>
+                            <li class="sortable-item" draggable="true" rating-id="sens-rating">SensCritique</li>
+                            <li class="sortable-item" draggable="true" rating-id="mubi-ratings">Mubi</li>
+                            <li class="sortable-item" draggable="true" rating-id="filmaff-ratings">FilmAffinity</li>
+                            <li class="sortable-item" draggable="true" rating-id="simkl-ratings">Simkl</li>
+                            <li class="sortable-item" draggable="true" rating-id="kinopoisk-ratings">Kinopoisk</li>
+                            <li class="sortable-item" draggable="true" rating-id="filmarks-ratings">Filmarks</li>
+                            <li class="sortable-item" draggable="true" rating-id="cinemascore">CinemaScore</li>
+                        </ul>
+                        <input type="button" id="reset-rating-order" value="Reset order to default" />
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="import-export-hyperlink" class="hidden">
-            <a class="hyperlink" href="/options.html#import-export" target="_blank">Click here to open the full settings to import and export your data.</a>
+
+        <!-- LB Search -->
+        <div id="search" class="settings-container">
+            <h3>Search</h3>
+            <div class="settings-group">
+                <div>
+                    <label for="search-redirect">Default results to films:</label>
+                    <input type="checkbox" id="search-redirect" class="setting"/>
+                    <p class="info-tip">Defaults the Letterboxd search to only show results for films, rather than showing all results.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rankings -->
+        <div id="rankings" class="settings-container">
+            <h3>Rankings</h3>
+            <div class="settings-group">
+                <div>
+                    <label for="tspdt-enabled">Show "They Shoot Pictures, Don't They?" top 1000 rankings:</label>
+                    <input type="checkbox" id="tspdt-enabled" class="setting"/>
+                </div>
+                <div>
+                    <label for="bfi-enabled">Show "BFI Sight and Sound" top 250 rankings:</label>
+                    <input type="checkbox" id="bfi-enabled" class="setting"/>
+                </div>
+                <div>
+                    <label for="afi-enabled">Show "AFI 100 Years" top 100 rankings:</label>
+                    <input type="checkbox" id="afi-enabled" class="setting"/>
+                </div>
+                <div>
+                    <label for="imdb-250-enabled">Show IMDb top 250 rankings:</label>
+                    <input type="checkbox" id="imdb-250-enabled" permission="https://*.imdb.com/*" class="setting"/>
+                </div>
+                <div>
+                    <label for="ebert-great-enabled">Show Roger Ebert Great Movies:</label>
+                    <input type="checkbox" id="ebert-great-enabled" class="setting"/>
+                </div>
+                <div>
+                    <h4>Custom Rankings</h4>
+                    <p id="custom-ranking-desc">You can have up to 10 of your own custom ranking lists.</p>
+                    <p id="custom-ranking-reached" class="hidden">You have reached the limit of 10 custom ranking lists.</p>
+                    <a id="create-ranking-hyperlink" class="hyperlink" href="/custom_list.html?action=add" target="_blank">Add a new custom ranking</a>
+                    <ul id="custom-list-holder" class="sortable-list">
+                        <li style="opacity: 50%; text-align: center;">You have no custom ranking lists</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Ratings -->
+        <div id="content-ratings" class="settings-container">
+            <h3>Content Ratings</h3>
+            <div class="settings-group">
+                <div>
+                    <label for="content-ratings">Display content ratings from:</label>
+                    <select id="content-ratings" class="setting">
+                        <option value="none">None</option>
+                        <option value="mpaa">MPA (United States)</option>
+                        <option value="bbfc">BBFC (United Kingdom)</option>
+                        <option value="fsk">FSK (Germany)</option>
+                        <option value="cnc">CNC (France)</option>
+                        <option value="eirin">EIRIN (Japan)</option>
+                        <option value="kmrb">KMRB (South Korea)</option>
+                        <option value="acb">ACB (Australia)</option>
+                        <option value="classind">ClassInd (Brazil)</option>
+                    </select>
+                </div>
+                <div id="mpa-div">
+                    <label for="mpa-convert">Convert historical content ratings to modern equivalent:</label>
+                    <input type="checkbox" id="mpa-convert" class="setting"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Links -->
+        <div id="add-links" class="settings-container">
+            <h3>Additional 'More at' Links</h3>
+            <div class="settings-group">
+                <div>
+                    <h4>"Does the Dog Die?"</h4>
+                    <div>
+                        <label for="ddd-enabled">Display "Does the Dog Die?" link:</label>
+                        <input type="checkbox" id="ddd-enabled" class="setting"/>
+                    </div>
+                    <div>
+                        <label for="ddd-api-enabled">Use the DoesTheDogDie API to match the movie:</label>
+                        <input type="checkbox" id="ddd-api-enabled" permission="https://www.doesthedogdie.com/*" subid="sub-ddd-api" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="ddd-permissions" class="request-permission" permissionTarget="ddd-api-enabled" value="Request Permission"/>
+                    </div>
+                    <div id="sub-ddd-api" class="subsetting">
+                        <label for="ddd-apikey">API Key:</label>
+                        <input type="password" id="ddd-apikey" class="setting"/>
+                        <a class="hyperlink" href="https://www.doesthedogdie.com/profile" target="_blank">Get your API key from your DDD profile</a>
+                    </div>
+                    <p class="info-tip">By default, Letterboxd Extras will collect the  DDD film ID from WikiData. The DDD API should be more comprehensive, but can have issues matching, requires a (free) API key, and also needs an additional permission grant for the Letterboxd Extras.</p>
+                </div>
+                <div>
+                    <h4>BoxOfficeMojo</h4>
+                    <label for="mojo-link-enabled">Display BoxOfficeMojo link:</label>
+                    <input type="checkbox" id="mojo-link-enabled" class="setting"/>
+                </div>
+                <div>
+                    <h4>Wikipedia</h4>
+                    <label for="wiki-link-enabled">Display Wikipedia link:</label>
+                    <input type="checkbox" id="wiki-link-enabled" subid="wiki-link-options" class="setting"/>
+                    <p class="info-tip">By default, the link will match your browser's language setting.</p>
+                    <div id="wiki-link-options" class="subsetting">
+                        <div>
+                            <label for="wiki-prefer-en">Prefer English Wikipedia:</label>
+                            <input type="checkbox" id="wiki-prefer-en" class="setting"/>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4>Criterion</h4>
+                    <label for="criterion-link-enabled">Display Criterion link:</label>
+                    <input type="checkbox" id="criterion-link-enabled" class="setting"/>
+                </div>
+                <div>
+                    <h4>Blu-ray.com</h4>
+                    <label for="bluray-link-enabled">Display Blu-ray.com link:</label>
+                    <input type="checkbox" id="bluray-link-enabled" class="setting"/>
+                </div>
+                <div>
+                    <h4>RogerEbert.com</h4>
+                    <label for="ebert-link-enabled">Display RogerEbert.com link:</label>
+                    <input type="checkbox" id="ebert-link-enabled" class="setting"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Miscellaneous -->
+        <div id="misc" class="settings-container">
+            <h3>Miscellaneous</h3>
+            <div class="settings-group">
+                <!-- Budget and Box Office -->
+                <div>
+                    <label for="display-budget">Display budget and box office:</label>
+                    <input type="checkbox" id="display-budget" class="setting" subid="div-boxofficemojo"/>
+
+                    <div id="div-boxofficemojo" class="subsetting">
+                        <label for="use-mojo">Use BoxOfficeMojo data as backup:</label>
+                        <input type="checkbox" id="use-mojo" permission="https://www.boxofficemojo.com/*" class="setting"/>
+                        
+                        <div class="div-request-permission">
+                            <label style="color: red;">! Missing Permission !</label>
+                            <input type="button" id="mojo-permissions" class="request-permission" permissionTarget="use-mojo" value="Request Permission"/>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- Convert Ratings -->
+                <div>
+                    <label for="convert-ratings">Convert ratings:</label>
+                    <select id="convert-ratings" class="setting">
+                        <option value="false">Leave unchanged</option>
+                        <option value="5">5-point scale</option>
+                        <option value="10">10-point scale</option>
+                    </select>
+                    <p class="info-tip">Converts ratings to different rating scales. Affects all ratings except for Cinemascore and Rotten Tomatoes percentage.</p>
+                </div>
+                <!-- More At same tab -->
+                <div>
+                    <label for="open-same-tab">Open 'More At' links in same tab:</label>
+                    <input type="checkbox" id="open-same-tab" class="setting"/>
+                </div>
+                <!-- Replace fans -->
+                <div>
+                    <label for="replace-fans">Replace 'Fans' with Rating Count:</label>
+                    <select id="replace-fans" class="setting">
+                        <option value="false">Leave unchanged</option>
+                        <option value="replace">Replace</option>
+                        <option value="both">Side-by-side</option>
+                    </select>
+                </div>
+                <!-- Hide Ratings -->
+                <div>
+                    <label for="hide-ratings-enabled">Hide ratings:</label>
+                    <select id="hide-ratings-enabled" class="setting" subid="div-ratings-unwatched" subidvalue="unchanged">
+                        <option value="unchanged">Leave unchanged</option>
+                        <option value="additional">Hide additional ratings</option>
+                        <option value="all">Hide all ratings</option>
+                    </select>
+                    <div id="div-ratings-unwatched" class="subsetting">
+                        <label for="hide-ratings-unwatched">Only when unwatched:</label>
+                        <input type="checkbox" id="hide-ratings-unwatched" class="setting"/>
+                    </div>
+                </div>
+                <!-- Hide Reviews -->
+                <div>
+                    <label for="hide-reviews-enabled">Hide reviews:</label>
+                    <select id="hide-reviews-enabled" class="setting" subid="div-reviews-unwatched" subidvalue="false">
+                        <option value="false">Leave unchanged</option>
+                        <option value="all">Hide reviews</option>
+                    </select>
+                    <div id="div-reviews-unwatched" class="subsetting">
+                        <label for="hide-reviews-unwatched">Only when unwatched:</label>
+                        <input type="checkbox" id="hide-reviews-unwatched" class="setting"/>
+                    </div>
+                </div>
+                <!-- Display tooltips -->
+                <div>
+                    <label for="tooltip-show-details">Display rating tooltips on the page:</label>
+                    <input type="checkbox" id="tooltip-show-details" class="setting"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Engines -->
+        <div id="search-engines" class="settings-container">
+            <h3>Search Engines</h3>
+            <div class="settings-group">
+                <div>
+                    <h4>Google Search</h3>
+                    <div>
+                        <label for="google">Always display Letterboxd score on Google searches:</label>
+                        <input type="checkbox" id="google" permission="https://www.google.com/search*" contentScript="google2letterboxd.js" contentScriptID="google2letterboxd" class="setting"/>
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="google-permissions" class="request-permission" permissionTarget="google" value="Request Permission"/>
+                    </div>
+                    <div class="div-request-contentscript">
+                        <label style="color: red;">! Missing Content Script !</label>
+                        <input type="button" id="google-contentscripts" class="request-contentscript" permissionTarget="google" value="Request Content Script"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import/Export -->
+        <div id="import-export" class="settings-container">
+            <h3 name="import-export">Import/Export</h3>
+            <div id="import-export-div" class="settings-group">
+                <div>
+                    <h4>Settings</h4>
+                    <div>
+                        <input type="button" id="exportSettings" value="Export to File" />
+                    </div>
+                    <br>
+                    <div>
+                        <input type="button" id="importSettings" value="Import from File" />
+                        <input type="file" accept="application/json" id="importSettings-picker">
+                    </div>
+                    <br>
+                    <br>
+                    <div>
+                        <input type="button" id="reset" value="Reset settings to default" />
+                    </div>
+                </div>
+                <div>
+                    <h4>Custom Rankings</h4>
+                    <div>
+                        <input type="button" id="exportLists" value="Export to File" />
+                    </div>
+                    <br>
+                    <div>
+                        <input type="button" id="importLists" value="Import from File" />
+                        <input type="file" accept="application/json" id="importLists-picker">
+                    </div>
+                </div>
+            </div>
+
+            <div id="import-export-hyperlink" class="hidden" class="settings-group">
+                <div>
+                    <a class="hyperlink" href="/options.html#import-export" target="_blank">Click here to open the full settings to import and export your data.</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug -->
+        <div id="debug" class="settings-container">
+            <h3>Debug</h3>
+            <div class="settings-group">
+                <div>
+                    <label for="console-log">Enable debug logs in browser console (f12):</label>
+                    <input type="checkbox" id="console-log" class="setting"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <div class="settings-group">
+                <div>
+                    <a class="hyperlink" href="https://github.com/duncanlang/Letterboxd-Extras/issues" target="_blank">Report an issue or suggest a new feature on GitHub</a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <hr width="100%">
-
-    <!-- Debug -->
-    <div id="debug">
-        <h3>Debug</h3>
-        <div>
-            <label for="console-log">Enable debug logs in browser console (f12):</label>
-            <input type="checkbox" id="console-log" class="setting"/>
-        </div>
-    </div>
-
-    <hr width="100%">
-
-    <div>
-        <div>
-            <a class="hyperlink" href="https://github.com/duncanlang/Letterboxd-Extras/issues" target="_blank">Report an issue or suggest a new feature on GitHub</a>
-        </div>
-    </div>
-
-    <hr width="100%">
-
+    <script src="env.js"></script>
     <script src="options.js"></script>
 </body>
 

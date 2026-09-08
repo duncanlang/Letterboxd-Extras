@@ -1,8 +1,6 @@
-const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
-const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 document.body.classList.add(isFirefox ? "firefox" : "chrome");
 
-if (isChrome)
+if (isChrome && typeof browser === "undefined")
     var browser = chrome;
 
 const queryString = window.location.search;
@@ -15,9 +13,8 @@ const maxLists = 10;
 
 const progressRing = document.querySelector('#progress-holder');
 const detailsElement = document.querySelector('#parsed-details');
-const errorHolder = document.querySelector('#error-holder');
 const errorText = document.querySelector('#error-text');
-const messageHolder = document.querySelector('#message-holder');
+const messageText = document.querySelector('#message-text');
 
 const scrapeButton = document.querySelector('#scrape-button');
 const saveButton = document.querySelector('#save-button');
@@ -99,7 +96,7 @@ async function scrapeLetterboxdList(url) {
         return;
     }
 
-    if (!url.match(listUrlPattern) && !url.match(listShortPattern)) {
+    if (!url.match(listUrlPattern)) {
         showError('The list URL is invalid.');
         return;
     }
@@ -129,7 +126,7 @@ async function scrapeLetterboxdList(url) {
 
     progressRing.classList.remove('hidden');
     detailsElement.classList.add('hidden');
-    messageHolder.classList.add('hidden');
+    messageText.classList.add('hidden');
     scrapeButton.enabled = false;
 
     const request = {
@@ -260,7 +257,7 @@ async function saveList() {
     await browser.storage.local.set({ custom_lists: custom_lists });
 
     // Show message
-    messageHolder.classList.remove('hidden');
+    messageText.classList.remove('hidden');
     pageAction = 'edit';
 }
 
@@ -268,7 +265,7 @@ function showError(error){
     console.error(error);
 
     errorText.innerText = error;
-    errorHolder.classList.remove('hidden');
+    errorText.classList.remove('hidden');
 }
 
 async function collectExistingList(){

@@ -169,6 +169,7 @@ async function InitDefaultSettings(recommended) {
         if (options['al-enabled'] == null) options['al-enabled'] = true;
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
         if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
+        if (options['use-mojo'] == null) options['use-mojo'] = true;
     } else {
         if (options['imdb-enabled'] == null) options['imdb-enabled'] = false;
         if (options['tomato-enabled'] == null) options['tomato-enabled'] = false;
@@ -177,6 +178,7 @@ async function InitDefaultSettings(recommended) {
         if (options['al-enabled'] == null) options['al-enabled'] = false;
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = false;
         if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = false;
+        if (options['use-mojo'] == null) options['use-mojo'] = false;
     }
 
     // Default enabled settings
@@ -198,6 +200,8 @@ async function InitDefaultSettings(recommended) {
     if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
     if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
+    if (options['ddd-enabled'] == null) options['ddd-enabled'] = true;
+    if (options['display-budget'] == null) options['display-budget'] = true;
 
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
@@ -219,7 +223,6 @@ async function InitDefaultSettings(recommended) {
     if (options['tooltip-show-details'] == null) options['tooltip-show-details'] = false;
     if (options['google'] == null) options['google'] = false;
     if (options['boxoffice-enabled'] == null) options['boxoffice-enabled'] = false;
-    if (options['ddd-enabled'] == null) options['ddd-enabled'] = false;
     if (options['ddd-apikey'] == null) options['ddd-apikey'] = '';
     if (options['kinopoisk-enabled'] == null) options['kinopoisk-enabled'] = false;
     if (options['kinopoisk-apikey'] == null) options['kinopoisk-apikey'] = '';
@@ -345,6 +348,13 @@ browser.runtime.onInstalled.addListener(async (details) => {
             await UpdateExistingSettings([
                 { key: 'bfi-enabled', value: true },
                 { key: 'tspdt-enabled', value: true }
+            ]);
+        }
+        
+        if (parseInt(version[0]) < 4) {
+            // Force enable the settings
+            await UpdateExistingSettings([
+                { key: 'use-mojo', value: true }
             ]);
         }
 

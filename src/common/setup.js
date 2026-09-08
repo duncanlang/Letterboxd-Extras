@@ -1,6 +1,7 @@
-const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
-const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 document.body.classList.add(isFirefox ? "firefox" : "chrome");
+
+if (isChrome && typeof browser === "undefined")
+    var browser = chrome;
 
 document.querySelector('#settings-link').href = browser.runtime.getURL('options.html');
 
