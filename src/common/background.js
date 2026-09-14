@@ -1,12 +1,8 @@
 /* eslint-disable */
-
-const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
-const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
-
-var hasSyncSettings = false;
-
-if (isChrome)
+if (typeof browser === "undefined")
     var browser = chrome;
+
+let hasSyncSettings = false;
 
 browser.runtime.onMessage.addListener((msg, sender, response) => {
     if (msg.name == null) {
@@ -99,6 +95,12 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
         (async () => {
             var ratingsOrder = getDefaultRatingsOrder();
             response({ value: ratingsOrder });
+        })();
+
+    } else if (msg.name == "GETREQUIREDPERMISSIONS") {
+        (async () => {
+            let permissions = await getRequiredPermissions();
+            response({ value: permissions });
         })();
     } else {
         response({ value: "" });
@@ -257,7 +259,7 @@ async function InitDefaultSettings(recommended) {
 }
 
 function getDefaultRatingsOrder() {
-    var defaultOrder = [
+    let defaultOrder = [
         'imdb-ratings',
         'mal-ratings',
         'anilist-ratings',
@@ -276,6 +278,51 @@ function getDefaultRatingsOrder() {
 
     return defaultOrder;
 }
+
+/*
+function getPermissionMap() {
+    return {
+        'imdb-enabled': 'https://*.imdb.com/*',
+        'imdb-250-enabled': 'https://*.imdb.com/*',
+        'mal-enabled': 'https://api.tenrai.org/*',
+        'al-enabled': 'https://graphql.anilist.co/*',
+        'tomato-enabled': 'https://www.rottentomatoes.com/*',
+        'metacritic-enabled': 'https://www.metacritic.com/*',
+        'senscritique-enabled': 'https://apollo.senscritique.com/*',
+        'mubi-enabled': 'https://api.mubi.com/*',
+        'douban-enabled': 'https://api.douban.com/*',
+        'filmaff-enabled': 'https://*.filmaffinity.com/*',
+        'simkl-enabled': 'https://api.simkl.com/*',
+        'allocine-enabled': 'https://www.allocine.fr/*',
+        'kinopoisk-enabled': 'https://kinopoiskapiunofficial.tech/api/',
+        'filmarks-enabled': 'https://markuapi.kabk.dev/',
+        'cinema-enabled': 'https://webapp.cinemascore.com/*',
+        'ddd-api-enabled': 'https://www.doesthedogdie.com/*',
+        'use-mojo': 'https://www.boxofficemojo.com/*',
+        'google': 'https://www.google.com/search*'
+    };
+}
+
+// Gets all of the permissions required by the currently enabled settings
+async function getRequiredPermissions() {
+
+    let requiredPermissions = [];
+    let permissionMap = getPermissionMap();
+    
+    let options = await browser.storage.sync.get().then(function (storedSettings) {
+        return storedSettings.options;
+    });
+
+    for (let key in options) {
+
+        if (key in permissionMap && options[key] === true) {
+            requiredPermissions.push(permissionMap[key]);
+        }
+    }
+
+    return requiredPermissions;
+}
+*/
 
 function UpdateRatingsOrder(currentOrder) {
     if (currentOrder == null)
@@ -323,6 +370,7 @@ async function ConvertLocalToSync() {
 browser.runtime.onStartup.addListener(registerContentScripts);
 
 browser.runtime.onInstalled.addListener(async (details) => {
+
     if (details.reason == 'install') {
         // Init the default settings
         await InitDefaultSettings(false);
@@ -339,8 +387,18 @@ browser.runtime.onInstalled.addListener(async (details) => {
         // Convert from previous versions
         var version = details.previousVersion.split('.');
 
-        if (parseInt(version[0]) == 3 && parseInt(version[1]) < 16 && isFirefox) {
-            await ConvertLocalToSync();
+        if (parseInt(version[0]) == 3 && parseInt(version[1]) < 16) {
+            // Check if we are firefox
+            try{
+                let browserInfo = await browser.runtime.getBrowserInfo().then(function (info) {
+                    return info;
+                });
+                if (browserInfo.name == 'Firefox') {
+                    await ConvertLocalToSync();
+                }
+            } catch (e) {
+
+            }
         }
         
         if (parseInt(version[0]) == 3 && parseInt(version[1]) < 19) {

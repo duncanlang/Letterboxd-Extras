@@ -94,8 +94,17 @@ div.settings-group > div {
 div.settings-group > div:not(:last-child) {
     border-bottom: 1px var(--border-color) solid;
 }
+div.settings-group > div > img {
+    height: 16px;
+    width: auto;
+    display: inline;
+    vertical-align: center;
+    margin-right: 5px;
+}
 div.settings-group > div > h4 {
     margin-top: 0px;
+    display: inline;
+    vertical-align: center;
 }
 
 div.subsetting{
@@ -186,12 +195,6 @@ body.popup:not(.chrome) .topnav {
     padding-top: 3px;
     padding-bottom: 3px;
     background-image: linear-gradient(to bottom, rgba(0,0,0,0), var(--body-back-color));
-}
-
-.topnav div {
-    display: inline;
-    margin-left: 10px;
-    font-size: 11px;
 }
 
 .topnav p {

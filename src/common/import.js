@@ -83,21 +83,24 @@ async function importSettings() {
     if (!window.confirm("Your settings will be overwritten with data backed up on " + date + ".\n\nOverwrite all settings with data from file?")) {
         return;
     }
-
-    // TODO, can we request permissions here?
     
     if (settingsWindow) {
         options = json.settings;
 
         set();
         save();
-
+        
         window.alert("Your settings have been restored from file")
     } else {
         let options = json.settings;
         browser.storage.sync.set({ options });
-
+        
         document.querySelector('#success-text').classList.remove('hidden');
+        
+        browser.tabs.create({
+            url: "/options.html",
+            active: true
+        });
     }
 }
 

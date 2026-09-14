@@ -1,0 +1,12 @@
+.icon {
+    display: inline-block;
+    height: 32px;
+    width: 32px;
+    vertical-align: bottom;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.header {
+    display: inline;
+}

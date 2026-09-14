@@ -2282,7 +2282,7 @@ const letterboxd = {
 			const logo = letterboxd.helpers.createElement('a', {
 				class: 'logo-tomatoes',
 				href: this.wikiData.tomatoURL,
-				style: 'height: 20px; width: 75px; background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/rtlogo.9b892cff3fd.png");'
+				style: `height: 20px; width: 75px; background-image: url("${browser.runtime.getURL('/images/rt-logo.png')}");`
 			});
 			heading.append(logo);
 
@@ -2534,13 +2534,13 @@ const letterboxd = {
 
 			const metaLogo = letterboxd.helpers.createElement('span', {
 				class: 'icon-meta',
-				style: 'height: 20px; width: 20px; background-image: url("https://www.metacritic.com/images/icons/metacritic-icon.svg");'
+				style: `height: 20px; width: 20px; background-image: url("${browser.runtime.getURL('/images/meta-icon.svg')}");`
 			});
 			logoHolder.append(metaLogo);
 
 			const metaText = letterboxd.helpers.createElement('span', {
 				class: 'text-meta',
-				style: 'height: 20px; width: 100px; background-image: url("https://www.metacritic.com/images/icons/metacritic-wordmark.svg");',
+				style: `height: 20px; width: 100px; background-image: url("${browser.runtime.getURL('/images/meta-logo.svg')}");`,
 			});
 			logoHolder.append(metaText);
 

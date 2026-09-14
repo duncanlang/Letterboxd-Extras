@@ -89,7 +89,7 @@ export class FilmAffinityHelper extends Helper {
 
 		const logo = this.helpers.createElement('a', {
 			class: 'logo-filmaff',
-			style: 'height: 20px; width: 75px; background-image: url("https://www.filmaffinity.com/images/logo4.png");'
+			style: `height: 20px; width: 75px; background-image: url("${browser.runtime.getURL('/images/filmaff-logo.png')}");`
 		});
 		logo.setAttribute('href', this.linkURL);
 		heading.append(logo);
