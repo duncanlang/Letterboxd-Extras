@@ -282,6 +282,11 @@ document.addEventListener('change', event => {
         let permissionsToRequest = { origins: origins, permissions: permissions };
 
         if (element.checked == true) {
+                    
+            if (isFirefox && isPopup) {
+                document.querySelector('.bottombar').style.display = '';
+            }
+
             // Request the permission
             browser.permissions.request(permissionsToRequest, (granted) => {
                 if (granted) {

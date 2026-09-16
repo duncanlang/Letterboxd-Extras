@@ -294,3 +294,23 @@ body.popup:not(.chrome) .topnav {
     background: color-mix(in srgb, currentColor 14%, transparent);
     transform: scale(1.01);
 }
+
+/* Bottom Text */
+.bottombar {
+    background-color: var(--background-color-canvas);
+    border-color: var(--border-color);
+    border-width: 1px;
+    border-style: solid none none none;
+    box-shadow: var(--box-shadow-level-1);
+    overflow: hidden;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    position: sticky;
+    z-index: 100;
+    bottom: 0px;
+}
+
+.bottombar p {
+    font-size: 11px;
+    margin-left: 15px;
+}
