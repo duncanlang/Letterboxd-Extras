@@ -13,6 +13,7 @@ import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
+import { PlexHelper } from './helpers/PlexHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -790,6 +791,10 @@ GM_addStyle(`
 		.extras-statistics-list {
 			flex-wrap: wrap;
 		}
+		.extras-menubutton.disabled {
+			opacity: 50%;
+			cursor: not-allowed;
+		}
 	`);
 
 /* eslint-disable */
@@ -872,6 +877,7 @@ const letterboxd = {
 			Kinopoisk_ID: null,
 			MDL_ID: null,
 			StateOfTransmission: null,
+			Plex_ID: null
 		},
 
 		// Rotten Tomatoes
@@ -943,6 +949,9 @@ const letterboxd = {
 
 		// RogerEbert.com
 		ebert: { id: null, url: null },
+
+		// Plex Helper
+		plexHelper: null,
 
 		kinopoiskHelper: null,
 
@@ -1349,6 +1358,11 @@ const letterboxd = {
 				}
 			}
 
+			// Init the PlexHandler
+			if (this.plexHelper.loadState == LOAD_STATES['Uninitialized'] && document.querySelector('li.panel-sharing') != null){
+				this.plexHelper.initialize();
+			}
+
 			if (this.pageState.filmWatched != null){
 				// Add Cinema Score
 				if (this.cinemascore.data == null && this.letterboxdTitle != null && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null) {
@@ -1625,6 +1639,11 @@ const letterboxd = {
 										this.addLink(this.ebert.url, 'Ebert', 'ebert');
 									}
 
+									// Get Plex ID
+									if (this.wiki && this.wiki.Plex_ID){
+										this.wikiData.Plex_ID = this.wiki.Plex_ID.value;
+									}
+
 									// Check for State of Transmission
 									this.wikiData.StateOfTransmission = letterboxd.helpers.parseWikiDataResult(this.wiki, "StateOfTransmission", this.wikiData.StateOfTransmission);
 									if (this.wikiData.StateOfTransmission != null && this.linksMoved && this.lostBadgeAdded == false){
@@ -1881,7 +1900,7 @@ const letterboxd = {
 					else if (this.letterboxdTitle != null && this.altTitleList != null){
 						this.searchFilmarks();
 					}
-				}
+				}				
 			} 
 
 			if (letterboxd.storage.get('convert-ratings') === "5") {
@@ -1926,6 +1945,17 @@ const letterboxd = {
 					}
 
 					this.contentRatingAdded = true; // prevents this from running again regardless of the rating being added
+				}
+			}
+			
+			// Load the Plex Watchlist Data here
+			if (this.wikiData.state == LOAD_STATES['Success'] && this.plexHelper.loadState == LOAD_STATES['Pending']){
+				if (this.wikiData.Plex_ID != null){
+					this.plexHelper.checkWatchlistStatus(this.wikiData.Plex_ID);
+				}
+				else{
+					// if there is no id, we still pass this so we can tell the user that we're unable to match the movie
+					this.plexHelper.checkWatchlistStatus(null);
 				}
 			}
 
@@ -5760,7 +5790,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission ?Plex_ID WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -5793,6 +5823,7 @@ const letterboxd = {
 					"  OPTIONAL { ?item wdt:P3156 ?ACB_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P3216 ?ClassInd_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P12020 ?StateOfTransmission. }\n" +
+        			"  OPTIONAL { ?item wdt:P11460 ?Plex_ID. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P2130 ?Budget_Entry.\n" +
 					"    ?Budget_Entry ps:P2130 ?Budget.\n" +
@@ -6019,6 +6050,7 @@ const moduleConfigs = [
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
+	{ class: PlexHelper, target: letterboxd.overview, property: 'plexHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {

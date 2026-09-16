@@ -20,7 +20,8 @@ const buttonLinkOrder = [
 	'.wiki-button',
 	'.ddd-button',
 	'.bluray-button',
-	'.ebert-button'
+	'.ebert-button',
+	'.plex-button'
 ];
 
 /**

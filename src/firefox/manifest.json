@@ -74,7 +74,8 @@
 		"https://kinopoiskapiunofficial.tech/api/*",
 		"https://api.douban.com/*",
 		"https://api.mydramalist.com/*",
-		"https://api.tenrai.org/*"
+		"https://api.tenrai.org/*",
+		"https://*.plex.tv/*"
 	],
 
 	"content_scripts": [

@@ -22,6 +22,7 @@
             <p class="nav-item" sectionId="rankings">Rankings</p>
             <p class="nav-item" sectionId="content-ratings">Content Ratings</p>
             <p class="nav-item" sectionId="add-links">Additional Links</p>
+            <p class="nav-item" sectionId="watchlists">Watchlists</p>
             <p class="nav-item" sectionId="misc">Misc</p>
             <p class="nav-item" sectionId="search-engines">Search Engines</p>
             <p class="nav-item" sectionId="import-export">Import/Export</p>
@@ -348,16 +349,16 @@
             <div class="settings-group">
                 <div>
                     <h4>Criterion</h3>
-                        <div id="criterion-div">
-                            <label for="criterion-spine-default-view">Spine Number View:</label>
-                            <select id="criterion-spine-default-view" class="setting">
-                                <option value="None">None</option>
-                                <option value="Row">Row</option>
-                                <option value="Column">Column</option>
-                                <option value="Left/Right">Left/Right</option>
-                            </select>
-                            <p class="info-tip">Changes how the Criterion Spine number is displayed.</p>
-                        </div>
+                    <div id="criterion-div">
+                        <label for="criterion-spine-default-view">Spine Number View:</label>
+                        <select id="criterion-spine-default-view" class="setting">
+                            <option value="None">None</option>
+                            <option value="Row">Row</option>
+                            <option value="Column">Column</option>
+                            <option value="Left/Right">Left/Right</option>
+                        </select>
+                        <p class="info-tip">Changes how the Criterion Spine number is displayed.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -540,6 +541,39 @@
                     <div>
                         <label for="ebert-link-enabled">Display RogerEbert.com link:</label>
                         <input type="checkbox" id="ebert-link-enabled" class="setting" />
+                    </div>
+                </div>
+                <div>
+                    <h4>Plex</h4>
+                    <div>
+                        <label for="plex-link-enabled">Display Plex link:</label>
+                        <input type="checkbox" id="plex-link-enabled" class="setting"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Watchlist -->
+        <div id="watchlists" class="settings-container">
+            <h3>Watchlists</h3>
+            <div class="settings-group">
+                <div>
+                    <h4>Plex Watchlist</h4>
+                    <div>
+                        <div>
+                            <label for="plex-watchlist-enabled">Enable Plex Watchlist:</label>
+                            <input type="checkbox" id="plex-watchlist-enabled" permission="https://*.plex.tv/*" subid="sub-plex-auth" class="setting"/>
+                        </div>
+                        <div class="div-request-permission">
+                            <label style="color: red;">! Missing Permission !</label>
+                            <input type="button" id="plex-permissions" class="request-permission" permissionTarget="plex-watchlist-enabled" value="Request Permission"/>
+                        </div>
+                        <div id="sub-plex-auth" class="subsetting">
+                            <p id="plex-auth-status">Checking...</p>
+                            <input id="plex-auth-button" disabled type="button" value="Connect to Plex" />
+                            <input id="plex-auth-check" type="button" value="Recheck Auth" />
+                            <input id="plex-auth-remove" type="button" value="Clear Auth" style="margin-left: 15px;" />
+                        </div>
                     </div>
                 </div>
             </div>
