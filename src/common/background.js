@@ -39,6 +39,10 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
         try {
             (async () => {
+                if (msg.url.includes('filmweb')){
+                    console.log("Letterboxd Extras | " + msg.url);
+                }
+
                 // Permission Check
                 if (msg.url.startsWith('https://')) {
                     const hasPermission = await CheckForPermission(msg.url);
@@ -359,6 +363,7 @@ async function InitDefaultSettings(recommended) {
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
     if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
     if (options['wiki-prefer-en'] == null) options['wiki-prefer-en'] = false;
+    if (options['filmweb-enabled'] == null) options['filmweb-enabled'] = false;
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';
@@ -393,6 +398,7 @@ function getDefaultRatingsOrder() {
         'mal-ratings',
         'anilist-ratings',
         'allocine-ratings',
+        'filmweb-ratings',
         'tomato-ratings',
         'meta-ratings',
         'sens-ratings',

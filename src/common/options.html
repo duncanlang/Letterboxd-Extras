@@ -340,6 +340,17 @@
                             permissionTarget="cinema-enabled" value="Request Permission" />
                     </div>
                 </div>
+                <div>
+                    <h4>Filmweb.pl</h4>
+                    <div>
+                        <label for="filmweb-enabled">Display Filmweb:</label>
+                        <input type="checkbox" id="filmweb-enabled" permission="https://www.filmweb.pl/*" class="setting" />
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="filmweb-permissions" class="request-permission" permissionTarget="filmweb-enabled" value="Request Permission" />
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -379,6 +390,7 @@
                             <li class="sortable-item" draggable="true" rating-id="mal-ratings">MyAnimeList</li>
                             <li class="sortable-item" draggable="true" rating-id="al-ratings">AniList</li>
                             <li class="sortable-item" draggable="true" rating-id="allocine-ratings">AlloCiné</li>
+                            <li class="sortable-item" draggable="true" rating-id="filmweb-ratings">Filmweb.pl</li>
                             <li class="sortable-item" draggable="true" rating-id="tomato-ratings">Rotten Tomatoes</li>
                             <li class="sortable-item" draggable="true" rating-id="meta-ratings">Metacritic</li>
                             <li class="sortable-item" draggable="true" rating-id="sens-rating">SensCritique</li>

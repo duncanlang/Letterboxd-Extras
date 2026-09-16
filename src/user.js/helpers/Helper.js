@@ -15,6 +15,7 @@ const buttonLinkOrder = [
 	'.anilist-button',
 	'.anidb-button',
 	'.filmarks-button',
+	'.filmweb-button',
 	'.criterion-button',
 	'.mojo-button',
 	'.wiki-button',

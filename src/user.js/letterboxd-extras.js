@@ -14,13 +14,15 @@ import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
 import { PlexHelper } from './helpers/PlexHelper';
+import { FilmwebHelper } from './helpers/FilmwebHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
 			height: 13px !important;
 		}
 		.tomato-ratings .section-heading-extras,
-		.meta-ratings .section-heading-extras{
+		.meta-ratings .section-heading-extras,
+		.filmweb-ratings .section-heading-extras{
 			height: 20px !important; 
 		}
 		.sens-ratings .section-heading-extras{
@@ -71,7 +73,7 @@ GM_addStyle(`
 			font-family: Times-New-Roman;
 			border-radius: 0px;
 		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban, .logo-mdl {
+		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban, .logo-mdl, .logo-filmweb {
 			background-position-x: left !important;
 			background-position-y: top !important;
 			background-repeat: no-repeat !important;
@@ -129,7 +131,7 @@ GM_addStyle(`
 			margin-bottom: 10px !important;
 		}
 
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover, .logo-douban:hover{
+		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover, .logo-douban:hover, .logo-filmweb:hover{
 			opacity: 50%;
 		}
 		.logo-meta-link{
@@ -173,6 +175,9 @@ GM_addStyle(`
 		}
 		.stars-extra.stars-filmarks path{
 			fill: #ffcb62;
+		}
+		.stars-extra.stars-filmweb path{
+			fill: #FFC200;
 		}
 		.stars-extra.stars-background path{
 			fill: #667788;
@@ -953,6 +958,9 @@ const letterboxd = {
 		// Plex Helper
 		plexHelper: null,
 
+		// Filmweb.pl Helper
+		filmwebHelper: null,
+
 		kinopoiskHelper: null,
 
 		rtAdded: false,
@@ -1642,6 +1650,11 @@ const letterboxd = {
 									// Get Plex ID
 									if (this.wiki && this.wiki.Plex_ID){
 										this.wikiData.Plex_ID = this.wiki.Plex_ID.value;
+									}
+									
+									// Get Filmweb.pl ID
+									if (this.wiki && this.wiki.Filmweb_ID && letterboxd.storage.get('filmweb-enabled') === true && this.filmwebHelper.loadState == LOAD_STATES['Uninitialized']){
+										this.filmwebHelper.getData(this.wiki.Filmweb_ID.value);
 									}
 
 									// Check for State of Transmission
@@ -4903,6 +4916,8 @@ const letterboxd = {
 					href = url.replace('/ratings/', '/reviews/?rating=' + (ii + 1).toString());
 				} else if (type == "allocine") {
 					href = url + "star-" + ii;
+				} else if (type == "filmweb") {
+					href = `${url}?rate=${(ii + 1).toString()}`;
 				} else {
 					href = url;
 				}
@@ -5790,7 +5805,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission ?Plex_ID WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission ?Plex_ID ?Filmweb_ID WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -5824,6 +5839,7 @@ const letterboxd = {
 					"  OPTIONAL { ?item wdt:P3216 ?ClassInd_rating. }\n" +
 					"  OPTIONAL { ?item wdt:P12020 ?StateOfTransmission. }\n" +
         			"  OPTIONAL { ?item wdt:P11460 ?Plex_ID. }\n" +
+        			"  OPTIONAL { ?item wdt:P5032 ?Filmweb_ID. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P2130 ?Budget_Entry.\n" +
 					"    ?Budget_Entry ps:P2130 ?Budget.\n" +
@@ -6051,6 +6067,7 @@ const moduleConfigs = [
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
 	{ class: PlexHelper, target: letterboxd.overview, property: 'plexHelper', args: [] },
+	{ class: FilmwebHelper, target: letterboxd.overview, property: 'filmwebHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {
