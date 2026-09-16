@@ -115,6 +115,7 @@ function SetRatingsOrder(ratingsOrder){
         { key: "filmarks-ratings", value: "Filmarks"},
         { key: "cinemascore", value: "CinemaScore"},
         { key: "douban-ratings", value: "Douban"},
+        { key: "filmweb-ratings", value: "Filmweb"},
     ];
 
     let listElement = document.querySelector('ul#ratings-order');
