@@ -13,6 +13,7 @@ import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
+import { CastHelper } from './helpers/CastHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -1323,7 +1324,8 @@ const letterboxd = {
 			}
 
 			// Get directors and producers
-			if (this.directorsCollected == false && document.querySelector('#tab-panel-crew [href*="/director/"]')?.innerHTML != "" ) {
+			const directorEl = document.querySelector('#tab-panel-crew [href*="/director/"]');
+			if (this.directorsCollected == false && directorEl && directorEl.innerHTML !== '') {
 				// Collect all directors, and normalize their names
 				this.letterboxdDirectors = Array.from(document.querySelectorAll('#tab-panel-crew [href*="/director/"]')).map(x => x.innerHTML.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 
@@ -1333,6 +1335,13 @@ const letterboxd = {
 
 				this.directorsCollected = true;
 				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found directors/producers: ${this.letterboxdDirectors.toString()}`);
+			}
+
+			// Render expanded cast section if enabled
+			const castExtrasEnabled = letterboxd.storage.get('cast-extras-enabled') !== false && letterboxd.storage.get('expanded-cast-enabled') !== false;
+			if (this.castHelper && castExtrasEnabled && !this.castHelper.rendered && document.querySelector('#tab-panel-cast .cast-list')) {
+				const edges = (this.imdbData && this.imdbData.data && this.imdbData.data.title && this.imdbData.data.title.credits && this.imdbData.data.title.credits.edges) || null;
+				this.castHelper.render(edges, this.loggedIn);
 			}
 
 			// First Get the IMDb link 
@@ -1357,7 +1366,7 @@ const letterboxd = {
 
 				if (this.imdbID != "" && this.imdbData.state < 1) {
 					// Call IMDb and Add to page when done
-					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true) {
+					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true || castExtrasEnabled) {
 						this.imdbData.state = 1;
 
 						var options = letterboxd.helpers.getImdbQuery(this.imdbID);
@@ -1376,6 +1385,11 @@ const letterboxd = {
 								if (letterboxd.storage.get('imdb-250-enabled') === true && this.rankingHelper.imdbData.loadState == LOAD_STATES['Uninitialized']){
 									this.collectIMDBRank();
 									this.rankingHelper.createRanking(this.rankingHelper.imdbData);
+								}
+
+								if (this.castHelper && castExtrasEnabled) {
+									const edges = (this.imdbData.data.title && this.imdbData.data.title.credits && this.imdbData.data.title.credits.edges) || null;
+									this.castHelper.render(edges, this.loggedIn);
 								}
 							}
 							this.imdbData.state = 2;
@@ -5542,6 +5556,26 @@ const letterboxd = {
 									}
 								}
 							}
+							credits(first: 50) {
+								edges {
+									node {
+										... on Cast {
+											characters {
+												name
+											}
+											name {
+												id
+												nameText {
+													text
+												}
+												primaryImage {
+													url
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 				`;
@@ -5966,9 +6000,26 @@ const letterboxd = {
 
 		async init() {
 			this.data = await browser.storage.sync.get('options').then(function (storedSettings) {
-				return storedSettings.options;
+				return (storedSettings && storedSettings.options) || {};
 			});
 			this.syncInitilized = true;
+			if (typeof browser !== 'undefined' && browser.storage && browser.storage.onChanged) {
+				browser.storage.onChanged.addListener((changes, area) => {
+					if (area === 'sync' && changes.options && changes.options.newValue) {
+						this.data = changes.options.newValue;
+						const isCastEnabled = this.data['cast-extras-enabled'] !== false && this.data['expanded-cast-enabled'] !== false;
+						if (!isCastEnabled) {
+							const existing = document.querySelector('#tab-panel-cast .extras-cast-section');
+							if (existing) existing.remove();
+							const original = document.querySelector('#tab-panel-cast .cast-list');
+							if (original) original.style.display = '';
+							if (letterboxd.overview && letterboxd.overview.castHelper) {
+								letterboxd.overview.castHelper.rendered = false;
+							}
+						}
+					}
+				});
+			}
 		},
 
 		async initLocal() {
@@ -6014,6 +6065,7 @@ const moduleConfigs = [
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
+	{ class: CastHelper, target: letterboxd.overview, property: 'castHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {

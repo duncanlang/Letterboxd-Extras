@@ -60,6 +60,17 @@ async function saveCustomLists() {
 }
 
 async function set() {
+    if (options['cast-extras-enabled'] == null && options['expanded-cast-enabled'] != null) {
+        options['cast-extras-enabled'] = options['expanded-cast-enabled'];
+    }
+    if (options['expanded-cast-enabled'] == null && options['cast-extras-enabled'] != null) {
+        options['expanded-cast-enabled'] = options['cast-extras-enabled'];
+    }
+    if (options['cast-extras-enabled'] == null) options['cast-extras-enabled'] = true;
+    if (options['expanded-cast-enabled'] == null) options['expanded-cast-enabled'] = true;
+    if (options['cast-extras-seen-count'] == null) options['cast-extras-seen-count'] = true;
+    if (options['cast-extras-photos'] == null) options['cast-extras-photos'] = true;
+
     var elements = document.querySelectorAll('.setting');
     for (let i = 0; i < elements.length; i++) {
         let element = elements[i];
@@ -268,6 +279,11 @@ document.addEventListener('change', event => {
             default:
                 options[element.id] = element.value;
                 break;
+        }
+        if (element.id === 'cast-extras-enabled') {
+            options['expanded-cast-enabled'] = element.checked;
+        } else if (element.id === 'expanded-cast-enabled') {
+            options['cast-extras-enabled'] = element.checked;
         }
         checkSubIDToDisable(element);
 

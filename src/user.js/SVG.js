@@ -7,3 +7,7 @@ export const MUBI_STAR_SVG = '<svg viewBox="0 0 22 20" fill="#FFFFFF" width="20p
 
 /* CRITERION */
 export const CRITERION_LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 63 63"><path class="criterion-logo-path" fill="#989898" d="M31.5,48C22.387,48,15,40.613,15,31.5C15,22.387,22.387,15,31.5,15c7.417,0,13.688,4.894,15.767,11.627l14.392-4.233C57.751,9.438,45.729,0,31.5,0C14.103,0,0,14.103,0,31.5C0,48.896,14.103,63,31.5,63c2.175,0,4.299-0.221,6.35-0.641l-3.443-14.631C33.462,47.896,32.493,48,31.5,48z"/></svg>';
+
+/* CAST EXTRAS */
+export const CAST_AVATAR_PLACEHOLDER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="34" height="34" fill="#6d7d8b"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+export const CAST_WATCHED_EYE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 3C4.36 3 1.26 5.28 0 8.5 1.26 11.72 4.36 14 8 14s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zm0-5.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>';

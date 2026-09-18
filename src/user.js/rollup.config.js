@@ -81,10 +81,10 @@ if (isChrome) {
 function callChromeBuilder() {
 	return {
 		writeBundle() {
-			const batPath = join(__dirname, '..', 'build.bat');
-			exec(`"${batPath}" chrome`, (error, stdout, stderr) => {
+			const buildScriptPath = join(__dirname, '..', 'build.js');
+			exec(`node "${buildScriptPath}" chrome`, (error, stdout, stderr) => {
 				if (error) {
-					console.error(`Error executing built.bat: ${error.message}`);
+					console.error(`Error executing build.js: ${error.message}`);
 					return;
 				}
 				if (stderr) {
@@ -93,7 +93,6 @@ function callChromeBuilder() {
 				if (stdout) {
 					console.log(`stdout: ${stdout}`);
 				}
-				console.log('built.bat chrome executed successfully');
 			});
 		}
 	};

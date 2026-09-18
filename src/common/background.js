@@ -176,6 +176,16 @@ async function InitDefaultSettings() {
     if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
     if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
+    if (options['cast-extras-enabled'] == null && options['expanded-cast-enabled'] != null) {
+        options['cast-extras-enabled'] = options['expanded-cast-enabled'];
+    }
+    if (options['expanded-cast-enabled'] == null && options['cast-extras-enabled'] != null) {
+        options['expanded-cast-enabled'] = options['cast-extras-enabled'];
+    }
+    if (options['cast-extras-enabled'] == null) options['cast-extras-enabled'] = true;
+    if (options['expanded-cast-enabled'] == null) options['expanded-cast-enabled'] = true;
+    if (options['cast-extras-seen-count'] == null) options['cast-extras-seen-count'] = true;
+    if (options['cast-extras-photos'] == null) options['cast-extras-photos'] = true;
 
     // Default disabled settings
     if (options['rt-default-view'] == null) options['rt-default-view'] = "hide";
