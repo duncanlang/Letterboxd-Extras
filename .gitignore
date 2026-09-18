@@ -9,3 +9,4 @@ ff android debug.txt
 **/node_modules
 package-lock.json
 /scripts/*.json
+*.DS_Store
