@@ -58,7 +58,7 @@ export class CastHelper {
 			}
 			.extras-cast-grid {
 				display: grid;
-				grid-template-columns: 1fr;
+				grid-template-columns: minmax(0, 1fr);
 				gap: 6px;
 			}
 			.extras-cast-card {
@@ -69,6 +69,8 @@ export class CastHelper {
 				border-radius: 6px;
 				background: rgba(255, 255, 255, 0.02);
 				border: 1px solid rgba(255, 255, 255, 0.04);
+				min-width: 0;
+				overflow: hidden;
 				transition: background 0.15s ease, border-color 0.15s ease;
 			}
 			.extras-cast-card:hover {
@@ -137,7 +139,7 @@ export class CastHelper {
 				overflow: hidden;
 				text-overflow: ellipsis;
 				min-width: 0;
-				flex: 1 1 auto;
+				flex: 1 1 0%;
 			}
 			.extras-cast-watched {
 				display: inline-flex;
@@ -209,6 +211,37 @@ export class CastHelper {
 		if (!str) return '';
 		const normalized = str.toLowerCase().normalize('NFD');
 		return normalized.replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+	}
+
+	truncateCharacter(name, maxLength = 30) {
+		if (!name) return '';
+		const trimmed = name.trim();
+		if (trimmed.length <= maxLength) return trimmed;
+
+		// If name contains multiple roles separated by " / "
+		if (trimmed.includes('/')) {
+			const roles = trimmed.split(/\s*\/\s*/).map(r => r.trim()).filter(Boolean);
+			let result = '';
+			for (const role of roles) {
+				const candidate = result ? `${result} / ${role}` : role;
+				if (candidate.length + 3 <= maxLength) {
+					result = candidate;
+				} else {
+					break;
+				}
+			}
+			if (result) {
+				return `${result}...`;
+			}
+		}
+
+		// Fallback for long single role or if first role exceeds maxLength
+		const cut = trimmed.slice(0, maxLength - 3);
+		const lastSpace = cut.lastIndexOf(' ');
+		if (lastSpace > 12) {
+			return `${cut.slice(0, lastSpace).replace(/\s*[/,-]?\s*$/, '').trim()}...`;
+		}
+		return `${cut.replace(/\s*[/,-]?\s*$/, '').trim()}...`;
 	}
 
 	getUsername() {
@@ -354,7 +387,11 @@ export class CastHelper {
 						if (imdbActor.character) {
 							const charEl = card.querySelector('.extras-cast-character');
 							if (charEl && (!charEl.textContent || charEl.textContent.toLowerCase() === 'extra')) {
-								charEl.textContent = imdbActor.character;
+								const fullChar = imdbActor.character;
+								charEl.textContent = this.truncateCharacter(fullChar);
+								if (fullChar) {
+									charEl.title = fullChar;
+								}
 							}
 						}
 					}
@@ -479,9 +516,13 @@ export class CastHelper {
 		const subrow = document.createElement('div');
 		subrow.className = 'extras-cast-subrow';
 
+		const rawCharName = characterName || '';
 		const charSpan = document.createElement('span');
 		charSpan.className = 'extras-cast-character';
-		charSpan.textContent = characterName || '';
+		charSpan.textContent = this.truncateCharacter(rawCharName);
+		if (rawCharName) {
+			charSpan.title = rawCharName;
+		}
 		subrow.appendChild(charSpan);
 
 		// Watched badge
