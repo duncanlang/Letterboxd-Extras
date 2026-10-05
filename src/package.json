@@ -3,7 +3,6 @@
 	"version": "1.0.0",
 	"description": "Displays additional scores on Letterboxd (IMDB, Rotten Tomatoes, Metacritic).",
 	"type": "module",
-	
 	"scripts": {
 		"test": "eslint .",
 		"build-all": "rollup -c user.js/rollup.config.js && build.bat chrome && build.bat firefox",
@@ -19,8 +18,8 @@
 	"devDependencies": {
 		"eslint": "^6.5.1",
 		"eslint-config-aqua": "^7.0.1",
-		"rollup": "^4.6.0",
-		"magic-string": "^0.30.0"
+		"magic-string": "^0.30.0",
+		"rollup": "^4.6.0"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -48,5 +47,8 @@
 			"padded-blocks": 0,
 			"quote-props": 0
 		}
+	},
+	"dependencies": {
+		"rollup-plugin-import-css": "^4.2.1"
 	}
 }
