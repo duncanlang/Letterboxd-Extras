@@ -12,9 +12,8 @@ import { MyAnimeListHelper } from './helpers/MyAnimeListHelper';
 import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
-import { RankingHelper } from './helpers/RankingHelper';
+import { RankingHelper } from './helpers/RankingHelper';
 
-// Plain CSS file, inlined as a string at build time (see rollup.config.js).
 import styles from './styles/letterboxd-extras.css';
 
 GM_addStyle(styles);
@@ -392,7 +391,7 @@ const letterboxd = {
 
 				if (score != null) {
 					// Grab count and link from score element
-					let regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]rating)/);
+					let regex = new RegExp(/(?:based on )([0-9,.]+)(?:[  ]rating)/);
 
 					if (score.hasAttribute("data-original-title")) {
 						count = score.getAttribute("data-original-title").match(regex)[1];
@@ -494,7 +493,7 @@ const letterboxd = {
 					score.innerText = newScore.toFixed(1).toString();
 
 					// Convert the histogram graph
-					regex = new RegExp(/(?:[0-9,]+|No)(?: *| *)([★½]+|half-★) rating/);
+					regex = new RegExp(/(?:[0-9,]+|No)(?: *| *)([★½]+|half-★) rating/);
 					var histogramBars = section.querySelectorAll('a.barcolumn.tooltip');
 					for (var i = 0; i < histogramBars.length; i++) {
 						if (histogramBars[i].getAttribute(tooltipAttribute) != null) {
