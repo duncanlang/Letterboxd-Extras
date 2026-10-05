@@ -75,7 +75,8 @@
 		"https://api.douban.com/*",
 		"https://api.mydramalist.com/*",
 		"https://api.tenrai.org/*",
-		"https://*.plex.tv/*"
+		"https://*.plex.tv/*",
+		"https://www.filmweb.pl/*"
 	],
 
 	"content_scripts": [
