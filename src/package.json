@@ -19,7 +19,8 @@
 		"eslint": "^6.5.1",
 		"eslint-config-aqua": "^7.0.1",
 		"magic-string": "^0.30.0",
-		"rollup": "^4.6.0"
+		"rollup": "^4.6.0",
+		"rollup-plugin-import-css": "^4.2.1"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -47,8 +48,5 @@
 			"padded-blocks": 0,
 			"quote-props": 0
 		}
-	},
-	"dependencies": {
-		"rollup-plugin-import-css": "^4.2.1"
 	}
 }
