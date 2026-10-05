@@ -3,10 +3,12 @@ import MagicString from 'magic-string';
 import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import css from 'rollup-plugin-import-css';
+import typescript from '@rollup/plugin-typescript';
 
 // Get the directory of this config file
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath( import.meta.url );
+const __dirname = dirname( __filename );
 
 import { CONNECTION_DOMAINS, LETTERBOXD_EXTRAS_AUTHORS, LETTERBOXD_EXTRAS_VERSION } from './constants.js';
 
@@ -19,30 +21,32 @@ function userScriptHeaderPlugin() {
 	let spacing = '';
 	const connectionDecorator = '@connect';
 	const indentSpace = maxIndentSpace - connectionDecorator.length;
-	for (let i = 0; i < indentSpace; i++) {
+	for ( let i = 0; i < indentSpace; i ++ ) {
+
 		spacing += ' ';
+
 	}
 
-	const connectionDomains = CONNECTION_DOMAINS.map(domain => `// @connect${spacing}${domain}`).join('\n');
+	const connectionDomains = CONNECTION_DOMAINS.map( domain => `// @connect${spacing}${domain}` ).join( '\n' );
 
 	return {
 
-		renderChunk(code) {
+		renderChunk( code ) {
 
-			code = new MagicString(code);
-			code.prepend(`/* global GM_xmlhttpRequest */
+			code = new MagicString( code );
+			code.prepend( `/* global GM_xmlhttpRequest */
 // ==UserScript==
 // @name         Letterboxd Extras
 // @namespace    https://github.com/duncanlang
 // @version      ${LETTERBOXD_EXTRAS_VERSION}
 // @description  Adds a few additional features to Letterboxd.
-// @author       ${LETTERBOXD_EXTRAS_AUTHORS.join(', ')}
+// @author       ${LETTERBOXD_EXTRAS_AUTHORS.join( ', ' )}
 // @match        https://letterboxd.com/*
 ${connectionDomains}
 // @grant        GM_addStyle
 // @supportURL   https://github.com/duncanlang/Letterboxd-Extras/issues
 // @run-at       document-start
-// ==/UserScript==\n\n`);
+// ==/UserScript==\n\n` );
 
 			return {
 				code: code.toString(),
@@ -54,19 +58,20 @@ ${connectionDomains}
 
 }
 
+
 function browserSwitchPlugin() {
 
 	return {
 
-		renderChunk(code) {
+		renderChunk( code ) {
 
-			code = new MagicString(code);
-			code.prepend(`const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
+			code = new MagicString( code );
+			code.prepend( `const isFirefox = typeof browser !== "undefined" && typeof browser.runtime !== "undefined";
 const isChrome = typeof chrome !== "undefined" && typeof browser === "undefined";
 
 if (isChrome) {
 	var browser = chrome;
-}\n\n`);
+}\n\n` );
 
 			return {
 				code: code.toString(),
@@ -79,24 +84,39 @@ if (isChrome) {
 }
 
 function callChromeBuilder() {
+
 	return {
 		writeBundle() {
-			const batPath = join(__dirname, '..', 'build.bat');
-			exec(`"${batPath}" chrome`, (error, stdout, stderr) => {
-				if (error) {
-					console.error(`Error executing built.bat: ${error.message}`);
+
+			const batPath = join( __dirname, '..', 'build.bat' );
+			exec( `"${batPath}" chrome`, ( error, stdout, stderr ) => {
+
+				if ( error ) {
+
+					console.error( `Error executing built.bat: ${error.message}` );
 					return;
+
 				}
-				if (stderr) {
-					console.error(`stderr: ${stderr}`);
+
+				if ( stderr ) {
+
+					console.error( `stderr: ${stderr}` );
+
 				}
-				if (stdout) {
-					console.log(`stdout: ${stdout}`);
+
+				if ( stdout ) {
+
+					console.log( `stdout: ${stdout}` );
+
 				}
-				console.log('built.bat chrome executed successfully');
-			});
+
+				console.log( 'built.bat chrome executed successfully' );
+
+			} );
+
 		}
 	};
+
 }
 
 /**
@@ -106,6 +126,10 @@ const builds = [
 	{
 		input: 'user.js/letterboxd-extras.js',
 		plugins: [
+			typescript( { include: [ '**/*.ts' ] } ),
+			css( {
+				transform: code => code.replace( /\r\n/g, '\n' )
+			} ),
 			browserSwitchPlugin(),
 			userScriptHeaderPlugin(),
 			callChromeBuilder()
@@ -120,4 +144,4 @@ const builds = [
 	}
 ];
 
-export default args => args.configOnlyModule ? builds.slice(0, 3) : builds;
+export default args => args.configOnlyModule ? builds.slice( 0, 3 ) : builds;

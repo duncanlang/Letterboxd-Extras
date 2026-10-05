@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"allowJs": true,
+		"rootDir": "user.js",
+		"outDir": "user.js/build",
+		"strict": true,
+		"skipLibCheck": true
+	},
+	"include": ["user.js/**/*.ts"]
+}
