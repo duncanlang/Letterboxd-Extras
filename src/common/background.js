@@ -239,26 +239,48 @@ async function registerContentScripts() {
     await browser.storage.sync.get('options', async (data) => {
         if (data != null) {
             var storedSettings = data.options;
-            if (storedSettings != null && storedSettings.hasOwnProperty("google") && storedSettings["google"] === true) {
-                const script = {
-                    id: 'google2letterboxd',
-                    js: ['google2letterboxd.js'],
-                    matches: ['https://www.google.com/search*'],
-                };
+            if (storedSettings != null) {
+                let scripts = [];
 
-                // Check for existing script
-                let existingScripts = await browser.scripting.getRegisteredContentScripts();
-                existingScripts = existingScripts.map((script) => script.id);
-                if (existingScripts.includes(script.id)) {
-                    console.log(`Content script: ${script.id} is already registered.`);
-                    return;
+                if (storedSettings.hasOwnProperty("google") && storedSettings["google"] === true){
+                    const script = {
+                        id: 'google2letterboxd',
+                        js: ['google2letterboxd.js'],
+                        matches: ['https://www.google.com/search*'],
+                    };
+
+                    scripts.push(script);
                 }
 
-                // Register script
-                try {
-                    await browser.scripting.registerContentScripts([script]).catch(console.error);
-                } catch (err) {
-                    console.error(`Failed to register content script: ${err}`);
+                if (storedSettings.hasOwnProperty("ddg-search-enabled") && storedSettings["ddg-search-enabled"] === true){
+                    const script = {
+                        id: 'ddg',
+                        js: ['ddg.js'],
+                        matches: ['https://duckduckgo.com/*'],
+                    };
+
+                    scripts.push(script);
+                }
+
+                if (scripts.length == 0) return;
+
+                for(let i = 0; i < scripts.length; i++) {
+                    const script = scripts[i];
+
+                    // Check for existing script
+                    let existingScripts = await browser.scripting.getRegisteredContentScripts();
+                    existingScripts = existingScripts.map((script) => script.id);
+                    if (existingScripts.includes(script.id)) {
+                        console.log(`Content script: ${script.id} is already registered.`);
+                        return;
+                    }
+
+                    // Register script
+                    try {
+                        await browser.scripting.registerContentScripts([script]).catch(console.error);
+                    } catch (err) {
+                        console.error(`Failed to register content script: ${err}`);
+                    }
                 }
             }
         }
@@ -360,6 +382,7 @@ async function InitDefaultSettings(recommended) {
     if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
     if (options['wiki-prefer-en'] == null) options['wiki-prefer-en'] = false;
     if (options['filmweb-enabled'] == null) options['filmweb-enabled'] = false;
+    if (options['ddg-search-enabled'] == null) options['ddg-search-enabled'] = false;
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';

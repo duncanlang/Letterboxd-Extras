@@ -679,22 +679,41 @@
             <div class="settings-group">
                 <div>
                     <h4>Google Search</h3>
-                        <div>
-                            <label for="google">Always display Letterboxd score on Google searches:</label>
-                            <input type="checkbox" id="google" permission="https://www.google.com/search*"
-                                contentScript="google2letterboxd.js" contentScriptID="google2letterboxd"
-                                class="setting" />
-                        </div>
-                        <div class="div-request-permission">
-                            <label style="color: red;">! Missing Permission !</label>
-                            <input type="button" id="google-permissions" class="request-permission"
-                                permissionTarget="google" value="Request Permission" />
-                        </div>
-                        <div class="div-request-contentscript">
-                            <label style="color: red;">! Missing Content Script !</label>
-                            <input type="button" id="google-contentscripts" class="request-contentscript"
-                                permissionTarget="google" value="Request Content Script" />
-                        </div>
+                    <div>
+                        <label for="google">Always display Letterboxd score on Google searches:</label>
+                        <input type="checkbox" id="google" permission="https://www.google.com/search*"
+                            contentScript="google2letterboxd.js" contentScriptID="google2letterboxd"
+                            class="setting" />
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="google-permissions" class="request-permission"
+                            permissionTarget="google" value="Request Permission" />
+                    </div>
+                    <div class="div-request-contentscript">
+                        <label style="color: red;">! Missing Content Script !</label>
+                        <input type="button" id="google-contentscripts" class="request-contentscript"
+                            permissionTarget="google" value="Request Content Script" />
+                    </div>
+                </div>
+                <div>
+                    <h4>DuckDuckGo</h3>
+                    <div>
+                        <label for="duckduckgo">Add Letterboxd to quick links:</label>
+                        <input type="checkbox" id="ddg-search-enabled" permission="https://duckduckgo.com/*"
+                            contentScript="ddg.js" contentScriptID="ddg"
+                            class="setting" />
+                    </div>
+                    <div class="div-request-permission">
+                        <label style="color: red;">! Missing Permission !</label>
+                        <input type="button" id="ddg-permissions" class="request-permission"
+                            permissionTarget="ddg-search-enabled" value="Request Permission" />
+                    </div>
+                    <div class="div-request-contentscript">
+                        <label style="color: red;">! Missing Content Script !</label>
+                        <input type="button" id="ddg-contentscripts" class="request-contentscript"
+                            permissionTarget="ddg-search-enabled" value="Request Content Script" />
+                    </div>
                 </div>
             </div>
         </div>
