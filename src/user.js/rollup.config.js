@@ -126,8 +126,6 @@ const builds = [
 		input: 'user.js/letterboxd-extras.js',
 		plugins: [
 			css( {
-				// Git on Windows may check .css files out with CRLF line endings; normalise them so
-				// the inlined CSS does not depend on whose machine ran the build.
 				transform: code => code.replace( /\r\n/g, '\n' )
 			} ),
 			browserSwitchPlugin(),
