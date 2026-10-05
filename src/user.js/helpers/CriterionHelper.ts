@@ -1,20 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOAD_STATES } from '../constants';
-import { CRITERION_LOGO_SVG } from '../SVG';
+import { PageState, StorageObject } from '../types/types';
 import { Helper } from './Helper';
 
 export class CriterionHelper extends Helper {
 
-	constructor(storage, helpers, pageState) {
+	spineID: string | null;
+
+	constructor(storage: StorageObject, helpers: any, pageState: PageState) {
 
 		super(storage, helpers, pageState, 'criterion');
 
 		this.spineID = null;
 		this.spineAdded = false;
-		this._stylesInjected = false;
 
 	}
 
-	_loadData({ websiteID, spineID }) {
+	_loadData({ websiteID, spineID }: { websiteID: string, spineID?: string }) {
 
 		this.linkURL = `https://www.criterion.com/films/${websiteID}`;
 		this.loadState = LOAD_STATES['Success'];
@@ -22,14 +24,6 @@ export class CriterionHelper extends Helper {
 		if (this.storage.get('criterion-link-enabled') === true){
 			this.addButtonLink(this.linkURL, 'CRITERION');
 		}
-
-		/* this._createWatchLink({
-			sourceID: 'criterion',
-			title: 'Criterion',
-			link: this.linkURL
-		}); */
-
-
 		const logoSvg = this.helpers.createElement('span', {}, {
 			height: '24px',
 			width: '24px',
