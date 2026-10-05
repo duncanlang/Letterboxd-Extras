@@ -428,7 +428,6 @@ GM_addStyle(`
 			hidden: false !important;
 		}
 		.extras-table{
-			width: 100%;
 			margin-bottom: 10px;
 			border: 1px solid hsla(0,0%,100%,.25);
 			border-radius: 4px;
