@@ -39,10 +39,6 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
         try {
             (async () => {
-                if (msg.url.includes('filmweb')){
-                    console.log("Letterboxd Extras | " + msg.url);
-                }
-
                 // Permission Check
                 if (msg.url.startsWith('https://')) {
                     const hasPermission = await CheckForPermission(msg.url);
