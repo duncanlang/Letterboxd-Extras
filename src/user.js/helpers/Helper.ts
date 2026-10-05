@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOAD_STATES } from '../constants';
+import { PageState, SourceIdentifier, StorageObject } from '../types/types';
 
-const buttonLinkOrder = [
+type ButtonSelector = `.${SourceIdentifier}-button`;
+type ButtonClassName = `${SourceIdentifier}-button`;
+
+const buttonLinkOrder: ButtonSelector[] = [
 	'.tomato-button',
 	'.meta-button',
 	'.sens-button',
@@ -23,30 +28,94 @@ const buttonLinkOrder = [
 	'.ebert-button'
 ];
 
-// Most class names are built from a helper's selectorPrefix. A few sources predate that convention,
-// and their CSS still expects an older name; these maps give that name, per element, keyed by
-// selectorPrefix. A prefix that is not listed uses itself.
+interface LogoProps {
+	href: string
+	style?: string
+	innerHTML?: string
+	svg?: HTMLElement
+}
 
-/** Class name stem for the logo link, as in `logo-${name}`. */
-const logoClassNames = {
-	tomato: 'tomatoes'
-};
+interface HeaderStyleProps {
+	style?: string
+}
 
-/**
- * Name of the SHOW DETAILS button, as in `${name}-show-details`, and of the details it toggles,
- * `${name}-score-details`. toggleDetails (common/additional.js) also stores the shown/hidden choice
- * under `${name}-score-details`, so changing a name here forgets users' saved preference.
- */
-const showDetailsNames = {
-	tomato: 'rt'
-};
+interface SpineIndicatorProps {
+	logoSVG: HTMLElement
+	title: string
+	spineID: string | null
+}
+
+interface APIRequestCallbackOptions {
+	name: string
+	type: string
+	url: string
+	options?: object
+}
+
+interface SpineAttrs {
+	class: string
+	href: string
+	title: string
+	target: '_blank',
+	rel: 'noopener noreferrer',
+	'data-view'?: string
+}
+
+/** The denominator shown after a score, chosen by the 'convert-ratings' setting. */
+type ScoreDenominator = '/10' | '/5';
+
+/** What _getAverageScore hands back for display. */
+interface AverageScore {
+	/** Hover text for the score element. */
+	tooltip: string
+	/**
+	 * The score as it should be displayed: a fixed-point string such as '8.5', the literal
+	 * 'N/A', or null when there is no score at all. Callers assign this to innerText.
+	 */
+	score: string | null
+	totalScore: ScoreDenominator
+}
+
+interface WatchLinkOptions {
+	title: string
+	link: string
+	sourceID: string
+}
+
+interface PurchaseOption {
+	text: string
+	link: string
+}
+
+interface PurchaseSourceOptions {
+	sourceName: string
+	sourceID: string
+}
 
 /**
  * A generic class used to unify how references sources are accessed and how their data is appended to the webpage.
  */
 export class Helper {
 
-	constructor(storage, helpers, pageState, selectorPrefix) {
+	storage: StorageObject
+	helpers: any;
+	pageState: PageState
+	selectorPrefix: SourceIdentifier
+	loadState: number;
+	data: any | null;
+	linkURL: string | null
+	apiURL: string | null
+	linkAdded: boolean
+	ratingsAdded: boolean
+	tooltip: string
+	spineAdded: boolean
+	num_ratings: number = 0;
+	/** The score on a 10-point scale. Subclasses set it once their data has loaded. */
+	rating: number | null = null;
+	/** A 5-point score supplied directly by the API, used instead of halving `rating`. */
+	ratingAlt: number | null = null;
+
+	constructor(storage: StorageObject, helpers: any, pageState: PageState, selectorPrefix: SourceIdentifier) {
 
 		this.storage = storage;
 		this.helpers = helpers;
@@ -59,13 +128,6 @@ export class Helper {
 		 */
 		this.selectorPrefix = selectorPrefix;
 
-
-		/**
-		 * A string defining the prefix of a class or id selector on an HTML Element.
-		 *
-		 * @type {?'load' | 'render' | 'complete'}
-		 */
-		/* this.buildStage = null; */
 
 		/**
 		 * A flag indicating what our current data loading progress during an API call to an external data source.
@@ -134,7 +196,7 @@ export class Helper {
 	 * Runs the data extraction step of pulling from a data source.
 	 * @param {any} data - The id or url of the resource.
 	 */
-	getData(data) {
+	getData(data: any) {
 
 		if (!this._canLoadData()) {
 
@@ -153,7 +215,7 @@ export class Helper {
 	 * populating the page with information from that data.
 	 * @param {any} data - The id or url of the resource.
 	 */
-	_loadData(data) {
+	_loadData(data: any) {
 
 		throw new Error(`Letterboxd Extras | Error! The function Helper._loadData' must be overriden by a subclass`);
 
@@ -171,10 +233,10 @@ export class Helper {
 	 *   address after any redirects.
 	 * @protected
 	 */
-	_apiRequestCallback(errorHeader, url, type, options, dataLoadCallback) {
+	_apiRequestCallback(errorHeader: string, url: string, type: string, options: object, dataLoadCallback: (response: any) => void) {
 		try {
 
-			const request = {
+			const request: APIRequestCallbackOptions = {
 				name: 'GETDATA',
 				type: type,
 				url: url
@@ -227,7 +289,7 @@ export class Helper {
 			return document.querySelector('.extras-ratings-holder');
 		}
 
-		const currentSidebar = document.querySelector('.sidebar');
+		const currentSidebar = document.querySelector('.sidebar') as Element;
 
 		const sidebar = this.helpers.createElement('div', {
 			class: 'extras-ratings-holder',
@@ -242,26 +304,15 @@ export class Helper {
 		currentSidebar.append(moreButton);
 
 		moreButton.addEventListener('click', event => {
+			// @ts-ignore toggleAllRatings is a global, defined in common/additional.js
 			toggleAllRatings(event);
 		});
 
 		return sidebar;
 	}
 
-	/**
-	 * Adds html to the ratings sidebar for a given reference source.
-	 *
-	 * @param {HTMLElement} rating - The html that will be appending to the ratings sidebar
-	 */
-	appendSidebarRating(rating) {
-		var order = this.storage.get('ratings-order');
+	_getCorrectRatingsHolder(): Element | null {
 
-		let className = this.selectorPrefix;
-		if (this.selectorPrefix !== 'cinemascore') {
-			className = `${this.selectorPrefix}-ratings`;
-		}
-
-		const index = order.indexOf(className);
 		let sidebar = document.querySelector('.sidebar');
 
 		const { hideRatings } = this.pageState;
@@ -274,9 +325,33 @@ export class Helper {
 			}
 		}
 
+		return sidebar;
+
+	}
+
+	/**
+	 * Adds html to the ratings sidebar for a given reference source.
+	 *
+	 * @param {HTMLElement} rating - The html that will be appending to the ratings sidebar
+	 */
+	appendSidebarRating(rating: HTMLElement) {
+		const order = this.storage.get('ratings-order');
+
+		let className: string = this.selectorPrefix;
+		if (this.selectorPrefix !== 'cinemascore') {
+			className = `${this.selectorPrefix}-ratings`;
+		}
+
+		const index = order.indexOf(className);
+		const ratingsHolder = this._getCorrectRatingsHolder();
+
+		if (ratingsHolder === null) {
+			return;
+		}
+
 		// First
 		for (let i = index + 1; i < order.length; i++) {
-			const temp = sidebar.querySelector(`.${order[i]}`);
+			const temp = ratingsHolder.querySelector(`.${order[i]}`);
 			if (temp !== null) {
 				temp.before(rating);
 				return;
@@ -285,7 +360,7 @@ export class Helper {
 
 		// Second
 		for (let i = index - 1; i >= 0; i--) {
-			const temp = sidebar.querySelector(`.${order[i]}`);
+			const temp = ratingsHolder.querySelector(`.${order[i]}`);
 			if (temp !== null) {
 				temp.after(rating);
 				return;
@@ -293,7 +368,7 @@ export class Helper {
 		}
 
 		// Third
-		sidebar.append(rating);
+		ratingsHolder.append(rating);
 
 	}
 
@@ -303,13 +378,13 @@ export class Helper {
 	 * @param {string} url - The url the button will redirect the user to .
 	 * @param {string} text - The text to be displayed on the button.
 	 */
-	addButtonLink(url, text) {
+	addButtonLink(url: string, text: string) {
 
 		if (url === null || url === '') {
 			return;
 		}
 
-		const className = `${this.selectorPrefix}-button`;
+		const className: ButtonClassName = `${this.selectorPrefix}-button`;
 
 		// Check if already added
 		if (!this.linkAdded) {
@@ -390,7 +465,7 @@ export class Helper {
 	 * @param {string} tooltip - The tooltip text to display
 	 * @protected
 	 */
-	_createRatingDetailsText(section, tooltip) {
+	_createRatingDetailsText(section: HTMLElement, tooltip: string) {
 
 		const { isMobile } = this.pageState;
 
@@ -415,14 +490,13 @@ export class Helper {
 	/**
 	 * Calculates the display score, tooltip text, and score denominator for a rating.
 	 *
-	 * @param {number | null} score - The rating score on a 10-point scale
-	 * @param {number | null} [altScore] - An optional pre-calculated 5-point score from the API
-	 * @returns {{ tooltip: string, score: string | number, totalScore: string }}
+	 * @param score - The rating score on a 10-point scale
+	 * @param altScore - An optional pre-calculated 5-point score from the API
 	 * @protected
 	 */
-	_getAverageScore(score, altScore) {
+	_getAverageScore(score: number | null, altScore?: number | null): AverageScore {
 
-		let totalScore = '/10';
+		let totalScore: ScoreDenominator = '/10';
 
 		if (score !== null && this.storage.get('convert-ratings') === '5') {
 			totalScore = '/5';
@@ -432,31 +506,22 @@ export class Helper {
 		let tooltip = 'No score available';
 		const ratingsText = `rating${this.num_ratings > 0 ? 's' : ''}`;
 
-		if (score == null && this.num_ratings === 0) {
-
-			score = 'N/A';
-			return { tooltip, score, totalScore };
-
-		}
-
 		if (this.num_ratings > 0 && this.rating == null) {
 
 			tooltip = `${this.num_ratings} ${ratingsText}`;
-			score = 'N/A';
-			return { tooltip, score, totalScore };
+			return { tooltip, score: 'N/A', totalScore };
 
 		}
 
-		try{
-			score = score.toFixed(1);
-			tooltip = `Average of ${score.toLocaleString()}${totalScore} based on ${this.num_ratings.toLocaleString()} ${ratingsText}`;
-		}
-		catch (e){
-			console.error(this.selectorPrefix);
+		// `score` stays the number; the returned score is the string the caller displays.
+		if (score === null) {
+			return { tooltip, score: null, totalScore };
 		}
 
+		const displayScore = score.toFixed(1);
+		tooltip = `Average of ${displayScore}${totalScore} based on ${this.num_ratings.toLocaleString()} ${ratingsText}`;
 
-		return { tooltip, score, totalScore };
+		return { tooltip, score: displayScore, totalScore };
 
 	}
 
@@ -468,7 +533,7 @@ export class Helper {
 	 * @returns {HTMLSpanElement}
 	 * @protected
 	 */
-	_generateScoreSpan({ href }) {
+	_generateScoreSpan({ href }: {href: string}) {
 
 		const { isMobile } = this.pageState;
 
@@ -516,16 +581,20 @@ export class Helper {
 	 * @returns {HTMLSectionElement}
 	 * @protected
 	 */
-	_createChartSectionElement(isChart) {
+	_createChartSectionElement(isChart: boolean) {
 
-		if (isChart){
+		if (isChart) {
+
 			return this.helpers.createElement('section', {
 				class: `extras-section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras extras-chart`
 			});
-		}else{
+
+		} else {
+
 			return this.helpers.createElement('section', {
 				class: `extras-section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras`
 			});
+
 		}
 
 	}
@@ -538,7 +607,7 @@ export class Helper {
 	 * @returns {HTMLHeadingElement}
 	 * @protected
 	 */
-	_createChartSectionHeader(headerStyle) {
+	_createChartSectionHeader(headerStyle?: HeaderStyleProps) {
 
 		const headerProps = {
 			class: 'section-heading section-heading-extras',
@@ -560,7 +629,7 @@ export class Helper {
 	 * @returns {HTMLAnchorElement}
 	 * @protected
 	 */
-	_createChartSectionLogoHolder(logoProps) {
+	_createChartSectionLogoHolder(logoProps: LogoProps) {
 
 		const logoHolder = this.helpers.createElement('a', {
 			class: `logo-${logoClassNames[this.selectorPrefix] ?? this.selectorPrefix}`,
@@ -596,6 +665,7 @@ export class Helper {
 
 		// Add click event
 		showDetails.addEventListener('click', event => {
+			// @ts-ignore toggleDetails is a global, defined in common/additional.js
 			toggleDetails(event, this.storage, isMobile);
 		});
 
@@ -615,7 +685,7 @@ export class Helper {
 	 * @returns {HTMLSectionElement}
 	 * @protected
 	 */
-	_createChartSection(logoProps, headerStyle) {
+	_createChartSection(logoProps: LogoProps, headerStyle?: HeaderStyleProps) {
 
 		const { isMobile } = this.pageState;
 
@@ -639,14 +709,12 @@ export class Helper {
 	/**
 	 * Creates the base section element for the data source's sidebar ratings element.
 	 *
-	 * @param {Object} options
-	 * @param {string} options.sourceID - Id of the HTMLElement for the newly created service
-	 * @param {string} options.title - Descriptor for the data-original-title
-	 * @param {string} options.link - Link for the movie
-	 * @returns {HTMLSectionElement}
+	 * @param options.sourceID - Id of the HTMLElement for the newly created service
+	 * @param options.title - Descriptor for the data-original-title
+	 * @param options.link - Link for the movie
 	 * @protected
 	 */
-	_createWatchLink(options) {
+	_createWatchLink(options: WatchLinkOptions): void {
 
 		const watchSection = document.getElementById('watch');
 
@@ -654,16 +722,19 @@ export class Helper {
 			return;
 		}
 
-		let sections = watchSection.querySelector('.services');
+		let sections: Element | null = watchSection.querySelector('.services');
 
 		if (sections === null) {
-			sections = this.helpers.createElement('div', {
+			// helpers.createElement is untyped, so name the element's type here: without it
+			// `sections` stays Element | null and every use below is an error.
+			const servicesContainer: HTMLDivElement = this.helpers.createElement('div', {
 				class: 'services'
 			});
+			sections = servicesContainer;
 			watchSection.append(sections);
 		}
 
-		const serviceParagraph = this.helpers.createElement('p', {
+		const serviceParagraph: HTMLParagraphElement = this.helpers.createElement('p', {
 			class: 'service extras-service',
 			id: `source-${options.sourceID}`
 		});
@@ -678,7 +749,7 @@ export class Helper {
 
 	}
 
-	_createWatchLinkDisplay(options) {
+	_createWatchLinkDisplay(options: WatchLinkOptions) {
 
 		const watchLinkDisplay = this.helpers.createElement('a', {
 			class: 'label track-event tooltip',
@@ -728,7 +799,10 @@ export class Helper {
 	 * @returns {HTMLSpanElement}
 	 * @protected
 	 */
-	_createWatchLinkPurchaseButton(purchaseOption, sourceOptions) {
+	_createWatchLinkPurchaseButton(
+		purchaseOption: PurchaseOption, 
+		sourceOptions: PurchaseSourceOptions
+	) {
 
 		const purchaseButton = this.helpers.createElement('a', {
 			class: `link -${purchaseOption.text.toLowerCase()} track-event`,
@@ -751,7 +825,10 @@ export class Helper {
 
 	}
 
-	_createWatchLinkPurchaseOptions(purchaseOptions, sourceOptions) {
+	_createWatchLinkPurchaseOptions(
+		purchaseOptions: PurchaseOption[], 
+		sourceOptions: PurchaseSourceOptions
+	) {
 
 		const purchaseOptionsSpan = this.helpers.createElement('span', {
 			class: 'options js-film-availability-options'
@@ -769,27 +846,25 @@ export class Helper {
 
 	}
 
-	_addSpineIndicator({ logoSVG, title, spineID }) {
+	_addSpineIndicator({ logoSVG, title, spineID }: SpineIndicatorProps) {
 		const { isMobile } = this.pageState;
 
 		if (this.spineAdded) return;
 
-		var posterSection = null;
-		if (isMobile){
-			posterSection = document.querySelector('div.poster-list.-p230.-single');
-		}else{
-			posterSection = document.querySelector('section.poster-list.-p230.-single');
-		}
+		const posterSection: Element | null = isMobile ? 
+			document.querySelector('div.poster-list.-p230.-single') :
+			document.querySelector('section.poster-list.-p230.-single');
+
 		if (posterSection === null) return;
 
 		if (posterSection.querySelector('.extras-spine-indicator') !== null) return;
 
-		const spineLinkAttrs = {
+		const spineLinkAttrs: SpineAttrs = {
 			class: `extras-spine-indicator criterion-spine${isMobile ? ' mobile' : ''}`,
-			href: this.linkURL,
+			href: this.linkURL ?? "",
 			title: `${title} - Spine #${spineID}`,
 			target: '_blank',
-			rel: 'noopener noreferrer'
+			rel: 'noopener noreferrer',
 		};
 
 		const viewMode = this.storage.get('criterion-spine-default-view');
@@ -846,8 +921,8 @@ export class Helper {
 		});
 	}
 
-	getTextBetween(text, start, end) {
-		var tempArray = text.split(start);
+	getTextBetween(text: string, start: string, end: string): string {
+		let tempArray = text.split(start);
 		if (tempArray.length >= 2) {
 			tempArray = tempArray[1].split(end);
 
