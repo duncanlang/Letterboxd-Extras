@@ -112,6 +112,13 @@ GM_addStyle(`
 			background-image: url("https://www.metacritic.com/a/neutron/images/logos/badge/must-watch.png");
 		}
 
+		/* Extras sections avoid Letterboxd's .section class, whose position-based
+		   rules (e.g. nth-child) hide whichever section lands in that slot */
+		.extras-section{
+			padding: 0;
+			position: relative;
+		}
+
 		.ratings-extras{
 			margin-top: 20px !important;
 			padding-bottom: 0px !important;
@@ -2265,7 +2272,7 @@ const letterboxd = {
 			//***************************************************************
 			// Add the section to the page
 			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart tomato-ratings ratings-extras'
+				class: 'extras-section ratings-histogram-chart tomato-ratings ratings-extras'
 			});
 
 			// Add the Header - 
@@ -2502,7 +2509,7 @@ const letterboxd = {
 			//***************************************************************
 			// Add the section to the page
 			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart meta-ratings ratings-extras'
+				class: 'extras-section ratings-histogram-chart meta-ratings ratings-extras'
 			});
 
 			// Add the Header
@@ -3157,7 +3164,7 @@ const letterboxd = {
 
 				// Add the section to the page
 				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart cinemascore ratings-extras'
+					class: 'extras-section ratings-histogram-chart cinemascore ratings-extras'
 				});
 
 				// Add the Header
@@ -4024,7 +4031,7 @@ const letterboxd = {
 			//***************************************************************
 			// Add the section to the page
 			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart filmarks-ratings ratings-extras'
+				class: 'extras-section ratings-histogram-chart filmarks-ratings ratings-extras'
 			});
 
 			// Add the Header
@@ -5147,7 +5154,7 @@ const letterboxd = {
 
 		createChartSectionElement(sectionID) {
 			return this.createElement('section', {
-				class: `section ratings-histogram-chart ${sectionID}-ratings ratings-extras`
+				class: `extras-section ratings-histogram-chart ${sectionID}-ratings ratings-extras`
 			});
 		},
 
