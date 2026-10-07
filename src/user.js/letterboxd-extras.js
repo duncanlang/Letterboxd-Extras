@@ -5292,40 +5292,6 @@ const letterboxd = {
 			return output;
 		},
 
-		getBFIYear(title, year) {
-			var output = year;
-
-			if (title == "The Ascent" && year == "1977") {
-				output = "1976";
-			}
-			else if (title == "The Color of Pomegranates" && year == "1969") {
-				output = "1968";
-			}
-
-			return output;
-		},
-
-		getBFIListPage(rank, movieTitle, movieYear) {
-			// The movies which are tied are in difference positions on the BFI site and the LB list for some reason
-			// Ugly, but let's just correct the page number manually
-			var output = "";
-			if (rank == "196") {
-				switch (movieTitle) {
-					case "Paisan":
-					case "The Headless Woman":
-					case "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb":
-					case "L'Eclisse":
-					case "Wavelength":
-						output = "2";
-						break;
-					default:
-						output = "3";
-						break;
-				}
-			}
-			return output;
-		},
-
 		cleanupInnerText(value) {
 			var out = value.replaceAll("\n", "");
 			out = out.trim();
