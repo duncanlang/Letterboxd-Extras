@@ -16,9 +16,9 @@ export class KinopoiskHelper extends Helper {
 		const options = this._getHeaders();
 		const apiURL = `https://kinopoiskapiunofficial.tech/api/v2.2/films/${kinopoiskID}`;
 
-		this._apiRequestCallback('Kinopoisk', apiURL, 'JSON', options, response => {
+		this._apiRequestCallback('Kinopoisk', apiURL, 'JSON', options, value => {
 
-			this.data = response;
+			this.data = value.response;
 			this.loadState = LOAD_STATES['Success'];
 
 			if (this.data.webUrl !== null) {
