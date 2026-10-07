@@ -78,7 +78,7 @@ export class FilmAffinityHelper extends Helper {
 		//* **************************************************************
 		// Add the section to the page
 		const section = this.helpers.createElement('section', {
-			class: 'section ratings-histogram-chart filmaff-ratings ratings-extras'
+			class: 'extras-section ratings-histogram-chart filmaff-ratings ratings-extras'
 		});
 
 		// Add the Header
