@@ -24,26 +24,26 @@ export class MyAnimeListHelper extends Helper {
 		const apiHeader = 'Tenrai (MAL API)';
 
 		const url = `https://api.tenrai.org/v1/anime/${id}`;
-		this._apiRequestCallback(apiHeader, url, 'JSON', {}, response => {
+		this._apiRequestCallback(apiHeader, url, 'JSON', {}, value => {
 
-			if (!response.data) {
+			if (!value.response.data) {
 				this.loadState = LOAD_STATES['Failure'];
 				return;
 			}
 
-			this.data = response.data;
+			this.data = value.response.data;
 			this.url = this.data.url;
 
-			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, 'JSON', {}, response => {
+			this._apiRequestCallback(`${apiHeader} ratings`, `${url}/statistics`, 'JSON', {}, statsValue => {
 
-				if (!response.data) {
+				if (!statsValue.response.data) {
 
 					this.loadState = LOAD_STATES['Failure'];
 					return;
 
 				}
 
-				this.statistics = response.data;
+				this.statistics = statsValue.response.data;
 				this.loadState = LOAD_STATES['Success'];
 
 				this.addButtonLink(this.url, 'MAL');

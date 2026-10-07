@@ -23,6 +23,24 @@ const buttonLinkOrder = [
 	'.ebert-button'
 ];
 
+// Most class names are built from a helper's selectorPrefix. A few sources predate that convention,
+// and their CSS still expects an older name; these maps give that name, per element, keyed by
+// selectorPrefix. A prefix that is not listed uses itself.
+
+/** Class name stem for the logo link, as in `logo-${name}`. */
+const logoClassNames = {
+	tomato: 'tomatoes'
+};
+
+/**
+ * Name of the SHOW DETAILS button, as in `${name}-show-details`, and of the details it toggles,
+ * `${name}-score-details`. toggleDetails (common/additional.js) also stores the shown/hidden choice
+ * under `${name}-score-details`, so changing a name here forgets users' saved preference.
+ */
+const showDetailsNames = {
+	tomato: 'rt'
+};
+
 /**
  * A generic class used to unify how references sources are accessed and how their data is appended to the webpage.
  */
@@ -131,7 +149,8 @@ export class Helper {
 	}
 
 	/**
-	 * Gets the requested data for a film's data source.
+	 * Gets the requested data for a film's data source and runs a callback
+	 * populating the page with information from that data.
 	 * @param {any} data - The id or url of the resource.
 	 */
 	_loadData(data) {
@@ -145,8 +164,11 @@ export class Helper {
 	 *
 	 * @param {string} errorHeader - The name of the service for error logging (e.g., "AniList API", "MyAnimeList API")
 	 * @param {string} url - The API endpoint URL to request data from
+	 * @param {string} type - 'JSON' to parse the response as JSON; anything else returns it as text
 	 * @param {Object} [options] - Optional request options (headers, method, body, etc.) to be passed to the fetch request
-	 * @param {function(Object): void} dataLoadCallback - Callback function to process the successful API response
+	 * @param {function({response: any, url: string, status: number}): void} dataLoadCallback - Called with
+	 *   the background script's whole reply once it is valid: `response` is the body, and `url` is the
+	 *   address after any redirects.
 	 * @protected
 	 */
 	_apiRequestCallback(errorHeader, url, type, options, dataLoadCallback) {
@@ -176,7 +198,7 @@ export class Helper {
 
 				}
 
-				dataLoadCallback(value.response);
+				dataLoadCallback(value);
 
 			});
 
@@ -344,7 +366,7 @@ export class Helper {
 	 */
 	_canPopulateRatingsSidebar() {
 
-		return document.querySelector('.sidebar') !== null && this.data !== null && !document.querySelector(`${this.selectorPrefix}-ratings`);
+		return document.querySelector('.sidebar') !== null && this.data !== null && !document.querySelector(`.${this.selectorPrefix}-ratings`);
 
 	}
 
@@ -541,7 +563,7 @@ export class Helper {
 	_createChartSectionLogoHolder(logoProps) {
 
 		const logoHolder = this.helpers.createElement('a', {
-			class: `logo-${this.selectorPrefix}`,
+			class: `logo-${logoClassNames[this.selectorPrefix] ?? this.selectorPrefix}`,
 			href: logoProps.href,
 			style: logoProps.style
 		});
@@ -563,11 +585,12 @@ export class Helper {
 	_createShowDetailsButton() {
 
 		const { isMobile } = this.pageState;
+		const name = showDetailsNames[this.selectorPrefix] ?? this.selectorPrefix;
 
 		// Add the Show Details button
 		const showDetails = this.helpers.createElement('a', {
-			class: `all-link more-link show-details ${this.selectorPrefix}-show-details`,
-			'target': `${this.selectorPrefix}-score-details`
+			class: `all-link more-link show-details ${name}-show-details`,
+			'target': `${name}-score-details`
 		});
 		showDetails.innerText = 'SHOW DETAILS';
 

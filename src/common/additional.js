@@ -84,10 +84,10 @@ function toggleDetails(event, letterboxdStorage, isMobile) {
 		const audienceAllText = document.querySelector('.mobile-details-text.score-audience-all');
 		const audienceVerifiedText = document.querySelector('.mobile-details-text.score-audience-verified');
 
-		const criticAllDiv = document.querySelector('.rt-score-div.score-critic-all');
-		const criticTopDiv = document.querySelector('.rt-score-div.score-critic-top');
-		const audienceAllDiv = document.querySelector('.rt-score-div.score-audience-all');
-		const audienceVerifiedDiv = document.querySelector('.rt-score-div.score-audience-verified');
+		const criticAllDiv = document.querySelector('.toggle-score-display.score-critic-all');
+		const criticTopDiv = document.querySelector('.toggle-score-display.score-critic-top');
+		const audienceAllDiv = document.querySelector('.toggle-score-display.score-audience-all');
+		const audienceVerifiedDiv = document.querySelector('.toggle-score-display.score-audience-verified');
 
 		if (event.target.innerText.includes('SHOW')) {
 			// Details shown - Put the text after each rating div
