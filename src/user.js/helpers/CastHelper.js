@@ -195,14 +195,18 @@ export class CastHelper {
 	// Letterboxd shows the actor's TMDb photo on their page as <img class="js-tmdb-person" data-image="...">
 	async fetchPhotoUrl(slug) {
 		try {
-			const response = await fetch(`/actor/${slug}/`, { credentials: 'same-origin' });
+			// The tag is in the page header, so only the first 16 KB is requested (Letterboxd answers with 206)
+			const response = await fetch(`/actor/${slug}/`, { credentials: 'same-origin', headers: { Range: 'bytes=0-16383' } });
 			if (!response.ok) return null;
 
 			const page = new DOMParser().parseFromString(await response.text(), 'text/html');
-			const photoUrl = page.querySelector('img.js-tmdb-person')?.getAttribute('data-image') ?? '';
+			const img = page.querySelector('img.js-tmdb-person');
+
+			// A partial page without the tag says nothing about the actor, so don't remember it as "no photo"
+			if (img === null && response.status === 206) return null;
 
 			// Letterboxd links the 500px rendition; 185px is plenty for a 52px avatar
-			return photoUrl.replace('/w500/', '/w185/');
+			return (img?.getAttribute('data-image') ?? '').replace('/w500/', '/w185/');
 		} catch (error) {
 			console.error(`Letterboxd Extras | Unable to load the photo for ${slug}`, error);
 			return null;
