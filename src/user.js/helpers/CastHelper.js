@@ -1,4 +1,4 @@
-import { CAST_AVATAR_PLACEHOLDER_SVG, CAST_WATCHED_EYE_SVG, CAST_VIEW_PHOTOS_SVG, CAST_VIEW_COMPACT_SVG } from '../SVG.js';
+import { CAST_AVATAR_PLACEHOLDER_SVG, CAST_WATCHED_EYE_SVG, CAST_VIEW_EXTRAS_SVG, CAST_VIEW_COMPACT_SVG } from '../SVG.js';
 
 const BATCH_SIZE = 20;
 
@@ -17,7 +17,7 @@ export class CastHelper {
 		this.castList = null;
 		this.list = null;
 		this.compactButton = null;
-		this.photosButton = null;
+		this.extrasButton = null;
 	}
 
 	/**
@@ -55,13 +55,13 @@ export class CastHelper {
 		const section = this.helpers.createElement('div', { class: 'extras-cast-section' });
 		section.append(this.createToolbar());
 
-		// Same card list as the film page's related news, filled when the photos view is first shown
+		// Same card list as the film page's related news, filled when the extras view is first shown
 		this.list = this.helpers.createElement('div', { class: 'extras-cast-list card-summary-list -vertical-list-vp-min-tablet' });
 		section.append(this.list);
 
 		castList.before(section);
 
-		this.setView(this.storage.localGet('cast-extras-view') === 'photos');
+		this.setView(this.storage.localGet('cast-extras-view') === 'extras');
 		this.rendered = true;
 	}
 
@@ -71,8 +71,8 @@ export class CastHelper {
 
 		const toggle = this.helpers.createElement('ul', { class: 'view-toggle' });
 		this.compactButton = this.createViewButton('Compact', CAST_VIEW_COMPACT_SVG, false);
-		this.photosButton = this.createViewButton('Photos', CAST_VIEW_PHOTOS_SVG, true);
-		toggle.append(this.compactButton.parentElement, this.photosButton.parentElement);
+		this.extrasButton = this.createViewButton('Extras', CAST_VIEW_EXTRAS_SVG, true);
+		toggle.append(this.compactButton.parentElement, this.extrasButton.parentElement);
 		toolbar.append(toggle);
 
 		const count = this.helpers.createElement('p', { class: 'list-date' });
@@ -84,26 +84,26 @@ export class CastHelper {
 		return toolbar;
 	}
 
-	createViewButton(label, icon, photos) {
+	createViewButton(label, icon, extras) {
 		const item = this.helpers.createElement('li', {});
 		const button = this.helpers.createElement('button', { class: 'replace', type: 'button', title: `${label} view` });
 		button.innerHTML = icon;
 		button.addEventListener('click', () => {
-			this.setView(photos);
-			this.storage.localSet('cast-extras-view', photos ? 'photos' : 'compact');
+			this.setView(extras);
+			this.storage.localSet('cast-extras-view', extras ? 'extras' : 'compact');
 		});
 		item.append(button);
 
 		return button;
 	}
 
-	setView(photos) {
-		this.compactButton.parentElement.classList.toggle('selected', !photos);
-		this.photosButton.parentElement.classList.toggle('selected', photos);
-		this.castList.style.display = photos ? 'none' : '';
-		this.list.style.display = photos ? '' : 'none';
+	setView(extras) {
+		this.compactButton.parentElement.classList.toggle('selected', !extras);
+		this.extrasButton.parentElement.classList.toggle('selected', extras);
+		this.castList.style.display = extras ? 'none' : '';
+		this.list.style.display = extras ? '' : 'none';
 
-		if (photos && this.visibleCount === 0) {
+		if (extras && this.visibleCount === 0) {
 			this.loadMore();
 		}
 	}
