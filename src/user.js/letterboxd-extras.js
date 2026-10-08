@@ -5629,9 +5629,6 @@ const letterboxd = {
 												nameText {
 													text
 												}
-												primaryImage {
-													url
-												}
 											}
 										}
 									}

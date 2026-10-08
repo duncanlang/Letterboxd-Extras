@@ -12,7 +12,7 @@ export class CastHelper {
 		this.rendered = false;
 		this.actors = [];
 		this.visibleCount = 0;
-		this.imdbCast = new Map();
+		this.imdbCharacters = new Map();
 		this.username = null;
 		this.castList = null;
 		this.list = null;
@@ -22,13 +22,13 @@ export class CastHelper {
 
 	/**
 	 * Adds the actor count and view toggle above the cast list on the film page.
-	 * Called again once the IMDb data arrives to fill in photos and character names.
+	 * Called again once the IMDb data arrives to fill in missing character names.
 	 */
 	render(imdbData, loggedIn) {
 		// The card list reused below is only styled on Letterboxd's desktop site
 		if (this.pageState.isMobile) return;
 
-		this.imdbCast = this.mapImdbCast(imdbData);
+		this.imdbCharacters = this.mapImdbCharacters(imdbData);
 
 		if (this.rendered) {
 			this.updateCards();
@@ -165,19 +165,25 @@ export class CastHelper {
 	createAvatar(actor) {
 		const media = this.helpers.createElement('figure', { class: 'media -image' });
 		const link = this.helpers.createElement('a', { class: 'canvas', href: actor.href, title: actor.name });
-		this.setPhoto(link, actor);
+		link.innerHTML = CAST_AVATAR_PLACEHOLDER_SVG;
 		media.append(link);
+
+		this.loadPhoto(link, actor);
 
 		return media;
 	}
 
-	// IMDb headshot, or a placeholder when there is none or it fails to load
-	setPhoto(link, actor) {
-		const photoUrl = this.imdbCast.get(this.normalize(actor.name))?.photoUrl;
-		if (!photoUrl) {
-			link.innerHTML = CAST_AVATAR_PLACEHOLDER_SVG;
-			return;
+	// The photo from the actor's Letterboxd page, remembered across sessions since it rarely changes
+	async loadPhoto(link, actor) {
+		const cacheKey = `extras-cast-photo-${actor.slug}`;
+
+		let photoUrl = this.readCache(localStorage, cacheKey);
+		if (photoUrl === null) {
+			photoUrl = await this.fetchPhotoUrl(actor.slug);
+			if (photoUrl === null) return;
+			this.writeCache(localStorage, cacheKey, photoUrl);
 		}
+		if (photoUrl === '') return;
 
 		const img = this.helpers.createElement('img', { src: photoUrl, alt: actor.name, loading: 'lazy' });
 		img.addEventListener('error', () => {
@@ -186,25 +192,37 @@ export class CastHelper {
 		link.replaceChildren(img);
 	}
 
+	// Letterboxd shows the actor's TMDb photo on their page as <img class="js-tmdb-person" data-image="...">
+	async fetchPhotoUrl(slug) {
+		try {
+			const response = await fetch(`/actor/${slug}/`, { credentials: 'same-origin' });
+			if (!response.ok) return null;
+
+			const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+			const photoUrl = page.querySelector('img.js-tmdb-person')?.getAttribute('data-image') ?? '';
+
+			// Letterboxd links the 500px rendition; 185px is plenty for a 52px avatar
+			return photoUrl.replace('/w500/', '/w185/');
+		} catch (error) {
+			console.error(`Letterboxd Extras | Unable to load the photo for ${slug}`, error);
+			return null;
+		}
+	}
+
 	// Letterboxd lists some roles as "Extra" or leaves them blank, so fall back to IMDb's character name
 	setCharacter(span, actor) {
 		let character = actor.character;
 		if (character === '' || character.toLowerCase() === 'extra') {
-			character = this.imdbCast.get(this.normalize(actor.name))?.character || character;
+			character = this.imdbCharacters.get(this.normalize(actor.name)) || character;
 		}
 		span.innerText = character;
 		span.title = character;
 	}
 
-	// Fills in photos and character names for cards created before the IMDb data loaded
+	// Fills in character names for cards created before the IMDb data loaded
 	updateCards() {
 		this.list.querySelectorAll('.extras-cast-card').forEach((card, i) => {
-			const actor = this.actors[i];
-			const photo = card.querySelector('.canvas');
-			if (photo !== null && photo.querySelector('img') === null) {
-				this.setPhoto(photo, actor);
-			}
-			this.setCharacter(card.querySelector('.extras-cast-character'), actor);
+			this.setCharacter(card.querySelector('.extras-cast-character'), this.actors[i]);
 		});
 	}
 
@@ -224,28 +242,18 @@ export class CastHelper {
 		return link;
 	}
 
-	// Counts are cached for the tab session so revisiting films doesn't refetch them
+	// Counts change as films get watched, so they are only cached for the tab session
 	async loadWatchedCount(slug, link, countSpan) {
 		const cacheKey = `extras-cast-seen-${this.username}-${slug}`;
 
-		let count = null;
-		try {
-			count = sessionStorage.getItem(cacheKey);
-		} catch (error) {
-			// sessionStorage can be blocked by browser privacy settings
-		}
-
+		let count = this.readCache(sessionStorage, cacheKey);
 		if (count === null) {
 			count = await this.fetchWatchedCount(slug);
 			if (count === null) {
 				link.style.display = 'none';
 				return;
 			}
-			try {
-				sessionStorage.setItem(cacheKey, count);
-			} catch (error) {
-				// Nothing to do, the count just won't be cached
-			}
+			this.writeCache(sessionStorage, cacheKey, count);
 		}
 
 		count = Number(count);
@@ -271,6 +279,23 @@ export class CastHelper {
 		}
 	}
 
+	// Browser storage can be blocked by privacy settings, so treat the caches as optional
+	readCache(store, key) {
+		try {
+			return store.getItem(key);
+		} catch (error) {
+			return null;
+		}
+	}
+
+	writeCache(store, key, value) {
+		try {
+			store.setItem(key, value);
+		} catch (error) {
+			// The value just won't be cached
+		}
+	}
+
 	// Letterboxd's page scripts set person.username when logged in
 	getUsername() {
 		const match = document.documentElement.innerHTML.match(/person\.username\s*=\s*["']([^"']+)["']/);
@@ -286,18 +311,16 @@ export class CastHelper {
 		return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
 	}
 
-	// Normalized actor name -> { photoUrl, character } from the IMDb credits
-	mapImdbCast(imdbData) {
-		const cast = new Map();
+	// Normalized actor name -> character name from the IMDb credits
+	mapImdbCharacters(imdbData) {
+		const characters = new Map();
 		for (const edge of imdbData?.title?.credits?.edges ?? []) {
-			const text = edge.node?.name?.nameText?.text;
-			if (text) {
-				cast.set(this.normalize(text), {
-					photoUrl: edge.node.name.primaryImage?.url ?? null,
-					character: edge.node.characters?.[0]?.name ?? ''
-				});
+			const name = edge.node?.name?.nameText?.text;
+			const character = edge.node?.characters?.[0]?.name;
+			if (name && character) {
+				characters.set(this.normalize(name), character);
 			}
 		}
-		return cast;
+		return characters;
 	}
 }
