@@ -13,6 +13,7 @@ import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
+import { CastHelper } from './helpers/CastHelper';
 
 GM_addStyle(`
 		.section-heading-extras{
@@ -790,6 +791,86 @@ GM_addStyle(`
 		.extras-statistics-list {
 			flex-wrap: wrap;
 		}
+
+		.extras-cast-section {
+			margin-bottom: 15px;
+		}
+		.extras-cast-toolbar .view-toggle {
+			float: right;
+			margin: 6px 0 0;
+		}
+		/* Same colours as the grid/list icons in Letterboxd's sprite, which have no theme variables */
+		.extras-cast-toolbar .replace {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: none;
+			border-radius: 2px;
+			color: #456;
+		}
+		.extras-cast-toolbar .replace:hover,
+		.extras-cast-toolbar .selected .replace {
+			background-color: #2c3743;
+		}
+		.extras-cast-toolbar .selected .replace {
+			color: #9ab;
+		}
+		/* Letterboxd sizes these cards for its 160px news thumbnails; shrink them to a 52px headshot */
+		.extras-cast-list.card-summary-list.-vertical-list-vp-min-tablet .card-summary > .inner::before {
+			padding-top: 52px;
+		}
+		.extras-cast-list.card-summary-list.-vertical-list-vp-min-tablet .card-summary .media {
+			width: 52px;
+			min-width: 52px;
+		}
+		.extras-cast-placeholder {
+			position: absolute;
+			top: 0;
+			left: 0;
+			box-sizing: border-box;
+			width: 100%;
+			height: 100%;
+			padding: 9px;
+			color: var(--theme-metadata-content-color);
+			background-color: var(--panel-background);
+		}
+		.extras-cast-detail {
+			flex: 1 1 0;
+			min-width: 0;
+			align-self: center;
+			padding: 0 14px;
+		}
+		.extras-cast-detail .extras-cast-name,
+		.extras-cast-character {
+			display: block;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.extras-cast-detail .extras-cast-name {
+			color: var(--theme-heading-content-color);
+			font-weight: 700;
+		}
+		.extras-cast-character {
+			color: var(--theme-metadata-high-contrast-content-color);
+		}
+		.extras-cast-watched {
+			flex: 0 0 4.5rem;
+			align-self: center;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 2px;
+			color: var(--theme-metadata-high-contrast-content-color);
+			font-size: 0.75rem;
+			white-space: nowrap;
+		}
+		.extras-cast-watched:hover {
+			color: var(--theme-heading-content-color);
+		}
+		.extras-cast-watched.-has-watched svg {
+			color: var(--theme-brand-green-content-color);
+		}
 	`);
 
 /* eslint-disable */
@@ -1335,6 +1416,11 @@ const letterboxd = {
 				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found directors/producers: ${this.letterboxdDirectors.toString()}`);
 			}
 
+			// Cast Extras
+			if (letterboxd.storage.get('cast-extras-enabled') === true && !this.castHelper.rendered) {
+				this.castHelper.render(this.imdbData.data, this.loggedIn);
+			}
+
 			// First Get the IMDb link 
 			if (this.idsCollected == false && document.querySelector('.micro-button') != null) {
 				if (this.loggedIn == false || document.querySelector('.block-flag-wrapper')) {
@@ -1357,7 +1443,7 @@ const letterboxd = {
 
 				if (this.imdbID != "" && this.imdbData.state < 1) {
 					// Call IMDb and Add to page when done
-					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true) {
+					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true || letterboxd.storage.get('cast-extras-enabled') === true) {
 						this.imdbData.state = 1;
 
 						var options = letterboxd.helpers.getImdbQuery(this.imdbID);
@@ -1376,6 +1462,10 @@ const letterboxd = {
 								if (letterboxd.storage.get('imdb-250-enabled') === true && this.rankingHelper.imdbData.loadState == LOAD_STATES['Uninitialized']){
 									this.collectIMDBRank();
 									this.rankingHelper.createRanking(this.rankingHelper.imdbData);
+								}
+
+								if (letterboxd.storage.get('cast-extras-enabled') === true) {
+									this.castHelper.render(this.imdbData.data, this.loggedIn);
 								}
 							}
 							this.imdbData.state = 2;
@@ -5524,6 +5614,28 @@ const letterboxd = {
 		},
 
 		getImdbQuery(id){
+			// Cast photos and character names are only needed by Cast Extras
+			var credits = '';
+			if (letterboxd.storage.get('cast-extras-enabled') === true) {
+				credits = `
+							credits(first: 50) {
+								edges {
+									node {
+										... on Cast {
+											characters {
+												name
+											}
+											name {
+												nameText {
+													text
+												}
+											}
+										}
+									}
+								}
+							}`;
+			}
+
 			var query = `
 					query GetRatings { 
 						title(id: "${id}") { 
@@ -5542,6 +5654,7 @@ const letterboxd = {
 									}
 								}
 							}
+							${credits}
 						}
 					}
 				`;
@@ -6014,6 +6127,7 @@ const moduleConfigs = [
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
+	{ class: CastHelper, target: letterboxd.overview, property: 'castHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {
