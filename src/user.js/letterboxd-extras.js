@@ -799,20 +799,21 @@ GM_addStyle(`
 			float: right;
 			margin: 6px 0 0;
 		}
+		/* Same colours as the grid/list icons in Letterboxd's sprite, which have no theme variables */
 		.extras-cast-toolbar .replace {
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			background: none;
 			border-radius: 2px;
-			color: var(--theme-metadata-high-contrast-content-color);
+			color: #456;
 		}
 		.extras-cast-toolbar .replace:hover,
 		.extras-cast-toolbar .selected .replace {
-			color: var(--theme-heading-content-color);
+			background-color: #2c3743;
 		}
 		.extras-cast-toolbar .selected .replace {
-			background-color: var(--panel-background);
+			color: #9ab;
 		}
 		/* Letterboxd sizes these cards for its 160px news thumbnails; shrink them to a 52px headshot */
 		.extras-cast-list.card-summary-list.-vertical-list-vp-min-tablet .card-summary > .inner::before {
