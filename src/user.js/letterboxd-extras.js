@@ -1022,13 +1022,13 @@ const letterboxd = {
 					
 					letterboxd.helpers.WriteConsoleLog('DEBUG', `Found film watched status ${this.pageState.filmWatched}`);
 					
-				}else if (this.pageState.filmWatched == null && (document.querySelector('#userpanel .action.-watch.-on') || document.querySelector('#userpanel .action.-watch .icon'))){
+				}else if (this.pageState.filmWatched == null && document.querySelector('#userpanel .-watch .watch-link-target')){
 					// If logged in, we need to check the watched status against the addon settings
-					var found = false;
+					let found = false;
 
-					const watchLink = document.querySelector('#userpanel .action.-watch');
-					if (watchLink != null){
-						this.pageState.filmWatched = watchLink.classList.contains('-on');
+					const watchLink = document.querySelector('#userpanel .-watch .watch-link-target');
+					if (watchLink != null && watchLink.hasAttribute('data-is-watched')){
+						this.pageState.filmWatched = watchLink.getAttribute('data-is-watched') == 'true';
 						found = true;
 					}
 
