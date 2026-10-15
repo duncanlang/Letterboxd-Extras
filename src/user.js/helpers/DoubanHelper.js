@@ -27,9 +27,9 @@ export class DoubanHelper extends Helper {
 		const url = `https://api.douban.com/v2/movie/subject/${id}`;
 		const options = this._getHeaders(apiKey);
 
-		this._apiRequestCallback('Douban', url, 'JSON', options, response => {
+		this._apiRequestCallback('Douban', url, 'JSON', options, value => {
 
-			this.data = response;
+			this.data = value.response;
 
 			if (!this.data.rating) {
 				this.loadState = LOAD_STATES['Failure'];

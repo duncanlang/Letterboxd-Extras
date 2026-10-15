@@ -13,6 +13,7 @@ import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
+import { RottenTomatoesHelper } from './helpers/RottenTomatoesHelper';
 import { CastHelper } from './helpers/CastHelper';
 
 GM_addStyle(`
@@ -211,12 +212,14 @@ GM_addStyle(`
 			-webkit-transition: opacity 0.10s linear;
 			transition: opacity 0.10s linear;
 		}
-		.rt-button-holder {
+
+		.toggle-button-holder {
 			display: inline-flex;
 			margin-right: 10px;
 			margin-top: 3px;
 		}
-		.rt-button{
+
+		.toggle-button{
 			display: inline;
 			font-size: 10px;
 			width: fit-content;
@@ -232,30 +235,35 @@ GM_addStyle(`
 			-ms-user-select: none; /* IE 10 and IE 11 */
 			user-select: none; /* Standard syntax */
 		}
-		.rt-button.critic-all, .rt-button.audience-all, .rt-button.allo-user{
+
+		.toggle-button.critic-all, .toggle-button.audience-all, .toggle-button.allo-user{
 			border-top-right-radius: 0px;
 			border-bottom-right-radius: 0px;
 		}
-		.rt-button.critic-top, .rt-button.audience-verified, .rt-button.allo-critic{
+		.toggle-button.critic-top, .toggle-button.audience-verified, .toggle-button.allo-critic{
 			border-top-left-radius: 0px;
 			border-bottom-left-radius: 0px;
 		}
-		.rt-button.selected{
+
+		.toggle-button.selected{
 			color: #def;
 			background-color: #456
 		}
-		.rt-button:not(.selected):not(.disabled):hover{
+
+		.toggle-button:not(.selected):not(.disabled):hover{
 			color: #def;
 			cursor: pointer;
 		}
-		.rt-button.disabled{
+
+		.toggle-button.disabled{
 			color: #626d77;
 			background-color: transparent;
 			border: 1px solid #283038;
 			padding-top: 0px;
 			padding-bottom: 0px;
 		}
-		.rt-button.critic-toggle, .rt-button.audience-toggle{
+
+		.toggle-button.critic-toggle, .toggle-button.audience-toggle{
 			display: block;
 			width: 50px;
 			font-size: 11px;
@@ -263,23 +271,27 @@ GM_addStyle(`
 			line-height: 18px;
 			margin-top: 4px;
 		}
+
 		.allocine-buttons{
 			margin-bottom: 5px;
 		}
 		a.allocine-critic-score{
 			font-size: 20px;
 		}
-		.rt-button.allo-user, .rt-button.allo-critic{
+
+		.toggle-button.allo-user, .toggle-button.allo-critic{
 			display: inline-block;
 			width: 100px;
 			margin-right: 0px;
 		}
-		.rt-button.allo-user.extras-mobile, .rt-button.allo-critic.extras-mobile{
+
+		.toggle-button.allo-user.extras-mobile, .toggle-button.allo-critic.extras-mobile{
 			font-size: 11px;
 			height: 17px;
 			line-height: 18px;
 			margin-top: 4px;
 		}
+
 		.allo-critic-stars{
 			display: inline-block;
 			width: 64px;
@@ -937,7 +949,7 @@ const letterboxd = {
 		wiki: null,
 		wiki_dates: null,
 		wikiData: {
-			state: 0, state_dates: 0, tomatoURL: null, metaURL: "",
+			state: 0, state_dates: 0, metaURL: "",
 			budget: { value: null, currency: null, togetherWith: null },
 			boxOfficeUS: { value: null, currency: null },
 			boxOfficeWW: { value: null, currency: null },
@@ -962,7 +974,6 @@ const letterboxd = {
 		},
 
 		// Rotten Tomatoes
-		tomatoData: { state: 0, data: null, raw: null, found: false, hideDetailButton: false, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null },
 		tomatoHelper: null,
 
 		// Metacritic
@@ -1033,7 +1044,6 @@ const letterboxd = {
 
 		kinopoiskHelper: null,
 
-		rtAdded: false,
 		metaAdded: false,
 		dateAdded: false,
 		durationAdded: false,
@@ -1608,8 +1618,7 @@ const letterboxd = {
 										if (url.includes('/tv/') && !url.match(/s[0-9]{2}/i))
 											url += "/s01"
 
-										this.wikiData.tomatoURL = url;
-										this.initTomato();
+										this.tomatoHelper.getData(url);
 									}
 
 									// Get the MUBI ID to use later
@@ -3649,19 +3658,19 @@ const letterboxd = {
 				// Add the div to hold the toggle buttons
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
-					class: 'rt-button-holder allocine-buttons'
+					class: 'toggle-button-holder allocine-buttons'
 				});
 				section.append(buttonDiv);
 
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.pageState.isMobile));
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.pageState.isMobile));
+				buttonDiv.append(letterboxd.helpers.createToggleButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.pageState.isMobile));
+				buttonDiv.append(letterboxd.helpers.createToggleButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.pageState.isMobile));
 				if (letterboxd.storage.get('allocine-users-enabled') != true || letterboxd.storage.get('allocine-critic-enabled') != true) {
 					buttonDiv.style['display'] = "none";
 				}
 
-				// User score - user rt-score-div so I can reuse changeTomatoScore
+				// User score - user toggle-score-display so I can reuse changeTomatoScore
 				const userSpan = letterboxd.helpers.createElement('span', {
-					class: 'allocine-user-score rt-score-div',
+					class: 'allocine-user-score toggle-score-display',
 					style: 'position: relative; display: block; margin-top: 5px;'
 				});
 
@@ -3684,7 +3693,7 @@ const letterboxd = {
 
 				// Critic score
 				const criticSpan = letterboxd.helpers.createElement('span', {
-					class: 'allocine-critic-score rt-score-div',
+					class: 'allocine-critic-score toggle-score-display',
 					style: 'position: relative; display: block; height: 44px; display:none; margin-top: 5px;'
 				});
 				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
@@ -3714,9 +3723,9 @@ const letterboxd = {
 			// Add click event for score buttons
 			//************************************************************
 			//if (letterboxd.storage.get('allocine-style') === "histogram" && letterboxd.storage.get('allocine-critic-enabled') === true){
-			if (section.querySelector('.rt-button.allo-button')) {
+			if (section.querySelector('.toggle-button.allo-button')) {
 				if (this.allocine.critic.rating != 0 && (letterboxd.storage.get('allocine-default-view') === 'critic' || letterboxd.storage.get('allocine-users-enabled') != true)) {
-					section.querySelector(".rt-button.allo-critic").click();
+					section.querySelector(".toggle-button.allo-critic").click();
 				}
 			}
 
@@ -4023,7 +4032,7 @@ const letterboxd = {
 			// Score
 			//***************************************************************
 			const ratingSpan = letterboxd.helpers.createElement('span', {
-				class: 'filmarks-score rt-score-div',
+				class: 'filmarks-score toggle-score-display',
 				style: 'position: relative; display: block;'
 			});
 			ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.pageState.isMobile));
@@ -4329,140 +4338,12 @@ const letterboxd = {
 			return element;
 		},
 
-		createTomatoScore(type, display, url, data, visibility, isMobile, addTooltip) {
-			const baseType = type.split('-')[0];
-
-			const scoreDiv = letterboxd.helpers.createElement('div', {
-				class: 'rt-score-div score-' + type,
-				style: 'display: ' + visibility + ';'
-			});
-
-			if (visibility == "none") {
-				scoreDiv.className += " disabled";
-			}
-
-			var image = 'images/tomato-critic-no-score.svg';
-			if (data.state == "certified-fresh") {
-				image = 'images/tomato-critic-certified-fresh.svg';
-			} else if (data.state == "verified-hot") {
-				image = 'images/tomato-audience-verified-hot.svg';
-			} else if (data.state == "fresh") {
-				image = 'images/tomato-critic-fresh.svg';
-			} else if (data.state == "rotten") {
-				image = 'images/tomato-critic-rotten.svg';
-			} else if (data.state == "upright") {
-				image = 'images/tomato-audience-hot.svg';
-			} else if (data.state == "spilled") {
-				image = 'images/tomato-audience-stale.svg';
-			} else if (type.includes("critic")) {
-				image = 'images/tomato-critic-no-score.svg';
-			} else {
-				image = 'images/tomato-audience-no-score.svg';
-			}
-			image = browser.runtime.getURL(image);
-
-			const imageSpan = letterboxd.helpers.createElement('span', {
-				class: 'icon-popcorn',
-				style: 'background-image: url("' + image + '");'
-			});
-			scoreDiv.append(imageSpan);
-
-			let suffix = "";
-			let rating = data.rating;
-			if (type.includes("critic")) {
-				suffix = "/10";
-			} else {
-				suffix = "/5";
-			}
-
-			if (letterboxd.storage.get('convert-ratings') === "10"){
-				suffix = "/10";
-				if (type.includes("audience")) {
-					rating = Number(rating * 2).toFixed(1);
-				}
-
-			}else if (letterboxd.storage.get('convert-ratings') === "5"){
-				suffix = "/5";
-				if (type.includes("critic")) {
-					rating = Number(rating / 2).toFixed(1);
-				}
-			}
-
-			let hover = `Average of ${rating}${suffix} based on ${parseInt(data.num_ratings).toLocaleString()} ${display} rating${(data.num_ratings != 1) ? 's' : ''}`;
-
-			if (rating == '') {
-				hover = `${data.num_ratings} ${display} rating${(data.num_ratings != 1) ? 's' : ''}`;
-			}
-
-			if (data.percent != '--') {
-				data.percent += "%";
-			}
-
-			if (type.includes("audience-verified"))
-				url += "/reviews?type=verified_audience"
-			else if (type.includes("audience"))
-				url += "/reviews?type=user"
-			else if (type.includes("critic-top"))
-				url += "/reviews?type=top_critics"
-			else
-				url += "/reviews"
-
-			// The element that is the score itself
-			const score = letterboxd.helpers.createElement('a', {
-				class: 'tooltip tooltip-extra display-rating -highlight tomato-score',
-				href: url,
-				style: 'display: inline-block; width: 50px',
-				['data-original-title']: hover
-			});
-			score.innerText = data.percent;
-			scoreDiv.append(score);
-
-			// Add the liked/notliked bars
-			if (data.likedCount + data.notLikedCount > 0) {
-				const chartSpan = letterboxd.helpers.createElement('span', {
-					class: 'rt-score-details',
-					style: 'display: none; width: 140px; margin-left: 5px;'
-				});
-				if ((type.includes("critic") && letterboxd.storage.get('tomato-audience-enabled') === true) || isMobile) {
-					chartSpan.style['margin-bottom'] = '10px';
-				}
-				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings), isMobile));
-				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings), isMobile));
-
-				scoreDiv.append(chartSpan);
-			}
-
-			// Add the tooltip as text for mobile
-			if (addTooltip) {
-				const detailsSpan = letterboxd.helpers.createElement('span', {
-					class: 'rt-score-div score-' + baseType + ' score-' + type + ' mobile-details-text'
-				});
-
-				if (isMobile){
-					detailsSpan.className += ' rt-score-details'; 
-				}
-
-				if (type.includes('critic-top') || type.includes('audience-verified') || isMobile){
-					detailsSpan.style.display = 'none';
-				}
-
-				const detailsText = letterboxd.helpers.createElement('p', {
-				});
-				detailsText.innerText = hover;
-				detailsSpan.append(detailsText);
-
-				scoreDiv.append(detailsSpan);
-			}
-
-			return scoreDiv;
-		},
-
 		changeTomatoScoreMobile(event) {
 			// Get the parent node
 			const parent = event.target.parentNode.parentNode;
 			// Grab the target score div and then the other non-target score div
-			const targetNode = parent.querySelector('.rt-score-div.disabled:not(.mobile-details-text)');
-			const otherNode = parent.querySelector('.rt-score-div:not(.disabled):not(.mobile-details-text)');
+			const targetNode = parent.querySelector('.toggle-score-display.disabled:not(.mobile-details-text)');
+			const otherNode = parent.querySelector('.toggle-score-display:not(.disabled):not(.mobile-details-text)');
 
 			// Hide the current visible score, display the current hidden score
 			otherNode.style.display = 'none';
@@ -4490,8 +4371,8 @@ const letterboxd = {
 			const target = `.${event.target.getAttribute('target')}`;
 			let parent = event.target.parentNode.parentNode;
 			// Grab the target score div and then the other non-target score div
-			let targetNodes = parent.querySelectorAll(`.rt-score-div${target}`);
-			let otherNodes = parent.querySelectorAll(`.rt-score-div:not(${target})`);
+			let targetNodes = parent.querySelectorAll(`.toggle-score-display${target}`);
+			let otherNodes = parent.querySelectorAll(`.toggle-score-display:not(${target})`);
 
 			// Hide the current visible score, display the current hidden score
 			otherNodes.forEach(element => {
@@ -4507,8 +4388,8 @@ const letterboxd = {
 				const baseTarget = `${bits[0]}-${bits[1]}`;
 				parent = parent.parentNode; 
 
-				targetNodes = parent.querySelectorAll(`.rt-score-div${baseTarget}.mobile-details-text${target}`);
-				otherNodes = parent.querySelectorAll(`.rt-score-div${baseTarget}.mobile-details-text:not(${target})`);
+				targetNodes = parent.querySelectorAll(`.toggle-score-display${baseTarget}.mobile-details-text${target}`);
+				otherNodes = parent.querySelectorAll(`.toggle-score-display${baseTarget}.mobile-details-text:not(${target})`);
 
 						// Hide the current visible score, display the current hidden score
 				otherNodes.forEach(element => {
@@ -4526,7 +4407,20 @@ const letterboxd = {
 
 		},
 
-		createTomatoButton(type, text, target, selected, disabled, isMobile) {
+		/**
+	 		* Builds a toggle button that allows you to toggle between two different rating views.
+	 		*
+	 		* @param {Object} options
+	 		* @param {string} type The class name of the button (which will reflect the button type)
+	 		* @param {string} text The text in the toggle button
+	 		* @param {string} target - The target class name of the element the button will modify.
+	 		* @param {boolean} selected - If the button is selected by default.
+	 		* @param {disabled} disabled - If the button is disabled by default.
+	 		* @param {string} isMobile - An isMobile flag.
+	 		* @returns {HTMLSpanElement}
+	 		* @private
+	 	*/
+		createToggleButton(type, text, target, selected, disabled, isMobile) {
 			if (target.includes(',')) {
 				var targets = target.split(',');
 				target = targets[0];
@@ -4536,7 +4430,7 @@ const letterboxd = {
 			}
 
 			const button = letterboxd.helpers.createElement('span', {
-				class: 'rt-button ' + type,
+				class: 'toggle-button ' + type,
 				['target']: target,
 				['targetOther']: targetOther
 			});
@@ -4561,51 +4455,6 @@ const letterboxd = {
 			}
 
 			return button;
-		},
-
-		createTomatoBarCount(type, count, total, isMobile) {
-			// Span that holds it all
-			const span = letterboxd.helpers.createElement('span', {
-				style: 'display: block; width: 140px;'
-			});
-				// Text label (ie, 'Fresh")
-			const label = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar text-label'
-			});
-			if (isMobile)
-				label.className += " extras-mobile";
-			label.innerText = type;
-			span.append(label);
-
-			// Span that holds the bar
-			const barSpan = letterboxd.helpers.createElement('span', {
-				style: 'display: inline-block;'
-			});
-				// Bar outline
-			const backBar = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar outline'
-			});
-				// Bar that displays the percentage
-			var width = (Math.round((count / total) * 100));
-			width = 'width: ' + width.toString() + '%;'
-			const frontBar = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar fill',
-				style: width
-			});
-			backBar.append(frontBar);
-			barSpan.append(backBar);
-			span.append(barSpan);
-
-			// Text that shows the num of ratings
-			const countText = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar text-count'
-			});
-			if (isMobile)
-				countText.className += " extras-mobile";
-			countText.innerText = count.toLocaleString();
-			span.append(countText);
-
-			return span;
 		},
 
 		createDetailsRow(headerText, value, currency, togetherWith) {
@@ -5959,6 +5808,7 @@ const moduleConfigs = [
 	{ class: CriterionHelper, target: letterboxd.overview, property: 'criterionHelper', args: [] },
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
+	{ class: RottenTomatoesHelper, target: letterboxd.overview, property: 'tomatoHelper', args: [] },
 	{ class: CastHelper, target: letterboxd.overview, property: 'castHelper', args: [] },
 ];
 
