@@ -86,6 +86,35 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
             return permissions;
         })();
 
+    } else if (msg.name == "OPENTAB") { // Open a Letterboxd page in a new tab (used by Clone with Letterboxd Extras)
+        if (typeof msg.url !== "string" || !msg.url.startsWith("https://letterboxd.com/")) {
+            response({ ok: false });
+            return true;
+        }
+        browser.tabs.create({ url: msg.url, index: sender.tab ? sender.tab.index + 1 : undefined })
+            .then(() => response({ ok: true }))
+            .catch((err) => {
+                console.error("Failed to open tab:", err);
+                response({ ok: false });
+            });
+
+    } else if (msg.name == "ARMFILEINTERCEPT") { // Clone list: hand the CSV to Letterboxd's file picker in the page itself
+        if (sender.tab == null || typeof msg.csv !== "string") {
+            response({ ok: false });
+            return true;
+        }
+        browser.scripting.executeScript({
+            target: { tabId: sender.tab.id, frameIds: [sender.frameId || 0] },
+            world: "MAIN",
+            func: armFileIntercept,
+            args: [msg.csv, msg.filename || "list.csv"]
+        })
+            .then(() => response({ ok: true }))
+            .catch((err) => {
+                console.error("Failed to arm file intercept:", err);
+                response({ ok: false, error: String(err) });
+            });
+
     } else if (msg.name == "GETDEFAULTRATINGSORDER") {
         (async () => {
             var ratingsOrder = getDefaultRatingsOrder();
@@ -97,6 +126,45 @@ browser.runtime.onMessage.addListener((msg, sender, response) => {
 
     return true;
 });
+
+// Runs in the page (MAIN world) of letterboxd.com/list/new/.
+// Letterboxd's Import button opens the file picker with a file input that is never added to the page,
+// so instead of letting the picker open, give that input the cloned list's CSV and fire "change".
+// Must be self-contained: it is serialized by scripting.executeScript.
+function armFileIntercept(csv, filename) {
+    const state = window.__lbxeFileIntercept || (window.__lbxeFileIntercept = {});
+    state.csv = csv;
+    state.filename = filename;
+    state.armed = true;
+    clearTimeout(state.timer);
+    state.timer = setTimeout(() => { state.armed = false; }, 20000);
+
+    if (state.installed) return;
+    state.installed = true;
+
+    const fill = (input) => {
+        state.armed = false;
+        const transfer = new DataTransfer();
+        transfer.items.add(new File([state.csv], state.filename, { type: "text/csv" }));
+        input.files = transfer.files;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        document.dispatchEvent(new CustomEvent("lbxe-csv-uploaded"));
+    };
+
+    const proto = HTMLInputElement.prototype;
+    ["click", "showPicker"].forEach((method) => {
+        const original = proto[method];
+        if (typeof original !== "function") return;
+        proto[method] = function () {
+            if (state.armed && this.type === "file") {
+                fill(this);
+                return;
+            }
+            return original.apply(this, arguments);
+        };
+    });
+}
 
 async function registerContentScripts() {
     await browser.storage.sync.get('options', async (data) => {
