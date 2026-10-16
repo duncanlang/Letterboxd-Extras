@@ -49,7 +49,7 @@ export class LetterboxdPerson {
 		}
 
 		// Get the person's name from the page
-		if (this.letterboxdName === null && document.querySelector('h1.title-1') !== null) {
+		if (this.letterboxdName === null && document.querySelector('span.name') !== null) {
 			this.getName();
 		}
 
@@ -109,7 +109,7 @@ export class LetterboxdPerson {
 	}
 
 	getName() {
-		const nameElement = document.querySelector('h1.title-1');
+		const nameElement = document.querySelector('span.name');
 		let name = nameElement.innerText;
 		if (name.includes('\n')) {
 			const startIndex = name.indexOf('\n') + 1;
