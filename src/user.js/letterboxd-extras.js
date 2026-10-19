@@ -173,7 +173,6 @@ const letterboxd = {
 
 		kinopoiskHelper: null,
 
-		metaAdded: false,
 		dateAdded: false,
 		durationAdded: false,
 		lostBadgeAdded: false,
@@ -972,7 +971,7 @@ const letterboxd = {
 				if (this.wikiData.metaURL != "" && this.wikiData.state == 2 && letterboxd.storage.get('metacritic-enabled') === true) {
 					this.addLink(this.wikiData.metaURL, 'META', 'meta');
 
-					if (this.metaHelper.data == null && this.metaAdded == false && this.metaHelper.state < 1) {
+					if (this.metaHelper.data == null && this.metaHelper.ratingsAdded == false && this.metaHelper.state < 1) {
 						try {
 							this.metaHelper.state = 1;
 							browser.runtime.sendMessage({ name: "GETDATA", url: this.wikiData.metaURL }, (value) => {
@@ -987,13 +986,13 @@ const letterboxd = {
 									this.metaHelper.url = value.url;
 									this.wikiData.metaURL = value.url;
 
-									this.addMeta();
+									this.metaHelper.populateRatingsSidebar({ imdbMetascore: this.imdbData.meta, isTV: this.tmdbTV });
 									this.metaHelper.state = 2;
 								}
 							});
 						} catch {
 							letterboxd.helpers.WriteConsoleLog('ERROR', `Unable to parse Metacritic URL`);
-							this.metaAdded = true; // so it doesn't keep calling
+							this.metaHelper.ratingsAdded = true; // so it doesn't keep calling
 							this.metaHelper.state = 3;
 						}
 					}
@@ -1069,7 +1068,8 @@ const letterboxd = {
 					// Metascore
 					if (this.metaHelper.state == 3 && this.imdbData.meta != null && letterboxd.storage.get("metacritic-enabled") === true) {
 						this.metaHelper.state = 2;
-						this.addMeta();
+						this.metaHelper.url = this.wikiData.metaURL;
+						this.metaHelper.populateRatingsSidebar({ imdbMetascore: this.imdbData.meta, isTV: this.tmdbTV });
 					}
 				}
 
@@ -1305,189 +1305,6 @@ const letterboxd = {
 			// Add the hover events
 			//*****************************************************************
 			letterboxd.helpers.addTooltipEvents(imdbScoreSection);
-		},
-
-		addMeta() {
-			if (document.querySelector('.meta-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			// First, lets grab all the useful information
-			//***************************************************************
-			if (this.metaHelper.data != null) {
-				// Scores
-				var heroScores = this.metaHelper.data.querySelector('div.hero-scores');
-
-				if (heroScores != null){
-					this.metaHelper.parseRatingScore(this.metaHelper.critic, heroScores.querySelector('[data-testid="product-score"] div[title*="Metascore "] span'));
-					this.metaHelper.parseRatingScore(this.metaHelper.user, heroScores.querySelector('[data-testid="product-score"] div[title*="User score "] span'));
-				}
-				else{
-					this.metaHelper.critic.parseError = true;
-					this.metaHelper.user.parseError = true;
-				}
-
-
-				// Grab the 'must see'
-				if (this.metaHelper.data.querySelector('.product-hero__scores img.c-global-image__img')) {
-					this.metaHelper.mustSee = true;
-				}
-
-				if (this.metaHelper.critic.parseError){
-					letterboxd.helpers.WriteConsoleLog('ERROR', 'Metacritic: there was an error parsing the critic ratings.');
-				}
-				if (this.metaHelper.user.parseError){
-					letterboxd.helpers.WriteConsoleLog('ERROR', 'Metacritic: there was an error parsing the user ratings.');
-				}
-
-				// Grab the rating counts
-				// Critic
-				var criticSection = this.metaHelper.data.querySelector('div[data-testid="critic-reviews"]');
-				this.metaHelper.parseRatingCounts(this.metaHelper.critic, criticSection);
-
-				// Users
-				var userSection = this.metaHelper.data.querySelector('div[data-testid="user-reviews"]');
-				this.metaHelper.parseRatingCounts(this.metaHelper.user, userSection);
-
-			} else {
-				// When metacritic score can only be found from imdb
-				if (this.imdbData.meta != null) {
-					this.metaHelper.critic.rating = this.imdbData.meta;
-				}
-				this.metaHelper.critic.num_ratings = -1; // This prevents the 'return' from below, and also from the tooltip from being added
-			}
-
-			// Return if no scores what so ever
-			if (this.metaHelper.critic.num_ratings == 0 && this.metaHelper.user.num_ratings == 0) return;
-
-			// Now lets add it to the page
-			//***************************************************************
-			// Add the section to the page
-			const section = letterboxd.helpers.createElement('section', {
-				class: 'extras-section ratings-histogram-chart meta-ratings ratings-extras'
-			});
-
-			// Add the Header
-			const heading = letterboxd.helpers.createElement('h2', {
-				class: 'section-heading section-heading-extras'
-			});
-			section.append(heading);
-
-
-			if (this.metaHelper.data != null) {
-				var elementClass = "logo-meta-link";
-			} else {
-				var elementClass = "logo-meta";
-			}
-
-			const logoHolder = letterboxd.helpers.createElement('a', {
-				class: elementClass,
-				style: 'width: 100%;'
-			});
-			if (this.wikiData.metaURL != null && this.wikiData.metaURL != "") {
-				logoHolder.setAttribute('href', this.wikiData.metaURL);
-			}
-			heading.append(logoHolder);
-
-			const metaLogo = letterboxd.helpers.createElement('span', {
-				class: 'icon-meta',
-				style: 'height: 20px; width: 20px; background-image: url("https://www.metacritic.com/images/icons/metacritic-icon.svg");'
-			});
-			logoHolder.append(metaLogo);
-
-			const metaText = letterboxd.helpers.createElement('span', {
-				class: 'text-meta',
-				style: 'height: 20px; width: 100px; background-image: url("https://www.metacritic.com/images/icons/metacritic-wordmark.svg");',
-			});
-			logoHolder.append(metaText);
-
-			// Add the Show Details button
-			var showDetails = null;
-			if (this.metaHelper.data != null) {
-				showDetails = letterboxd.helpers.createShowDetailsButton("meta", "meta-score-details");
-				section.append(showDetails);
-			}
-
-			var url = "";
-			if (url.endsWith != "/") url += "/"
-			url = this.wikiData.metaURL + "critic-reviews";
-
-			var addTooltip = (this.pageState.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
-
-			// Critic score
-			//***************************************************************
-			var criticAdded = false;
-			if (letterboxd.storage.get('metacritic-critic-enabled') === true) {
-				if (this.wikiData.metaURL != null && this.wikiData.metaURL != "") {
-				}
-				section.append(this.metaHelper.createMetaScore("critic", "Critic", url, this.metaHelper.critic, this.metaHelper.mustSee, this.pageState.isMobile, addTooltip));
-				criticAdded = true;
-			}
-
-			// User score
-			//***************************************************************
-			var userAdded = false;
-			if (letterboxd.storage.get('metacritic-users-enabled') === true) {
-				if (this.metaHelper.data != null) {
-					url = url.replace("/critic-reviews", "/user-reviews")
-					section.append(this.metaHelper.createMetaScore("user", "User", url, this.metaHelper.user, this.metaHelper.mustSee, this.pageState.isMobile, addTooltip));
-					userAdded = true;
-				}
-			}
-
-			// Add Must see if applicable
-			if (letterboxd.storage.get('metacritic-mustsee-enabled') === true) {
-				if (this.metaHelper.mustSee == true) {
-					if (this.tmdbTV) {
-						const mustSeeSpan = letterboxd.helpers.createElement('span', {
-							class: 'meta-must-see meta-must-watch tooltip tooltip-extra display-rating -highlight',
-							style: 'margin-top: 5px;',
-							['data-original-title']: 'Metacritic Must-Watch'
-						});
-						section.append(mustSeeSpan);
-					} else {
-						const mustSeeSpan = letterboxd.helpers.createElement('span', {
-							class: 'meta-must-see tooltip tooltip-extra display-rating -highlight',
-							style: 'margin-top: 5px;',
-							['data-original-title']: 'Metacritic Must-See'
-						});
-						section.append(mustSeeSpan);
-					}
-				}
-			}
-
-			if (criticAdded == false && userAdded == false) {
-				this.metaAdded = true; // so it doesn't keep calling
-				return;
-			}
-
-			// APPEND to the sidebar
-			//************************************************************
-			this.appendRating(section, 'meta-ratings');				
-
-			// Move the details text
-			//************************************************************
-			if (this.pageState.isMobile == false){
-				var criticText = document.querySelector('.meta-details-critic.mobile-details-text');
-				var userText = document.querySelector('.meta-details-user.mobile-details-text');
-
-				if (criticText != null)
-					section.append(criticText);
-				if (userText != null)
-					section.append(userText);
-			}
-
-			//Add click for Show details button
-			//************************************************************
-			if (letterboxd.storage.get('meta-default-view') === 'show' || (letterboxd.storage.get('meta-default-view') === 'remember' && letterboxd.storage.get('meta-score-details') === 'show')) {
-				showDetails.click();
-			}
-
-			// Add Hover events
-			//************************************************************
-			letterboxd.helpers.addTooltipEvents(section);
-
-			this.metaAdded = true;
 		},
 
 		addLink(url, text, prefix) {

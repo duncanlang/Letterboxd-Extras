@@ -1,4 +1,4 @@
-import {test, expect} from '../../utils/playwright_setup';
+import {test, expect} from '../utils/playwright_setup';
 
 // Using John Ford as an example as a deceased person with many lost films,
 // the amount of which is unlikely to change. Ideally this could be done

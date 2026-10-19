@@ -15,7 +15,7 @@ export const test = base.extend<FixturesType>({
 		const __filename = url.fileURLToPath(import.meta.url); 
 		const __dirname = path.dirname(__filename); 
 
-		const pathToExtension = path.join(__dirname, "../../src/dist/chrome");
+		const pathToExtension = path.join(__dirname, "../../../src/dist/chrome");
 
 		const context = await chromium.launchPersistentContext("", {
 			headless: false,
