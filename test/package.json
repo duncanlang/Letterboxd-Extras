@@ -7,16 +7,22 @@
 		"node": ">=8.0.0"
 	},
 	"scripts": {
+		"test": "npm run test-unit",
+		"test-unit": "vitest --run --config unit/vitest.config.js",
+		"test-e2e": "playwright test --config e2e/playwright.config.ts",
 		"record-test": "playwright codegen --load-extension=../src/dist/chrome --channel=chrome"
 	},
 	"devDependencies": {
-		"eslint": "8.57.1",
-		"eslint-config-aqua": "9.2.1",
 		"@playwright/test": "1.58.0",
 		"@typescript-eslint/parser": "8.53.1",
+		"eslint": "8.57.1",
+		"eslint-config-aqua": "9.2.1",
+		"happy-dom": "^21.0.3",
 		"playwright": "1.58.0",
 		"typescript": "5.9.3",
-		"typescript-eslint": "8.53.1"
+		"typescript-eslint": "8.53.1",
+		"vite": "^8.3.4",
+		"vitest": "^5.0.5"
 	},
 	"eslintConfig": {
 		"extends": [
