@@ -245,9 +245,11 @@ export class Helper {
 	 * @param {function({response: any, url: string, status: number}): void} dataLoadCallback - Called with
 	 *   the background script's whole reply once it is valid: `response` is the body, and `url` is the
 	 *   address after any redirects.
+	 * @param {function(any): void} [onFailure] - Called with the background script's reply (which may be
+	 *   null) when it fails validation, so a helper can react to a specific status code.
 	 * @protected
 	 */
-	_apiRequestCallback(errorHeader: string, url: string, type: string, options: object, dataLoadCallback: (response: any) => void) {
+	_apiRequestCallback(errorHeader: string, url: string, type: string, options: object, dataLoadCallback: (response: any) => void, onFailure?: (response: any) => void) {
 		try {
 
 			const request: APIRequestCallbackOptions = {
@@ -264,6 +266,9 @@ export class Helper {
 
 				if (this.helpers.ValidateResponse(errorHeader, value) === false) {
 					this.loadState = LOAD_STATES['Failure'];
+					if (onFailure !== undefined) {
+						onFailure(value)
+					}
 					return;
 				}
 

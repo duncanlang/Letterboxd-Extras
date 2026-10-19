@@ -27,7 +27,25 @@ export class KinopoiskHelper extends Helper {
 			}
 
 			this.populateRatingsSidebar();
-		});
+		}, value => this._handleRequestFailure(value));
+
+	}
+
+	/**
+	 * Kinopoisk returns a 402 once the API key has used up its request quota. Without a key of the
+	 * user's own, background.js sends the extension's shared key, which every such user draws on.
+	 */
+	_handleRequestFailure(value: any) {
+
+		if (value?.status !== 402) {
+			return;
+		}
+
+		const message = this.storage.get('kinopoisk-apikey')
+			? 'Kinopoisk returned a 402 response: your API key has reached its request limit. Try again later, or enter a different API key into the Letterboxd Extras settings.'
+			: 'Kinopoisk returned a 402 response: the shared API key has reached its request limit. Please enter your own free API key into the Letterboxd Extras settings.';
+
+		this.helpers.ShowErrorMessage(message, 'kinopoisk-key');
 
 	}
 
