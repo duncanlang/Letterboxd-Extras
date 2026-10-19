@@ -225,13 +225,13 @@
 	transition: opacity 0.10s linear;
 }
 
-.rt-button-holder {
+.toggle-button-holder {
 	display: inline-flex;
 	margin-right: 10px;
 	margin-top: 3px;
 }
 
-.rt-button{
+.toggle-button{
 	display: inline;
 	font-size: 10px;
 	width: fit-content;
@@ -248,27 +248,26 @@
 	user-select: none; /* Standard syntax */
 }
 
-.rt-button.critic-all, .rt-button.audience-all, .rt-button.allo-user{
+.toggle-button.critic-all, .toggle-button.audience-all, .toggle-button.allo-user{
 	border-top-right-radius: 0px;
 	border-bottom-right-radius: 0px;
 }
-
-.rt-button.critic-top, .rt-button.audience-verified, .rt-button.allo-critic{
+.toggle-button.critic-top, .toggle-button.audience-verified, .toggle-button.allo-critic{
 	border-top-left-radius: 0px;
 	border-bottom-left-radius: 0px;
 }
 
-.rt-button.selected{
+.toggle-button.selected{
 	color: #def;
 	background-color: #456
 }
 
-.rt-button:not(.selected):not(.disabled):hover{
+.toggle-button:not(.selected):not(.disabled):hover{
 	color: #def;
 	cursor: pointer;
 }
 
-.rt-button.disabled{
+.toggle-button.disabled{
 	color: #626d77;
 	background-color: transparent;
 	border: 1px solid #283038;
@@ -276,7 +275,7 @@
 	padding-bottom: 0px;
 }
 
-.rt-button.critic-toggle, .rt-button.audience-toggle{
+.toggle-button.critic-toggle, .toggle-button.audience-toggle{
 	display: block;
 	width: 50px;
 	font-size: 11px;
@@ -293,13 +292,13 @@ a.allocine-critic-score{
 	font-size: 20px;
 }
 
-.rt-button.allo-user, .rt-button.allo-critic{
+.toggle-button.allo-user, .toggle-button.allo-critic{
 	display: inline-block;
 	width: 100px;
 	margin-right: 0px;
 }
 
-.rt-button.allo-user.extras-mobile, .rt-button.allo-critic.extras-mobile{
+.toggle-button.allo-user.extras-mobile, .toggle-button.allo-critic.extras-mobile{
 	font-size: 11px;
 	height: 17px;
 	line-height: 18px;
@@ -484,7 +483,6 @@ p.text-link .report-link{
 }
 
 .extras-table{
-	width: 100%;
 	margin-bottom: 10px;
 	border: 1px solid hsla(0,0%,100%,.25);
 	border-radius: 4px;
