@@ -350,6 +350,9 @@ async function InitDefaultSettings(recommended) {
     if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
     if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
+    if (options['cast-extras-enabled'] == null) options['cast-extras-enabled'] = true;
+    if (options['cast-extras-seen-count'] == null) options['cast-extras-seen-count'] = true;
+    if (options['cast-extras-photos'] == null) options['cast-extras-photos'] = true;
     if (options['ddd-enabled'] == null) options['ddd-enabled'] = true;
     if (options['display-budget'] == null) options['display-budget'] = true;
 

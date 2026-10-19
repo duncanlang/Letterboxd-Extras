@@ -23,9 +23,9 @@ export class FilmAffinityHelper extends Helper {
 		}
 
 		this.linkURL = `https://www.filmaffinity.com/${locale}/film${id}.html`;
-		this._apiRequestCallback('FilmAffinity', this.linkURL, 'HTML', {}, response => {
+		this._apiRequestCallback('FilmAffinity', this.linkURL, 'HTML', {}, value => {
 
-			const filmaffData = response;
+			const filmaffData = value.response;
 			if (filmaffData !== '') {
 				this.data = this.helpers.parseHTML(filmaffData);
 

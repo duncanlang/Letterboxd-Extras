@@ -13,793 +13,14 @@ import { DoubanHelper } from './helpers/DoubanHelper';
 import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
+import { RottenTomatoesHelper } from './helpers/RottenTomatoesHelper';
+import { CastHelper } from './helpers/CastHelper';
 import { PlexHelper } from './helpers/PlexHelper';
 import { FilmwebHelper } from './helpers/FilmwebHelper';
 
-GM_addStyle(`
-		.section-heading-extras{
-			height: 13px !important;
-		}
-		.tomato-ratings .section-heading-extras,
-		.meta-ratings .section-heading-extras,
-		.filmweb-ratings .section-heading-extras{
-			height: 20px !important; 
-		}
-		.sens-ratings .section-heading-extras{
-			height: 15px !important;
-		}
-		.tomato-ratings .show-details,
-		.meta-ratings .show-details,
-		.sens-ratings .show-details{
-			top: 10px !important;
-		}
-		.tomato-score {
-			border-radius:20px;
-			color:#789;
-			display:block;
-			font-family:Graphik-Light-Web,sans-serif;
-			font-size:20px;
-			font-weight:400;
-			height:33px;
-			line-height:40px;
-			margin-left:1px;
-			text-align:left;
-			width:33px;			
-		}
-		.meta-score, .meta-score:hover, .meta-score-user, .meta-score-user:hover, .cinema-grade, .cinema-grade:hover {
-			color: white;
-			display: inline-block;
-			font-family: ProximaNova,sans-serif;
-			font-size: 16px;
-			font-weight: bold !important;
-			width: 30px;
-			height: 30px;
-			line-height: 30px;
-			margin-left: 1px;
-			margin-top: 5px;
-			text-align: center;
-			border-radius: 3px;
-			vertical-align: top;
-		}
-		.meta-score-user, .meta-score-user:hover {
-			border-radius: 100px;
-		}
-		.cinema-grade, .cinema-grade:hover {
-			font-size:20px;
-		}
-		.cinema-grade, .cinema-grade:hover{
-			background: rgb(143,118,60);
-			background: linear-gradient(24deg, rgba(143,118,60,1) 0%, rgba(234,189,45,1) 100%); 
-			font-family: Times-New-Roman;
-			border-radius: 0px;
-		}
-		.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban, .logo-mdl, .logo-filmweb {
-			background-position-x: left !important;
-			background-position-y: top !important;
-			background-repeat: no-repeat !important;
-			background-attachment: scroll !important;
-			background-size: contain !important;
-			background-origin: padding-box !important;
-			background-clip: border-box !important;
-			width: 16px;
-			height: 16px;
-			display: inline-block;
-			margin-right: 5px;
-			opacity: 100%;
-		}
-		.logo-allocine{
-			background-position: -396px -0px;
-			background-repeat: no-repeat;
-			display: inline-block;
-			width: 120px;
-			height: 34px;
-			transform-origin: top left;
-			transform: scale(.6);
-		}
-		.icon-tomato {
-			background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-empty.cd930dab34a.svg");
-		}
-		.icon-popcorn {
-			background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/icons/audience/aud_score-empty.eb667b7a1c7.svg");
-		}
+import styles from './styles/letterboxd-extras.css';
 
-		.meta-must-see, .meta-must-watch{
-			width: 30px;
-			height: 30px;
-			padding: 0px;
-		}
-		.meta-must-see{
-			background-image: url("https://www.metacritic.com/a/neutron/images/logos/badge/must-see.png");
-		}
-		.meta-must-watch{
-			background-image: url("https://www.metacritic.com/a/neutron/images/logos/badge/must-watch.png");
-		}
-
-		.ratings-extras{
-			margin-top: 20px !important;
-			padding-bottom: 0px !important;
-		}
-		
-		.ratings-extras.extras-chart .section-heading-extras{
-			margin-bottom: 15px !important;
-		}
-
-		.ratings-extras:not(.extras-chart) .section-heading-extras{
-			margin-bottom: 0px !important; 
-		}
-		.rating-histogram-extras{
-			margin-bottom: 10px !important;
-		}
-
-		.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover, .logo-douban:hover, .logo-filmweb:hover{
-			opacity: 50%;
-		}
-		.logo-meta-link{
-			opacity: 100%;
-		}
-		.logo-mal{
-			width: 100px;
-		}
-		.logo-mubi{
-			width: 50px;
-			height: 26px;
-			display: block;
-			margin-left: 2px;
-		}
-		.logo-kinopoisk{
-			width: 80px;
-		}
-		.text-rym{
-			display: inline-block;
-			height: 20px;
-			width: auto;
-			color: rgb(185, 111, 0);
-			font-size: 15px;
-			font-weight: bold;
-			letter-spacing: 0;
-			vertical-align: super;
-		}
-		.stars-extra.stars-imdb path{
-			fill: #f5c518;
-		}
-		.stars-extra.stars-mal path{
-			fill: #2e51a2;
-		}
-		.stars-extra.stars-anilist path{
-			fill: #3db4f2;
-		}
-		.stars-extra.stars-allocine path,
-		.stars-extra.stars-allocine-critic path,
-		.stars-extra.stars-allocine-ratings path{
-			fill: #fecc00;
-		}
-		.stars-extra.stars-filmarks path{
-			fill: #ffcb62;
-		}
-		.stars-extra.stars-filmweb path{
-			fill: #FFC200;
-		}
-		.stars-extra.stars-background path{
-			fill: #667788;
-		}
-		.dynamic-star-holder{
-			display: inline-block;
-			position: relative;
-			width: 50px;
-			height: 10px;
-			vertical-align: center;
-		}
-		.dynamic-star-holder.allocine-critic-stars{
-			scale: 1.5;
-			left: 15px;
-		}
-		.dynamic-star-holder.allocine-ratings-stars{
-			left: 5px;
-		}
-		.twipsy-extra-in{
-			opacity: 1 !important;
-			-webkit-transition: opacity 0.25s ease-out;
-			transition: opacity 0.25s ease-out;
-		}
-		.twipsy-extra{
-			opacity: 0 !important;
-		}
-		.twipsy-extra-out{
-			opacity: 0 !important;
-			-webkit-transition: opacity 0.10s linear;
-			transition: opacity 0.10s linear;
-		}
-		.rt-button-holder {
-			display: inline-flex;
-			margin-right: 10px;
-			margin-top: 3px;
-		}
-		.rt-button{
-			display: inline;
-			font-size: 10px;
-			width: fit-content;
-			text-align: center;
-			min-width: 20px;
-			color: #9ab;
-			border-radius: 3px;
-			background-color: #283038;
-			padding: 1px;
-			padding-left: 5px;
-			padding-right: 5px;
-			-webkit-user-select: none; /* Safari */
-			-ms-user-select: none; /* IE 10 and IE 11 */
-			user-select: none; /* Standard syntax */
-		}
-		.rt-button.critic-all, .rt-button.audience-all, .rt-button.allo-user{
-			border-top-right-radius: 0px;
-			border-bottom-right-radius: 0px;
-		}
-		.rt-button.critic-top, .rt-button.audience-verified, .rt-button.allo-critic{
-			border-top-left-radius: 0px;
-			border-bottom-left-radius: 0px;
-		}
-		.rt-button.selected{
-			color: #def;
-			background-color: #456
-		}
-		.rt-button:not(.selected):not(.disabled):hover{
-			color: #def;
-			cursor: pointer;
-		}
-		.rt-button.disabled{
-			color: #626d77;
-			background-color: transparent;
-			border: 1px solid #283038;
-			padding-top: 0px;
-			padding-bottom: 0px;
-		}
-		.rt-button.critic-toggle, .rt-button.audience-toggle{
-			display: block;
-			width: 50px;
-			font-size: 11px;
-			height: 17px;
-			line-height: 18px;
-			margin-top: 4px;
-		}
-		.allocine-buttons{
-			margin-bottom: 5px;
-		}
-		a.allocine-critic-score{
-			font-size: 20px;
-		}
-		.rt-button.allo-user, .rt-button.allo-critic{
-			display: inline-block;
-			width: 100px;
-			margin-right: 0px;
-		}
-		.rt-button.allo-user.extras-mobile, .rt-button.allo-critic.extras-mobile{
-			font-size: 11px;
-			height: 17px;
-			line-height: 18px;
-			margin-top: 4px;
-		}
-		.allo-critic-stars{
-			display: inline-block;
-			width: 64px;
-			height: 16px;
-		}
-		.rt-bar{
-			display: inline-block;
-			height: 5px;
-			border-radius: 5px;
-		}
-		.rt-bar.outline{
-			width: 70px;
-			margin: 1px;
-			border: 1px solid #283038;
-			vertical-align: middle;
-		}
-		.rt-bar.fill{
-			background-color: #678;
-			vertical-align: top;
-		}
-		.rt-bar.text-label{
-			display: inline-block;
-			font-size: 8px;
-			width: 30px;
-		}
-		.rt-bar.text-count{
-			display: inline-block;
-			font-size: 9px;
-			width: 25px;
-			margin-left: 5px;
-		}
-		.rt-bar.text-label.extras-mobile{
-			font-size: 9px;
-		}
-		.rt-bar.text-count.extras-mobile{
-			font-size: 10px;
-		}
-		.show-details{
-			font-size: 9px !important;
-			-webkit-user-select: none; /* Safari */
-			-ms-user-select: none; /* IE 10 and IE 11 */
-			user-select: none; /* Standard syntax */
-		}
-		.show-details:hover{
-			cursor: pointer;
-		}
-		.mobile-details-text{
-			width: 100% !important;
-			font-size: 10px;
-		}
-
-		.meta-score-details:not(.mobile-details-text){
-			width: 180px;
-			margin-left: 5px;
-		}
-		.meta-score-details:not(.mobile-details-text).short{
-			width: 140px;
-		}
-		.meta-bar-label{
-			font-size: 9px;
-			display: inline-block;
-			width: 40px;
-		}
-		.meta-bar-value{
-			font-size: 10px;
-			display: inline-block;
-			width: 25px;
-			margin-left: 5px;
-		}
-		.meta-bar{
-			display: inline-block;
-			height: 3px;
-			border-radius: 5px;
-		}
-		.meta-bar.outline{
-			width: 70px;
-			margin: 1px;
-			border: 1px solid #283038;
-			vertical-align: middle;
-		}
-		.meta-bar.fill{
-			background-color: #678;
-			vertical-align: top;
-		}
-		.micro-button{
-			margin-right: 3px;
-			margin-bottom: 3px;
-			height: 12px;
-			line-height: 1;
-			display: inline-block;
-		}
-		p.text-link .report-link{
-			vertical-align: top !important;
-		}
-		.text-footer-extra{
-			font-size: 12px;
-			color: #89a;
-		}
-		.sens-score, .sens-score:hover{
-			display: flex;
-			flex-direction: row;
-			border: 1px solid white;
-			border-radius: 1px;
-			color: white;
-			font-size: 16px;
-			font-weight: 600;
-			font-family: "Sora", sans-serif;
-			align-items: center;
-			justify-content: center;
-			height: 32px;
-			width: 57px;
-			margin-left: 1px;
-			margin-top: 5px;
-			text-decoration: none;
-		}
-		.sens-score.green, .sens-score.green:hover{
-			border: 1px solid rgb(47, 196, 111);
-			color: rgb(47, 196, 111);
-		}
-		.sens-score span{
-			pointer-events: none;
-		}
-		.sens-score-icon{
-			display: inline-block !important;
-			width: 22px;
-			height: 22px;
-			scale: 0.8;
-		}
-		.sens-score-icon.green{
-			filter: invert(72%) sepia(37%) saturate(821%) hue-rotate(89deg) brightness(83%) contrast(89%);
-		}
-		.sens-text{
-			font-size: 14px;
-			color: white;
-			width: auto;
-			display: inline-block;
-			margin-left: 10px;
-			margin-top: 10px;
-			margin-bottom: 0px !important;
-		}
-		.sens-flex flex-container{
-			display: flex;
-			flex-direction: row;
-		}
-		.extras-service {
-			display: flex;
-			flex-direction: row;
-			hidden: false !important;
-		}
-		.extras-table{
-			margin-bottom: 10px;
-			border: 1px solid hsla(0,0%,100%,.25);
-			border-radius: 4px;
-			padding-top: 3px;
-			padding-left: 5px;
-			padding-right: 5px;
-			font-size: 95%;
-			margin-top: 9px;
-		}
-		.extras-table .extras-header{
-			font-weight: bold;
-			width: 35%;
-		}
-		.extras-table .extras-value{
-			width: 60%;
-		}
-		.extras-table .extras-header,
-		.extras-table .extras-value{
-			font-size: 12px !important;
-		}
-		.extras-table td{
-			padding-bottom: 10px;
-		}
-		.mubi-score, .simkl-score, .kinopoisk-score, .douban-score {
-			color: #FFF;
-			font-size: 18px;
-		}
-		span.mubi-score{
-			vertical-align: top;
-			margin-left: 5px;
-			margin-top: 1px;
-		}
-		.mubi-star{
-			margin-left: 5px;
-		}
-		a.filmaff-score{
-			display: flex;
-			flex-direction: row;
-			background: #4682B4;
-			color: white;
-			font-size: 16px;
-			font-family: Arial, sans-serif;
-			align-items: center;
-			justify-content: center;
-			height: 26px;
-			width: 45px;
-			margin-left: 1px;
-			margin-top: 5px;
-		}
-		a.filmaff-score:hover{
-			color: white;
-			text-decoration: underline;
-		}
-		a.filmaff-score.extras-mobile{
-			border-radius: 0.3em;
-		}
-		.extras-bullet:hover{
-			color: #678;
-		}
-		.budget.detail p{
-			display: inline-block;
-		}
-		.budget.detail a{
-			display: inline-block;
-			margin-left: 10px;
-		}
-		.extras-show-more{
-			margin-top: 10px;
-			width: 95%;
-			text-align: center;
-		}
-		.extras-reviews-toggle{
-			margin-bottom: 30px;
-			width: 95%;
-			text-align: center;
-		}
-
-		.extras-rating:NOT(.extras-rating-mobile){
-			margin-left: 2px;
-			margin-right: 3px;
-		}
-		.extras-rating-mobile{
-			margin-right: 3px;
-		}
-
-		.extras-ranking a span{
-			pointer-events: none;
-		}
-		.extras-ranking-mobile a span {
-			font-size: 12px;
-		}
-		.extras-ranking-icon{
-			height: 18px !important;
-			font-weight: bold;
-		}
-		.extras-ranking-image{
-			height: 18px !important;
-			width: 18px !important;
-			background-repeat: round !important;
-		}
-		.imdb-ranking a .extras-ranking-image{
-			height: 16px !important;
-			width: 32px !important;
-		}
-		.extras-ranking-mobile{
-			margin-top: 10px !important;
-			text-align: left !important;
-		}
-		.extras-ranking-mobile div a{
-			font-size: 18px;
-		}
-		.extras-ranking-mobile.extras-expanded .extras-ranking a {
-			width: 60px;
-		}
-		.film-stats-show-details{
-			font-size: 10px;
-			text-align: left;
-			margin-left: 2px;
-			margin-top: 10px;
-			display: block;
-		}
-		.mobile-ranking-details{
-			font-size: 10px;
-			margin-left: 15px;
-		}
-		.logo-simkl{
-			width: 50px;
-		}
-		.logo-filmarks{
-			width: 80px;
-			height: 20px;
-		}
-		.simkl-box{
-			border: rgb(89 88 86/37%) 1px solid;
-			border-radius: 6px;
-			padding: 7px;
-			padding-left: 12px;
-			padding-right: 12px;
-			margin-top: 3px;
-			cursor: pointer;
-		}
-		.simkl-box:hover{
-			background-color: rgba(255,255,255,.1);
-		}
-		.simkl-box span, .simkl-box p{
-    		pointer-events:none;
-		}
-		.allocine-ratings .average-rating{
-			top: -8px !important;
-		}
-		.extras-allo-star::before, .extras-allo-star::after{
-			content: "\e066";
-		}
-		.allocine-ratings-style{
-			display: inline-block;
-			margin-right: 10px;
-			margin-top: 5px;
-			padding: 4px;
-			border: #4c4c4c 1px solid;
-			border-radius: .625rem;
-			width: 60px;
-		}
-		.allocine-label{
-			width: 100%;
-			display: block;
-			text-align: center; 
-			font-size: 10px;
-		}
-		.allocine-critic a {
-			display: block;
-			text-align: center;
-		}
-			
-		.kinopoisk-score {
-			color: #bbbbbb !important;
-		}
-		.logo-douban {
-			width: auto;
-		}
-		.text-douban {
-			color: #01B636;
-			font-weight: bold;
-			font-size: 14px;
-			vertical-align: super;
-		}
-			
-		.extras-lost-filter span{
-			cursor: pointer;
-			-webkit-user-select: none; /* Safari */
-			-ms-user-select: none; /* IE 10 and IE 11 */
-			user-select: none; /* Standard syntax */
-		}
-		.extras-lost-filter span i {
-    	pointer-events:none;
-		}
-		/* POSTER SPINE STYLING (default: column view, to left of poster) */
-		section.poster-list.-p230.-single {
-			position: relative;
-		}
-		.extras-spine-indicator {
-			position: absolute;
-			right: 100%;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: flex-start;
-			padding-right: 6px;
-			text-decoration: none;
-			max-height: 15%;
-		}
-		.extras-spine-indicator:not(.mobile) {
-			top: 8px;
-		}
-		.extras-spine-indicator.mobile {
-			top: 80%;
-		}
-		.extras-spine-indicator .spine-logo {
-			display: block;
-			margin-bottom: 2px;
-		}
-		.extras-spine-indicator .spine-number {
-			font-family: 'Graphik-Regular-Web', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-			font-size: 9px;
-			color: #989898;
-			text-decoration: none;
-			line-height: 1;
-		}
-		.extras-spine-indicator:hover .criterion-logo-path {
-			fill: #ffffff;
-		}
-		.extras-spine-indicator:hover .spine-number {
-			color: #ffffff;
-		}
-		.extras-spine-indicator:hover {
-			filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
-		}
-		/* POSTER SPINE ROW VIEW */
-		.extras-spine-indicator[data-view="row"] {
-			flex-direction: row;
-		}
-		.extras-spine-indicator[data-view="row"] .spine-logo {
-			margin-bottom: 0;
-			margin-right: 2px;
-		}
-		/* POSTER SPINE LEFT/RIGHT VIEW */
-		.extras-spine-indicator[data-view="left-right"] {
-			left: 50%;
-			right: auto;
-			transform: translateX(-50%);
-			flex-direction: row;
-			justify-content: space-between;
-		}
-		.extras-spine-indicator[data-view="left-right"]:not(.mobile) {
-			width: 123%;
-		}
-		.extras-spine-indicator[data-view="left-right"].mobile {
-			width: 140%;
-		}
-		.extras-spine-indicator[data-view="left-right"] .spine-logo {
-			margin-bottom: 0;
-			margin-right: 2px;
-		}
-		.extras-spine-indicator[data-view="left-right"] .spine-number {
-			writing-mode: vertical-rl;
-			text-orientation: upright;
-			padding-right: 5px;
-		}
-		.extras-spine-indicator[data-view="left-right"] .spine-number.spine-digits-1 {
-			font-size: 15px;
-		}
-		.extras-spine-indicator[data-view="left-right"] .spine-number.spine-digits-2 {
-			font-size: 11px;
-		}
-		@media (max-width: 1020px) {
-			.extras-spine-indicator:not(.mobile) {
-				right: auto;
-				left: 100%;
-				padding-right: 0;
-				padding-left: 6px;
-			}
-			.extras-spine-indicator[data-view]:not(.mobile) {
-				flex-direction: column;
-				width: auto;
-				right: auto;
-				left: 100%;
-				transform: none;
-				padding-right: 0;
-				padding-left: 6px;
-				justify-content: flex-start;
-			}
-			.extras-spine-indicator[data-view]:not(.mobile) .spine-logo {
-				margin-right: 0;
-				margin-bottom: 2px;
-			}
-			.extras-spine-indicator[data-view]:not(.mobile) .spine-number {
-				writing-mode: horizontal-tb;
-				text-orientation: initial;
-				padding-right: 0;
-			}
-			.extras-spine-indicator[data-view]:not(.mobile) .spine-number.spine-digits-1,
-			.extras-spine-indicator[data-view]:not(.mobile) .spine-number.spine-digits-2 {
-				font-size: 9px;
-			}
-		}
-			
-		.extras-error-div {
-			position: fixed;
-			right: 5px;
-			top: 5px;
-			z-index: 99999;
-		}
-		.extras-error-button {
-			position: relative;
-			float: right;
-			cursor: pointer;
-			user-select: none;
-		}
-		.extras-error-label {
-			font-size: 12px;
-			display: inline;
-			vertical-align: center;
-		}
-		.extras-error-badge {
-			width: 20px;
-			height: 20px;
-			background: #f44336;
-			border-radius: 50%;
-			display: inline-block;
-			vertical-align: center;
-			margin-left: 5px;
-			background-image: linear-gradient(to bottom,#ffffff40 5%,#fff0 95%);
-			text-align: center;
-			color: #000;
-			font-weight: bold;
-		}
-		.extras-error-holder {
-			display: none;
-			background: #89a;
-			position: absolute;
-			z-index: 1000;
-			box-shadow: inset 0 1px #ffffff59,0 0 10px #000;
-			border-radius: 2px;
-			width: 200px;
-			right: 0;
-			top: 28px;
-		}
-		.extras-error-holder li {
-			display: block;
-			border: none;
-			border-bottom: 1px solid rgba(0,0,0,.1)
-		}
-		.extras-error-holder li span,
-		.extras-error-holder li a {
-			display: block;
-			font-size: 12px;
-			color: #2c3440;
-			text-shadow: rgba(255,255,255,.1) 0 1px 0;
-			padding: 4px 15px;
-		}
-		.extras-error-holder li a:hover {
-			color: #fff;
-			background: #678;
-			text-shadow: rgba(0,0,0,.05) 0 1px 0;
-		}
-		.extras-statistics-list {
-			flex-wrap: wrap;
-		}
-		.extras-menubutton.disabled {
-			opacity: 50%;
-			cursor: not-allowed;
-		}
-	`);
+GM_addStyle(styles);
 
 /* eslint-disable */
 
@@ -859,7 +80,7 @@ const letterboxd = {
 		wiki: null,
 		wiki_dates: null,
 		wikiData: {
-			state: 0, state_dates: 0, tomatoURL: null, metaURL: "",
+			state: 0, state_dates: 0, metaURL: "",
 			budget: { value: null, currency: null, togetherWith: null },
 			boxOfficeUS: { value: null, currency: null },
 			boxOfficeWW: { value: null, currency: null },
@@ -885,7 +106,6 @@ const letterboxd = {
 		},
 
 		// Rotten Tomatoes
-		tomatoData: { state: 0, data: null, raw: null, found: false, hideDetailButton: false, criticAll: null, criticTop: null, audienceAll: null, audienceVerified: null },
 		tomatoHelper: null,
 
 		// Metacritic
@@ -962,7 +182,6 @@ const letterboxd = {
 
 		kinopoiskHelper: null,
 
-		rtAdded: false,
 		metaAdded: false,
 		dateAdded: false,
 		durationAdded: false,
@@ -1351,6 +570,11 @@ const letterboxd = {
 				letterboxd.helpers.WriteConsoleLog('DEBUG', `Found directors/producers: ${this.letterboxdDirectors.toString()}`);
 			}
 
+			// Cast Extras
+			if (letterboxd.storage.get('cast-extras-enabled') === true && !this.castHelper.rendered) {
+				this.castHelper.render(this.imdbData.data, this.loggedIn);
+			}
+
 			// First Get the IMDb link 
 			if (this.idsCollected == false && document.querySelector('.micro-button') != null) {
 				if (this.loggedIn == false || document.querySelector('.block-flag-wrapper')) {
@@ -1378,7 +602,7 @@ const letterboxd = {
 
 				if (this.imdbID != "" && this.imdbData.state < 1) {
 					// Call IMDb and Add to page when done
-					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true) {
+					if (letterboxd.storage.get('imdb-enabled') === true || letterboxd.storage.get('imdb-250-enabled') === true || letterboxd.storage.get('cast-extras-enabled') === true) {
 						this.imdbData.state = 1;
 
 						let options = letterboxd.helpers.getImdbQuery(this.imdbID);
@@ -1397,6 +621,10 @@ const letterboxd = {
 								if (letterboxd.storage.get('imdb-250-enabled') === true && this.rankingHelper.imdbData.loadState == LOAD_STATES['Uninitialized']){
 									this.collectIMDBRank();
 									this.rankingHelper.createRanking(this.rankingHelper.imdbData);
+								}
+								
+								if (letterboxd.storage.get('cast-extras-enabled') === true) {
+									this.castHelper.render(this.imdbData.data, this.loggedIn);
 								}
 							}
 							this.imdbData.state = 2;
@@ -1538,8 +766,7 @@ const letterboxd = {
 										if (url.includes('/tv/') && !url.match(/s[0-9]{2}/i))
 											url += "/s01"
 
-										this.wikiData.tomatoURL = url;
-										this.initTomato();
+										this.tomatoHelper.getData(url);
 									}
 
 									// Get the MUBI ID to use later
@@ -2120,378 +1347,6 @@ const letterboxd = {
 			letterboxd.helpers.addTooltipEvents(imdbScoreSection);
 		},
 
-		getIMDBScoreV2() {
-			// If IMDb loads the old 'styleguide-v2' page
-
-			// No Ratings - return
-			if (this.imdbData.data.querySelector('.sectionHeading').innerHTML.includes('No Ratings Available')) return false
-
-			// Get the score
-			if (this.imdbData.data.querySelector('.ratingTable.Selected .bigcell')) {
-				this.imdbData.rating = this.imdbData.data.querySelector('.ratingTable.Selected .bigcell').innerText;
-			} else {
-				this.imdbData.rating = this.imdbData.data.querySelector('.ipl-rating-star__rating').innerText;
-			}
-			// Fix if comma is used as decimal
-			if (typeof this.imdbData.rating == 'string' && this.imdbData.rating.includes(',')) {
-				this.imdbData.rating = this.imdbData.rating.replace(',', '.');
-			}
-
-			// Get the number of ratings
-			var tempArray = this.imdbData.data.querySelectorAll('.allText');
-			for (var ii = 0; ii < tempArray.length; ii++) {
-				if (tempArray[ii].innerHTML.includes('IMDb users have given a')) {
-					this.imdbData.num_ratings = letterboxd.helpers.getTextBetween(tempArray[ii].innerText, '\n                ', '\nIMDb users');
-					break;
-				}
-			}
-
-			// Get the votes
-			var tables = this.imdbData.data.querySelectorAll('table')
-			var tableRows = tables[0].rows;
-
-			var k = 0
-			for (var ii = 1; ii < tableRows.length; ii++) {
-				var votes = tableRows[ii].cells[2].children[0].children[0].innerText;
-				votes = votes.replaceAll(',', '');
-				votes = votes.replaceAll(/\s/g, '');
-				votes = votes.replaceAll('.', '');
-				votes = parseInt(votes);
-
-				if (votes > 0) {
-					var percent = letterboxd.helpers.getTextBetween(tableRows[ii].cells[1].children[1].children[0].innerHTML, '&nbsp;\n', '\n');
-					percent = parseFloat(percent)
-				} else {
-					percent = parseFloat(0);
-				}
-
-				this.imdbData.percents[k] = percent;
-				this.imdbData.votes[k] = votes;
-
-				if (votes > this.imdbData.highest)
-					this.imdbData.highest = votes;
-
-				k++;
-			}
-
-			this.imdbData.percents[k] = this.imdbData.percents.reverse();
-			this.imdbData.votes[k] = this.imdbData.votes.reverse();
-
-			return true;
-		},
-
-		getIMDBScoreNew() {
-			// If IMDb load the new design
-
-			// No Ratings - return
-			if (this.imdbData.data.querySelector('.sc-7b66e0e3-0 kcXuZM')) return false
-
-			// Get the JSON data
-			var scoreInfo = JSON.parse(letterboxd.helpers.getTextBetween(this.imdbData.raw, '<script id="__NEXT_DATA__" type="application/json">', "</script>"));
-
-			var histogramData = scoreInfo.props.pageProps.contentData.histogramData;
-
-			// Score
-			this.imdbData.rating = histogramData.aggregateRating;
-
-			// Rating Count
-			this.imdbData.num_ratings = histogramData.totalVoteCount;
-
-			// Get the votes
-			var histogramValues = histogramData.histogramValues;
-
-			for (var ii = 0; ii < histogramValues.length; ii++) {
-				var index = histogramValues[ii].rating - 1;
-				var votes = histogramValues[ii].voteCount;
-				var percent = ((votes / this.imdbData.num_ratings) * 100).toFixed(1);
-
-				this.imdbData.percents[index] = percent;
-				this.imdbData.votes[index] = votes;
-
-				if (votes > this.imdbData.highest)
-					this.imdbData.highest = votes;
-			}
-
-			if (this.imdbData.rating == 0 || this.imdbData.num_ratings == 0 || histogramValues.length == 0) {
-				return false;
-			}
-
-			return true;
-		},
-
-		getIMDBAdditional() {
-			// First see if it has a parental rating
-			var details = this.imdbData.data2.querySelectorAll('.ipc-inline-list.ipc-inline-list--show-dividers.sc-afe43def-4.kdXikI.baseAlt li');
-			if (details != null) {
-				for (var i = 0; i < details.length; i++) {
-					var a = details[i].querySelector('a');
-					if (a != null) {
-						if (a.getAttribute('href').includes('parentalguide')) {
-							this.imdbData.mpaa = a.innerText.trim();
-							break;
-						}
-					}
-				}
-			}
-
-			// Next grab the metascore if it has it
-			var meta = this.imdbData.data2.querySelector('.metacritic-score-box');
-			if (meta != null) {
-				this.imdbData.meta = meta.innerText.trim();
-			}
-
-			// We will not add anything yet, we will wait until we are sure WikiData is missing them
-		},
-
-		initTomato() {
-			if (this.wikiData.tomatoURL != null && this.wikiData.tomatoURL != "") {
-				this.addLink(this.wikiData.tomatoURL, 'RT', 'tomato');
-
-				if (this.tomatoData.data == null && this.rtAdded == false && this.tomatoData.state < 1) {
-					try {
-						this.tomatoData.state = 1;
-						browser.runtime.sendMessage({ name: "GETDATA", url: this.wikiData.tomatoURL }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("RottenTomatoes", value) == false){
-								return;
-							}
-								
-							var tomato = value.response;
-							if (tomato != null) {
-								this.tomatoData.raw = tomato;
-								this.tomatoData.data = letterboxd.helpers.parseHTML(tomato);
-								this.wikiData.tomatoURL = value.url;
-
-								this.addTomato();
-								this.tomatoData.state = 2;
-							}
-						});
-					} catch {
-						letterboxd.helpers.WriteConsoleLog('ERROR', 'Unable to parse Rotten Tomatoes URL');
-						this.rtAdded = true; // so it doesn't keep calling
-						this.tomatoData.state = 3;
-					}
-				} else if (this.tomatoData.state < 1) {
-					this.tomatoData.state = 3;
-				}
-			}
-		},
-
-		addTomato() {
-			if (document.querySelector('.tomato-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			if (this.tomatoData.raw.includes('404 - Not Found')) return;
-
-			// Lets grab all the potentially useful information first 
-			//***************************************************************
-			this.tomatoData.criticAll = { type: "CRITIC", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: "" };
-			this.tomatoData.criticTop = { type: "CRITIC", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: "" };
-			this.tomatoData.audienceAll = { type: "AUDIENCE", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: "" };
-			this.tomatoData.audienceVerified = { type: "AUDIENCE", percent: "--", state: "", rating: "", num_ratings: 0, likedCount: 0, notLikedCount: 0, url: "" };
-
-			if (this.tomatoData.data.querySelector('#media-scorecard-json') != null) {
-				var scoredetails = JSON.parse(this.tomatoData.data.querySelector('#media-scorecard-json').innerHTML);
-				this.collectTomatoScore(this.tomatoData.criticTop, scoredetails.overlay.criticsTop);
-				this.collectTomatoScore(this.tomatoData.criticAll, scoredetails.overlay.criticsAll);
-				this.collectTomatoScore(this.tomatoData.audienceVerified, scoredetails.overlay.audienceVerified);
-				this.collectTomatoScore(this.tomatoData.audienceAll, scoredetails.overlay.audienceAll);
-			} else {
-				// Not found, return
-				return;
-			}
-
-			// Return if no scores what so ever
-			if (this.tomatoData.criticAll.num_ratings == 0 && this.tomatoData.audienceAll.num_ratings == 0) return;
-
-			if (this.tomatoData.hideDetailButton == true && this.pageState.isMobile) {
-				this.tomatoData.hideDetailButton = false;
-			}
-
-			// Now display all this on the page
-			//***************************************************************
-			// Add the section to the page
-			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart tomato-ratings ratings-extras'
-			});
-
-			// Add the Header - 
-			const heading = letterboxd.helpers.createElement('h2', {
-				class: 'section-heading section-heading-extras'
-			});
-			section.append(heading);
-
-			const logo = letterboxd.helpers.createElement('a', {
-				class: 'logo-tomatoes',
-				href: this.wikiData.tomatoURL,
-				style: `height: 20px; width: 75px; background-image: url("${browser.runtime.getURL('/images/rt-logo.png')}");`
-			});
-			heading.append(logo);
-
-			// Add the Show Details button
-			let showDetails = null;
-			if (this.tomatoData.hideDetailButton == false) {
-				showDetails = letterboxd.helpers.createShowDetailsButton("rt", "rt-score-details")
-				section.append(showDetails);
-			}
-
-			let createTooltip = (this.pageState.isMobile || letterboxd.storage.get('tooltip-show-details') === true);
-
-			// CRITIC SCORE /  TOMATOMETER
-			//************************************************************
-			let criticAdded = false;
-			if (letterboxd.storage.get('tomato-critic-enabled') === true) {
-				// The span that holds the score
-				const criticSpan = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; padding-right: 10px;'
-				});
-				section.append(criticSpan);
-
-				// Add the div to hold the toggle buttons
-				// Div to hold buttons
-				const buttonDiv = letterboxd.helpers.createElement('div', {
-					class: 'rt-button-holder'
-				});
-				criticSpan.append(buttonDiv);
-
-				if (this.pageState.isMobile) {
-					// Add single toggle button
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.criticTop.percent == "--"), this.pageState.isMobile));
-
-				} else {
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-all", "ALL", "score-critic-all", true, false, this.pageState.isMobile));
-					buttonDiv.append(letterboxd.helpers.createTomatoButton("critic-top", "TOP", "score-critic-top", false, (this.tomatoData.criticTop.percent == "--"), this.pageState.isMobile));
-				}
-
-				// Add scores
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-all", "Critic", this.wikiData.tomatoURL, this.tomatoData.criticAll, "block", this.pageState.isMobile, createTooltip));
-				criticSpan.append(letterboxd.helpers.createTomatoScore("critic-top", "Top Critic", this.wikiData.tomatoURL, this.tomatoData.criticTop, "none", this.pageState.isMobile, createTooltip));
-
-				criticAdded = true;
-			}
-
-			// AUDIENCE SCORE
-			//************************************************************
-			var audienceAdded = false;
-			if (letterboxd.storage.get('tomato-audience-enabled') === true) {
-				// The span that holds the score
-				const audienceSpan = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block; padding-right: 10px;'
-				});
-				section.append(audienceSpan);
-
-				// Add the toggle buttons
-				// Div to hold buttons
-				const buttonDiv2 = letterboxd.helpers.createElement('div', {
-					class: 'rt-button-holder'
-				});
-				audienceSpan.append(buttonDiv2);
-
-				if (this.pageState.isMobile) {
-					// Add single toggle button
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-toggle", "ALL", "score-critic-all,score-critic-top", true, (this.tomatoData.audienceVerified.percent == "--"), this.pageState.isMobile));
-
-				} else {
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-all", "ALL", "score-audience-all", true, false, this.pageState.isMobile));
-					buttonDiv2.append(letterboxd.helpers.createTomatoButton("audience-verified", "VERIFIED", "score-audience-verified", false, (this.tomatoData.audienceVerified.percent == "--"), this.pageState.isMobile));
-				}
-
-				// Add scores
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-all", "Audience", this.wikiData.tomatoURL, this.tomatoData.audienceAll, "block", this.pageState.isMobile, createTooltip));
-				audienceSpan.append(letterboxd.helpers.createTomatoScore("audience-verified", "Verified Audience", this.wikiData.tomatoURL, this.tomatoData.audienceVerified, "none", this.pageState.isMobile, createTooltip));
-
-				audienceAdded = true;
-			}
-
-			if (criticAdded == false && audienceAdded == false) {
-				this.rtAdded = true; // so it doesn't keep calling
-				return;
-			}
-
-			// APPEND to the sidebar
-			//************************************************************
-			this.appendRating(section, 'tomato-ratings');
-
-			// Move the details text
-			//************************************************************
-			if (this.pageState.isMobile == false) {
-				var criticAllText = section.querySelector('.mobile-details-text.score-critic-all');
-				var criticTopText = section.querySelector('.mobile-details-text.score-critic-top');
-				var audienceAllText = section.querySelector('.mobile-details-text.score-audience-all');
-				var audienceVerifiedText = section.querySelector('.mobile-details-text.score-audience-verified');
-
-				if (criticAllText != null)
-					section.append(criticAllText);
-				if (criticTopText != null)
-					section.append(criticTopText);
-				if (audienceAllText != null)
-					section.append(audienceAllText);
-				if (audienceVerifiedText != null)
-					section.append(audienceVerifiedText);
-			}
-
-
-			// Click the rt-buttons
-			//************************************************************
-			if (this.pageState.isMobile) {
-				if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top') {
-					section.querySelector(".rt-button.critic-toggle").click();
-				}
-				if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified') {
-					section.querySelector(".rt-button.audience-toggle").click();
-				}
-			} else {
-				if (this.tomatoData.criticTop.percent != "--" && letterboxd.storage.get('critic-default') === 'top') {
-					section.querySelector(".rt-button.critic-top").click();
-				}
-				if (this.tomatoData.audienceVerified.percent != "--" && letterboxd.storage.get('audience-default') === 'verified') {
-					section.querySelector(".rt-button.audience-verified").click();
-				}
-			}
-
-			// Click the show details if needed
-			//************************************************************
-			if (showDetails != null) {
-				if (letterboxd.storage.get('rt-default-view') === 'show' || (letterboxd.storage.get('rt-default-view') === 'remember' && letterboxd.storage.get('rt-score-details') === 'show')) {
-					showDetails.click();
-				}
-			}
-
-			// Add the Events for the hover
-			//************************************************************
-			letterboxd.helpers.addTooltipEvents(section);
-
-			this.rtAdded = true;
-		},
-
-		collectTomatoScore(data, scoredetails) {
-
-			if (scoredetails != null && scoredetails.score != null) {
-				data.percent = scoredetails.score;
-				data.state = scoredetails.sentiment;
-				data.likedCount = scoredetails.likedCount;
-				data.notLikedCount = scoredetails.notLikedCount;
-				data.num_ratings = data.likedCount + data.notLikedCount;
-
-				data.url = scoredetails.scoreLinkUrl;
-				data.rating = scoredetails.averageRating ?? '';
-
-				if (scoredetails.certified != null && scoredetails.certified == true && data.type == "CRITIC") {
-					data.state = "certified-fresh";
-				} else if (scoredetails.certified != null && scoredetails.certified == true && data.type == "AUDIENCE") {
-					data.state = "verified-hot";
-				} else if (data.state == "POSITIVE" && data.type == "CRITIC") {
-					data.state = "fresh";
-				} else if (data.state == "NEGATIVE" && data.type == "CRITIC") {
-					data.state = "rotten";
-				} else if (data.state == "POSITIVE") {
-					data.state = "upright";
-				} else if (data.state == "NEGATIVE") {
-					data.state = "spilled";
-				}
-			}
-		},
-
 		addMeta() {
 			if (document.querySelector('.meta-ratings')) return;
 
@@ -2549,7 +1404,7 @@ const letterboxd = {
 			//***************************************************************
 			// Add the section to the page
 			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart meta-ratings ratings-extras'
+				class: 'extras-section ratings-histogram-chart meta-ratings ratings-extras'
 			});
 
 			// Add the Header
@@ -3204,7 +2059,7 @@ const letterboxd = {
 
 				// Add the section to the page
 				const section = letterboxd.helpers.createElement('section', {
-					class: 'section ratings-histogram-chart cinemascore ratings-extras'
+					class: 'extras-section ratings-histogram-chart cinemascore ratings-extras'
 				});
 
 				// Add the Header
@@ -3723,19 +2578,19 @@ const letterboxd = {
 				// Add the div to hold the toggle buttons
 				// Div to hold buttons
 				const buttonDiv = letterboxd.helpers.createElement('div', {
-					class: 'rt-button-holder allocine-buttons'
+					class: 'toggle-button-holder allocine-buttons'
 				});
 				section.append(buttonDiv);
 
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.pageState.isMobile));
-				buttonDiv.append(letterboxd.helpers.createTomatoButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.pageState.isMobile));
+				buttonDiv.append(letterboxd.helpers.createToggleButton("allocine-button allo-user", "USER", "allocine-user-score", true, false, this.pageState.isMobile));
+				buttonDiv.append(letterboxd.helpers.createToggleButton("allocine-button allo-critic", "CRITIC", "allocine-critic-score", false, (this.allocine.critic.rating == 0), this.pageState.isMobile));
 				if (letterboxd.storage.get('allocine-users-enabled') != true || letterboxd.storage.get('allocine-critic-enabled') != true) {
 					buttonDiv.style['display'] = "none";
 				}
 
-				// User score - user rt-score-div so I can reuse changeTomatoScore
+				// User score - user toggle-score-display so I can reuse changeTomatoScore
 				const userSpan = letterboxd.helpers.createElement('span', {
-					class: 'allocine-user-score rt-score-div',
+					class: 'allocine-user-score toggle-score-display',
 					style: 'position: relative; display: block; margin-top: 5px;'
 				});
 
@@ -3758,7 +2613,7 @@ const letterboxd = {
 
 				// Critic score
 				const criticSpan = letterboxd.helpers.createElement('span', {
-					class: 'allocine-critic-score rt-score-div',
+					class: 'allocine-critic-score toggle-score-display',
 					style: 'position: relative; display: block; height: 44px; display:none; margin-top: 5px;'
 				});
 				criticSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "allocine", this.allocine.critic.rating, this.allocine.critic.num_ratings, null, this.allocine.urlCritic, this.pageState.isMobile));
@@ -3788,9 +2643,9 @@ const letterboxd = {
 			// Add click event for score buttons
 			//************************************************************
 			//if (letterboxd.storage.get('allocine-style') === "histogram" && letterboxd.storage.get('allocine-critic-enabled') === true){
-			if (section.querySelector('.rt-button.allo-button')) {
+			if (section.querySelector('.toggle-button.allo-button')) {
 				if (this.allocine.critic.rating != 0 && (letterboxd.storage.get('allocine-default-view') === 'critic' || letterboxd.storage.get('allocine-users-enabled') != true)) {
-					section.querySelector(".rt-button.allo-critic").click();
+					section.querySelector(".toggle-button.allo-critic").click();
 				}
 			}
 
@@ -4071,7 +2926,7 @@ const letterboxd = {
 			//***************************************************************
 			// Add the section to the page
 			const section = letterboxd.helpers.createElement('section', {
-				class: 'section ratings-histogram-chart filmarks-ratings ratings-extras'
+				class: 'extras-section ratings-histogram-chart filmarks-ratings ratings-extras'
 			});
 
 			// Add the Header
@@ -4097,7 +2952,7 @@ const letterboxd = {
 			// Score
 			//***************************************************************
 			const ratingSpan = letterboxd.helpers.createElement('span', {
-				class: 'filmarks-score rt-score-div',
+				class: 'filmarks-score toggle-score-display',
 				style: 'position: relative; display: block;'
 			});
 			ratingSpan.append(letterboxd.helpers.createAllocineCriticScore(letterboxd, "filmarks", this.filmarks.rating, this.filmarks.num_ratings, null, this.filmarks.url, this.pageState.isMobile));
@@ -4403,140 +3258,12 @@ const letterboxd = {
 			return element;
 		},
 
-		createTomatoScore(type, display, url, data, visibility, isMobile, addTooltip) {
-			const baseType = type.split('-')[0];
-
-			const scoreDiv = letterboxd.helpers.createElement('div', {
-				class: 'rt-score-div score-' + type,
-				style: 'display: ' + visibility + ';'
-			});
-
-			if (visibility == "none") {
-				scoreDiv.className += " disabled";
-			}
-
-			var image = 'images/tomato-critic-no-score.svg';
-			if (data.state == "certified-fresh") {
-				image = 'images/tomato-critic-certified-fresh.svg';
-			} else if (data.state == "verified-hot") {
-				image = 'images/tomato-audience-verified-hot.svg';
-			} else if (data.state == "fresh") {
-				image = 'images/tomato-critic-fresh.svg';
-			} else if (data.state == "rotten") {
-				image = 'images/tomato-critic-rotten.svg';
-			} else if (data.state == "upright") {
-				image = 'images/tomato-audience-hot.svg';
-			} else if (data.state == "spilled") {
-				image = 'images/tomato-audience-stale.svg';
-			} else if (type.includes("critic")) {
-				image = 'images/tomato-critic-no-score.svg';
-			} else {
-				image = 'images/tomato-audience-no-score.svg';
-			}
-			image = browser.runtime.getURL(image);
-
-			const imageSpan = letterboxd.helpers.createElement('span', {
-				class: 'icon-popcorn',
-				style: 'background-image: url("' + image + '");'
-			});
-			scoreDiv.append(imageSpan);
-
-			let suffix = "";
-			let rating = data.rating;
-			if (type.includes("critic")) {
-				suffix = "/10";
-			} else {
-				suffix = "/5";
-			}
-
-			if (letterboxd.storage.get('convert-ratings') === "10"){
-				suffix = "/10";
-				if (type.includes("audience")) {
-					rating = Number(rating * 2).toFixed(1);
-				}
-
-			}else if (letterboxd.storage.get('convert-ratings') === "5"){
-				suffix = "/5";
-				if (type.includes("critic")) {
-					rating = Number(rating / 2).toFixed(1);
-				}
-			}
-
-			let hover = `Average of ${rating}${suffix} based on ${parseInt(data.num_ratings).toLocaleString()} ${display} rating${(data.num_ratings != 1) ? 's' : ''}`;
-
-			if (rating == '') {
-				hover = `${data.num_ratings} ${display} rating${(data.num_ratings != 1) ? 's' : ''}`;
-			}
-
-			if (data.percent != '--') {
-				data.percent += "%";
-			}
-
-			if (type.includes("audience-verified"))
-				url += "/reviews?type=verified_audience"
-			else if (type.includes("audience"))
-				url += "/reviews?type=user"
-			else if (type.includes("critic-top"))
-				url += "/reviews?type=top_critics"
-			else
-				url += "/reviews"
-
-			// The element that is the score itself
-			const score = letterboxd.helpers.createElement('a', {
-				class: 'tooltip tooltip-extra display-rating -highlight tomato-score',
-				href: url,
-				style: 'display: inline-block; width: 50px',
-				['data-original-title']: hover
-			});
-			score.innerText = data.percent;
-			scoreDiv.append(score);
-
-			// Add the liked/notliked bars
-			if (data.likedCount + data.notLikedCount > 0) {
-				const chartSpan = letterboxd.helpers.createElement('span', {
-					class: 'rt-score-details',
-					style: 'display: none; width: 140px; margin-left: 5px;'
-				});
-				if ((type.includes("critic") && letterboxd.storage.get('tomato-audience-enabled') === true) || isMobile) {
-					chartSpan.style['margin-bottom'] = '10px';
-				}
-				chartSpan.append(this.createTomatoBarCount("Fresh", parseInt(data.likedCount), parseInt(data.num_ratings), isMobile));
-				chartSpan.append(this.createTomatoBarCount("Rotten", parseInt(data.notLikedCount), parseInt(data.num_ratings), isMobile));
-
-				scoreDiv.append(chartSpan);
-			}
-
-			// Add the tooltip as text for mobile
-			if (addTooltip) {
-				const detailsSpan = letterboxd.helpers.createElement('span', {
-					class: 'rt-score-div score-' + baseType + ' score-' + type + ' mobile-details-text'
-				});
-
-				if (isMobile){
-					detailsSpan.className += ' rt-score-details'; 
-				}
-
-				if (type.includes('critic-top') || type.includes('audience-verified') || isMobile){
-					detailsSpan.style.display = 'none';
-				}
-
-				const detailsText = letterboxd.helpers.createElement('p', {
-				});
-				detailsText.innerText = hover;
-				detailsSpan.append(detailsText);
-
-				scoreDiv.append(detailsSpan);
-			}
-
-			return scoreDiv;
-		},
-
 		changeTomatoScoreMobile(event) {
 			// Get the parent node
 			const parent = event.target.parentNode.parentNode;
 			// Grab the target score div and then the other non-target score div
-			const targetNode = parent.querySelector('.rt-score-div.disabled:not(.mobile-details-text)');
-			const otherNode = parent.querySelector('.rt-score-div:not(.disabled):not(.mobile-details-text)');
+			const targetNode = parent.querySelector('.toggle-score-display.disabled:not(.mobile-details-text)');
+			const otherNode = parent.querySelector('.toggle-score-display:not(.disabled):not(.mobile-details-text)');
 
 			// Hide the current visible score, display the current hidden score
 			otherNode.style.display = 'none';
@@ -4564,8 +3291,8 @@ const letterboxd = {
 			const target = `.${event.target.getAttribute('target')}`;
 			let parent = event.target.parentNode.parentNode;
 			// Grab the target score div and then the other non-target score div
-			let targetNodes = parent.querySelectorAll(`.rt-score-div${target}`);
-			let otherNodes = parent.querySelectorAll(`.rt-score-div:not(${target})`);
+			let targetNodes = parent.querySelectorAll(`.toggle-score-display${target}`);
+			let otherNodes = parent.querySelectorAll(`.toggle-score-display:not(${target})`);
 
 			// Hide the current visible score, display the current hidden score
 			otherNodes.forEach(element => {
@@ -4581,8 +3308,8 @@ const letterboxd = {
 				const baseTarget = `${bits[0]}-${bits[1]}`;
 				parent = parent.parentNode; 
 
-				targetNodes = parent.querySelectorAll(`.rt-score-div${baseTarget}.mobile-details-text${target}`);
-				otherNodes = parent.querySelectorAll(`.rt-score-div${baseTarget}.mobile-details-text:not(${target})`);
+				targetNodes = parent.querySelectorAll(`.toggle-score-display${baseTarget}.mobile-details-text${target}`);
+				otherNodes = parent.querySelectorAll(`.toggle-score-display${baseTarget}.mobile-details-text:not(${target})`);
 
 						// Hide the current visible score, display the current hidden score
 				otherNodes.forEach(element => {
@@ -4600,7 +3327,20 @@ const letterboxd = {
 
 		},
 
-		createTomatoButton(type, text, target, selected, disabled, isMobile) {
+		/**
+	 		* Builds a toggle button that allows you to toggle between two different rating views.
+	 		*
+	 		* @param {Object} options
+	 		* @param {string} type The class name of the button (which will reflect the button type)
+	 		* @param {string} text The text in the toggle button
+	 		* @param {string} target - The target class name of the element the button will modify.
+	 		* @param {boolean} selected - If the button is selected by default.
+	 		* @param {disabled} disabled - If the button is disabled by default.
+	 		* @param {string} isMobile - An isMobile flag.
+	 		* @returns {HTMLSpanElement}
+	 		* @private
+	 	*/
+		createToggleButton(type, text, target, selected, disabled, isMobile) {
 			if (target.includes(',')) {
 				var targets = target.split(',');
 				target = targets[0];
@@ -4610,7 +3350,7 @@ const letterboxd = {
 			}
 
 			const button = letterboxd.helpers.createElement('span', {
-				class: 'rt-button ' + type,
+				class: 'toggle-button ' + type,
 				['target']: target,
 				['targetOther']: targetOther
 			});
@@ -4635,51 +3375,6 @@ const letterboxd = {
 			}
 
 			return button;
-		},
-
-		createTomatoBarCount(type, count, total, isMobile) {
-			// Span that holds it all
-			const span = letterboxd.helpers.createElement('span', {
-				style: 'display: block; width: 140px;'
-			});
-				// Text label (ie, 'Fresh")
-			const label = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar text-label'
-			});
-			if (isMobile)
-				label.className += " extras-mobile";
-			label.innerText = type;
-			span.append(label);
-
-			// Span that holds the bar
-			const barSpan = letterboxd.helpers.createElement('span', {
-				style: 'display: inline-block;'
-			});
-				// Bar outline
-			const backBar = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar outline'
-			});
-				// Bar that displays the percentage
-			var width = (Math.round((count / total) * 100));
-			width = 'width: ' + width.toString() + '%;'
-			const frontBar = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar fill',
-				style: width
-			});
-			backBar.append(frontBar);
-			barSpan.append(backBar);
-			span.append(barSpan);
-
-			// Text that shows the num of ratings
-			const countText = letterboxd.helpers.createElement('span', {
-				class: 'rt-bar text-count'
-			});
-			if (isMobile)
-				countText.className += " extras-mobile";
-			countText.innerText = count.toLocaleString();
-			span.append(countText);
-
-			return span;
 		},
 
 		createDetailsRow(headerText, value, currency, togetherWith) {
@@ -5196,7 +3891,7 @@ const letterboxd = {
 
 		createChartSectionElement(sectionID) {
 			return this.createElement('section', {
-				class: `section ratings-histogram-chart ${sectionID}-ratings ratings-extras`
+				class: `extras-section ratings-histogram-chart ${sectionID}-ratings ratings-extras`
 			});
 		},
 
@@ -5320,57 +4015,6 @@ const letterboxd = {
 				default:
 					output = title;
 					break;
-			}
-			return output;
-		},
-
-		getTSPDTAltTitles(title, year) {
-			var output = "";
-
-			if (title == "Harlan County U.S.A." && year == "1976") {
-				output = "Harlan County, U.S.A.";
-			}
-			else if (title == "Dont Look Back" && year == "1967") {
-				output = "Don't Look Back";
-			}
-
-			output = output.replaceAll('.', '\\.');
-			if (output != "")
-				output = "|" + output.toUpperCase();
-
-			return output;
-		},
-
-		getBFIYear(title, year) {
-			var output = year;
-
-			if (title == "The Ascent" && year == "1977") {
-				output = "1976";
-			}
-			else if (title == "The Color of Pomegranates" && year == "1969") {
-				output = "1968";
-			}
-
-			return output;
-		},
-
-		getBFIListPage(rank, movieTitle, movieYear) {
-			// The movies which are tied are in difference positions on the BFI site and the LB list for some reason
-			// Ugly, but let's just correct the page number manually
-			var output = "";
-			if (rank == "196") {
-				switch (movieTitle) {
-					case "Paisan":
-					case "The Headless Woman":
-					case "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb":
-					case "L'Eclisse":
-					case "Wavelength":
-						output = "2";
-						break;
-					default:
-						output = "3";
-						break;
-				}
 			}
 			return output;
 		},
@@ -5573,6 +4217,28 @@ const letterboxd = {
 		},
 
 		getImdbQuery(id){
+			// Cast photos and character names are only needed by Cast Extras
+			var credits = '';
+			if (letterboxd.storage.get('cast-extras-enabled') === true) {
+				credits = `
+							credits(first: 50) {
+								edges {
+									node {
+										... on Cast {
+											characters {
+												name
+											}
+											name {
+												nameText {
+													text
+												}
+											}
+										}
+									}
+								}
+							}`;
+			}
+
 			var query = `
 					query GetRatings { 
 						title(id: "${id}") { 
@@ -5591,6 +4257,7 @@ const letterboxd = {
 									}
 								}
 							}
+							${credits}
 						}
 					}
 				`;
@@ -6067,6 +4734,8 @@ const moduleConfigs = [
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
 	{ class: PlexHelper, target: letterboxd.overview, property: 'plexHelper', args: [] },
 	{ class: FilmwebHelper, target: letterboxd.overview, property: 'filmwebHelper', args: [] },
+	{ class: RottenTomatoesHelper, target: letterboxd.overview, property: 'tomatoHelper', args: [] },
+	{ class: CastHelper, target: letterboxd.overview, property: 'castHelper', args: [] },
 ];
 
 moduleConfigs.forEach(config => {

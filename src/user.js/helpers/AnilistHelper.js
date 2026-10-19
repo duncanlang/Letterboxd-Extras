@@ -34,9 +34,9 @@ export class AnilistHelper extends Helper {
 
 		this.loadState = LOAD_STATES['Loading'];
 
-		this._apiRequestCallback('Anilist API', url, 'JSON', options, response => {
+		this._apiRequestCallback('Anilist API', url, 'JSON', options, value => {
 
-			const anilistResponse = response;
+			const anilistResponse = value.response;
 
 			if (!anilistResponse || !anilistResponse.data) {
 				this.loadState = LOAD_STATES['Failure'];
