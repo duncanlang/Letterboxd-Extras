@@ -28,6 +28,24 @@ const buttonLinkOrder: ButtonSelector[] = [
 	'.ebert-button'
 ];
 
+// Most class names are built from a helper's selectorPrefix. A few sources predate that convention,
+// and their CSS still expects an older name; these maps give that name, per element, keyed by
+// selectorPrefix. A prefix that is not listed uses itself.
+
+/** Class name stem for the logo link, as in `logo-${name}`. */
+const logoClassNames: Partial<Record<SourceIdentifier, string>> = {
+	tomato: 'tomatoes'
+};
+
+/**
+ * Name of the SHOW DETAILS button, as in `${name}-show-details`, and of the details it toggles,
+ * `${name}-score-details`. toggleDetails (common/additional.js) also stores the shown/hidden choice
+ * under `${name}-score-details`, so changing a name here forgets users' saved preference.
+ */
+const showDetailsNames: Partial<Record<SourceIdentifier, string>> = {
+	tomato: 'rt'
+};
+
 interface LogoProps {
 	href: string
 	style?: string
@@ -103,7 +121,12 @@ export class Helper {
 	selectorPrefix: SourceIdentifier
 	loadState: number;
 	data: any | null;
-	linkURL: string | null
+	/**
+	  * A link to the film's page on the data source.
+		*
+		* @type {string}
+	*/
+	linkURL!: string;
 	apiURL: string | null
 	linkAdded: boolean
 	ratingsAdded: boolean
@@ -145,15 +168,6 @@ export class Helper {
 		 * @default null
 		 */
 		this.data = null;
-
-
-		/**
-		 * A link to the film's page on the data source.
-		 *
-		 * @type {string | null}
-		 * @default null
-		 */
-		this.linkURL = null;
 
 		/**
 		 * The API Link that returns the film's information.
@@ -861,7 +875,7 @@ export class Helper {
 
 		const spineLinkAttrs: SpineAttrs = {
 			class: `extras-spine-indicator criterion-spine${isMobile ? ' mobile' : ''}`,
-			href: this.linkURL ?? "",
+			href: this.linkURL,
 			title: `${title} - Spine #${spineID}`,
 			target: '_blank',
 			rel: 'noopener noreferrer',
