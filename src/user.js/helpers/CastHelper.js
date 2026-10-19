@@ -196,7 +196,8 @@ export class CastHelper {
 	async fetchPhotoUrl(slug) {
 		try {
 			// The tag is in the page header, so only the first 16 KB is requested (Letterboxd answers with 206)
-			const response = await fetch(`/actor/${slug}/`, { credentials: 'same-origin', headers: { Range: 'bytes=0-16383' } });
+			// Use full letterboxd url in fetch instead of relative path, as firefox is weird and inconsistent
+			const response = await fetch(`https://letterboxd.com/actor/${slug}/`, { credentials: 'same-origin', headers: { Range: 'bytes=0-16383' } });
 			if (!response.ok) return null;
 
 			const page = new DOMParser().parseFromString(await response.text(), 'text/html');
@@ -267,7 +268,8 @@ export class CastHelper {
 
 	async fetchWatchedCount(slug) {
 		try {
-			const response = await fetch(`/${this.username}/films/with/actor/${slug}/`, { credentials: 'same-origin' });
+			// Use full letterboxd url in fetch instead of relative path, as firefox is weird and inconsistent
+			const response = await fetch(`https://letterboxd.com/${this.username}/films/with/actor/${slug}/`, { credentials: 'same-origin' });
 			if (!response.ok) return null;
 
 			// Heading reads "You’ve watched 11 films starring ..." or "You haven’t watched any films starring ..."
