@@ -20,6 +20,7 @@
         <p class="nav-item" sectionId="search">Search</p>
         <p class="nav-item" sectionId="rankings">Rankings</p>
         <p class="nav-item" sectionId="content-ratings">Content Ratings</p>
+        <p class="nav-item" sectionId="cast-extras">Casts</p>
         <p class="nav-item" sectionId="add-links">Additional Links</p>
         <p class="nav-item" sectionId="misc">Misc</p>
         <p class="nav-item" sectionId="google-search">Google</p>
@@ -394,6 +395,28 @@
         <div id="mpa-div">
             <label for="mpa-convert">Convert historical content ratings to modern equivalent:</label>
             <input type="checkbox" id="mpa-convert" class="setting"/>
+        </div>
+    </div>
+
+    <hr width="100%">
+
+    <!-- Cast Extras -->
+    <div id="cast-extras">
+        <h3>Cast Extras</h3>
+        <div>
+            <label for="cast-extras-enabled">Enable Cast Extras:</label>
+            <input type="checkbox" id="cast-extras-enabled" subid="cast-extras-div" class="setting"/>
+            <p class="info-tip">Adds an extras view of the cast on film pages with photos, character names and how many of each actor's films you have watched.</p>
+        </div>
+        <div id="cast-extras-div" class="subsetting">
+            <div>
+                <label for="cast-extras-seen-count">Display watched counts:</label>
+                <input type="checkbox" id="cast-extras-seen-count" class="setting"/>
+            </div>
+            <div>
+                <label for="cast-extras-photos">Display actor photos:</label>
+                <input type="checkbox" id="cast-extras-photos" class="setting"/>
+            </div>
         </div>
     </div>
 
