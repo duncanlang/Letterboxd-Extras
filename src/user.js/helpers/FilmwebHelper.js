@@ -25,19 +25,20 @@ export class FilmwebHelper extends Helper {
 
 		// First, we need to get the proper url (with title slug) so we can link to the sub pages properly
 		this.url = `https://www.filmweb.pl/api/v1/film/${id}/preview`;
-		this._apiRequestCallback('Filmweb', this.url, 'JSON', {}, response => {			
-
-			if (response && response.year && response.title && response.title.title) {
-				this.linkUrl = `https://www.filmweb.pl/film/${response.title.title.replace(' ', '+')}-${response.year}-${id}`;
+		this._apiRequestCallback('Filmweb', this.url, 'JSON', {}, value => {
+			
+			let response = value?.response;
+			if (response?.year && response.originalTitle?.title) {
+				this.linkUrl = `https://www.filmweb.pl/film/${response.originalTitle.title.replace(' ', '+')}-${response.year}-${id}`;
 				this.addButtonLink(this.linkUrl, 'Filmweb');
 
 				// Now we can call the ratings API
 				this.url = `https://www.filmweb.pl/api/v1/film/${id}/rating`;
 
-				this._apiRequestCallback('Filmweb', this.url, 'JSON', {}, response => {
+				this._apiRequestCallback('Filmweb', this.url, 'JSON', {}, value => {
 
-					if (response) {
-						this.data = response;
+					if (value?.response) {
+						this.data = value.response;
 						this.loadState = LOAD_STATES['Success'];
 
 						this.score = this.data.rate;

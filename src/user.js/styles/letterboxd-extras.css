@@ -3,7 +3,8 @@
 }
 
 .tomato-ratings .section-heading-extras,
-.meta-ratings .section-heading-extras{
+.meta-ratings .section-heading-extras,
+.filmweb-ratings .section-heading-extras{
 	height: 20px !important; 
 }
 
@@ -62,7 +63,7 @@
 	border-radius: 0px;
 }
 
-.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban, .logo-mdl {
+.icon-tomato, .icon-popcorn, .icon-meta, .text-meta, .logo-tomatoes, .icon-rym, .meta-must-see, .logo-mal, .logo-anilist, .logo-sens, .logo-filmaff, .bfi-ranking a .icon, .logo-simkl, .logo-filmarks, .logo-kinopoisk, .logo-douban, .logo-mdl, .logo-filmweb {
 	background-position-x: left !important;
 	background-position-y: top !important;
 	background-repeat: no-repeat !important;
@@ -132,7 +133,7 @@
 	margin-bottom: 10px !important;
 }
 
-.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover, .logo-douban:hover{
+.logo-tomatoes:hover, .logo-imdb:hover, .logo-meta-link:hover, .logo-rym.header:hover, .logo-mal:hover, .logo-sens:hover, .logo-mubi:hover, .logo-filmaff:hover, .logo-simkl:hover, .logo-allocine:hover, .logo-filmarks:hover, .logo-kinopoisk:hover, .logo-douban:hover, .logo-filmweb:hover{
 	opacity: 50%;
 }
 
@@ -186,6 +187,10 @@
 
 .stars-extra.stars-filmarks path{
 	fill: #ffcb62;
+}
+
+.stars-extra.stars-filmweb path{
+	fill: #FFC200;
 }
 
 .stars-extra.stars-background path{

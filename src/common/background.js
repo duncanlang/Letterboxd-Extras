@@ -320,6 +320,8 @@ async function InitDefaultSettings(recommended) {
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = true;
         if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = true;
         if (options['use-mojo'] == null) options['use-mojo'] = true;
+        if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
+        if (options['cast-extras-enabled'] == null) options['cast-extras-enabled'] = true;
     } else {
         if (options['imdb-enabled'] == null) options['imdb-enabled'] = false;
         if (options['tomato-enabled'] == null) options['tomato-enabled'] = false;
@@ -329,6 +331,8 @@ async function InitDefaultSettings(recommended) {
         if (options['cinema-enabled'] == null) options['cinema-enabled'] = false;
         if (options['mojo-link-enabled'] == null) options['mojo-link-enabled'] = false;
         if (options['use-mojo'] == null) options['use-mojo'] = false;
+        if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = false;
+        if (options['cast-extras-enabled'] == null) options['cast-extras-enabled'] = false;
     }
 
     // Default enabled settings
@@ -347,10 +351,8 @@ async function InitDefaultSettings(recommended) {
     if (options['ebert-link-enabled'] == null) options['ebert-link-enabled'] = true;
     if (options['tspdt-enabled'] == null) options['tspdt-enabled'] = true;
     if (options['bfi-enabled'] == null) options['bfi-enabled'] = true;
-    if (options['imdb-250-enabled'] == null) options['imdb-250-enabled'] = true;
     if (options['afi-enabled'] == null) options['afi-enabled'] = true;
     if (options['ebert-great-enabled'] == null) options['ebert-great-enabled'] = true;
-    if (options['cast-extras-enabled'] == null) options['cast-extras-enabled'] = true;
     if (options['cast-extras-seen-count'] == null) options['cast-extras-seen-count'] = true;
     if (options['cast-extras-photos'] == null) options['cast-extras-photos'] = true;
     if (options['ddd-enabled'] == null) options['ddd-enabled'] = true;

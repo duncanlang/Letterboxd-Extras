@@ -162,7 +162,7 @@ export class RottenTomatoesHelper extends Helper {
 		section.append(heading);
 		heading.append(this._createChartSectionLogoHolder({
 			href: this.linkURL,
-			style: 'height: 20px; width: 75px; background-image: url("https://www.rottentomatoes.com/assets/pizza-pie/images/rtlogo.9b892cff3fd.png");'
+			style: `height: 20px; width: 75px; background-image: url("${browser.runtime.getURL('/images/rt-logo.png')}");`
 		}));
 
 		const showDetails = this._createShowDetailsButton();
