@@ -23,10 +23,10 @@ export class MubiHelper extends Helper {
 
 		const options = this._getMubiHeaders();
 
-		this._apiRequestCallback('Mubi', mubiURL, 'JSON', options, response => {
+		this._apiRequestCallback('Mubi', mubiURL, 'JSON', options, value => {
 
-			if (response !== '') {
-				this.data = response;
+			if (value.response !== '') {
+				this.data = value.response;
 				this.loadState = LOAD_STATES['Success'];
 				this.populateRatingsSidebar();
 				this.addButtonLink(this.url, 'MUBI');
@@ -107,7 +107,7 @@ export class MubiHelper extends Helper {
 						this.populateRatingsSidebar();
 						this.addButtonLink(this.url, 'MUBI');
 					} else {
-						this.loadState === LOAD_STATES['Failure'];
+						this.loadState = LOAD_STATES['Failure'];
 					}
 				}
 			});

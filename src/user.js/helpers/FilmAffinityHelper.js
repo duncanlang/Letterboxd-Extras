@@ -23,9 +23,9 @@ export class FilmAffinityHelper extends Helper {
 		}
 
 		this.linkURL = `https://www.filmaffinity.com/${locale}/film${id}.html`;
-		this._apiRequestCallback('FilmAffinity', this.linkURL, 'HTML', {}, response => {
+		this._apiRequestCallback('FilmAffinity', this.linkURL, 'HTML', {}, value => {
 
-			const filmaffData = response;
+			const filmaffData = value.response;
 			if (filmaffData !== '') {
 				this.data = this.helpers.parseHTML(filmaffData);
 
@@ -78,7 +78,7 @@ export class FilmAffinityHelper extends Helper {
 		//* **************************************************************
 		// Add the section to the page
 		const section = this.helpers.createElement('section', {
-			class: 'extras-section ratings-histogram-chart filmaff-ratings ratings-extras'
+			class: 'section ratings-histogram-chart filmaff-ratings ratings-extras'
 		});
 
 		// Add the Header
@@ -89,7 +89,7 @@ export class FilmAffinityHelper extends Helper {
 
 		const logo = this.helpers.createElement('a', {
 			class: 'logo-filmaff',
-			style: `height: 20px; width: 75px; background-image: url("${browser.runtime.getURL('/images/filmaff-logo.png')}");`
+			style: 'height: 20px; width: 75px; background-image: url("https://www.filmaffinity.com/images/logo4.png");'
 		});
 		logo.setAttribute('href', this.linkURL);
 		heading.append(logo);
