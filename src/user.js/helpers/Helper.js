@@ -520,11 +520,11 @@ export class Helper {
 
 		if (isChart){
 			return this.helpers.createElement('section', {
-				class: `extras-section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras extras-chart`
+				class: `section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras extras-chart`
 			});
 		}else{
 			return this.helpers.createElement('section', {
-				class: `extras-section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras`
+				class: `section ratings-histogram-chart ${this.selectorPrefix}-ratings ratings-extras`
 			});
 		}
 
