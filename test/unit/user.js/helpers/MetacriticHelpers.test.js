@@ -201,7 +201,7 @@ describe('_collectScores', () => {
 		helper.url = filmURL;
 		helper.data = metacriticPage({mustSee: true});
 
-		helper._collectScores(null);
+		helper._collectScores();
 
 		expect(helper.critic).toMatchObject({rating: '85', num_ratings: 50, highest: 40});
 		expect(helper.user).toMatchObject({rating: '7.9', num_ratings: 40, highest: 30});
@@ -213,21 +213,12 @@ describe('_collectScores', () => {
 		helper.url = filmURL;
 		helper.data = metacriticPage({heroScores: false});
 
-		helper._collectScores(null);
+		helper._collectScores();
 
 		expect(helper.critic.parseError).toBe(true);
 		expect(helper.user.parseError).toBe(true);
 		expect(helpers.WriteConsoleLog).toHaveBeenCalledWith('ERROR', 'Metacritic: there was an error parsing the critic ratings.');
 		expect(helpers.WriteConsoleLog).toHaveBeenCalledWith('ERROR', 'Metacritic: there was an error parsing the user ratings.');
-	});
-
-	test('falls back to IMDb\'s Metascore when there is no Metacritic page', () => {
-		const {helper} = createHelper();
-
-		helper._collectScores('72');
-
-		expect(helper.critic.rating).toBe('72');
-		expect(helper.critic.num_ratings).toBe(-1);
 	});
 });
 
