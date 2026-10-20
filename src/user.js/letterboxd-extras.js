@@ -61,7 +61,7 @@ const letterboxd = {
 
 		// IMDb
 		imdbID: "",
-		imdbData: { state: 0, url: "", data: null, raw: null, state2: 0, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null, meta: null },
+		imdbData: { state: 0, url: "", data: null, raw: null, data2: null, rating: "", num_ratings: "", highest: 0, votes: new Array(10), percents: new Array(10), isMiniSeries: false, isTVEpisode: false, mpaa: null },
 
 		// TMDB
 		tmdbID: '',
@@ -986,7 +986,7 @@ const letterboxd = {
 									this.metaHelper.url = value.url;
 									this.wikiData.metaURL = value.url;
 
-									this.metaHelper.populateRatingsSidebar({ imdbMetascore: this.imdbData.meta, isTV: this.tmdbTV });
+									this.metaHelper.populateRatingsSidebar({ isTV: this.tmdbTV });
 									this.metaHelper.state = 2;
 								}
 							});
@@ -1058,18 +1058,6 @@ const letterboxd = {
 								this.initCinema(this.wikiData.Alt_Title);
 							}
 						}
-					}
-				}
-
-				// Add the IMDb backup info here
-				if (this.imdbData.state2 == 1 && this.wikiData.state == 2) {
-					this.imdbData.state2 = 2;
-
-					// Metascore
-					if (this.metaHelper.state == 3 && this.imdbData.meta != null && letterboxd.storage.get("metacritic-enabled") === true) {
-						this.metaHelper.state = 2;
-						this.metaHelper.url = this.wikiData.metaURL;
-						this.metaHelper.populateRatingsSidebar({ imdbMetascore: this.imdbData.meta, isTV: this.tmdbTV });
 					}
 				}
 

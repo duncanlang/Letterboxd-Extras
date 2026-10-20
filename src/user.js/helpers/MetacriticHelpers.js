@@ -20,19 +20,18 @@ export class MetacriticHelper extends Helper {
      * Adds the Metacritic section to the ratings sidebar: the Metascore, the user score, their
      * positive/mixed/negative breakdowns, and the Must-See badge.
      *
-     * Reads the Metacritic page parsed into `this.data`. Without one, shows only a Metascore taken from IMDb.
+     * Reads the Metacritic page parsed into `this.data`.
      *
      * @param {Object} [options]
-     * @param {string | null} [options.imdbMetascore] - IMDb's copy of the Metascore, used only when `this.data` is null
      * @param {boolean} [options.isTV] - Labels the badge Must-Watch instead of Must-See
      */
-    populateRatingsSidebar({ imdbMetascore = null, isTV = false } = {}) {
+    populateRatingsSidebar({ isTV = false } = {}) {
 
         if (!this._canPopulateRatingsSidebar()) {
             return;
         }
 
-        this._collectScores(imdbMetascore);
+        this._collectScores();
 
         // Return if no scores what so ever
         if (this.critic.num_ratings == 0 && this.user.num_ratings == 0) return;
@@ -71,20 +70,9 @@ export class MetacriticHelper extends Helper {
 
     /**
      * Reads both scores, their review counts and the Must-See badge from the parsed Metacritic page
-     * into `critic`, `user` and `mustSee`. Without a page, uses IMDb's copy of the Metascore.
-     *
-     * @param {string | null} imdbMetascore
+     * into `critic`, `user` and `mustSee`.
      */
-    _collectScores(imdbMetascore) {
-
-        if (this.data == null) {
-            // When metacritic score can only be found from imdb
-            if (imdbMetascore != null) {
-                this.critic.rating = imdbMetascore;
-            }
-            this.critic.num_ratings = -1; // This prevents the 'return' in populateRatingsSidebar, and also the tooltip from being added
-            return;
-        }
+    _collectScores() {
 
         // Scores
         const heroScores = this.data.querySelector('div.hero-scores');
