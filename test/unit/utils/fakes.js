@@ -2,11 +2,11 @@ import {vi} from 'vitest';
 
 // Shared by the unit tests in test/unit.
 // Stand-ins for the three things letterboxd-extras.js passes to every Helper:
-// `new SomeHelper(storage, helpers, pageState)`. letterboxd-extras.js itself can't be imported in a
-// test, because it starts observing the page and reading browser storage as soon as it loads.
+// Will be replaced later on when this functionality gets encapsulated outside
+// the object state of the Letterboxd Object in letterboxd-extras.js
 
 /**
- * A synchronous stand-in for `letterboxd.storage`.
+ * A stand-in for `letterboxd.storage`.
  *
  * @param {Record<string, any>} [values] - Options as they would be saved, e.g. `{'metacritic-enabled': true}`
  */
@@ -22,9 +22,8 @@ export function createStorage(values = {}) {
 }
 
 /**
- * A stand-in for `letterboxd.helpers`, the shared helpers. Only what helpers call is provided.
- * Functions that touch globals defined outside the bundle (`toggleDetails`, `ShowTwipsy` in
- * common/additional.js) are replaced with spies so tests can assert they would have run.
+ * A stand-in for `letterboxd.helpers`, the shared helpers.
+ * Functions that touch globals defined outside the bundle are replaced with spies.
  */
 export function createHelpers() {
 	const helpers = {
