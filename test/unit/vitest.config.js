@@ -1,11 +1,9 @@
 import {fileURLToPath} from 'node:url';
 import {defineConfig} from 'vitest/config';
 
-// Tests run in a happy-dom document that believes it is on letterboxd.com, so `location` and relative
-// URLs behave as they would on the site (the same approach as refined-github's vite.config.ts).
+// Tests run in a happy-dom document that believes it is on letterboxd.com.
 export default defineConfig({
 	test: {
-		// This folder, wherever vitest is started from (`npm run test-unit` runs it from test/).
 		root: fileURLToPath(new URL('.', import.meta.url)),
 		environment: 'happy-dom',
 		environmentOptions: {
