@@ -16,6 +16,175 @@ export class MetacriticHelper extends Helper {
         this.user = { rating: "N/A", num_ratings: 0, positive: 0, mixed: 0, negative: 0, highest: 0, parseError: false };
 	}
 
+    /**
+     * Adds the Metacritic section to the ratings sidebar: the Metascore, the user score, their
+     * positive/mixed/negative breakdowns, and the Must-See badge.
+     *
+     * Reads the Metacritic page parsed into `this.data`.
+     *
+     * @param {Object} [options]
+     * @param {boolean} [options.isTV] - Labels the badge Must-Watch instead of Must-See
+     */
+    populateRatingsSidebar({ isTV = false } = {}) {
+
+        if (!this._canPopulateRatingsSidebar()) {
+            return;
+        }
+
+        this._collectScores();
+
+        // Return if no scores what so ever
+        if (this.critic.num_ratings == 0 && this.user.num_ratings == 0) return;
+
+        const created = this._createSection(isTV);
+        if (created === null) {
+            this.ratingsAdded = true; // so it doesn't keep calling
+            return;
+        }
+        const { section, showDetails } = created;
+
+        // APPEND to the sidebar
+        this.appendSidebarRating(section);
+
+        // Move the details text
+        if (this.pageState.isMobile == false) {
+            const criticText = document.querySelector('.meta-details-critic.mobile-details-text');
+            const userText = document.querySelector('.meta-details-user.mobile-details-text');
+
+            if (criticText != null)
+                section.append(criticText);
+            if (userText != null)
+                section.append(userText);
+        }
+
+        // Open the details if that is the user's default. There is no button without a Metacritic page.
+        const defaultView = this.storage.get('meta-default-view');
+        if (showDetails !== null && (defaultView === 'show' || (defaultView === 'remember' && this.storage.get('meta-score-details') === 'show'))) {
+            showDetails.click();
+        }
+
+        this.helpers.addTooltipEvents(section);
+
+        this.ratingsAdded = true;
+    }
+
+    /**
+     * Reads both scores, their review counts and the Must-See badge from the parsed Metacritic page
+     * into `critic`, `user` and `mustSee`.
+     */
+    _collectScores() {
+
+        // Scores
+        const heroScores = this.data.querySelector('div.hero-scores');
+        if (heroScores != null) {
+            this.parseRatingScore(this.critic, heroScores.querySelector('[data-testid="product-score"] div[title*="Metascore "] span'));
+            this.parseRatingScore(this.user, heroScores.querySelector('[data-testid="product-score"] div[title*="User score "] span'));
+        } else {
+            this.critic.parseError = true;
+            this.user.parseError = true;
+        }
+
+        // Grab the 'must see'
+        if (this.data.querySelector('.product-hero__scores img.c-global-image__img')) {
+            this.mustSee = true;
+        }
+
+        if (this.critic.parseError) {
+            this.helpers.WriteConsoleLog('ERROR', 'Metacritic: there was an error parsing the critic ratings.');
+        }
+        if (this.user.parseError) {
+            this.helpers.WriteConsoleLog('ERROR', 'Metacritic: there was an error parsing the user ratings.');
+        }
+
+        // Grab the rating counts
+        this.parseRatingCounts(this.critic, this.data.querySelector('div[data-testid="critic-reviews"]'));
+        this.parseRatingCounts(this.user, this.data.querySelector('div[data-testid="user-reviews"]'));
+    }
+
+    /**
+     * Builds the sidebar section from the collected scores.
+     *
+     * @param {boolean} isTV - Labels the badge Must-Watch instead of Must-See
+     * @returns {{ section: HTMLElement, showDetails: HTMLElement | null } | null} null when the user
+     *   has turned off both the critic and the user score
+     */
+    _createSection(isTV) {
+
+        const { isMobile } = this.pageState;
+
+        // Add the section to the page
+        const section = this.helpers.createElement('section', {
+            class: 'extras-section ratings-histogram-chart meta-ratings ratings-extras'
+        });
+
+        // Add the Header
+        const heading = this.helpers.createElement('h2', {
+            class: 'section-heading section-heading-extras'
+        });
+        section.append(heading);
+
+        const logoHolder = this.helpers.createElement('a', {
+            class: this.data != null ? 'logo-meta-link' : 'logo-meta',
+            style: 'width: 100%;'
+        });
+        if (this.url != null && this.url != '') {
+            logoHolder.setAttribute('href', this.url);
+        }
+        heading.append(logoHolder);
+
+        logoHolder.append(this.helpers.createElement('span', {
+            class: 'icon-meta',
+            style: 'height: 20px; width: 20px; background-image: url("https://www.metacritic.com/images/icons/metacritic-icon.svg");'
+        }));
+
+        logoHolder.append(this.helpers.createElement('span', {
+            class: 'text-meta',
+            style: 'height: 20px; width: 100px; background-image: url("https://www.metacritic.com/images/icons/metacritic-wordmark.svg");'
+        }));
+
+        // Add the Show Details button
+        let showDetails = null;
+        if (this.data != null) {
+            showDetails = this.helpers.createShowDetailsButton('meta', 'meta-score-details');
+            section.append(showDetails);
+        }
+
+        const criticURL = `${this.url}critic-reviews`;
+        const addTooltip = (isMobile || this.storage.get('tooltip-show-details') === true);
+
+        // Critic score
+        let criticAdded = false;
+        if (this.storage.get('metacritic-critic-enabled') === true) {
+            section.append(this.createMetaScore('critic', 'Critic', criticURL, this.critic, this.mustSee, isMobile, addTooltip));
+            criticAdded = true;
+        }
+
+        // User score
+        let userAdded = false;
+        if (this.storage.get('metacritic-users-enabled') === true && this.data != null) {
+            const userURL = criticURL.replace('/critic-reviews', '/user-reviews');
+            section.append(this.createMetaScore('user', 'User', userURL, this.user, this.mustSee, isMobile, addTooltip));
+            userAdded = true;
+        }
+
+        // Add Must see if applicable
+        if (this.storage.get('metacritic-mustsee-enabled') === true && this.mustSee == true) {
+            section.append(this.helpers.createElement('span', {
+                class: isTV
+                    ? 'meta-must-see meta-must-watch tooltip tooltip-extra display-rating -highlight'
+                    : 'meta-must-see tooltip tooltip-extra display-rating -highlight',
+                style: 'margin-top: 5px;',
+                ['data-original-title']: isTV ? 'Metacritic Must-Watch' : 'Metacritic Must-See'
+            }));
+        }
+
+        if (!criticAdded && !userAdded) {
+            return null;
+        }
+
+        return { section, showDetails };
+    }
+
     parseRatingScore(data, element){
 
         if (element != null) {
