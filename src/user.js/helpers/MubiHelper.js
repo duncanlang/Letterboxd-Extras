@@ -1,5 +1,4 @@
 import { LOAD_STATES } from '../constants';
-import { MUBI_LOGO_SVG, MUBI_STAR_SVG } from '../SVG';
 import { Helper } from './Helper';
 
 export class MubiHelper extends Helper {

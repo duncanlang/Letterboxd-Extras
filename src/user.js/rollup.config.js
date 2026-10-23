@@ -4,6 +4,7 @@ import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import css from 'rollup-plugin-import-css';
+import typescript from '@rollup/plugin-typescript';
 
 // Get the directory of this config file
 const __filename = fileURLToPath( import.meta.url );
@@ -125,6 +126,7 @@ const builds = [
 	{
 		input: 'user.js/letterboxd-extras.js',
 		plugins: [
+			typescript( { include: [ '**/*.ts' ] } ),
 			css( {
 				transform: code => code.replace( /\r\n/g, '\n' )
 			} ),
