@@ -4,8 +4,8 @@ ff android debug.txt
 /src/dist
 *.zip
 /src/user.js/build
-/testing/test-results
-/testing/playwright-report
+/test/**/test-results
+/test/**/playwright-report
 **/node_modules
 package-lock.json
 /scripts/*.json

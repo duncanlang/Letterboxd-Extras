@@ -1,17 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOAD_STATES } from '../constants';
+import { PageState, StorageObject } from '../types/types';
 import { Helper } from './Helper';
 
 export class KinopoiskHelper extends Helper {
 
-	constructor(storage, helpers, pageState) {
+	constructor(storage: StorageObject, helpers: any, pageState: PageState) {
 
 		super(storage, helpers, pageState, 'kinopoisk');
 
-		this.id = null;
-
 	}
 
-	_loadData(kinopoiskID) {
+	_loadData(kinopoiskID: string | number) {
 
 		const options = this._getHeaders();
 		const apiURL = `https://kinopoiskapiunofficial.tech/api/v2.2/films/${kinopoiskID}`;
@@ -22,12 +22,30 @@ export class KinopoiskHelper extends Helper {
 			this.loadState = LOAD_STATES['Success'];
 
 			if (this.data.webUrl !== null) {
-				this.url = this.data.webUrl;
-				this.addButtonLink(this.url, 'KINOPOISK');
+				this.addButtonLink(this.data.webUrl, 'KINOPOISK');
+				this.linkURL = this.data.webUrl;
 			}
 
 			this.populateRatingsSidebar();
-		});
+		}, value => this._handleRequestFailure(value));
+
+	}
+
+	/**
+	 * Kinopoisk returns a 402 once the API key has used up its request quota. Without a key of the
+	 * user's own, background.js sends the extension's shared key, which every such user draws on.
+	 */
+	_handleRequestFailure(value: any) {
+
+		if (value?.status !== 402) {
+			return;
+		}
+
+		const message = this.storage.get('kinopoisk-apikey')
+			? 'Kinopoisk returned a 402 response: your API key has reached its request limit. Try again later, or enter a different API key into the Letterboxd Extras settings.'
+			: 'Kinopoisk returned a 402 response: the shared API key has reached its request limit. Please enter your own free API key into the Letterboxd Extras settings.';
+
+		this.helpers.ShowErrorMessage(message, 'kinopoisk-key');
 
 	}
 
@@ -56,7 +74,7 @@ export class KinopoiskHelper extends Helper {
 
 		const section = this._createChartSection(
 			{
-				href: this.url,
+				href: this.linkURL,
 				style: `position: absolute; background-image: url("${browser.runtime.getURL('images/kinopoisk-logo-rus.svg')}")`
 			},
 			{
@@ -72,7 +90,7 @@ export class KinopoiskHelper extends Helper {
 		});
 		section.append(container);
 
-		container.append(this._generateScoreSpan({ href: `${this.url}reviews` }));
+		container.append(this._generateScoreSpan({ href: `${this.linkURL}reviews` }));
 
 		// Add the tooltip as text for mobile
 		this._createRatingDetailsText(section, this.tooltip);

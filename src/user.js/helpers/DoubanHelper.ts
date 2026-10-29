@@ -1,10 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOAD_STATES } from '../constants';
-import { DOUBAN_LOGO_SVG } from '../SVG';
+import { PageState, StorageObject } from '../types/types';
 import { Helper } from './Helper';
+
+/** The parts of Douban's /v2/movie/subject/{id} response this helper reads. */
+interface DoubanSubject {
+	rating?: {
+		/** Out of 10; 0 when the film has no rating yet. */
+		average: number | null
+	}
+	ratings_count?: number | null
+	/** The film's page, e.g. 'https://movie.douban.com/movie/1292052' */
+	alt?: string
+}
 
 export class DoubanHelper extends Helper {
 
-	constructor(storage, helpers, pageState) {
+	declare data: DoubanSubject | null;
+
+	/** The film's Douban subject ID. */
+	id: string | null;
+
+	constructor(storage: StorageObject, helpers: any, pageState: PageState) {
 
 		super(storage, helpers, pageState, 'douban');
 
@@ -12,7 +29,7 @@ export class DoubanHelper extends Helper {
 
 	}
 
-	_loadData(id) {
+	_loadData(id: string) {
 
 		this.id = id;
 		this.linkURL = `https://movie.douban.com/subject/${id}/`;
@@ -29,17 +46,18 @@ export class DoubanHelper extends Helper {
 
 		this._apiRequestCallback('Douban', url, 'JSON', options, value => {
 
-			this.data = value.response;
+			const data: DoubanSubject = value.response;
+			this.data = data;
 
-			if (!this.data.rating) {
+			if (!data.rating) {
 				this.loadState = LOAD_STATES['Failure'];
 				return;
 			}
 
 			this.loadState = LOAD_STATES['Success'];
 
-			if (this.data.alt) {
-				this.linkURL = `${this.data.alt.replace('/movie/', '/subject/')}/`;
+			if (data.alt) {
+				this.linkURL = `${data.alt.replace('/movie/', '/subject/')}/`;
 			}
 
 			this.addButtonLink(this.linkURL, 'DOUBAN');
@@ -51,15 +69,16 @@ export class DoubanHelper extends Helper {
 
 	populateRatingsSidebar() {
 
-		if (!this._canPopulateRatingsSidebar()) {
+		const { data } = this;
+		if (data === null || !this._canPopulateRatingsSidebar()) {
 			return;
 		}
 
-		if (this.data.rating.average != null && this.data.rating.average > 0) {
-			this.rating = this.data.rating.average;
+		if (data.rating?.average != null && data.rating.average > 0) {
+			this.rating = data.rating.average;
 		}
-		if (this.data.ratings_count != null) {
-			this.num_ratings = this.data.ratings_count;
+		if (data.ratings_count != null) {
+			this.num_ratings = data.ratings_count;
 		}
 
 		if (this.rating == null && this.num_ratings === 0) return;
@@ -102,7 +121,7 @@ export class DoubanHelper extends Helper {
 
 	}
 
-	_getHeaders(apiKey) {
+	_getHeaders(apiKey: string) {
 
 		return {
 			method: 'POST',
