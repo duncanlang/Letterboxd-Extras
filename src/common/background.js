@@ -209,6 +209,9 @@ async function InitDefaultSettings() {
     if (options['hide-reviews-enabled'] == null) options['hide-reviews-enabled'] = 'false';
     if (options['criterion-spine-default-view'] == null) options['criterion-spine-default-view'] = 'Row';
     if (options['wiki-prefer-en'] == null) options['wiki-prefer-en'] = false;
+    
+    if (options['allocine-style'] == null) options['allocine-style'] = "histogram";
+    if (options['sens-style'] == null) options['sens-style'] = "ratings";
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';

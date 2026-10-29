@@ -12,8 +12,7 @@
 }
 
 .tomato-ratings .show-details,
-.meta-ratings .show-details,
-.sens-ratings .show-details{
+.meta-ratings .show-details{
 	top: 10px !important;
 }
 
@@ -190,6 +189,13 @@
 
 .stars-extra.stars-background path{
 	fill: #667788;
+}
+
+.rating-histogram-extras:not(.sens-green) .stars-extra.stars-sens path{
+	fill: #fff;
+}
+.rating-histogram-extras.sens-green .stars-extra.stars-sens path{
+	fill: rgb(47, 196, 111);
 }
 
 .dynamic-star-holder{
