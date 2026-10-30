@@ -570,7 +570,7 @@ const letterboxd = {
 			}
 
 			// Cast Extras
-			if (letterboxd.storage.get('cast-extras-enabled') === true && !this.castHelper.rendered) {
+			if (letterboxd.storage.get('cast-extras-enabled') === true && !this.castHelper.rendered && letterboxd.storage.localInitilized) {
 				this.castHelper.render(this.imdbData.data, this.loggedIn);
 			}
 
