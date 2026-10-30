@@ -388,6 +388,9 @@ async function InitDefaultSettings(recommended) {
     if (options['wiki-prefer-en'] == null) options['wiki-prefer-en'] = false;
     if (options['filmweb-enabled'] == null) options['filmweb-enabled'] = false;
     if (options['ddg-search-enabled'] == null) options['ddg-search-enabled'] = false;
+    
+    if (options['allocine-style'] == null) options['allocine-style'] = "histogram";
+    if (options['sens-style'] == null) options['sens-style'] = "ratings";
 
     if (options['hide-ratings-enabled'] === 'false' || options['hide-ratings-enabled'] === false) {
         options['hide-ratings-enabled'] = 'unchanged';

@@ -14,6 +14,7 @@ import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
 import { RottenTomatoesHelper } from './helpers/RottenTomatoesHelper';
+import { SensCritiqueHelper } from './helpers/SensCritiqueHelper';
 import { CastHelper } from './helpers/CastHelper';
 import { PlexHelper } from './helpers/PlexHelper';
 import { FilmwebHelper } from './helpers/FilmwebHelper';
@@ -130,7 +131,6 @@ const letterboxd = {
 		anilistHelper: null,
 
 		// SensCritique
-		sensCritique: { state: 0, id: null, url: null, data: null },
 		sensHelper: null,
 
 		// Rankings (BFI, TSPDT, AFI, IMDb)
@@ -1039,31 +1039,11 @@ const letterboxd = {
 				}
 
 				// Add Senscritique
-				if (letterboxd.storage.get('senscritique-enabled') === true && this.wikiData.state == 2 && this.sensCritique.state < 1) {
-					if (this.wikiData.SensCritique_ID != null && this.wikiData.SensCritique_ID != "") {
-						// ID found in WikiData
-						this.sensCritique.state = 1;
-						letterboxd.helpers.WriteConsoleLog('DEBUG', `SensCritique: ID found in WikiData.`);
-
-						var url = "https://apollo.senscritique.com/";
-						var options = letterboxd.helpers.getSensIDQuery(this.wikiData.SensCritique_ID);
-
-						browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-							if (letterboxd.helpers.ValidateResponse("SensCritique API", value) == false){
-								return;
-							}
-
-							this.sensCritique.state = 2;
-							var sens = value.response;
-							if (sens.data != null) {
-								this.sensCritique.data = sens.data;
-								this.addSensCritique();
-							}
-						});
-					} else if (this.letterboxdTitle != null) {
-						// No ID from Wikidata, search using the API instead
-						letterboxd.helpers.WriteConsoleLog('DEBUG', `SensCritique: ID not found in WikiData, attempting search instead.`);
-						this.searchSensCritique();
+				if (letterboxd.storage.get('senscritique-enabled') === true && this.wikiData.state == 2 && this.sensHelper.loadState < 1) {
+					if (this.wikiData.SensCritique_ID) {
+						this.sensHelper.getData(this.wikiData.SensCritique_ID);
+					} else {
+						this.sensHelper.searchData(this.letterboxdTitle, this.letterboxdNativeTitle, this.letterboxdYear, this.letterboxdDirectors, this.tmdbTV);
 					}
 				}
 
@@ -1898,213 +1878,6 @@ const letterboxd = {
 				//************************************************************
 				this.appendRating(section, 'cinemascore');
 			}
-		},
-
-		searchSensCritique() {
-			this.sensCritique.state = 1;
-
-			let title = this.letterboxdTitle;
-			let type = "movie";
-			if (this.letterboxdNativeTitle != null && this.letterboxdNativeTitle.match(/[A-Za-z0-9]/i)) title = this.letterboxdNativeTitle;
-			if (this.tmdbTV == true) type = "tvShow"
-
-			let url = "https://apollo.senscritique.com/";
-			let options = letterboxd.helpers.getSensSearchQuery(type, title);
-
-			browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url, options: options }, (value) => {
-				if (letterboxd.helpers.ValidateResponse("SensCritique search", value) == false){
-					return;
-				}
-
-				this.sensCritique.state = 2;
-				let sens = value.response;
-				if (sens.data != null && sens.data.results != null) {
-					sens = sens.data.results.hits.items;
-					let results = [];
-
-					for (let i = 0; i < sens.length; i++) {
-						let result = { score: 0, data: sens[i] };
-
-						if (result.data.product != null){
-
-							// Get directors/creators/producers
-							if (this.letterboxdDirectors.length > 0){
-
-								let directors = [];
-								if (result.data.product.directors != null)
-									directors = directors.concat(result.data.product.directors);
-								if (result.data.product.creators != null)
-									directors = directors.concat(result.data.product.creators);
-								if (result.data.product.producers != null)
-									directors = directors.concat(result.data.product.producers);
-									
-								// Match based on directors/producers/creators
-								for (let k = 0; k < directors.length; k++) {
-									// Director name to lowercase and removed diacritics
-									let director = directors[k].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-									if (this.letterboxdDirectors.includes(director)) {
-										result.score = 100 - Math.abs((parseInt(this.letterboxdYear)) - parseInt(result.data.fields.year))
-										break;
-									}
-								}
-							}
-
-							// Match based on exact name and year match
-							if (result.score == 0 && this.letterboxdTitle == result.data.product.title && this.letterboxdYear == result.data.fields.year) {
-								result.score = 90;
-							}
-
-							// Only consider it a match if greater or equal to 90 score
-							if (result.score >= 90) {
-								results.push(result);
-							}
-						}
-					}
-
-					if (results.length > 0) {
-						results.sort((a, b) => { return b.score - a.score });
-						this.sensCritique.data = results[0].data;
-						this.addSensCritique();
-					}
-				}
-			});
-		},
-
-		addSensCritique() {
-			if (document.querySelector('.sens-ratings')) return;
-
-			if (!document.querySelector('.sidebar')) return;
-
-			if (this.sensCritique.data == null) return;
-
-			var url = "";
-			if (this.sensCritique.data.fields != null && this.sensCritique.data.fields.url != null) {
-				url = this.sensCritique.data.fields.url;
-			} else {
-				url = "https://www.senscritique.com" + this.sensCritique.data.product.url
-			}
-
-			// Lets add it to the page
-			//***************************************************************
-			// Add the section to the page
-
-			const section = letterboxd.helpers.createChartSection(
-				'sens',
-				{
-					href: url,
-					style: 'height: 25px; width: 110px; position: absolute; background-image: url("' + browser.runtime.getURL("images/senscritique-logo.svg") + '");'
-				},
-				''
-			);
-
-			var showDetails = null;
-			if (this.pageState.isMobile) {
-				// Add the Show Details button
-				showDetails = letterboxd.helpers.createShowDetailsButton("sens", "sens-score-details");
-				section.append(showDetails);
-			}
-
-			// Score
-			//***************************************************************
-			var rating = this.sensCritique.data.product.rating;
-			var ratingCount = this.sensCritique.data.product.stats.ratingCount;
-			var recommendCount = this.sensCritique.data.product.stats.recommendCount;
-
-			this.addLink(url, 'CRITIQUE', 'sens');
-
-			// Do not display if there is no score or ratings
-			if (rating == null && ratingCount == 0) return;
-
-			const container = letterboxd.helpers.createElement('span', {}, {
-				['display']: 'block',
-				['margin-bottom']: '10px'
-			});
-
-			// The span that holds the score
-			const span = letterboxd.helpers.createElement('div', {}, {
-				['display']: 'inline-block',
-				['width']: 'auto'
-			});
-
-			// The element that is the score itself
-			const ratingHolder = letterboxd.helpers.createElement('a', {
-				class: 'tooltip tooltip-extra sens-score'
-			});
-
-			const ratingIcon = letterboxd.helpers.createElement('span', {
-				class: 'sens-score-icon'
-			});
-			ratingHolder.append(ratingIcon);
-
-			const ratingText = letterboxd.helpers.createElement('span', {
-				class: 'display-rating -highlight'
-			});
-			ratingHolder.append(ratingText);
-
-			var suffix = "/10";
-
-			// Add the hoverover text and href
-			var tooltip = 'No score available';
-			if (ratingCount > 0 && rating == null) {
-				tooltip = ratingCount.toLocaleString() + ' rating';
-				if (ratingCount > 1) tooltip += "s";
-				rating = "N/A";
-
-			} else if (ratingCount > 0) {
-				if (letterboxd.storage.get('convert-ratings') === "5"){
-					suffix = "/5";
-					rating = Number(rating / 2).toFixed(1);
-				}
-				tooltip = "Weighted average of " + rating + suffix + " based on " + ratingCount.toLocaleString() + ' ratings';
-
-			} else {
-				rating = "N/A";
-			}
-			ratingHolder.setAttribute('data-original-title', tooltip);
-			ratingHolder.setAttribute('href', url + "/critiques");
-
-			ratingText.innerText = rating;
-			
-			if (rating >= 6.5){
-				ratingHolder.className += ' green';
-				ratingIcon.style['background-image'] = 'url("' + browser.runtime.getURL("images/senscritique-icon-green.svg") + '")';
-			}else{
-				ratingIcon.style['background-image'] = 'url("' + browser.runtime.getURL("images/senscritique-icon-white.svg") + '")';
-			}
-
-			span.append(ratingHolder);
-			container.append(span);
-
-			// Number of ratings and likes text
-			//***************************************************************
-			const textSpan = letterboxd.helpers.createElement('div', {}, {
-				['display']: 'inline-block',
-				['width']: 'auto',
-				['vertical-align']: 'top'
-			});
-
-			if (letterboxd.storage.get('sens-favorites-enabled') === true) {
-				// Recommend Count
-				const text2 = letterboxd.helpers.createElement('p', {
-					class: 'display-rating sens-text'
-				});
-				text2.innerText = "♥ " + recommendCount.toLocaleString();
-				textSpan.append(text2);
-			}
-
-			container.append(textSpan);
-			section.append(container);
-
-			// Add the tooltip as text for mobile
-			letterboxd.helpers.createDetailsText('sens', section, tooltip, this.pageState.isMobile);
-
-			// APPEND to the sidebar
-			//************************************************************
-			this.appendRating(section, 'sens-ratings');
-
-			// Add Hover events
-			//************************************************************
-			letterboxd.helpers.addTooltipEvents(section);
 		},
 
 		appendRating(rating, className) {
@@ -3924,103 +3697,6 @@ const letterboxd = {
 			return rating;
 		},
 
-		getSensSearchQuery(type, title) {
-			var query = `
-				query Results($query: String, $filters: [SKFiltersSet], $page: SKPageInput, $sortBy: String) {
-					results(query: $query, filters: $filters) {
-						hits(page: $page, sortBy: $sortBy) {
-							sortedBy
-							page {
-								from
-								pageNumber
-								total
-								totalPages
-								__typename
-							}
-							items {
-								... on ResultHit {
-								id
-								product {
-									title
-									rating
-									dateRelease
-									dateReleaseOriginal
-									dateReleaseUS
-									stats {
-										ratingCount
-										recommendCount
-									}
-									directors {
-										name
-										person_id
-										url
-									}
-									url
-								}
-								fields {
-									title
-									url
-									year
-								}
-								}
-							}
-						}
-					}
-				}
-				`;
-			var options = {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/json',
-					accept: 'application/json'
-				},
-				body: JSON.stringify({
-					query,
-					variables: {
-						filters: [{ "identifier": "universe", "value": type }],
-						pages: { from: 0, size: 16 },
-						query: title
-					}
-				})
-			};
-
-			return options;
-		},
-
-		getSensIDQuery(id) {
-			var query = `
-					query ($id: Int!) {
-						product(id: $id) {
-							title
-							rating
-							dateRelease
-							dateReleaseOriginal
-							dateReleaseUS
-							stats {
-								ratingCount
-								recommendCount
-							}
-							url
-						}
-					}
-				`;
-			var options = {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/json',
-					accept: 'application/json'
-				},
-				body: JSON.stringify({
-					query,
-					variables: {
-						id: parseInt(id)
-					}
-				})
-			};
-
-			return options;
-		},
-
 		getImdbQuery(id){
 			// Cast photos and character names are only needed by Cast Extras
 			var credits = '';
@@ -4540,6 +4216,7 @@ const moduleConfigs = [
 	{ class: PlexHelper, target: letterboxd.overview, property: 'plexHelper', args: [] },
 	{ class: FilmwebHelper, target: letterboxd.overview, property: 'filmwebHelper', args: [] },
 	{ class: RottenTomatoesHelper, target: letterboxd.overview, property: 'tomatoHelper', args: [] },
+	{ class: SensCritiqueHelper, target: letterboxd.overview, property: 'sensHelper', args: [] },
 	{ class: CastHelper, target: letterboxd.overview, property: 'castHelper', args: [] },
 ];
 
