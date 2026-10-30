@@ -27,7 +27,8 @@ export type SourceIdentifier =
 	'bluray' |
 	'ebert' |
 	'filmweb' |
-	'plex'
+	'plex' |
+	'trakt'
 
 enum MoveRatingState {
 	UNMOVED,

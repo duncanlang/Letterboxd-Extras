@@ -173,6 +173,9 @@ const letterboxd = {
 
 		// RogerEbert.com
 		ebert: { id: null, url: null },
+		
+		// Trakt.tv
+		trakt: { id: null, url: null },
 
 		// Plex Helper
 		plexHelper: null,
@@ -881,6 +884,13 @@ const letterboxd = {
 									if (this.wiki && this.wiki.Filmweb_ID && letterboxd.storage.get('filmweb-enabled') === true && this.filmwebHelper.loadState == LOAD_STATES['Uninitialized']){
 										this.filmwebHelper.getData(this.wiki.Filmweb_ID.value);
 									}
+									
+									// Get Trakt ID
+									if (this.wiki && this.wiki.Trakt_ID && letterboxd.storage.get('trakt-link-enabled') === true){
+										this.trakt.id = this.wiki.Trakt_ID.value;
+										this.trakt.url = `https://trakt.tv/${this.trakt.id}`;
+										this.addLink(this.trakt.url, 'Trakt', 'trakt');
+									}
 
 									// Check for State of Transmission
 									this.wikiData.StateOfTransmission = letterboxd.helpers.parseWikiDataResult(this.wiki, "StateOfTransmission", this.wikiData.StateOfTransmission);
@@ -1360,7 +1370,8 @@ const letterboxd = {
 				'.ddd-button',
 				'.bluray-button',
 				'.ebert-button',
-				'.plex-button'
+				'.plex-button',
+				'.trakt-button'
 			];
 
 			let index = order.indexOf('.' + className);
@@ -3954,7 +3965,7 @@ const letterboxd = {
 						"  ?item wdt:P6127 ?letterboxdID.\n" +
 						"}";
 			} else {
-				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission ?Plex_ID ?Filmweb_ID WHERE {\n" +
+				sparqlQuery = "SELECT DISTINCT ?item ?itemLabel ?Rotten_Tomatoes_ID ?Metacritic_ID ?Anilist_ID ?MAL_ID ?Mubi_ID ?FilmAffinity_ID ?SensCritique_ID ?Allocine_Film_ID ?Allocine_TV_ID ?Douban_ID ?Kinopoisk_ID ?DDD_ID ?Filmarks_ID ?MDL_ID ?Criterion_ID ?Criterion_Spine_ID ?Bluray_ID ?Ebert_ID ?Country_Of_Origin ?MPAA_film_ratingLabel ?BBFC_ratingLabel ?FSK_ratingLabel ?CNC_rating ?EIRIN_ratingLabel ?KMRB_ratingLabel ?ACB_ratingLabel ?ClassInd_ratingLabel ?Budget ?Budget_UnitLabel ?Budget_TogetherWith ?Box_OfficeUS ?Box_OfficeUS_UnitLabel ?Box_OfficeWW ?Box_OfficeWW_UnitLabel ?US_Title ?TV_Start ?TV_Start_Precision ?TV_End ?TV_End_Precision ?Wikipedia ?StateOfTransmission ?Plex_ID ?Filmweb_ID ?Trakt_ID WHERE {\n" +
 					"  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n" +
 					"\n" +
 					sparqlQuery +
@@ -3989,6 +4000,7 @@ const letterboxd = {
 					"  OPTIONAL { ?item wdt:P12020 ?StateOfTransmission. }\n" +
         			"  OPTIONAL { ?item wdt:P11460 ?Plex_ID. }\n" +
         			"  OPTIONAL { ?item wdt:P5032 ?Filmweb_ID. }\n" +
+        			"  OPTIONAL { ?item wdt:P8013 ?Trakt_ID. }\n" +
 					"  OPTIONAL {\n" +
 					"    ?item p:P2130 ?Budget_Entry.\n" +
 					"    ?Budget_Entry ps:P2130 ?Budget.\n" +

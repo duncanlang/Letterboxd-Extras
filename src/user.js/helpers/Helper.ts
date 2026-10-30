@@ -27,7 +27,8 @@ const buttonLinkOrder: ButtonSelector[] = [
 	'.ddd-button',
 	'.bluray-button',
 	'.ebert-button',
-	'.plex-button'
+	'.plex-button',
+	'.trakt-button'
 ];
 
 // Most class names are built from a helper's selectorPrefix. A few sources predate that convention,
