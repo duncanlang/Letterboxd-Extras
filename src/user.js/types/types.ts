@@ -25,7 +25,9 @@ export type SourceIdentifier =
 	'wiki' |
 	'ddd' |
 	'bluray' |
-	'ebert'
+	'ebert' |
+	'filmweb' |
+	'plex'
 
 enum MoveRatingState {
 	UNMOVED,

@@ -1353,12 +1353,14 @@ const letterboxd = {
 				'.anilist-button',
 				'.anidb-button',
 				'.filmarks-button',
+				'.filmweb-button',
 				'.criterion-button',
 				'.mojo-button',
 				'.wiki-button',
 				'.ddd-button',
 				'.bluray-button',
-				'.ebert-button'
+				'.ebert-button',
+				'.plex-button'
 			];
 
 			let index = order.indexOf('.' + className);
