@@ -439,6 +439,9 @@ document.addEventListener('click', event => {
         case "reset":
             resetSettings();
             break;
+        case "reset-recommended":
+            resetRecommendedSettings();
+            break;
 
         // Custom lists import/export
         case "exportLists":
@@ -616,6 +619,18 @@ async function resetSettings(){
     }
 
     browser.runtime.sendMessage({ name: "RESETSETTINGS" }, (value) => {
+        load();
+        window.alert("Your settings have been reset to default.")
+    });
+}
+
+async function resetRecommendedSettings(){
+    // Confirmation Popup
+    if (!window.confirm("Your settings will be reset.\n\nReset all settings to the recommended settings?")) {
+        return;
+    }
+
+    browser.runtime.sendMessage({ name: "SETRECOMMENDEDSETTINGS" }, (value) => {
         load();
         window.alert("Your settings have been reset to default.")
     });
@@ -1080,7 +1095,7 @@ async function CheckPlexAuth() {
             status = '❌ Expired.'
         }
         else {
-            status = '❌ Unexpected error. Plex may be down or unavailable.'
+            status = '❌ Unexpected error. Plex may be down or the permission is missing.'
         }
     }
 

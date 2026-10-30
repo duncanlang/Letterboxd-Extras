@@ -461,7 +461,7 @@
                     <a id="create-ranking-hyperlink" class="hyperlink" href="/custom_list.html?action=add"
                         target="_blank">Add a new custom ranking</a>
                     <ul id="custom-list-holder" class="sortable-list">
-                        <li style="opacity: 50%; text-align: center;">You have no custom ranking lists</li>
+                        <li style="opacity: 50%; text-align: center;">You don't have any custom ranking lists</li>
                     </ul>
                 </div>
             </div>
@@ -498,7 +498,7 @@
             <div class="settings-group">
                 <div>
                     <label for="cast-extras-enabled">Enable Cast Extras:</label>
-                    <input type="checkbox" id="cast-extras-enabled" subid="cast-extras-div" class="setting"/>
+                    <input type="checkbox" id="cast-extras-enabled" permission="https://*.imdb.com/*" subid="cast-extras-div" class="setting"/>
                     <p class="info-tip">Adds an extras view of the cast on film pages with photos, character names and how many of each actor's films you have watched.</p>
                 </div>
                 <div id="cast-extras-div" class="subsetting">
@@ -632,7 +632,7 @@
                     <input type="checkbox" id="display-budget" class="setting" subid="div-boxofficemojo" />
 
                     <div id="div-boxofficemojo" class="subsetting">
-                        <label for="use-mojo">Use BoxOfficeMojo data as backup:</label>
+                        <label for="use-mojo">Use BoxOfficeMojo data as additional data source:</label>
                         <input type="checkbox" id="use-mojo" permission="https://www.boxofficemojo.com/*"
                             class="setting" />
 
@@ -766,6 +766,10 @@
                     <br>
                     <div>
                         <input type="button" id="reset" value="Reset settings to default" />
+                    </div>
+                    <br>
+                    <div>
+                        <input type="button" id="reset-recommended" value="Reset settings to recommended" />
                     </div>
                 </div>
                 <div>

@@ -20,39 +20,35 @@
         <div style="margin-left: 15px; margin-right: 15px; margin-top: 25px;">
             <img src="/icon32.png" class="icon" />
             <h2 class="header">Letterboxd Extras Setup</h2>
-            <p>Letterboxd Extras has been installed. Settings that require host permissions are disabled by default, this includes settings for additional ratings such as IMDb, Rotten Tomatoes, and Metacritic ratings.</p>
+            <p>Letterboxd Extras has been installed!</p>
         </div>
-
-        <div class="settings-container">
+        
+        <div style="margin-left: 15px; margin-right: 15px; margin-top: 25px; margin-bottom: 10px;">
             <h3>Configure your Settings</h3>
-            <div class="settings-group">
-                <div>
-                    <p>You can click the button below to enable the recommended settings for a quick start, or go to the full settings page to configure your own:</p>
-                </div>
-                <div>
-                    <input type="button" id="button-recommended" value="Use recommended settings"/>
-                </div>
-                <div>
-                    <a id="settings-link" class="hyperlink">View all settings</a>
-                </div>
-            </div>
+            <p>Settings that require additional permissions are disabled by default, this includes settings for displaying ratings such as IMDb, Rotten Tomatoes, and Metacritic.</p>
         </div>
 
         <div class="settings-container">
-            <h3>Import your Settings</h3>
             <div class="settings-group">
                 <div>
-                    <p>If you are coming from a prior install or another browser, you can import your previous settings from file:</p>
+                    <h4>Quick Start</h4>
+                    <p>Use the recommended settings for a quick one-click setup:</p>
+                    <a id="button-recommended" class="settings-button">Use recommended settings</a>
                 </div>
                 <div>
-                    <h4>Settings</h4>
+                    <h4>Custom Setup</h4>
+                    <p>View the settings page to configure your setup:</p>
+                    <a id="settings-link" class="settings-button">View all settings</a>
+                </div>
+                <div>
+                    <h4>Import Settings</h4>
+                    <p>Import your settings from a prior install:</p>
+                    <h5>Settings</h5>
                     <div>
                         <input type="button" id="importSettings" value="Import from File" />
                         <input type="file" accept="application/json" id="importSettings-picker">
                     </div>
-                </div>
-                <div>
-                    <h4>Custom Rankings</h4>
+                    <h5>Custom Rankings</h5>
                     <div>
                         <input type="button" id="importLists" value="Import from File" />
                         <input type="file" accept="application/json" id="importLists-picker">
@@ -61,9 +57,7 @@
             </div>
         </div>
 
-        <div style="margin-left: 15px; margin-right: 15px;">
-            <p id="success-text" class="bottomtext hidden" style="color: var(--text-color-success);">You can now close this tab</p>
-        </div>
+        <p id="success-text" class="bottomtext hidden" style="color: var(--text-color-success);margin-left: 15px; margin-right: 15px;">You can now close this tab</p>
     </div>
     
 

@@ -58,7 +58,7 @@ body.chrome{
 }
 
 body:not(.popup) .center {
-    max-width: 900px !important;
+    max-width: 900px;
     margin: 0 auto !important;
 }
 
@@ -70,8 +70,8 @@ div.settings-container:first-child {
     margin-top: 10px;
 }
 body.popup div.settings-container, body.android div.settings-container {
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
     margin-bottom: 10px;
 }
 body:not(.popup):not(.android) div.settings-container {
@@ -105,6 +105,23 @@ div.settings-group > div > h4 {
     margin-top: 0px;
     display: inline;
     vertical-align: center;
+}
+
+.settings-button {
+    color: rgb(51, 167, 255);
+    cursor: pointer;
+    padding: 10px;
+    border: 1px var(--border-color) solid;
+    border-radius: 8px;
+    box-shadow: var(--box-shadow-level-1);
+    display: block;
+    margin: 10px;
+    width: 250px;
+    text-align: center;
+}
+.settings-button:hover {
+    color: rgb(51, 167, 255);
+    background-color: var(--body-back-color);
 }
 
 div.subsetting{
@@ -184,6 +201,36 @@ body:not(.popup):not(.android) div.subsetting label:NOT(.radio)  {
     z-index: 100;
     top: 0px;
 }
+body:not(.popup):not(.android) .topnav > div {
+    display: flex;
+}
+.topnav p {
+    color: var(--body-text-color);
+    text-align: center;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    display: inline-block;
+    width: auto;
+    border-radius: 4px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+.topnav p {
+    margin: 3px auto !important;
+}
+.topnav p:hover {
+    cursor: pointer;
+}
+
+.topnav p:hover {
+    color: var(--body-text-alt2-color);
+    background-color: var(--color-accent-primary);
+}
+
 body.popup:not(.chrome) .topnav {
     padding-left: 10px;
 }
@@ -195,29 +242,6 @@ body.popup:not(.chrome) .topnav {
     padding-top: 3px;
     padding-bottom: 3px;
     background-image: linear-gradient(to bottom, rgba(0,0,0,0), var(--body-back-color));
-}
-
-.topnav p {
-    color: var(--body-text-color);
-    text-align: center;
-    padding: 5px;
-    text-decoration: none;
-    font-size: 12px;
-    display: inline-block;
-    width: auto;
-    border-radius: 4px;
-    margin: 3px;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
-}
-.topnav p:hover {
-    cursor: pointer;
-}
-
-.topnav p:hover {
-    color: var(--body-text-alt2-color);
-    background-color: var(--color-accent-primary);
 }
 
 /* Sortable list */
