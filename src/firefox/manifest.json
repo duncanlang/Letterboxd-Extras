@@ -82,6 +82,11 @@
 			"matches": [ "https://letterboxd.com/*" ],
 			"js": [ "polyfill.js", "additional.js", "letterboxd-extras.user.js" ],
 			"run_at": "document_end"
+		},
+		{
+			"matches": [ "https://letterboxd.com/*/list/*", "https://letterboxd.com/list/new/*" ],
+			"js": [ "clone-list.js" ],
+			"run_at": "document_end"
 		}
 	],
 

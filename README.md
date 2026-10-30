@@ -39,6 +39,7 @@ A browser add-on/extension that adds additional features to the movie tracking d
 - Duration: Converts the duration to hours and minutes on hover of the duration
 - Budget and Box Office: Display budget and box office numbers in the details tabs
 - Search: option to default the search to filter to films only
+- Clone lists: a "Clone with Letterboxd Extras" button on list pages copies every film (in order) into a new list via Letterboxd's CSV importer
 
 
 ## Installation
