@@ -2,6 +2,8 @@ import { LOAD_STATES } from "./constants";
 
 export class LetterboxdGeneral {
 
+	yearFilterAdded = false;
+
 	constructor(storage, helpers) {
 		this.extensionStorage = storage;
 		this.extensionHelpers = helpers;
@@ -14,6 +16,7 @@ export class LetterboxdGeneral {
 	async init(){
 		this.running = true;
 
+		// Add 'Go to Film' button
 		const portals = document.querySelectorAll('div[data-floating-ui-portal]:not([data-floating-ui-portal-extras])'); 
 		if (portals != null && portals.length > 0){
 			for (var i = 0; i < portals.length; i++){
@@ -22,6 +25,11 @@ export class LetterboxdGeneral {
 
 				this.addGoToFilm(portal);
 			}
+		}
+
+		// Add current year to year browse dropdown
+		if (this.yearFilterAdded == false && window.location.pathname.startsWith('/films/') && document.querySelector('.smenu-menu.browse-nav-smenu')){
+			this.addCurrentYearFilter()
 		}
 
 		// Stop
@@ -61,6 +69,34 @@ export class LetterboxdGeneral {
 
 		// Add to page
 		ul.append(li);
+	}
+
+	addCurrentYearFilter(){
+		if (this.yearFilterAdded) return;
+
+		const menus = document.querySelectorAll('ul.smenu-menu.browse-nav-smenu')
+		for(let i = 0; i < menus.length; i++) {
+			if (menus[i].innerHTML.includes('Year')) {
+
+				const upcoming = document.querySelector('li a[href="/films/upcoming/"]');
+
+				const year = new Date().getFullYear();
+
+				// Create elements
+				const li = this.extensionHelpers.createElement('li', {});
+				const a = this.extensionHelpers.createElement('a', {
+					class: 'item',
+					href: `/films/year/${year}`
+				});
+				a.innerText = year
+				li.append(a);
+
+				upcoming.parentElement.after(li);
+
+				this.yearFilterAdded = true;
+				break;
+			}
+		}
 	}
 
 }
