@@ -1011,12 +1011,10 @@ const letterboxd = {
 
 				// Add Senscritique
 				if (letterboxd.storage.get('senscritique-enabled') === true && this.wikiData.state == 2 && this.sensHelper.loadState < 1) {
-					this.sensHelper.setMediaType(this.tmdbTV);
-
 					if (this.wikiData.SensCritique_ID) {
 						this.sensHelper.getData(this.wikiData.SensCritique_ID);
 					} else {
-						this.sensHelper.searchData(this.letterboxdTitle, this.letterboxdYear, this.letterboxdDirectors);
+						this.sensHelper.searchData(this.letterboxdTitle, this.letterboxdNativeTitle, this.letterboxdYear, this.letterboxdDirectors, this.tmdbTV);
 					}
 				}
 

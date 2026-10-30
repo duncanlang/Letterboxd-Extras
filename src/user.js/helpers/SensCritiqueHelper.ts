@@ -5,7 +5,6 @@ import { Helper } from './Helper';
 
 export class SensCritiqueHelper extends Helper {
 
-    mediaType: string = "";
     recommendCount: string = ""
     highest: number = 0;
     votes: number[] = [];
@@ -15,15 +14,6 @@ export class SensCritiqueHelper extends Helper {
 
         super(storage, helpers, pageState, 'sens');
 
-    }
-
-	/**
-	 * Sets the SensCritique "media type" (either 'movie' or 'tvShow')
-	 *
-	 * @param {boolean} tmdbTV - Whether the Letterboxd film is a TV show on TMDB
-	 */
-    setMediaType(tmdbTV : boolean) {
-        this.mediaType = tmdbTV ? "movie" : "tvShow";
     }
 
     _loadData(senscritiqueID: string) {
@@ -49,18 +39,19 @@ export class SensCritiqueHelper extends Helper {
 	 * @param {string} releaseYear - The year the film was first released.
 	 * @param {string[]} letterboxdDirectors - A list of directors who are credited for the film.
 	 */
-    searchData(movieTitle : string, movieNativeTitle : string, releaseYear : string, letterboxdDirectors : string[]) {
+    searchData(movieTitle : string, movieNativeTitle : string, releaseYear : string, letterboxdDirectors : string[], tmdbTV: boolean) {
 		if (!this._canLoadData()) {
 			return;
 		}
 
         this.loadState = LOAD_STATES['Loading'];
 
-        if (movieNativeTitle != null && movieNativeTitle.match(/[A-Za-z0-9]/i)) 
+        if (movieNativeTitle != null) 
             movieTitle = movieNativeTitle;
 
-        let url = "https://apollo.senscritique.com/";
-        let options = this._getSearchQuery(this.mediaType, movieTitle);
+        const url = "https://apollo.senscritique.com/";
+        const mediaType = tmdbTV ? "tvShow" : "movie";
+        const options = this._getSearchQuery(mediaType, movieTitle);
 
         this._apiRequestCallback('SensCritique API', url, 'JSON', options, value => {
 
