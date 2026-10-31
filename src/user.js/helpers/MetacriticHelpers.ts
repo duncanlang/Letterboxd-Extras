@@ -180,12 +180,12 @@ export class MetacriticHelper extends Helper {
 
 		logoHolder.append(this.helpers.createElement('span', {
 			class: 'icon-meta',
-			style: 'height: 20px; width: 20px; background-image: url("https://www.metacritic.com/images/icons/metacritic-icon.svg");'
+			style: `height: 20px; width: 20px; background-image: url("${browser.runtime.getURL("images/meta-icon.svg")}");`
 		}));
 
 		logoHolder.append(this.helpers.createElement('span', {
 			class: 'text-meta',
-			style: 'height: 20px; width: 100px; background-image: url("https://www.metacritic.com/images/icons/metacritic-wordmark.svg");'
+			style: `height: 20px; width: 100px; background-image: url("${browser.runtime.getURL("images/meta-logo.svg")}");`
 		}));
 
 		// Add the Show Details button

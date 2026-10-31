@@ -42,6 +42,9 @@ export class PlexHelper extends Helper {
 				this.loadState = LOAD_STATES['Pending']; // Indicate we are now ready and waiting to call the api
 			});
 		}
+		else if (this.linkEnabled) {
+			this.loadState = LOAD_STATES['Pending']; // So the link will be added once we get the id
+		}
 	}
 
 	_createWatchlistButton() {
@@ -85,10 +88,6 @@ export class PlexHelper extends Helper {
 		this.loadState = LOAD_STATES['Loading'];
 		this.id = id;
 
-		if (!this.enabled){
-			this.loadState = LOAD_STATES['Success'];
-			return;
-		}
 		// Watchlist functionality
 		if (this.enabled) {
 			if (this.id != null){

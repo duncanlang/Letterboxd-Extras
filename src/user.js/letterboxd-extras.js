@@ -1167,13 +1167,8 @@ const letterboxd = {
 			
 			// Load the Plex Watchlist Data here
 			if (this.wikiData.state == LOAD_STATES['Success'] && this.plexHelper.loadState == LOAD_STATES['Pending']){
-				if (this.wikiData.Plex_ID != null){
-					this.plexHelper.checkWatchlistStatus(this.wikiData.Plex_ID);
-				}
-				else{
-					// if there is no id, we still pass this so we can tell the user that we're unable to match the movie
-					this.plexHelper.checkWatchlistStatus(null);
-				}
+				// Always pass the id - if it's null, we still pass this so we can tell the user that we're unable to match the movie
+				this.plexHelper.checkWatchlistStatus(this.wikiData.Plex_ID);
 			}
 
 			// Stop
