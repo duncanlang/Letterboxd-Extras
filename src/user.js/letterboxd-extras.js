@@ -14,6 +14,7 @@ import { CriterionHelper } from './helpers/CriterionHelper';
 import { MetacriticHelper } from './helpers/MetacriticHelpers';
 import { RankingHelper } from './helpers/RankingHelper';
 import { RottenTomatoesHelper } from './helpers/RottenTomatoesHelper';
+import { CinemascoreHelper } from './helpers/CinemascoreHelper';
 import { CastHelper } from './helpers/CastHelper';
 
 import styles from './styles/letterboxd-extras.css';
@@ -71,8 +72,7 @@ const letterboxd = {
 		mojoData: { state: 0, url: "", data: null, budget: "", boxOfficeUS: "", boxOfficeWW: "", mpaaRating: null, added: false },
 
 		// Cinemascore
-		cinemascore: { state: 0, data: null, result: null },
-		cinemascoreAlt: false,
+		cinemascoreHelper: null,
 
 		// WikiData
 		wiki: null,
@@ -581,8 +581,8 @@ const letterboxd = {
 
 			if (this.pageState.filmWatched != null){
 				// Add Cinema Score
-				if (this.cinemascore.data == null && this.letterboxdTitle != null && this.cinemascore.state < 1 && document.querySelector('.sidebar') != null) {
-					this.initCinema(null);
+				if (this.cinemascoreHelper.loadState == LOAD_STATES['Uninitialized'] && this.letterboxdTitle != null && this.letterboxdYear != null && document.querySelector('.sidebar') != null) {
+					this.cinemascoreHelper.searchData(this.letterboxdTitle, [ this.letterboxdYear ], this.tmdbTV);
 				}
 
 				if (this.imdbID != "" && this.imdbData.state < 1) {
@@ -1039,25 +1039,34 @@ const letterboxd = {
 				}
 
 				// Cinemascore alt titles and years
-				if (this.cinemascore.data != null && this.wikiData.state == 2 && this.cinemascoreAlt == false && this.cinemascore.state != 2) {
-					this.cinemascoreAlt = true;
-					if (this.wikiData.TV_Start == null) {
-						var alt_Title = true;
-						if ((this.wikiData.date.value != null && new Date(this.wikiData.date.value).getFullYear() != this.letterboxdYear) || (this.wikiData.date_origin.value != null && new Date(this.wikiData.date_origin.value).getFullYear() != this.letterboxdYear)) {
-							if (this.verifyCinema(this.cinemascore.data, letterboxd.helpers.cinemascoreTitle(null), "all")) {
-								alt_Title = false;
-								this.addCinema();
-							}
-						}
+				if (this.cinemascoreHelper.loadState == LOAD_STATES['Failure'] && this.wikiData.state == 2 && this.wikiData.state_dates == 2) {
 
-						if (alt_Title) {
-							if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle) {
-								this.initCinema(this.wikiData.US_Title);
-							}
-							if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle) {
-								this.initCinema(this.wikiData.Alt_Title);
-							}
+					// Create array of years
+					const years = [ this.letterboxdYear ];
+					if (this.wikiData.date.value != null) {
+						const year = (new Date(this.wikiData.date.value)).getFullYear().toString();
+						if (!years.includes(year)) {
+							years.push(year);
 						}
+					}
+					if (this.wikiData.date_origin.value != null) {
+						const year = (new Date(this.wikiData.date_origin.value)).getFullYear().toString();
+						if (!years.includes(year)) {
+							years.push(year);
+						}
+					}
+
+					if (this.wikiData.US_Title != null && this.wikiData.US_Title != this.letterboxdTitle) {
+						// Use US title
+						this.cinemascoreHelper.searchData(this.wikiData.US_Title, years, this.tmdbTV);
+					}
+					else if (this.wikiData.Alt_Title != null && this.wikiData.Alt_Title != this.letterboxdTitle) {
+						// Use WikiData English label
+						this.cinemascoreHelper.searchData(this.wikiData.Alt_Title, years, this.tmdbTV);
+					}
+					else if (years.length > 1) {
+						// Use existing Letterboxd title, but with additional years from WikiData
+						this.cinemascoreHelper.searchData(this.letterboxdTitle, years, this.tmdbTV);
 					}
 				}
 
@@ -1623,241 +1632,6 @@ const letterboxd = {
 			}
 
 			this.ratingAdded = true;
-		},
-
-		initCinema(title) {
-			if (this.letterboxdYear != null && parseInt(this.letterboxdYear) < 1978) {
-				// Cinemascore founded in 1978, so don't bother for anything prior
-				return;
-			}
-
-			title = letterboxd.helpers.cinemascoreTitle(title, this.letterboxdYear);
-
-			// First Attempt - 'The' at end, no accents
-			//****************************************************************
-			// Encode title
-			title = letterboxd.helpers.getValidASCIIString(title);
-			var encoded = letterboxd.helpers.encodeASCII(title);
-
-			// Create the URL and send the request
-			var url = "https://webapp.cinemascore.com/guest/search/title/" + encoded;
-			this.cinemascore.state = 1;
-
-			if (letterboxd.storage.get('cinema-enabled') === true) {
-				browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url }, (data) => {
-					if (letterboxd.helpers.ValidateResponse("Cinemascore", data) == false){
-						return;
-					}
-
-					var value = data.response;
-
-					// Check if found
-					if (this.cinemascore.data == null) {
-						this.cinemascore.data = value;
-					} else {
-						this.cinemascore.data = [].concat(this.cinemascore.data, value);
-					}
-
-					if (this.verifyCinema(value, title, 'all')) {
-						this.addCinema();
-
-					} else {
-						// Replace Ampersand (and)
-						//****************************************************************
-						if (this.cinemascore.state < 2 && title.includes("&")) {
-							var temp = title.replace('&', 'and');
-							this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'all');
-						}
-
-						// Search After Hyphen (-)
-						//****************************************************************
-						if (this.cinemascore.state < 2 && title.includes(" - ")) {
-							var temp = title.split(" - ");
-							if (temp[1].toUpperCase().includes("THE MOVIE")) {
-								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[0]), 'begin');
-							} else {
-								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
-							}
-						}
-
-						// Search After Colon (:)
-						//****************************************************************
-						if (this.cinemascore.state < 2 && title.includes(": ")) {
-							var temp = title.split(": ");
-							if (temp[1].toUpperCase().includes("THE MOVIE")) {
-								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[0]), 'begin');
-							} else {
-								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[1]), 'end');
-							}
-						}
-
-						// Search Before Colon (:)
-						//****************************************************************
-						if (this.cinemascore.state < 2 && title.includes(": ")) {
-							var temp = title.split(": ");
-							if (temp[1].toUpperCase().includes("THE MOVIE")) {
-								// Already done before
-							} else {
-								this.getCinema(letterboxd.helpers.getValidASCIIString(temp[0]), 'begin');
-							}
-						}
-
-						// Replace Numbers with Roman Numerals
-						//****************************************************************
-						const res = /( [0-9]+)/g;
-						if (this.cinemascore.state < 2 && res.test(title)) {
-							var num = title.substring(title.search(res), title.length).trim();
-							var roman = letterboxd.helpers.romanize(parseInt(num));
-							var temp = title.replace(res, " " + roman);
-
-							this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'all');
-						}
-
-						// Search before roman numerals
-						//****************************************************************
-						var romanExp = new RegExp(/\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))\b/);
-						if (this.cinemascore.state < 2 && title.match(romanExp)) {
-							var match = title.match(romanExp)[0];
-							var temp = title.split(match);
-							temp = temp[0].trim();
-
-							if (temp != "") {
-								this.getCinema(letterboxd.helpers.getValidASCIIString(temp), 'begin');
-							}
-						}
-					}
-				});
-			}
-		},
-
-		getCinema(title, titleType) {
-			var encoded = letterboxd.helpers.encodeASCII(title);
-			var url = "https://webapp.cinemascore.com/guest/search/title/" + encoded;
-			browser.runtime.sendMessage({ name: "GETDATA", type: "JSON", url: url }, (data) => {
-				if (letterboxd.helpers.ValidateResponse("Cinemascore", data) == false){
-					return;
-				}
-
-				var value = data.response;
-				if (this.cinemascore.data == null) {
-					this.cinemascore.data = value;
-				} else {
-					this.cinemascore.data = [].concat(this.cinemascore.data, value);
-				}
-
-				if (this.verifyCinema(value, title, titleType)) {
-					this.addCinema();
-				}
-			});
-		},
-
-		verifyCinema(data, title, titleType) {
-			if (this.cinemascore.state < 2 && data != null && data.length > 0 && data[0].GRADE != "") {
-				var romanExp = new RegExp(/\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))\b/);
-				var numeric = new RegExp(/([0-9]+)/);
-				const year = this.letterboxdYear;
-
-
-				var years = [year, "", "", ""];
-
-				if (this.wikiData.date.value != null) {
-					years[2] = (new Date(this.wikiData.date.value)).getFullYear().toString();
-				}
-				if (this.wikiData.date_origin.value != null) {
-					years[3] = (new Date(this.wikiData.date_origin.value)).getFullYear().toString();
-				}
-
-				var result = null;
-				// Get the correct score
-				for (var ii = 0; ii < data.length; ii++) {
-					// Check to see if the year cinemascore uses is one of the years we have
-					if (data[ii].YEAR != null && years.includes(data[ii].YEAR)) {
-						var found = false;
-
-						if (titleType == "all") {
-							var withYear = title.toUpperCase() + ' (' + data[ii].YEAR + ')';
-							// If Exact
-							if (data[ii].TITLE == title.toUpperCase() || data[ii].TITLE == withYear) {
-								found = true;
-							} else if (title.match(/^[0-9]+$/) && data[ii].TITLE == title + "**") {
-								found = true;
-							} else {
-								// If not, make sure it starts with the exact title
-								var reg = new RegExp('^(' + title + '){1}( |,|\\.|:|-|$)', 'i')
-								found = data[ii].TITLE.match(reg);
-							}
-
-						} else if (titleType == "end") {
-							// Make sure it ends with the searched title
-							var reg = new RegExp('(' + title + '){1}$', 'i')
-							found = data[ii].TITLE.match(reg);
-						} else if (titleType == "begin") {
-							// Make sure it begins with the searched title
-							var reg = new RegExp('^(' + title + '){1}( |,|\\.|:|-|$)', 'i')
-							found = data[ii].TITLE.match(reg);
-						}
-
-						if ((this.letterboxdTitle.match(romanExp) || this.letterboxdTitle.match(numeric)) && !(data[ii].TITLE.match(romanExp) || data[ii].TITLE.match(numeric))) {
-							found = false;
-						}
-
-						if (found) {
-							result = data[ii];
-							break;
-						}
-					}
-				}
-
-				if (result != null) {
-					this.cinemascore.result = result;
-					return true;
-				}
-			}
-			return false;
-		},
-
-		addCinema() {
-			if (document.querySelector('.cinemascore')) return;
-
-			if (this.cinemascore.result != null && this.cinemascore.state < 2) {
-				this.cinemascore.state = 2;
-
-				// Add the section to the page
-				const section = letterboxd.helpers.createElement('section', {
-					class: 'extras-section ratings-histogram-chart cinemascore ratings-extras'
-				});
-
-				// Add the Header
-				const heading = letterboxd.helpers.createElement('h2', {
-					class: 'section-heading section-heading-extras',
-					style: 'height: 13px;'
-				});
-				section.append(heading);
-				const headerTitle = letterboxd.helpers.createElement('a', {
-					href: 'https://www.cinemascore.com/'
-				});
-				headerTitle.innerText = "CinemaScore"
-				heading.append(headerTitle);
-
-
-				// The span that holds the score
-				const span = letterboxd.helpers.createElement('span', {
-					style: 'display: inline-block;'
-				});
-				section.append(span);
-
-				// The element that is the score itself
-				const scoreText = letterboxd.helpers.createElement('a', {
-					class: 'tooltip display-rating -highlight cinema-grade',
-				});
-				scoreText.innerText = this.cinemascore.result.GRADE;
-				span.append(scoreText);
-
-
-				// APPEND to the sidebar
-				//************************************************************
-				this.appendRating(section, 'cinemascore');
-			}
 		},
 
 		searchSensCritique() {
@@ -3705,83 +3479,6 @@ const letterboxd = {
 
 		},
 
-		getValidASCIIString(input) {
-			var output = '';
-
-			for (var i = 0; i < input.length; i++) {
-				if (input[i] == "–") {
-					output += "-";
-				} else if (input.codePointAt(i) >= 256) {
-					break;
-				} else {
-					output += input[i];
-				}
-			}
-
-			return output;
-		},
-
-		encodeASCII(text) {
-			return btoa(unescape(encodeURIComponent(text)));
-		},
-
-		romanize(num) {
-			if (isNaN(num))
-				return NaN;
-
-			var digits = String(+num).split(""),
-				key = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM",
-					"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC",
-					"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"],
-				roman = "",
-				i = 3;
-			while (i--)
-				roman = (key[+digits.pop() + (i * 10)] || "") + roman;
-			return Array(+digits.join("") + 1).join("M") + roman;
-		},
-
-		cinemascoreTitle(title, year) {
-			var output = "";
-
-			if (title == null || title == "") {
-				title = letterboxd.overview.letterboxdTitle;
-			}
-			// Get the Movie Title and clean it up a bit
-			if (title.startsWith('The ')) {
-				title = title.replace("The ", "");
-				title = title + ", The";
-			} else if (title.startsWith('A ')) {
-				title = title.replace("A ", "");
-				title = title + ", A";
-			}
-			// Normalize (ie, remove accents/diacritics)
-			title = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-
-			// I don't like doing it this way, but there is no other way for certain movies where cinemascore has incorrect data
-			output = title;
-			switch (title) {
-				case "Harry Potter and the Order of the Phoenix":
-					output = "Harry Potter and Order of the Phoenix";
-					break;
-				case "Ocean's Eleven":
-					if (year == "2001")
-						output = "Ocean's 11";
-					break;
-				case "One Eight Seven":
-					if (year == "1997")
-						output = "187";
-					break;
-				case "A.I. Artificial Intelligence":
-					if (year == "2001")
-						output = "A.I.: Artificial Intelligence";
-					break;
-				default:
-					output = title;
-					break;
-			}
-			return output;
-		},
-
 		cleanupInnerText(value) {
 			var out = value.replaceAll("\n", "");
 			out = out.trim();
@@ -4494,6 +4191,7 @@ const moduleConfigs = [
 	{ class: MetacriticHelper, target: letterboxd.overview, property: 'metaHelper', args: [] },
 	{ class: RankingHelper, target: letterboxd.overview, property: 'rankingHelper', args: [] },
 	{ class: RottenTomatoesHelper, target: letterboxd.overview, property: 'tomatoHelper', args: [] },
+	{ class: CinemascoreHelper, target: letterboxd.overview, property: 'cinemascoreHelper', args: [] },
 	{ class: CastHelper, target: letterboxd.overview, property: 'castHelper', args: [] },
 ];
 
