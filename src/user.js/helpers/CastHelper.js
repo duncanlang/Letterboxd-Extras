@@ -87,7 +87,11 @@ export class CastHelper {
 	createViewButton(label, icon, extras) {
 		const item = this.helpers.createElement('li', {});
 		const button = this.helpers.createElement('button', { class: 'replace', type: 'button', title: `${label} view` });
-		button.innerHTML = icon;
+
+		const svg = this.helpers.loadSvg(icon);
+		if (svg)
+			button.append(svg);
+
 		button.addEventListener('click', () => {
 			this.setView(extras);
 			this.storage.localSet('cast-extras-view', extras ? 'extras' : 'compact');
@@ -165,7 +169,10 @@ export class CastHelper {
 	createAvatar(actor) {
 		const media = this.helpers.createElement('figure', { class: 'media -image' });
 		const link = this.helpers.createElement('a', { class: 'canvas', href: actor.href, title: actor.name });
-		link.innerHTML = CAST_AVATAR_PLACEHOLDER_SVG;
+		const svg = this.helpers.loadSvg(CAST_AVATAR_PLACEHOLDER_SVG);
+		if (svg)
+			link.append(svg);
+		
 		media.append(link);
 
 		this.loadPhoto(link, actor);
@@ -187,7 +194,7 @@ export class CastHelper {
 
 		const img = this.helpers.createElement('img', { src: photoUrl, alt: actor.name, loading: 'lazy' });
 		img.addEventListener('error', () => {
-			link.innerHTML = CAST_AVATAR_PLACEHOLDER_SVG;
+			
 		});
 		link.replaceChildren(img);
 	}
@@ -237,7 +244,10 @@ export class CastHelper {
 			href: `/${this.username}/films/with/actor/${actor.slug}/`,
 			title: `Films starring ${actor.name} you have watched`
 		});
-		link.innerHTML = CAST_WATCHED_EYE_SVG;
+		const svg = this.helpers.loadSvg(CAST_WATCHED_EYE_SVG);
+		if (svg)
+			link.append(svg);
+
 		const count = this.helpers.createElement('span', {});
 		count.innerText = '...';
 		link.append(count);
