@@ -331,14 +331,23 @@ export class RottenTomatoesHelper extends Helper {
 		}
 
 		const plural = data.num_ratings !== 1 ? 's' : '';
-		const hover = rating === ''
-			? `${data.num_ratings} ${display} rating${plural}`
-			: `Average of ${rating}${suffix} based on ${data.num_ratings.toLocaleString()} ${display} rating${plural}`;
+		let hover = '';
+		if (rating === '' && data.num_ratings > 0){
+			hover = `${data.num_ratings} ${display} rating${plural}`;
+		} else {
+			hover = `Average of ${rating}${suffix}`;
+			if (data.num_ratings > 0) {
+				hover += ` based on ${data.num_ratings.toLocaleString()} ${display} rating${plural}`;
+			}
+			else if (data.bandedCount != null) {
+				hover += ` based on ${data.bandedCount} ${display} rating${plural}`;
+			}
+		}
 
 		// The score itself, linking to the matching reviews
 		const score = this.helpers.createElement('a', {
 			class: 'tooltip tooltip-extra display-rating -highlight tomato-score',
-			href: `${this.linkURL}/reviews${tomatoReviewQueries[type]}`,
+			href: `https://www.rottentomatoes.com${data.link}`,
 			style: 'display: inline-block; width: 50px',
 			['data-original-title']: hover
 		});
@@ -441,16 +450,22 @@ export class RottenTomatoesHelper extends Helper {
 	 */
 	_collectScore(data, scoredetails) {
 
-		if (scoredetails == null || scoredetails.score == null) {
+		if (scoredetails == null || scoredetails.scorePercent == null) {
 			return;
 		}
 
-		data.percent = scoredetails.score;
-		data.likedCount = scoredetails.likedCount;
-		data.notLikedCount = scoredetails.notLikedCount;
-		data.num_ratings = data.likedCount + data.notLikedCount;
+		data.percent = scoredetails.scorePercent.replace('%', '');
+		data.likedCount = scoredetails.likedCount ?? 0;
+		data.notLikedCount = scoredetails.notLikedCount ?? 0;
+		data.num_ratings = data.likedCount + data.notLikedCount ?? 0;
 		data.url = scoredetails.scoreLinkUrl;
 		data.rating = scoredetails.averageRating ?? '';
+		data.link = scoredetails.scoreLinkUrl ?? '';
+
+		const regex = /^([\d,.+]+) (?:Verified )*(?:Ratings)$/;
+		if (scoredetails.bandedRatingCount != null && scoredetails.bandedRatingCount.match(regex)) {
+			data.bandedCount = scoredetails.bandedRatingCount.match(regex)[1];
+		}
 
 		const positive = scoredetails.sentiment === 'POSITIVE';
 		const negative = scoredetails.sentiment === 'NEGATIVE';
