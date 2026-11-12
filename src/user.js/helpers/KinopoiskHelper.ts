@@ -77,9 +77,7 @@ export class KinopoiskHelper extends Helper {
 				href: this.linkURL,
 				style: `position: absolute; background-image: url("${browser.runtime.getURL('images/kinopoisk-logo-rus.svg')}")`
 			},
-			{
-				style: 'height: 13px'
-			}
+			'height: 13px'
 		);
 
 		// Score
