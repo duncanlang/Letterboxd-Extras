@@ -122,17 +122,17 @@ export class MetacriticHelper extends Helper {
 		}
 
 		// Scores
-		const heroScores = page.querySelector('div.hero-scores');
+		const heroScores = page.querySelector('div[data-testid="product-hero"]');
 		if (heroScores != null) {
-			this.parseRatingScore(this.critic, heroScores.querySelector<HTMLElement>('[data-testid="product-score"] div[title*="Metascore "] span'));
-			this.parseRatingScore(this.user, heroScores.querySelector<HTMLElement>('[data-testid="product-score"] div[title*="User score "] span'));
+			this.parseRatingScore(this.critic, heroScores.querySelector<HTMLElement>('[data-testid="global-score"] div[title*="Metascore "] span'));
+			this.parseRatingScore(this.user, heroScores.querySelector<HTMLElement>('[data-testid="global-score"] div[title*="User score "] span'));
 		} else {
 			this.critic.parseError = true;
 			this.user.parseError = true;
 		}
 
 		// Grab the 'must see'
-		if (page.querySelector('.product-hero__scores img.c-global-image__img')) {
+		if (page.querySelector('[data-testid="global-score-badge"]')) {
 			this.mustSee = true;
 		}
 
@@ -144,8 +144,10 @@ export class MetacriticHelper extends Helper {
 		}
 
 		// Grab the rating counts
-		this.parseRatingCounts(this.critic, page.querySelector<HTMLElement>('div[data-testid="critic-reviews"]'));
-		this.parseRatingCounts(this.user, page.querySelector<HTMLElement>('div[data-testid="user-reviews"]'));
+		this.parseRatingCounts(this.critic, 'critic-reviews');
+		this.parseRatingCounts(this.user, 'user-reviews');
+		//this.parseRatingCounts(this.critic, page.querySelector<HTMLElement>('div[data-testid="critic-reviews"]'));
+		//this.parseRatingCounts(this.user, page.querySelector<HTMLElement>('div[data-testid="user-reviews"]'));
 	}
 
 	/**
@@ -180,12 +182,12 @@ export class MetacriticHelper extends Helper {
 
 		logoHolder.append(this.helpers.createElement('span', {
 			class: 'icon-meta',
-			style: 'height: 20px; width: 20px; background-image: url("https://www.metacritic.com/images/icons/metacritic-icon.svg");'
+			style: `height: 20px; width: 20px; background-image: url("${browser.runtime.getURL('images/meta-icon.svg')}");`
 		}));
 
 		logoHolder.append(this.helpers.createElement('span', {
 			class: 'text-meta',
-			style: 'height: 20px; width: 100px; background-image: url("https://www.metacritic.com/images/icons/metacritic-wordmark.svg");'
+			style: `height: 20px; width: 100px; background-image: url("${browser.runtime.getURL('images/meta-logo.svg')}");`
 		}));
 
 		// Add the Show Details button
@@ -244,29 +246,32 @@ export class MetacriticHelper extends Helper {
 		}
 	}
 
-	parseRatingCounts(data: MetaScore, element: HTMLElement | null) {
-		if (element != null) {
-			const criticPositive = element.querySelectorAll<HTMLElement>('.reviews-stats__positive-stats span');
-			const criticNeutral = element.querySelectorAll<HTMLElement>('.reviews-stats__neutral-stats span');
-			const criticNegative = element.querySelectorAll<HTMLElement>('.reviews-stats__negative-stats span');
+	parseRatingCounts(data: MetaScore, selector: string | null) {
+		const element = this.data?.querySelector(`div[data-testid="${selector}"]`)
 
-			if (criticPositive.length == 2) {
-				data.positive = parseInt(criticPositive[1].innerText.replace(' Reviews', ''));
+		if (element != null) {
+			const positive = element.querySelector<HTMLElement>('[data-testid="global-score-graph"] + div > div:nth-child(1) > span:nth-child(3) ');
+			const neutral = element.querySelector<HTMLElement>('[data-testid="global-score-graph"] + div > div:nth-child(2) > span:nth-child(3) ');
+			const negative = element.querySelector<HTMLElement>('[data-testid="global-score-graph"] + div > div:nth-child(3) > span:nth-child(3) ');
+
+			if (positive != null) {
+				data.positive = parseInt(positive.innerText.replace(' Reviews', ''));
 			}
-			if (criticNeutral.length == 2) {
-				data.mixed = parseInt(criticNeutral[1].innerText.replace(' Reviews', ''));
+			if (neutral != null) {
+				data.mixed = parseInt(neutral.innerText.replace(' Reviews', ''));
 			}
-			if (criticNegative.length == 2) {
-				data.negative = parseInt(criticNegative[1].innerText.replace(' Reviews', ''));
+			if (negative != null) {
+				data.negative = parseInt(negative.innerText.replace(' Reviews', ''));
 			}
 
 			data.num_ratings = data.positive + data.mixed + data.negative;
 
 			// Metacritic will not show the breakdown when there are too few ratings, lets tally it up ourselves, shall we?
 			if (data.rating == 'tbd' && data.num_ratings == 0) {
-				data.positive = element.querySelectorAll('.c-reviews-container .review-card .c-siteReviewScore_background .c-siteReviewScore_green').length;
-				data.mixed = element.querySelectorAll('.c-reviews-container .review-card .c-siteReviewScore_background .c-siteReviewScore_yellow').length;
-				data.negative = element.querySelectorAll('.c-reviews-container .review-card .c-siteReviewScore_background .c-siteReviewScore_red').length;
+				// Metacritic, for some reason, has the reviews in two divs, critic-ratings and critic-ratings-bottom. This accounts for both
+				data.positive = this.data?.querySelectorAll(`[data-testid|="${selector}"] [data-testid="review-card"] .c-siteReviewScore_green`)?.length ?? 0;
+				data.mixed = this.data?.querySelectorAll(`[data-testid|="${selector}"] [data-testid="review-card"] .c-siteReviewScore_yellow`)?.length ?? 0;
+				data.negative = this.data?.querySelectorAll(`[data-testid|="${selector}"] [data-testid="review-card"] .c-siteReviewScore_red`)?.length ?? 0;
 
 				data.num_ratings = data.positive + data.mixed + data.negative;
 			}

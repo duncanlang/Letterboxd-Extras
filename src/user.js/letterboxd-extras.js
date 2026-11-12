@@ -560,8 +560,8 @@ const letterboxd = {
 			}
 
 			// Cast Extras
-			if (letterboxd.storage.get('cast-extras-enabled') === true && !this.castHelper.rendered) {
-				this.castHelper.render(this.imdbHelper.data, this.loggedIn);
+			if (letterboxd.storage.get('cast-extras-enabled') === true && !this.castHelper.rendered && letterboxd.storage.localInitilized) {
+				this.castHelper.render(this.imdbData.data, this.loggedIn);
 			}
 
 			// First Get the IMDb link 
@@ -1727,6 +1727,16 @@ const letterboxd = {
 				`;
 			return query;
 		} */
+
+		loadSvg(svgText) {
+			const parsed = new DOMParser().parseFromString(svgText, "image/svg+xml");
+
+			if (parsed.querySelector("parsererror")) {
+				return null;
+			}
+
+  			return document.importNode(parsed.documentElement, true);
+		},
 
 		createElement(tag, attrs, styles) {
 			const element = document.createElement(tag);
