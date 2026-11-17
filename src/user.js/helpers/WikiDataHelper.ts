@@ -38,8 +38,6 @@ export interface WikiDataQueryParams extends WikiDataIds {
 
 interface IdConstraintParams extends WikiDataIds {
 	isTV?: boolean
-	/** Selects the TMDB person id. */
-	isPerson?: boolean
 }
 
 interface WikipediaParams {
@@ -143,7 +141,11 @@ const LOST_FILM_TYPES = [ 'Q11424', 'Q24862', 'Q20667187', 'Q226730', 'Q506240',
  * Properties bound by a plain wdt: OPTIONAL on the film query. `select` is the variable that ends
  * up in the SELECT clause, which differs from `name` wherever the label service rewrites it.
  */
-const FILM_PROPERTIES: FilmProperty[] = [
+
+const LEADING_FILM_PROPERTIES: FilmProperty[] =[
+	{ pid: 12020, name: 'StateOfTransmission' }
+];
+const TRAILING_FILM_PROPERTIES: FilmProperty[] = [
 	{ pid: 1258, name: 'Rotten_Tomatoes_ID' },
 	{ pid: 1712, name: 'Metacritic_ID' },
 	{ pid: 8729, name: 'Anilist_ID' },
@@ -171,8 +173,12 @@ const FILM_PROPERTIES: FilmProperty[] = [
 	{ pid: 3818, name: 'KMRB_rating', select: 'KMRB_ratingLabel' },
 	{ pid: 3156, name: 'ACB_rating', select: 'ACB_ratingLabel' },
 	{ pid: 3216, name: 'ClassInd_rating', select: 'ClassInd_ratingLabel' },
-	{ pid: 12020, name: 'StateOfTransmission' }
 ];
+
+const FILM_PROPERTIES = [
+	...LEADING_FILM_PROPERTIES,
+	...TRAILING_FILM_PROPERTIES
+]
 
 const FILM_SELECT_HEAD = [ 'item', 'itemLabel' ];
 const FILM_SELECT_TAIL = [
@@ -181,9 +187,6 @@ const FILM_SELECT_TAIL = [
 	'Box_OfficeWW', 'Box_OfficeWW_UnitLabel',
 	'US_Title', 'TV_Start', 'TV_Start_Precision', 'TV_End', 'TV_End_Precision', 'Wikipedia'
 ];
-
-/** The film property whose select variable trails the tail block rather than leading it. */
-const FILM_SELECT_TRAILING_PROPERTY = 'StateOfTransmission';
 
 const DATE_SELECT = [ 'Date', 'Date_Country', 'Date_Precision', 'Date_Format', 'Date_City_Country' ];
 
@@ -483,7 +486,7 @@ function getIdBindings( { letterboxdId, imdbId, tmdbId }: WikiDataIds ): string 
 /**
  * Builds the alternation constraining ?item to whichever identifiers are available.
  */
-function getIdConstraints( { letterboxdId, imdbId, tmdbId, isTV, isPerson }: IdConstraintParams ): string {
+function getIdConstraints( { letterboxdId, imdbId, tmdbId, isTV }: IdConstraintParams ): string {
 
 	let constraints = '';
 
@@ -502,21 +505,15 @@ function getIdConstraints( { letterboxdId, imdbId, tmdbId, isTV, isPerson }: IdC
 
 	}
 
-	if ( tmdbId && isTV && ! isPerson ) {
+	if ( tmdbId && isTV ) {
 
 		matches.push( ID_CONSTRAINTS.tmdbTV );
 
 	}
 
-	if ( tmdbId && ! isTV && ! isPerson ) {
+	if ( tmdbId && ! isTV ) {
 
 		matches.push( ID_CONSTRAINTS.tmdbFilm );
-
-	}
-
-	if ( tmdbId && isPerson ) {
-
-		matches.push( ID_CONSTRAINTS.tmdbPerson );
 
 	}
 
@@ -553,8 +550,6 @@ function buildQuery( { select, distinct, where, selectPadding = '', closePadding
 function getFilmQuery( params: WikiDataQueryParams ): string {
 
 	const selectName = ( property: FilmProperty ) => property.select || property.name;
-	const leading = FILM_PROPERTIES.filter( p => p.name !== FILM_SELECT_TRAILING_PROPERTY );
-	const trailing = FILM_PROPERTIES.filter( p => p.name === FILM_SELECT_TRAILING_PROPERTY );
 
 	const where =
 		getLabelService() +
@@ -605,9 +600,9 @@ function getFilmQuery( params: WikiDataQueryParams ): string {
 		distinct: true,
 		select: [
 			...FILM_SELECT_HEAD,
-			...leading.map( selectName ),
+			...LEADING_FILM_PROPERTIES.map( selectName ),
 			...FILM_SELECT_TAIL,
-			...trailing.map( selectName )
+			...TRAILING_FILM_PROPERTIES.map( selectName )
 		],
 		where
 	} );
