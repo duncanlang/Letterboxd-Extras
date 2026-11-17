@@ -18,7 +18,6 @@ const buttonLinkOrder: ButtonSelector[] = [
 	'.mdl-button',
 	'.mal-button',
 	'.anilist-button',
-	'.anidb-button',
 	'.filmarks-button',
 	'.criterion-button',
 	'.mojo-button',
@@ -51,10 +50,6 @@ interface LogoProps {
 	style?: string
 	innerHTML?: string
 	svg?: HTMLElement
-}
-
-interface HeaderStyleProps {
-	style?: string
 }
 
 interface SpineIndicatorProps {
@@ -621,12 +616,11 @@ export class Helper {
 	/**
 	 * Creates a header for a Letterboxd sidebar section.
 	 *
-	 * @param {Object} [headerStyle] - Optional style properties for the header element
-	 * @param {string} [headerStyle.style] - CSS style string to apply to the heading
+	 * @param {string} [headerStyle] - CSS style string to apply to the heading
 	 * @returns {HTMLHeadingElement}
 	 * @protected
 	 */
-	_createChartSectionHeader(headerStyle?: HeaderStyleProps) {
+	_createChartSectionHeader(headerStyle?: string) {
 
 		const headerProps = {
 			class: 'section-heading section-heading-extras',
@@ -699,12 +693,11 @@ export class Helper {
 	 * @param {string} logoProps.href - The URL the logo links to
 	 * @param {string} [logoProps.style] - CSS style string for the logo element
 	 * @param {string} [logoProps.innerHTML] - HTML string to set as the logo's inner content
-	 * @param {Object} [headerStyle] - Optional style properties for the header element
-	 * @param {string} [headerStyle.style] - CSS style string to apply to the heading
+	 * @param {string} [headerStyle] - CSS style string to apply to the heading
 	 * @returns {HTMLSectionElement}
 	 * @protected
 	 */
-	_createChartSection(logoProps: LogoProps, headerStyle?: HeaderStyleProps) {
+	_createChartSection(logoProps: LogoProps, headerStyle?: string) {
 
 		const { isMobile } = this.pageState;
 
@@ -940,14 +933,4 @@ export class Helper {
 		});
 	}
 
-	getTextBetween(text: string, start: string, end: string): string {
-		let tempArray = text.split(start);
-		if (tempArray.length >= 2) {
-			tempArray = tempArray[1].split(end);
-
-			return (tempArray[0]);
-		} else {
-			return ""
-		}
-	}
 }

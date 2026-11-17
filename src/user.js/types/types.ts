@@ -4,8 +4,9 @@
 // Once typing is more meaningfully integrated we can start thinking about better structures
 
 
-export type SourceIdentifier = 
-	'tomato' | 
+export type SourceIdentifier =
+	'imdb' |
+	'tomato' |
 	'cinemascore' |
 	'meta' | 
 	'sens' | 
@@ -19,7 +20,6 @@ export type SourceIdentifier =
 	'mdl' |
 	'mal' |
 	'anilist' |
-	'anidb' |
 	'criterion' |
 	'mojo' |
 	'wiki' |

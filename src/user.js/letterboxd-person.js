@@ -1,4 +1,5 @@
 import { LOAD_STATES } from './constants';
+import { getWikiDataLocaleParams, getWikiDataRequest } from './helpers/WikiDataHelper';
 
 export class LetterboxdPerson {
 
@@ -132,13 +133,7 @@ export class LetterboxdPerson {
 	}
 
 	callWikiData() {
-		// Get the Query String
-		let lang = null;
-		try {
-			lang = window.navigator.language.substring(0, 2);
-		} catch (e) { }
-
-		const queryString = this.extensionHelpers.getWikiDataQuery('', this.tmdbID, '', false, 'PERSON', lang);
+		const queryString = getWikiDataRequest({ tmdbId: this.tmdbID, queryType: 'PERSON', ...getWikiDataLocaleParams(this.extensionStorage) });
 		// Call WikiData
 		browser.runtime.sendMessage({ name: 'GETDATA', type: 'JSON', url: queryString.url, options: queryString.options }, data => {
 			if (this.extensionHelpers.ValidateResponse('WikiData', data) === false) {
@@ -366,7 +361,7 @@ export class LetterboxdPerson {
 	callWikiDataLostFilms() {
 
 		this.lostFilms.loadState = LOAD_STATES['Loading'];
-		const queryString = this.extensionHelpers.getWikiDataQuery('', '', '', this.tmdbTV, 'LOSTFILMS', 'en');
+		const queryString = getWikiDataRequest({ queryType: 'LOSTFILMS' });
 
 		// Check for cached list in the browser storage
 		const timestamp = this.extensionStorage.localGet('lost-films-timestamp');
