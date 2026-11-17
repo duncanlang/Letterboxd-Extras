@@ -127,15 +127,11 @@ export class CinemascoreHelper extends Helper {
 
 	/** Every search result so far, from all searches. */
 	declare data: CinemascoreFilm[] | null;
-
 	film: LetterboxdFilm | null = null;
-
 	/** Years a result's YEAR may have: Letterboxd's, then WikiData's release years once known. */
 	years: string[] = [];
-
 	/** The result that matched the film. */
 	result: CinemascoreFilm | null = null;
-
 	altTitlesSearched = false;
 
 	constructor(storage: StorageObject, helpers: any, pageState: PageState) {
@@ -214,16 +210,10 @@ export class CinemascoreHelper extends Helper {
 		this.ratingsAdded = true;
 
 		// Add the section to the page
-		const section = this.helpers.createElement('section', {
-			class: 'extras-section ratings-histogram-chart cinemascore ratings-extras'
-		});
-
-		// Add the Header
-		const heading = this.helpers.createElement('h2', {
-			class: 'section-heading section-heading-extras',
-			style: 'height: 13px;'
-		});
+		const section = this._createChartSectionElement(false);
+		const heading = this._createChartSectionHeader('height: 13px;')
 		section.append(heading);
+		
 		const headerTitle = this.helpers.createElement('a', {
 			href: 'https://www.cinemascore.com/'
 		});
