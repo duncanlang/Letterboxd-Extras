@@ -641,7 +641,7 @@ function getReleaseDateQuery( params: WikiDataQueryParams ): string {
 /**
  * The person query: names, life dates and the places that bracket them.
  */
-function getPersonQuery( params: WikiDataQueryParams & { isPerson: true } ): string {
+function getPersonQuery( params: WikiDataQueryParams ): string {
 
 	const { pid } = ID_CONSTRAINTS.tmdbPerson;
 	const statementVar = 'statement0';
@@ -733,7 +733,7 @@ function getQuery( params: WikiDataQueryParams ): string {
 			return getReleaseDateQuery( params );
 
 		case 'PERSON':
-			return getPersonQuery( { ...params, isPerson: true } );
+			return getPersonQuery( params );
 
 		case 'LOSTFILMS':
 			return getLostFilmsQuery();
