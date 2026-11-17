@@ -621,7 +621,7 @@ const letterboxd = {
 
 								// If the domestic date was found on Mojo, add it now
 								if (this.filmDate.date != null && this.dateAdded == false)
-									this.addDate(this.filmDate.date);
+									this.addDateTooltip(this.filmDate.date);
 							}
 						});
 					}
@@ -705,7 +705,7 @@ const letterboxd = {
 											this.wikiData.TV_End = new Date(this.wiki.TV_End.value.replace("Z", "")).toLocaleDateString("en-UK", options);
 											dateString += this.wikiData.TV_End;
 										}
-										this.addDate(dateString);
+										this.addDateTooltip(dateString);
 									}
 
 									// Get US Title and attempt Cinemascore
@@ -894,6 +894,9 @@ const letterboxd = {
 										date.format = 'Q3491297';
 									}
 
+									// We select between dates based on whether the date is early
+									// and whether it matches specific paramemeters.
+
 									// Check distribution format - if not limited release
 									if (!date.format.endsWith('Q3491297')) {
 										date.score += 1;
@@ -935,7 +938,7 @@ const letterboxd = {
 
 								this.wikiData.date_origin.value = new Date(this.wikiData.date_origin.value.replace("Z", "")).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(this.wikiData.date_origin.precision));
 								this.filmDate.date = this.wikiData.date_origin.value;
-								this.addDate(this.filmDate.date);
+								this.addDateTooltip(this.filmDate.date);
 							}
 
 							if (dates.length > 0) {
@@ -944,7 +947,7 @@ const letterboxd = {
 								this.wikiData.date.value = new Date(this.wikiData.date.value.replace("Z", "")).toLocaleDateString("en-UK", letterboxd.helpers.getDateOptions(this.wikiData.date.precision));
 								if (this.dateAdded == false) {
 									this.filmDate.date = this.wikiData.date.value;
-									this.addDate(this.filmDate.date);
+									this.addDateTooltip(this.filmDate.date);
 								}
 							}
 							this.wikiData.state_dates = 2;
@@ -1345,7 +1348,10 @@ const letterboxd = {
 			this.durationAdded = true;
 		},
 
-		addDate(date) {
+		
+		// Adds a tooltip to the year at the top of the film page
+		// When hovering over the year, the primary release date of the film is displayed.
+		addDateTooltip(date) {
 			const year = document.querySelector('.productioninfo .releasedate');
 
 			if (year != null) {
