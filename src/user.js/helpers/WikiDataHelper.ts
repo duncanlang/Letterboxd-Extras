@@ -75,8 +75,6 @@ interface TimeStatementOptions {
 	precisionVar: string
 	/** How to discard non-preferred statements. */
 	rankMode?: 'minus' | 'bestRank'
-	/** Trailing whitespace after the precision line, kept so the query matches the hand-written original. */
-	precisionPadding?: string
 }
 
 interface PlaceStatementOptions {
@@ -96,8 +94,6 @@ interface PlaceStatementOptions {
 	countryOfVar: string
 	/** Variable receiving the ISO 3166 code. */
 	outputVar: string
-	/** Trailing whitespace after the settlement line, kept so the query matches the hand-written original. */
-	cityPadding?: string
 }
 
 interface BuildQueryOptions {
@@ -109,10 +105,6 @@ interface BuildQueryOptions {
 	 *  WHERE clauses describe a pattern of relations
 	 *  whereas filter is more like a traditional WHERE in SQL */
 	where: string
-	/** Extra spacing between the select list and WHERE, kept so the query matches the hand-written original. */
-	selectPadding?: string
-	/** Extra spacing after the closing brace. */
-	closePadding?: string
 	/** Variables to group by. */
 	groupBy?: string[]
 }
@@ -355,7 +347,7 @@ function getQuantityStatement( options: QuantityStatementOptions ): string {
  */
 function getTimeStatement( options: TimeStatementOptions ): string {
 
-	const { pid, entryVar, valueVar, precisionVar, rankMode = 'minus', precisionPadding = '' } = options;
+	const { pid, entryVar, valueVar, precisionVar, rankMode = 'minus'} = options;
 
 	const rankLine = ( rankMode === 'bestRank' )
 		? `    ?${entryVar} a wikibase:BestRank\n`
@@ -364,7 +356,7 @@ function getTimeStatement( options: TimeStatementOptions ): string {
 	return '  OPTIONAL { \n' +
 		`    ?item p:P${pid} ?${entryVar}.\n` +
 		`    ?${entryVar} ps:P${pid} ?${valueVar}.\n` +
-		`    ?${entryVar} psv:P${pid} [wikibase:timePrecision ?${precisionVar}].${precisionPadding}\n` +
+		`    ?${entryVar} psv:P${pid} [wikibase:timePrecision ?${precisionVar}].\n` +
 		rankLine +
 		'  }\n';
 
@@ -377,13 +369,13 @@ function getPlaceStatement( options: PlaceStatementOptions ): string {
 
 	const {
 		pid, locationTypeVar, entryVar, cityVar, viaVar,
-		countryVar, countryOfVar, outputVar, cityPadding = ''
+		countryVar, countryOfVar, outputVar
 	} = options;
 
 	const reachCity = viaVar
-		? `    ?${entryVar} ps:P${pid} ?${viaVar}.${cityPadding}\n` +
+		? `    ?${entryVar} ps:P${pid} ?${viaVar}.\n` +
 			`    ?${viaVar} wdt:P131 ?${cityVar}.\n`
-		: `    ?${entryVar} ps:P${pid} ?${cityVar}.${cityPadding}\n`;
+		: `    ?${entryVar} ps:P${pid} ?${cityVar}.\n`;
 
 	return '  OPTIONAL { \n' +
 		`${getEntityValuesBinding( locationTypeVar, LOCATION_TYPES, '    ' )}\n` +
@@ -526,21 +518,25 @@ function getIdConstraints( { letterboxdId, imdbId, tmdbId, isTV }: IdConstraintP
 /**
  * Assembles a SELECT query from its clauses.
  */
-function buildQuery( { select, distinct, where, selectPadding = '', closePadding = '', groupBy }: BuildQueryOptions ): string {
+function buildQuery( { select, distinct, where, groupBy }: BuildQueryOptions ): string {
 
 	const keyword = distinct ? 'SELECT DISTINCT' : 'SELECT';
 	const variables = select.map( name => `?${name}` ).join( ' ' );
 
-	let query = `${keyword} ${variables}${selectPadding} WHERE {\n${where}}${closePadding}`;
+	let query = `${keyword} ${variables} WHERE {\n${where}}`;
 
 	if ( groupBy ) {
 
-		query += `GROUP BY ${groupBy.map( name => `?${name}` ).join( ' ' )}`;
+		query += `\nGROUP BY ${groupBy.map( name => `?${name}` ).join( ' ' )}`;
 
 	}
 
 	return query;
 
+}
+
+function buildFilmWherePrefix(params: WikiDataQueryParams) {
+	return getLabelService() + '\n' + getIdBindings(params) + getIdConstraints(params) + '\n';
 }
 
 /**
@@ -552,11 +548,7 @@ function getFilmQuery( params: WikiDataQueryParams ): string {
 	const selectName = ( property: FilmProperty ) => property.select || property.name;
 
 	const where =
-		getLabelService() +
-		'\n' +
-		getIdBindings( params ) +
-		getIdConstraints( params ) +
-		'\n' +
+		buildFilmWherePrefix(params) +
 		getWikiDataSPARQLOptionalPIDQueries( FILM_PROPERTIES ) +
 		getQuantityStatement( {
 			pid: 2130, entryVar: 'Budget_Entry', valueVar: 'Budget',
@@ -616,18 +608,13 @@ function getFilmQuery( params: WikiDataQueryParams ): string {
 function getReleaseDateQuery( params: WikiDataQueryParams ): string {
 
 	const where =
-		getLabelService() +
-		'\n' +
-		getIdBindings( params ) +
-		getIdConstraints( params ) +
-		'\n' +
+		buildFilmWherePrefix(params) +
 		getReleaseDateStatement();
 
 	return buildQuery( {
 		distinct: true,
 		select: DATE_SELECT,
 		where,
-		closePadding: ' \n',
 		groupBy: [ 'Date', 'Date_Precision', 'Date_Country', 'Date_Format', 'Date_City_Country' ]
 	} );
 
@@ -655,7 +642,7 @@ function getPersonQuery( params: WikiDataQueryParams ): string {
 		getWikiDataSPARQLOptionalPIDQuery( 345, 'IMDb_ID' ) +
 		getTimeStatement( {
 			pid: 569, entryVar: 'BirthEntry', valueVar: 'Date_Of_Birth',
-			precisionVar: 'Date_Of_Birth_Precision', rankMode: 'bestRank', precisionPadding: ' '
+			precisionVar: 'Date_Of_Birth_Precision', rankMode: 'bestRank'
 		} ) +
 		getTimeStatement( {
 			pid: 570, entryVar: 'DeathEntry', valueVar: 'Date_Of_Death',
@@ -665,13 +652,12 @@ function getPersonQuery( params: WikiDataQueryParams ): string {
 		getWikiDataSPARQLOptionalPIDQuery( 2032, 'Years_End' ) +
 		getPlaceStatement( {
 			pid: 19, locationTypeVar: 'locationType', entryVar: 'Entry', cityVar: 'BirthCity',
-			countryVar: 'Country', countryOfVar: 'Country_Of_Birth', outputVar: 'BirthCountry',
-			cityPadding: '  '
+			countryVar: 'Country', countryOfVar: 'Country_Of_Birth', outputVar: 'BirthCountry'
 		} ) +
 		getPlaceStatement( {
 			pid: 19, locationTypeVar: 'locationType2', entryVar: 'Entry', cityVar: 'BirthCity',
 			viaVar: 'BirthTemp', countryVar: 'Country', countryOfVar: 'Country_Of_Birth',
-			outputVar: 'BirthCountry', cityPadding: '  '
+			outputVar: 'BirthCountry'
 		} ) +
 		getPlaceStatement( {
 			pid: 20, locationTypeVar: 'locationType3', entryVar: 'Entry2', cityVar: 'DeathCity',
@@ -680,14 +666,13 @@ function getPersonQuery( params: WikiDataQueryParams ): string {
 		getPlaceStatement( {
 			pid: 20, locationTypeVar: 'locationType4', entryVar: 'Entry2', cityVar: 'DeathCity',
 			viaVar: 'DeathTemp', countryVar: 'Country2', countryOfVar: 'Country_Of_Death',
-			outputVar: 'DeathCountry', cityPadding: '  '
+			outputVar: 'DeathCountry'
 		} ) +
 		getWikipediaStatement( params );
 
 	return buildQuery( {
 		distinct: true,
 		select: PERSON_SELECT,
-		selectPadding: ' ',
 		where
 	} );
 
@@ -710,6 +695,10 @@ function getLostFilmsQuery(): string {
 
 /**
  * Builds the SPARQL text for one of the known query types.
+ * PERSON: Will get data about the specified person. Should only execute on a cast/crew page.
+ * LOSTFILMS: Will get data about a person's lost films. Should only execute on a cast/crew page.
+ * FILM: Will get data about a film
+ * DATE: Will get data about a film's release date.
  *
  * @param params
  * @param [params.imdbId]
@@ -724,6 +713,7 @@ function getQuery( params: WikiDataQueryParams ): string {
 
 	switch ( params.queryType ) {
 
+		// TODO: See if this can be looped in with the film query
 		case 'DATE':
 			return getReleaseDateQuery( params );
 
